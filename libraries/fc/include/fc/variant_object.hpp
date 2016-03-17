@@ -5,6 +5,7 @@
 
 namespace fc
 {
+   using std::map;
    class mutable_variant_object;
    
    /**
@@ -66,6 +67,15 @@ namespace fc
 
       /** initializes the first key/value pair in the object */
       variant_object( string key, variant val );
+
+      template<typename T>
+      variant_object( const map<string,T>& values )
+      :_key_value( new std::vector<entry>() ) {
+         _key_value->reserve( values.size() );
+         for( const auto& item : values ) {
+            _key_value->emplace_back( entry( item.first, fc::variant(item.second) ) );
+         }
+      }
        
       template<typename T>
       variant_object( string key, T&& val )
@@ -196,6 +206,15 @@ namespace fc
 
       mutable_variant_object();
 
+      template<typename T>
+      mutable_variant_object( const map<string,T>& values )
+      :_key_value( new std::vector<entry>() ) {
+         _key_value->reserve( values.size() );
+         for( const auto& item : values ) {
+            _key_value->emplace_back( variant_object::entry( item.first, fc::variant(item.second) ) );
+         }
+      }
+
       /** initializes the first key/value pair in the object */
       mutable_variant_object( string key, variant val );
       template<typename T>
@@ -212,6 +231,8 @@ namespace fc
       mutable_variant_object& operator=( mutable_variant_object&& );
       mutable_variant_object& operator=( const mutable_variant_object& );
       mutable_variant_object& operator=( const variant_object& );
+
+
    private:
       std::unique_ptr< std::vector< entry > > _key_value;
       friend class variant_object;
@@ -220,5 +241,20 @@ namespace fc
    void to_variant( const mutable_variant_object& var,  variant& vo );
    /** @ingroup Serializable */
    void from_variant( const variant& var,  mutable_variant_object& vo );
+
+   template<typename T>
+   void to_variant( const std::map<string, T>& var,  variant& vo )
+   {
+       vo = variant_object( var );
+   }
+
+   template<typename T>
+   void from_variant( const variant& var,  std::map<string, T>& vo )
+   {
+      const auto& obj = var.get_object();
+      vo.clear();
+      for( auto itr = obj.begin(); itr != obj.end(); ++itr )
+         vo[itr->key()] = itr->value().as<T>();
+   }
 
 } // namespace fc

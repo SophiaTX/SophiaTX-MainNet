@@ -163,6 +163,7 @@ namespace fc
       return *this;
    }
 
+
    void to_variant( const variant_object& var,  variant& vo )
    {
       vo = variant(var);

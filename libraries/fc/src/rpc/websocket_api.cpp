@@ -74,6 +74,7 @@ std::string websocket_api_connection::on_message(
    const std::string& message,
    bool send_message /* = true */ )
 {
+   wdump((message));
    try
    {
       auto var = fc::json::from_string(message);
