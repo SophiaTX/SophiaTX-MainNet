@@ -12,8 +12,6 @@
 
 namespace fc {
    class api_connection;
-   
-   typedef uint32_t api_id_type;
 
    namespace detail {
       template<typename Signature>
@@ -67,6 +65,33 @@ namespace fc {
             return variant();
          };
       }
+
+      /**
+       * If api<T> is returned from a remote method, the API is eagerly bound to api<T> of
+       * the correct type in api_visitor::from_variant().  This binding [1] needs a reference
+       * to the api_connection, which is made available to from_variant() as a parameter.
+       *
+       * However, in the case of a remote method which returns api_base which can subsequently
+       * be cast by the caller with as<T>, we need to keep track of the connection because
+       * the binding is done later (when the client code actually calls as<T>).
+       *
+       * [1] The binding actually happens in get_remote_api().
+       */
+      class any_api : public api_base
+      {
+         public:
+            any_api( api_id_type api_id, const std::shared_ptr<fc::api_connection>& con )
+               : _api_id(api_id), _api_connection(con) {}
+
+            virtual uint64_t get_handle()const override
+            {  return _api_id;    }
+
+            virtual api_id_type register_api( api_connection& conn )const override
+            {  FC_ASSERT( false ); return api_id_type(); }
+
+            api_id_type                         _api_id;
+            std::weak_ptr<fc::api_connection>   _api_connection;
+      };
 
    } // namespace detail
 
@@ -150,6 +175,9 @@ namespace fc {
 
             template<typename Interface, typename Adaptor, typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<fc::optional<api<Interface,Adaptor>>(Args...)>& f )const;
+
+            template<typename ... Args>
+            std::function<variant(const fc::variants&)> to_generic( const std::function<fc::api_ptr(Args...)>& f )const;
 
             template<typename R, typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<R(Args...)>& f )const;
@@ -267,6 +295,15 @@ namespace fc {
                return con->get_remote_api<ResultInterface>( v.as_uint64() );
             }
 
+            static fc::api_ptr from_variant(
+               const variant& v,
+               fc::api_ptr* /* used for template deduction */,
+               const std::shared_ptr<fc::api_connection>&  con
+            )
+            {
+               return fc::api_ptr( new detail::any_api( v.as_uint64(), con ) );
+            }
+
             template<typename T>
             static fc::variant convert_callbacks( const std::shared_ptr<fc::api_connection>&, const T& v ) 
             { 
@@ -370,6 +407,24 @@ namespace fc {
          return variant();
       };
    }
+
+   template<typename ... Args>
+   std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic(
+                                               const std::function<fc::api_ptr(Args...)>& f )const
+   {
+      auto api_con = _api_con;
+      auto gapi = &api;
+      return [=]( const variants& args ) -> fc::variant {
+         auto con = api_con.lock();
+         FC_ASSERT( con, "not connected" );
+
+         auto api_result = gapi->call_generic( f, args.begin(), args.end() );
+         if( !api_result )
+            return variant();
+         return api_result->register_api( *con );
+      };
+   }
+
    template<typename R, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<R(Args...)>& f )const
    {
@@ -387,6 +442,40 @@ namespace fc {
          gapi->call_generic( f, args.begin(), args.end() ); 
          return variant();
       };
+   }
+
+   /**
+    * It is slightly unclean tight coupling to have this method in the api class.
+    * It breaks encapsulation by requiring an api class method to have a pointer
+    * to an api_connection.  The reason this is necessary is we have a goal of being
+    * able to call register_api() on an api<T> through its base class api_base.  But
+    * register_api() must know the template parameters!
+    *
+    * The only reasonable way to achieve the goal is to implement register_api()
+    * as a method in api<T> (which obviously knows the template parameter T),
+    * then make the implementation accessible through the base class (by making
+    * it a pure virtual method in the base class which is overridden by the subclass's
+    * implementation).
+    */
+   template< typename Interface, typename Transform >
+   api_id_type api< Interface, Transform >::register_api( api_connection& conn )const
+   {
+      return conn.register_api( *this );
+   }
+
+   template< typename T >
+   api<T> api_base::as()
+   {
+      // TODO:  this method should probably be const (if it is not too hard)
+      api<T>* maybe_requested_type = dynamic_cast< api<T>* >(this);
+      if( maybe_requested_type != nullptr )
+         return *maybe_requested_type;
+
+      detail::any_api* maybe_any = dynamic_cast< detail::any_api* >(this);
+      FC_ASSERT( maybe_any != nullptr );
+      std::shared_ptr< api_connection > api_conn = maybe_any->_api_connection.lock();
+      FC_ASSERT( api_conn );
+      return api_conn->get_remote_api<T>( maybe_any->_api_id );
    }
 
    namespace detail {

@@ -13,8 +13,19 @@ websocket_api_connection::websocket_api_connection( fc::http::websocket_connecti
    _rpc_state.add_method( "call", [this]( const variants& args ) -> variant
    {
       FC_ASSERT( args.size() == 3 && args[2].is_array() );
+      api_id_type api_id;
+      if( args[0].is_string() )
+      {
+         variants subargs;
+         subargs.push_back( args[0] );
+         variant subresult = this->receive_call( 1, "get_api_by_name", subargs );
+         api_id = subresult.as_uint64();
+      }
+      else
+         api_id = args[0].as_uint64();
+
       return this->receive_call(
-         args[0].as_uint64(),
+         api_id,
          args[1].as_string(),
          args[2].get_array() );
    } );
