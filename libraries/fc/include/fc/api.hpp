@@ -38,8 +38,33 @@ namespace fc {
       OtherType& _source;
   };
 
+  template<typename Interface, typename Transform >
+  class api;
+
+  class api_connection;
+
+  typedef uint32_t api_id_type;
+
+  class api_base
+  {
+     public:
+        api_base() {}
+        virtual ~api_base() {}
+
+        virtual uint64_t get_handle()const = 0;
+
+        virtual api_id_type register_api( api_connection& conn )const = 0;
+
+        // defined in api_connection.hpp
+        template< typename T >
+        api<T, identity_member> as();
+  };
+  typedef std::shared_ptr< api_base > api_ptr;
+
+  class api_connection;
+
   template<typename Interface, typename Transform = identity_member >
-  class api {
+  class api : public api_base {
     public:
       typedef vtable<Interface,Transform> vtable_type;
 
@@ -58,10 +83,12 @@ namespace fc {
       }
 
       api( const api& cpy ):_vtable(cpy._vtable),_data(cpy._data) {}
+      virtual ~api() {}
 
       friend bool operator == ( const api& a, const api& b ) { return a._data == b._data && a._vtable == b._vtable;    }
       friend bool operator != ( const api& a, const api& b ) { return !(a._data == b._data && a._vtable == b._vtable); }
-      uint64_t  get_handle()const { return uint64_t(_data.get()); }
+      virtual uint64_t get_handle()const override { return uint64_t(_data.get()); }
+      virtual api_id_type register_api( api_connection& conn )const override;    // defined in api_connection.hpp
 
       vtable_type& operator*()const  { FC_ASSERT( _vtable ); return *_vtable; }
       vtable_type* operator->()const {  FC_ASSERT( _vtable ); return _vtable.get(); }
