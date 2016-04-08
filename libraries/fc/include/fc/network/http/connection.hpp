@@ -40,11 +40,12 @@ namespace fc {
      struct request 
      {
         fc::string get_header( const fc::string& key )const;
+        fc::string              remote_endpoint;
         fc::string              method;
         fc::string              domain;
         fc::string              path;
-        std::vector<header>      headers;
-        std::vector<char>        body;
+        std::vector<header>     headers;
+        std::vector<char>       body;
      };
      
      std::vector<header> parse_urlencoded_params( const fc::string& f );

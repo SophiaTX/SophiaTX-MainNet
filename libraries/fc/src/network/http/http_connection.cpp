@@ -134,6 +134,7 @@ fc::tcp_socket& connection::get_socket()const {
 
 http::request    connection::read_request()const {
   http::request req;
+  req.remote_endpoint = fc::variant(get_socket().remote_endpoint()).as_string();
   std::vector<char> line(1024*8);
   int s = my->read_until( line.data(), line.data()+line.size(), ' ' ); // METHOD
   req.method = line.data();
