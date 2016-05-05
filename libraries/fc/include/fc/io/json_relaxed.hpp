@@ -123,6 +123,7 @@ namespace fc { namespace json_relaxed
                            char c2 = in.peek();
                            if( c2 == q )
                            {
+                               in.get();
                                char c3 = in.peek();
                                if( c3 == q )
                                {
