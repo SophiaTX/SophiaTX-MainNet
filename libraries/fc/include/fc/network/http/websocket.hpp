@@ -76,7 +76,7 @@ namespace fc { namespace http {
    class websocket_client
    {
       public:
-         websocket_client();
+         websocket_client( const std::string& ca_filename = "_default" );
          ~websocket_client();
 
          websocket_connection_ptr connect( const std::string& uri );
@@ -88,7 +88,7 @@ namespace fc { namespace http {
    class websocket_tls_client
    {
       public:
-         websocket_tls_client();
+         websocket_tls_client( const std::string& ca_filename = "_default" );
          ~websocket_tls_client();
 
          websocket_connection_ptr connect( const std::string& uri );

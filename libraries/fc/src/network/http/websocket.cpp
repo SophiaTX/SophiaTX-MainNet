@@ -457,6 +457,7 @@ namespace fc { namespace http {
             fc::thread&                        _client_thread;
             websocket_client_type              _client;
             websocket_connection_ptr           _connection;
+            std::string                        _uri;
       };
 
 
@@ -466,9 +467,13 @@ namespace fc { namespace http {
          public:
             typedef websocket_tls_client_type::message_ptr message_ptr;
 
-            websocket_tls_client_impl()
+            websocket_tls_client_impl( const std::string& ca_filename )
             :_client_thread( fc::thread::current() )
             {
+                // ca_filename has special values:
+                // "_none" disables cert checking (potentially insecure!)
+                // "_default" uses default CA's provided by OS
+
                 _client.clear_access_channels( websocketpp::log::alevel::all );
                 _client.set_message_handler( [&]( connection_hdl hdl, message_ptr msg ){
                    _client_thread.async( [&](){
@@ -505,6 +510,22 @@ namespace fc { namespace http {
                        _closed->set_value();
                 });
 
+                //
+                // We need ca_filename to be copied into the closure, as the referenced object might be destroyed by the caller by the time
+                // tls_init_handler() is called.  According to [1], capture-by-value results in the desired behavior (i.e. creation of
+                // a copy which is stored in the closure) on standards compliant compilers, but some compilers on some optimization levels
+                // are buggy and are not standards compliant in this situation.  Also, keep in mind this is the opinion of a single forum
+                // poster and might be wrong.
+                //
+                // To be safe, the following line explicitly creates a non-reference string which is captured by value, which should have the
+                // correct behavior on all compilers.
+                //
+                // [1] http://www.cplusplus.com/forum/general/142165/
+                // [2] http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
+                //
+
+                std::string ca_filename_copy = ca_filename;
+
                 _client.set_tls_init_handler( [=](websocketpp::connection_hdl) {
                    context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::tlsv1);
                    try {
@@ -512,6 +533,8 @@ namespace fc { namespace http {
                       boost::asio::ssl::context::no_sslv2 |
                       boost::asio::ssl::context::no_sslv3 |
                       boost::asio::ssl::context::single_dh_use);
+
+                      setup_peer_verify( ctx, ca_filename_copy );
                    } catch (std::exception& e) {
                       edump((e.what()));
                       std::cout << e.what() << std::endl;
@@ -531,12 +554,32 @@ namespace fc { namespace http {
                   _closed->wait();
                }
             }
+
+            std::string get_host()const
+            {
+               return websocketpp::uri( _uri ).get_host();
+            }
+
+            void setup_peer_verify( context_ptr& ctx, const std::string& ca_filename )
+            {
+               if( ca_filename == "_none" )
+                  return;
+               ctx->set_verify_mode( boost::asio::ssl::verify_peer );
+               if( ca_filename == "_default" )
+                  ctx->set_default_verify_paths();
+               else
+                  ctx->load_verify_file( ca_filename );
+               ctx->set_verify_depth(10);
+               ctx->set_verify_callback( boost::asio::ssl::rfc2818_verification( get_host() ) );
+            }
+
             bool                               _shutting_down = false;
             fc::promise<void>::ptr             _connected;
             fc::promise<void>::ptr             _closed;
             fc::thread&                        _client_thread;
-            websocket_tls_client_type              _client;
+            websocket_tls_client_type          _client;
             websocket_connection_ptr           _connection;
+            std::string                        _uri;
       };
 
 
@@ -588,12 +631,12 @@ namespace fc { namespace http {
    }
 
 
-   websocket_tls_client::websocket_tls_client():my( new detail::websocket_tls_client_impl() ) {}
+   websocket_tls_client::websocket_tls_client( const std::string& ca_filename ):my( new detail::websocket_tls_client_impl( ca_filename ) ) {}
    websocket_tls_client::~websocket_tls_client(){ }
 
 
 
-   websocket_client::websocket_client():my( new detail::websocket_client_impl() ),smy(new detail::websocket_tls_client_impl()) {}
+   websocket_client::websocket_client( const std::string& ca_filename ):my( new detail::websocket_client_impl() ),smy(new detail::websocket_tls_client_impl( ca_filename )) {}
    websocket_client::~websocket_client(){ }
 
    websocket_connection_ptr websocket_client::connect( const std::string& uri )
@@ -605,6 +648,7 @@ namespace fc { namespace http {
        // wlog( "connecting to ${uri}", ("uri",uri));
        websocketpp::lib::error_code ec;
 
+       my->_uri = uri;
        my->_connected = fc::promise<void>::ptr( new fc::promise<void>("websocket::connect") );
 
        my->_client.set_open_handler( [=]( websocketpp::connection_hdl hdl ){
@@ -631,6 +675,7 @@ namespace fc { namespace http {
        // wlog( "connecting to ${uri}", ("uri",uri));
        websocketpp::lib::error_code ec;
 
+       smy->_uri = uri;
        smy->_connected = fc::promise<void>::ptr( new fc::promise<void>("websocket::connect") );
 
        smy->_client.set_open_handler( [=]( websocketpp::connection_hdl hdl ){
