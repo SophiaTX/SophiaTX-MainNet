@@ -93,7 +93,7 @@ endif ( WIN32 )
 IF( WIN32 )
   MESSAGE(STATUS "Configuring fc to build on Win32")
 
-  set( RPCRT4 Rpcrt4 )
+  set( RPCRT4 rpcrt4 )
 
   #boost
   SET(BOOST_ROOT $ENV{BOOST_ROOT})
@@ -110,7 +110,7 @@ IF( WIN32 )
     SET(Boost_LIBRARIES ${BOOST_LIBRARIES_TEMP} ${Boost_LIBRARIES})
   ENDIF()
 
-  set( PLATFORM_SPECIFIC_LIBS WS2_32.lib Userenv.lib)
+  set( PLATFORM_SPECIFIC_LIBS wsock32.lib ws2_32.lib userenv.lib)
   # iphlpapi.lib
 
 ELSE(WIN32)
@@ -272,9 +272,13 @@ IF(WIN32)
     # autodetecting code to do the right thing.
     _WEBSOCKETPP_CPP11_CHRONO_
   )
-  # Activate C++ exception handling, assume extern C calls don't throw
-  # Add /U options to be sure settings specific to dynamic boost link are ineffective
-  target_compile_options(fc PUBLIC /EHsc /UBOOST_ALL_DYN_LINK /UBOOST_LINKING_PYTHON /UBOOST_DEBUG_PYTHON)
+  if( MSVC )
+    # Activate C++ exception handling, assume extern C calls don't throw
+    # Add /U options to be sure settings specific to dynamic boost link are ineffective
+    target_compile_options(fc PUBLIC /EHsc /UBOOST_ALL_DYN_LINK /UBOOST_LINKING_PYTHON /UBOOST_DEBUG_PYTHON)
+  elseif( MINGW )
+     # Put MinGW specific compiler settings here
+  endif()
 ELSE()
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall")
 
@@ -297,6 +301,7 @@ target_include_directories(fc
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${Boost_INCLUDE_DIR}
     ${OPENSSL_INCLUDE_DIR}
+    "vendor/diff-match-patch-cpp-stl"
     "${readline_includes}"
 
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -319,11 +324,11 @@ endif(MSVC)
 
 
 IF(NOT Boost_UNIT_TEST_FRAMEWORK_LIBRARY MATCHES "\\.(a|lib)$")
-IF(WIN32)
+IF(MSVC)
 add_definitions(/DBOOST_TEST_DYN_LINK)
-ELSE(WIN32)
+ELSE(MSVC)
 add_definitions(-DBOOST_TEST_DYN_LINK)
-ENDIF(WIN32)
+ENDIF(MSVC)
 ENDIF()
 
 add_executable( api tests/api.cpp )
@@ -489,8 +494,15 @@ ELSE()
 ENDIF()
 
     IF(WIN32)
-SET(POST_BUILD_STEP_COMMANDS ${POST_BUILD_STEP_COMMANDS}
-     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${OPENSSL_ROOT_DIR}/ssl/openssl.cnf" "${OPENSSL_CONF_TARGET}/openssl.cnf")
+       IF("${OPENSSL_ROOT_DIR}" STREQUAL "")
+          get_filename_component(OPENSSL_ROOT_DIR "${OPENSSL_INCLUDE_DIR}/.." REALPATH)
+       ENDIF()
+       SET(OPENSSL_CONF_SOURCE "${OPENSSL_ROOT_DIR}/ssl/openssl.cnf")
+       IF(MINGW)
+          SET(OPENSSL_CONF_SOURCE "${OPENSSL_ROOT_DIR}/openssl.cnf")
+       ENDIF(MINGW)
+       SET(POST_BUILD_STEP_COMMANDS ${POST_BUILD_STEP_COMMANDS}
+           COMMAND ${CMAKE_COMMAND} -E copy_if_different "${OPENSSL_CONF_SOURCE}" "${OPENSSL_CONF_TARGET}/openssl.cnf")
     ENDIF(WIN32)
 
 ADD_CUSTOM_COMMAND(TARGET fc POST_BUILD ${POST_BUILD_STEP_COMMANDS}
