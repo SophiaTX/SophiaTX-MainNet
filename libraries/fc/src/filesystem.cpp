@@ -11,10 +11,10 @@
 #include <boost/config.hpp>
 #include <boost/filesystem.hpp>
 
-#ifdef WIN32
-# include <Windows.h>
-# include <UserEnv.h>
-# include <ShlObj.h>
+#ifdef _WIN32
+# include <windows.h>
+# include <userenv.h>
+# include <shlobj.h>
 #else
   #include <sys/types.h>
   #include <sys/stat.h>

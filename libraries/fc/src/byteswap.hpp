@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 # include <stdlib.h>
 # define bswap_64(x) _byteswap_uint64(x)
 #elif defined(__APPLE__)

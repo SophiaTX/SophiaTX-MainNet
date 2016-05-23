@@ -8,7 +8,7 @@
 #include <fc/exception/exception.hpp>
 
 #if defined _WIN32 || defined WIN32 || defined OS_WIN64 || defined _WIN64 || defined WIN64 || defined WINNT
-# include <MSTcpIP.h>
+# include <mstcpip.h>
 #endif
 
 namespace fc {

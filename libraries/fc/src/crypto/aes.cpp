@@ -16,8 +16,8 @@
 #endif
 #include <openssl/crypto.h>
 
-#if defined(_MSC_VER)
-# include <Windows.h>
+#if defined(_WIN32)
+# include <windows.h>
 #endif
 
 namespace fc {
@@ -396,7 +396,7 @@ boost::mutex*         openssl_thread_config::openssl_mutexes = nullptr;
 
 unsigned long openssl_thread_config::get_thread_id()
 {
-#ifdef _MSC_VER
+#ifdef _WIN32
   return (unsigned long)::GetCurrentThreadId();
 #else
   return (unsigned long)(&fc::thread::current());    // TODO: should expose boost thread id

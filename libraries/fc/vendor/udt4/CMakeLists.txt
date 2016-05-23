@@ -2,7 +2,7 @@
 IF( APPLE )
    add_definitions( -DOSX )
 ELSEIF( WIN32 )
-
+   add_definitions( -DWIN32 )
 ELSE()
    add_definitions( -DLINUX )
 ENDIF() 

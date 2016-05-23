@@ -5,7 +5,7 @@
 #include "thread_d.hpp"
 
 #if defined(_MSC_VER) && !defined(NDEBUG)
-# include <Windows.h>
+# include <windows.h>
 const DWORD MS_VC_EXCEPTION=0x406D1388;
 
 #pragma pack(push,8)

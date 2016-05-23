@@ -5,7 +5,7 @@
 #include <fc/crypto/openssl.hpp>
 #include <fc/crypto/ripemd160.hpp>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 # include <malloc.h>
 #else
 # include <alloca.h>

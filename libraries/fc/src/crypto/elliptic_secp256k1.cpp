@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <secp256k1.h>
 
-#ifdef _MSC_VER
+#if _WIN32
 # include <malloc.h>
 #else
 # include <alloca.h>
