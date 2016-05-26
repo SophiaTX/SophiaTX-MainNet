@@ -49,7 +49,7 @@ ELSE( ECC_IMPL STREQUAL openssl )
 ENDIF( ECC_IMPL STREQUAL openssl )
 
 # Configure secp256k1-zkp
-if ( WIN32 )
+if ( MSVC )
     # autoconf won't work here, hard code the defines
     set( SECP256K1_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp" )
 
@@ -65,8 +65,18 @@ if ( WIN32 )
         USE_SCALAR_8X32
         USE_SCALAR_INV_BUILTIN )
     set_target_properties( secp256k1 PROPERTIES COMPILE_DEFINITIONS "${SECP256K1_BUILD_DEFINES}" LINKER_LANGUAGE C )
-else ( WIN32 )
+else ( MSVC )
     include(ExternalProject)
+    if ( MINGW )
+    ExternalProject_Add( project_secp256k1
+     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp
+     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
+     CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp/configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp --with-bignum=no  --host=x86_64-w64-mingw32
+     BUILD_COMMAND make
+     INSTALL_COMMAND true
+     BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp/src/project_secp256k1-build/.libs/libsecp256k1.a
+    )
+    else ( MINGW )
     ExternalProject_Add( project_secp256k1
      PREFIX ${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp
      SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
@@ -75,6 +85,7 @@ else ( WIN32 )
      INSTALL_COMMAND true
      BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/vendor/secp256k1-zkp/src/project_secp256k1-build/.libs/libsecp256k1.a
     )
+    endif ( MINGW )
     ExternalProject_Add_Step(project_secp256k1 autogen
      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp/autogen.sh
@@ -87,7 +98,7 @@ else ( WIN32 )
     set_property(TARGET secp256k1 PROPERTY IMPORTED_LOCATION ${binary_dir}/.libs/libsecp256k1${CMAKE_STATIC_LIBRARY_SUFFIX})
     set_property(TARGET secp256k1 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp/include)
     add_dependencies(secp256k1 project_secp256k1)
-endif ( WIN32 )
+endif ( MSVC )
 # End configure secp256k1-zkp
 
 IF( WIN32 )
