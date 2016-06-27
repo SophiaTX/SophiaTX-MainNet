@@ -1,15 +1,18 @@
 #include <fc/uint128.hpp>
 #include <fc/variant.hpp>
 #include <fc/crypto/bigint.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include <stdexcept>
 #include "byteswap.hpp"
 
 namespace fc 
 {
+    typedef boost::multiprecision::uint128_t  m128;
+
     template <typename T>
     static void divide(const T &numerator, const T &denominator, T &quotient, T &remainder) 
     {
-
       static const int bits = sizeof(T) * 8;//CHAR_BIT;
 
       if(denominator == 0) {
@@ -220,8 +223,27 @@ namespace fc
 
     uint128& uint128::operator/=(const uint128 &b) 
     {
+        auto self = (m128(hi) << 64) + m128(lo);
+        auto other = (m128(b.hi) << 64) + m128(b.lo);
+        self /= other;
+        hi = static_cast<uint64_t>(self >> 64);
+        lo = static_cast<uint64_t>((self << 64 ) >> 64);
+
+        /*
         uint128 remainder;
-        divide(*this, b, *this, remainder);
+        divide(*this, b, *this, remainder ); //, *this);
+        if( tmp.hi != hi || tmp.lo != lo ) {
+           std::cerr << tmp.hi << "  " << hi <<"\n";
+           std::cerr << tmp.lo << "  " << lo << "\n";
+           exit(1);
+        }
+        */
+       
+        /*
+        const auto&  b128 = std::reinterpret_cast<const m128&>(b);
+        auto&     this128 = std::reinterpret_cast<m128&>(*this);
+        this128 /= b128;
+        */
         return *this;
     }
 

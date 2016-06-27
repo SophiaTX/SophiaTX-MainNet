@@ -140,10 +140,12 @@ namespace fc {
 
     /// If cleanup is true, do not use the return value; it is a null reference
     boost::asio::io_service& default_io_service(bool cleanup) {
-        static default_io_service_scope fc_asio_service;
-        if (cleanup)
-           fc_asio_service.cleanup();
-        return *fc_asio_service.io;
+        static default_io_service_scope fc_asio_service[4];
+        if (cleanup) {
+           for( int i = 0; i < 4; ++i )
+              fc_asio_service[i].cleanup();
+        }
+        return *fc_asio_service[0].io;
     }
 
     namespace tcp {

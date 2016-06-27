@@ -309,7 +309,7 @@ namespace fc {
     try
     {
       my->_accept.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4(), port));
-      my->_accept.listen();
+      my->_accept.listen(256);
     } 
     FC_RETHROW_EXCEPTIONS(warn, "error listening on socket");
   }
