@@ -204,6 +204,11 @@ namespace fc { namespace http {
                     }).wait();
                });
 
+               _server.set_socket_init_handler( [&](websocketpp::connection_hdl hdl, boost::asio::ip::tcp::socket& s ) {
+                      boost::asio::ip::tcp::no_delay option(true);
+                      s.lowest_layer().set_option(option);
+               } );
+
                _server.set_http_handler( [&]( connection_hdl hdl ){
                     _server_thread.async( [&](){
                        auto current_con = std::make_shared<websocket_connection_impl<websocket_server_type::connection_ptr>>( _server.get_con_from_hdl(hdl) );

@@ -93,45 +93,51 @@ namespace fc {
     struct default_io_service_scope
     {
        boost::asio::io_service*          io;
-       boost::thread*                    asio_thread;
+       std::vector<boost::thread*>       asio_threads;
        boost::asio::io_service::work*    the_work;
 
        default_io_service_scope()
        {
             io           = new boost::asio::io_service();
             the_work     = new boost::asio::io_service::work(*io);
-            asio_thread  = new boost::thread( [=]()
-            {
-              fc::thread::current().set_name("asio");
-              while (!io->stopped())
-              {
-                try
-                {
-                  io->run();
-                }
-                catch (const fc::exception& e)
-                {
-                  elog("Caught unhandled exception in asio service loop: ${e}", ("e", e));
-                }
-                catch (const std::exception& e)
-                {
-                  elog("Caught unhandled exception in asio service loop: ${e}", ("e", e.what()));
-                }
-                catch (...)
-                {
-                  elog("Caught unhandled exception in asio service loop");
-                }
-              }
-            });
+            for( int i = 0; i < 8; ++i ) {
+               asio_threads.push_back( new boost::thread( [=]()
+               {
+                 fc::thread::current().set_name("asio");
+                 while (!io->stopped())
+                 {
+                   try
+                   {
+                     io->run();
+                   }
+                   catch (const fc::exception& e)
+                   {
+                     elog("Caught unhandled exception in asio service loop: ${e}", ("e", e));
+                   }
+                   catch (const std::exception& e)
+                   {
+                     elog("Caught unhandled exception in asio service loop: ${e}", ("e", e.what()));
+                   }
+                   catch (...)
+                   {
+                     elog("Caught unhandled exception in asio service loop");
+                   }
+                 }
+               }) );
+            }
        }
 
        void cleanup()
        {
           delete the_work;
           io->stop();
-          asio_thread->join();
+          for( auto asio_thread : asio_threads ) {
+             asio_thread->join();
+          }
           delete io;
-          delete asio_thread;
+          for( auto asio_thread : asio_threads ) {
+             delete asio_thread;
+          }
        }
 
        ~default_io_service_scope()
@@ -140,9 +146,9 @@ namespace fc {
 
     /// If cleanup is true, do not use the return value; it is a null reference
     boost::asio::io_service& default_io_service(bool cleanup) {
-        static default_io_service_scope fc_asio_service[4];
+        static default_io_service_scope fc_asio_service[1];
         if (cleanup) {
-           for( int i = 0; i < 4; ++i )
+           for( int i = 0; i < 1; ++i )
               fc_asio_service[i].cleanup();
         }
         return *fc_asio_service[0].io;
