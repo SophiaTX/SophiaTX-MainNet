@@ -517,24 +517,64 @@ namespace fc
       {
          switch( *itr )
          {
-            case '\t':
-               os << "\\t";
+            case '\a':        // \x07
+               os << "\\a";
                break;
-            case '\n':
+            case '\b':        // \x08
+               os << "\\b";
+               break;
+            case '\f':        // \x0c
+               os << "\\f";
+               break;
+            case '\n':        // \x0a
                os << "\\n";
+               break;
+            case '\r':        // \x0d
+               os << "\\r";
+               break;
+            case '\t':        // \x09
+               os << "\\t";
                break;
             case '\\':
                os << "\\\\";
                break;
-            case '\r':
-               os << "\\r";
-               break;
-            case '\a':
-               os << "\\a";
-               break;
             case '\"':
                os << "\\\"";
                break;
+            case '\x00': os << "\\u0000"; break;
+            case '\x01': os << "\\u0001"; break;
+            case '\x02': os << "\\u0002"; break;
+            case '\x03': os << "\\u0003"; break;
+            case '\x04': os << "\\u0004"; break;
+            case '\x05': os << "\\u0005"; break;
+            case '\x06': os << "\\u0006"; break;
+         // case '\x07': os << "\\u0007"; break; // \a
+         // case '\x08': os << "\\u0008"; break; // \b
+         // case '\x09': os << "\\u0009"; break; // \t
+         // case '\x0a': os << "\\u000a"; break; // \n
+            case '\x0b': os << "\\u000b"; break;
+         // case '\x0c': os << "\\u000c"; break; // \f
+         // case '\x0d': os << "\\u000d"; break; // \r
+            case '\x0e': os << "\\u000e"; break;
+            case '\x0f': os << "\\u000f"; break;
+
+            case '\x10': os << "\\u0010"; break;
+            case '\x11': os << "\\u0011"; break;
+            case '\x12': os << "\\u0012"; break;
+            case '\x13': os << "\\u0013"; break;
+            case '\x14': os << "\\u0014"; break;
+            case '\x15': os << "\\u0015"; break;
+            case '\x16': os << "\\u0016"; break;
+            case '\x17': os << "\\u0017"; break;
+            case '\x18': os << "\\u0018"; break;
+            case '\x19': os << "\\u0019"; break;
+            case '\x1a': os << "\\u001a"; break;
+            case '\x1b': os << "\\u001b"; break;
+            case '\x1c': os << "\\u001c"; break;
+            case '\x1d': os << "\\u001d"; break;
+            case '\x1e': os << "\\u001e"; break;
+            case '\x1f': os << "\\u001f"; break;
+
             default:
                os << *itr;
                //toUTF8( *itr, os );
