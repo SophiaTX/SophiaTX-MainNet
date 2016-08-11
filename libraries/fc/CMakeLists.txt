@@ -382,6 +382,9 @@ target_link_libraries( udt_client fc udt )
 add_executable( ecc_test tests/crypto/ecc_test.cpp )
 target_link_libraries( ecc_test fc )
 
+add_executable( log_test tests/crypto/log_test.cpp )
+target_link_libraries( log_test fc )
+
 #add_executable( test_aes tests/aes_test.cpp )
 #target_link_libraries( test_aes fc ${rt_library} ${pthread_library} )
 #add_executable( test_sleep tests/sleep.cpp )

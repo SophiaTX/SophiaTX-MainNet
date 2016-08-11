@@ -97,7 +97,65 @@ namespace fc {
     bool operator == ( const sha256& h1, const sha256& h2 ) {
       return memcmp( h1._hash, h2._hash, sizeof(h1._hash) ) == 0;
     }
-  
+
+   uint32_t sha256::approx_log_32()const
+   {
+      uint16_t lzbits = clz();
+      if( lzbits >= 0x100 )
+         return 0;
+      uint8_t nzbits = 0xFF-lzbits;
+      size_t offset = (size_t) (lzbits >> 3);
+      uint8_t* my_bytes = (uint8_t*) data();
+      size_t n = data_size();
+      uint32_t y = (uint32_t(               my_bytes[offset  ]    ) << 0x18)
+                 | (uint32_t(offset+1 < n ? my_bytes[offset+1] : 0) << 0x10)
+                 | (uint32_t(offset+2 < n ? my_bytes[offset+2] : 0) << 0x08)
+                 | (uint32_t(offset+3 < n ? my_bytes[offset+3] : 0)        )
+                 ;
+      //
+      // lzbits&7 == 7 : 00000001 iff nzbits&7 == 0
+      // lzbits&7 == 6 : 0000001x iff nzbits&7 == 1
+      // lzbits&7 == 5 : 000001xx iff nzbits&7 == 2
+      //
+      y >>= (nzbits & 7);
+      y ^= 1 << 0x18;
+      y |= uint32_t( nzbits ) << 0x18;
+      return y;
+   }
+
+   uint16_t sha256::clz()const
+   {
+      const uint8_t* my_bytes = (uint8_t*) data();
+      size_t size = data_size();
+      size_t lzbits = 0;
+      static const uint8_t char2lzbits[] = {
+     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+        8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+       };
+
+      size_t i = 0;
+
+      while( true )
+      {
+         uint8_t c = my_bytes[i];
+         lzbits += char2lzbits[c];
+         if( c != 0 )
+            break;
+         ++i;
+         if( i >= size )
+            return 0x100;
+      }
+
+      return lzbits;
+   }
+
   void to_variant( const sha256& bi, variant& v )
   {
      v = std::vector<char>( (const char*)&bi, ((const char*)&bi) + sizeof(bi) );

@@ -68,15 +68,31 @@ class sha256
     friend bool   operator >  ( const sha256& h1, const sha256& h2 ); 
     friend bool   operator <  ( const sha256& h1, const sha256& h2 ); 
 
-    uint32_t pop_count()
+    uint32_t pop_count()const
     {
        return (uint32_t)(__builtin_popcountll(_hash[0]) +
                          __builtin_popcountll(_hash[1]) +
                          __builtin_popcountll(_hash[2]) +
                          __builtin_popcountll(_hash[3])); 
     }
-                             
-    uint64_t _hash[4]; 
+
+    /**
+     * Count leading zero bits
+     */
+    uint16_t clz()const;
+
+    /**
+     * Approximate (log_2(x) + 1) * 2**24.
+     *
+     * Detailed specs:
+     * - Return 0 when x == 0.
+     * - High 8 bits of result simply counts nonzero bits.
+     * - Low 24 bits of result are the 24 bits of input immediately after the most significant 1 in the input.
+     * - If above would require reading beyond the end of the input, zeros are used instead.
+     */
+    uint32_t approx_log_32()const;
+
+    uint64_t _hash[4];
 };
 
   typedef sha256 uint256;
