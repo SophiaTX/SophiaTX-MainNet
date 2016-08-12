@@ -168,7 +168,7 @@ namespace fc {
 
          struct api_visitor
          {
-            api_visitor( generic_api& a, const std::weak_ptr<fc::api_connection>& s ):api(a),_api_con(s){ }
+            api_visitor( generic_api& a, const std::weak_ptr<fc::api_connection>& s ):_api(a),_api_con(s){ }
 
             template<typename Interface, typename Adaptor, typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface,Adaptor>(Args...)>& f )const;
@@ -187,11 +187,11 @@ namespace fc {
 
             template<typename Result, typename... Args>
             void operator()( const char* name, std::function<Result(Args...)>& memb )const {
-               api._methods.emplace_back( to_generic( memb ) ); 
-               api._by_name[name] = api._methods.size() - 1;
+               _api._methods.emplace_back( to_generic( memb ) );
+               _api._by_name[name] = _api._methods.size() - 1;
             }
 
-            generic_api&  api;
+            generic_api& _api;
             const std::weak_ptr<fc::api_connection>& _api_con;
          };
 
@@ -382,7 +382,7 @@ namespace fc {
                                                const std::function<fc::api<Interface,Adaptor>(Args...)>& f )const
    {
       auto api_con = _api_con;
-      auto gapi = &api;
+      auto gapi = &_api;
       return [=]( const variants& args ) { 
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
@@ -396,7 +396,7 @@ namespace fc {
                                                const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
    {
       auto api_con = _api_con;
-      auto gapi = &api;
+      auto gapi = &_api;
       return [=]( const variants& args )-> fc::variant { 
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
@@ -413,7 +413,7 @@ namespace fc {
                                                const std::function<fc::api_ptr(Args...)>& f )const
    {
       auto api_con = _api_con;
-      auto gapi = &api;
+      auto gapi = &_api;
       return [=]( const variants& args ) -> fc::variant {
          auto con = api_con.lock();
          FC_ASSERT( con, "not connected" );
@@ -428,7 +428,7 @@ namespace fc {
    template<typename R, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<R(Args...)>& f )const
    {
-      generic_api* gapi = &api;
+      generic_api* gapi = &_api;
       return [f,gapi]( const variants& args ) { 
          return variant( gapi->call_generic( f, args.begin(), args.end() ) ); 
       };
@@ -437,7 +437,7 @@ namespace fc {
    template<typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic( const std::function<void(Args...)>& f )const
    {
-      generic_api* gapi = &api;
+      generic_api* gapi = &_api;
       return [f,gapi]( const variants& args ) { 
          gapi->call_generic( f, args.begin(), args.end() ); 
          return variant();
