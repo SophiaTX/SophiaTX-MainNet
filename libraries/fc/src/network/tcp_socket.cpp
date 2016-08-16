@@ -154,12 +154,12 @@ namespace fc {
   {
     try
     {
-      my->_sock.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4(local_endpoint.get_address()), 
+      my->_sock.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4(local_endpoint.get_address()),
                                                                                 local_endpoint.port()));
     }
     catch (const std::exception& except)
     {
-      elog("Exception binding outgoing connection to desired local endpoint: ${what}", ("what", except.what()));
+      elog("Exception binding outgoing connection to desired local endpoint ${endpoint}: ${what}", ("endpoint", local_endpoint)("what", except.what()));
       FC_THROW("error binding to ${endpoint}: ${what}", ("endpoint", local_endpoint)("what", except.what()));
     }
   }
