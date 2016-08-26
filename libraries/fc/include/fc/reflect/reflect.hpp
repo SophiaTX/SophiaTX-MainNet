@@ -7,6 +7,7 @@
  */
 
 #include <fc/utility.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/size.hpp>
@@ -148,7 +149,16 @@ template<> struct reflector<ENUM> { \
     } \
     static ENUM from_string( const char* s ) { \
         BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_ENUM_FROM_STRING, ENUM, FIELDS ) \
-        return ENUM(atoi(s));\
+        int64_t i; \
+        try \
+        { \
+           i = boost::lexical_cast<int64_t>(s); \
+        } \
+        catch( const boost::bad_lexical_cast& e ) \
+        { \
+           fc::throw_bad_enum_cast( s, BOOST_PP_STRINGIZE(ENUM) ); \
+        } \
+        return ENUM(i);\
     } \
 };  \
 }
