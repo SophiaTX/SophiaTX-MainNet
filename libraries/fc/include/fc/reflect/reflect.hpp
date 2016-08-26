@@ -120,7 +120,8 @@ void fc::reflector<TYPE>::visit( const Visitor& v ) { \
 
 #define FC_REFLECT_ENUM_FROM_STRING( r, enum_type, elem ) \
   if( strcmp( s, BOOST_PP_STRINGIZE(elem)  ) == 0 ) return enum_type::elem;
-
+#define FC_REFLECT_ENUM_FROM_STRING_CASE( r, enum_type, elem ) \
+   case enum_type::elem:
 
 #define FC_REFLECT_ENUM( ENUM, FIELDS ) \
 namespace fc { \
@@ -158,7 +159,15 @@ template<> struct reflector<ENUM> { \
         { \
            fc::throw_bad_enum_cast( s, BOOST_PP_STRINGIZE(ENUM) ); \
         } \
-        return ENUM(i);\
+        ENUM e = ENUM(i); \
+        switch( e ) \
+        { \
+          BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_ENUM_FROM_STRING_CASE, ENUM, FIELDS ) \
+            break; \
+          default: \
+            fc::throw_bad_enum_cast( s, BOOST_PP_STRINGIZE(ENUM) ); \
+        } \
+        return e;\
     } \
 };  \
 }
