@@ -517,9 +517,6 @@ namespace fc
       {
          switch( *itr )
          {
-            case '\a':        // \x07
-               os << "\\a";
-               break;
             case '\b':        // \x08
                os << "\\b";
                break;
@@ -548,7 +545,7 @@ namespace fc
             case '\x04': os << "\\u0004"; break;
             case '\x05': os << "\\u0005"; break;
             case '\x06': os << "\\u0006"; break;
-         // case '\x07': os << "\\u0007"; break; // \a
+            case '\x07': os << "\\u0007"; break; // \a is not valid JSON
          // case '\x08': os << "\\u0008"; break; // \b
          // case '\x09': os << "\\u0009"; break; // \t
          // case '\x0a': os << "\\u000a"; break; // \n
