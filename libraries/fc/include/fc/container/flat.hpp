@@ -30,8 +30,8 @@ namespace fc {
              value.insert( std::move(tmp) );
          }
        }
-       template<typename Stream, typename K, typename V>
-       inline void pack( Stream& s, const flat_map<K,V>& value ) {
+       template<typename Stream, typename K, typename... V>
+       inline void pack( Stream& s, const flat_map<K,V...>& value ) {
          pack( s, unsigned_int((uint32_t)value.size()) );
          auto itr = value.begin();
          auto end = value.end();
@@ -40,8 +40,8 @@ namespace fc {
            ++itr;
          }
        }
-       template<typename Stream, typename K, typename V>
-       inline void unpack( Stream& s, flat_map<K,V>& value ) 
+       template<typename Stream, typename K, typename V, typename... A>
+       inline void unpack( Stream& s, flat_map<K,V,A...>& value ) 
        {
          unsigned_int size; unpack( s, size );
          value.clear();
@@ -76,8 +76,8 @@ namespace fc {
          vo.insert( itr->as<T>() );
    }
 
-   template<typename K, typename T>
-   void to_variant( const flat_map<K, T>& var,  variant& vo )
+   template<typename K, typename... T>
+   void to_variant( const flat_map<K, T...>& var,  variant& vo )
    {
        std::vector< variant > vars(var.size());
        size_t i = 0;
@@ -85,8 +85,8 @@ namespace fc {
           vars[i] = fc::variant(*itr);
        vo = vars;
    }
-   template<typename K, typename T>
-   void from_variant( const variant& var,  flat_map<K, T>& vo )
+   template<typename K, typename T, typename... A>
+   void from_variant( const variant& var,  flat_map<K, T, A...>& vo )
    {
       const variants& vars = var.get_array();
       vo.clear();

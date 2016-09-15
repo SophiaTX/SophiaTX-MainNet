@@ -4,6 +4,8 @@
 #include <fc/exception/exception.hpp>
 #include <vector>
 
+#include <iostream>
+
 #include <boost/version.hpp>
 
 #if BOOST_VERSION >= 105400
@@ -43,12 +45,17 @@ namespace fc {
   struct context  {
     typedef fc::context* ptr;
 
-#if BOOST_VERSION >= 105400
+#if BOOST_VERSION >= 105400 // && BOOST_VERSION <= 106100 
     bco::stack_context stack_ctx;
 #endif
 
+#if BOOST_VERSION >= 106100 
+    typedef bc::detail::transfer_t transfer_t;
+#else
+    typedef intptr_t transfer_t;
+#endif
 
-    context( void (*sf)(intptr_t), stack_allocator& alloc, fc::thread* t )
+    context( void (*sf)(transfer_t), stack_allocator& alloc, fc::thread* t )
     : caller_context(0),
       stack_alloc(&alloc),
       next_blocked(0), 
@@ -63,7 +70,13 @@ namespace fc {
       cur_task(0),
       context_posted_num(0)
     {
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 106100
+     //  std::cerr<< "HERE: "<< BOOST_VERSION <<"\n";
+     //my_context = new bc::execution_context<intptr_t>( [=]( bc::execution_context<intptr_t> sink, intptr_t self  ){ std::cerr<<"in ex\n"; sf(self);  std::cerr<<"exit ex\n"; return sink; } );
+     size_t stack_size = FC_CONTEXT_STACK_SIZE;
+     alloc.allocate(stack_ctx, stack_size);
+     my_context = bc::detail::make_fcontext( stack_ctx.sp, stack_ctx.size, sf );
+#elif BOOST_VERSION >= 105600
      size_t stack_size = FC_CONTEXT_STACK_SIZE;
      alloc.allocate(stack_ctx, stack_size);
      my_context = bc::make_fcontext( stack_ctx.sp, stack_ctx.size, sf); 
@@ -84,7 +97,7 @@ namespace fc {
     }
 
     context( fc::thread* t) :
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 105600 && BOOST_VERSION <= 106100 
      my_context(nullptr),
 #elif BOOST_VERSION >= 105300
      my_context(new bc::fcontext_t),
@@ -102,10 +115,21 @@ namespace fc {
      complete(false),
      cur_task(0),
      context_posted_num(0)
-    {}
+    {
+    
+#if BOOST_VERSION >= 106100
+       /*
+        bc::execution_context<intptr_t> tmp(  [=]( bc::execution_context<intptr_t> sink, intptr_t ) { std::cerr<<"get current\n"; return sink; } );
+        auto result = tmp(0);
+        my_context = new bc::execution_context<intptr_t>( std::move( std::get<0>(result) ) );
+        */
+#endif
+    }
 
     ~context() {
-#if BOOST_VERSION >= 105600
+#if BOOST_VERSION >= 106100
+      // delete my_context;
+#elif BOOST_VERSION >= 105600
       if(stack_alloc)
         stack_alloc->deallocate( stack_ctx );
 #elif BOOST_VERSION >= 105400
@@ -209,7 +233,11 @@ namespace fc {
 
 
 
-#if BOOST_VERSION >= 105300 && BOOST_VERSION < 105600
+
+#if BOOST_VERSION >= 106100 
+    //bc::execution_context<intptr_t>*   my_context;
+    bc::detail::fcontext_t       my_context;
+#elif BOOST_VERSION >= 105300 && BOOST_VERSION < 105600
     bc::fcontext_t*              my_context;
 #else
     bc::fcontext_t               my_context;
