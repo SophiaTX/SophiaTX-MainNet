@@ -1,10 +1,8 @@
 #pragma once
 #include <fc/io/raw_fwd.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
 
 
 namespace fc {
-    typedef boost::multiprecision::uint128_t  m128;
 
 
    /**
