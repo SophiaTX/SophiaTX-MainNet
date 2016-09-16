@@ -23,7 +23,6 @@ namespace fc {
             if( str.size() <= sizeof(data) )
                memcpy( (char*)&data, str.c_str(), str.size() );
             else {
-               wlog( "truncating string '${str}'", ("str",str) );
                memcpy( (char*)&data, str.c_str(), sizeof(data) );
             }
          }
@@ -32,7 +31,6 @@ namespace fc {
             if( l <= sizeof(data) )
                memcpy( (char*)&data, str, l );
             else {
-               wlog( "truncating string '${str}'", ("str",str) );
                memcpy( (char*)&data, str, sizeof(data) );
             }
          }
@@ -63,7 +61,6 @@ namespace fc {
                memcpy( (char*)&data, str.c_str(), str.size() );
             }
             else {
-               wlog( "truncating string '${str}'", ("str",str) );
                memcpy( (char*)&data, str.c_str(), sizeof(data) );
             }
             return *this;
