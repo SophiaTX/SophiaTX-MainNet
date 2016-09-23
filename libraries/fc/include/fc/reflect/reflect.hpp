@@ -112,7 +112,7 @@ void fc::reflector<TYPE>::visit( const Visitor& v ) { \
 
 
 #define FC_REFLECT_VISIT_ENUM( r, enum_type, elem ) \
-  v.TEMPLATE operator()<enum_type::elem>(BOOST_PP_STRINGIZE(elem));
+  v.operator()(BOOST_PP_STRINGIZE(elem), int64_t(enum_type::elem) );
 #define FC_REFLECT_ENUM_TO_STRING( r, enum_type, elem ) \
    case enum_type::elem: return BOOST_PP_STRINGIZE(elem);
 #define FC_REFLECT_ENUM_TO_FC_STRING( r, enum_type, elem ) \
@@ -172,7 +172,13 @@ template<> struct reflector<ENUM> { \
         } \
         return from_int(i); \
     } \
+    template< typename Visitor > \
+    static void visit( Visitor& v ) \
+    { \
+        BOOST_PP_SEQ_FOR_EACH( FC_REFLECT_VISIT_ENUM, ENUM, FIELDS ) \
+    } \
 };  \
+template<> struct get_typename<ENUM>  { static const char* name()  { return BOOST_PP_STRINGIZE(ENUM);  } }; \
 }
 
 /*  Note: FC_REFLECT_ENUM previously defined this function, but I don't think it ever
