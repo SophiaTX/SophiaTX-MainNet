@@ -111,7 +111,14 @@ namespace fc {
        if( size.value > 0 ) {
           if( size.value > sizeof(Storage) ) {
              s.read( (char*)&u.data, sizeof(Storage) );
-             s.skip( size.value - sizeof(Storage) );
+             char buf[1024];
+             size_t left = size.value - sizeof(Storage);
+             while( left >= 1024 )
+             {
+                s.read( buf, 1024 );
+                left -= 1024;
+             }
+             s.read( buf, left );
 
              /*
              s.seekp( s.tellp() + (size.value - sizeof(Storage)) );
