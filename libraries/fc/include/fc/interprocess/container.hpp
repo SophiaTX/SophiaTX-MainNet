@@ -1,14 +1,13 @@
 #pragma once
 
-#include <fc/io/raw.hpp>
 #include <fc/variant.hpp>
-
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/containers/map.hpp>
 #include <boost/interprocess/containers/flat_map.hpp>
 #include <boost/interprocess/containers/deque.hpp>
+#include <fc/io/raw_fwd.hpp>
 
 
 namespace fc {
@@ -72,4 +71,27 @@ namespace fc {
          from_variant( vars[i], d[i] );
       }
     }
+
+   namespace raw {
+       namespace bip = boost::interprocess;
+
+       template<typename Stream, typename T, typename... A>
+       inline void pack( Stream& s, const bip::vector<T,A...>& value ) {
+         pack( s, unsigned_int((uint32_t)value.size()) );
+         auto itr = value.begin();
+         auto end = value.end();
+         while( itr != end ) {
+           fc::raw::pack( s, *itr );
+           ++itr;
+         }
+       }
+       template<typename Stream, typename T, typename... A>
+       inline void unpack( Stream& s, bip::vector<T,A...>& value ) {
+         unsigned_int size;
+         unpack( s, size );
+         value.clear(); value.resize(size);
+         for( auto& item : value )
+             fc::raw::unpack( s, item );
+       }
+   }
 }
