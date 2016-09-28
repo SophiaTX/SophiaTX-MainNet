@@ -7,7 +7,7 @@ namespace fc {
 
    /**
     *  This class is designed to offer in-place memory allocation of a string up to Length equal to
-    *  sizeof(Storage).  
+    *  sizeof(Storage).
     *
     *  The string will serialize the same way as std::string for variant and raw formats
     *  The string will sort according to the comparison operators defined for Storage, this enables effecient
@@ -27,7 +27,7 @@ namespace fc {
             }
          }
          fixed_string( const char* str ) {
-            int l = strlen(str);
+            auto l = strlen(str);
             if( l <= sizeof(data) )
                memcpy( (char*)&data, str, l );
             else {
@@ -35,7 +35,7 @@ namespace fc {
             }
          }
 
-         operator std::string()const { 
+         operator std::string()const {
             const char* self = (const char*)&data;
             return std::string( self, self + size() );
          }
@@ -98,15 +98,15 @@ namespace fc {
   namespace raw
   {
     template<typename Stream, typename Storage>
-    inline void pack( Stream& s, const fc::fixed_string<Storage>& u ) { 
+    inline void pack( Stream& s, const fc::fixed_string<Storage>& u ) {
        unsigned_int size = u.size();
        pack( s, size );
        s.write( (const char*)&u.data, size );
     }
 
     template<typename Stream, typename Storage>
-    inline void unpack( Stream& s, fc::fixed_string<Storage>& u ) { 
-       unsigned_int size; 
+    inline void unpack( Stream& s, fc::fixed_string<Storage>& u ) {
+       unsigned_int size;
        fc::raw::unpack( s, size );
        if( size.value > 0 ) {
           if( size.value > sizeof(Storage) ) {
@@ -133,7 +133,7 @@ namespace fc {
     }
 
     template<typename Stream, typename... Args>
-    inline void unpack( Stream& s, boost::multiprecision::number<Args...>& u ) { 
+    inline void unpack( Stream& s, boost::multiprecision::number<Args...>& u ) {
        s.read( (const char*)&u, sizeof(u) );
     }
     */
