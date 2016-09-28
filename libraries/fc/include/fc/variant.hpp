@@ -312,6 +312,12 @@ namespace fc
            return tmp;
         }
 
+        template<typename T>
+        void as( T& v )const
+        {
+           from_variant( *this, v );
+        }
+
         variant& operator=( variant&& v );
         variant& operator=( const variant& v );
 
