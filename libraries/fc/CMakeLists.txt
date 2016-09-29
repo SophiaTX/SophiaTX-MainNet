@@ -323,6 +323,7 @@ if( ZLIB_FOUND )
   add_definitions( -DHAS_ZLIB )
 else()
   MESSAGE( STATUS "zlib not found" )
+  set( ZLIB_LIBRARIES "" )
 endif( ZLIB_FOUND )
 
 find_package( BZip2 )
@@ -331,6 +332,7 @@ if( BZIP2_FOUND )
    add_definitions( -DHAS_BZIP2 )
 else()
    MESSAGE( STATUS "bzip2 not found" )
+   set( BZIP2_LIBRARIES "" )
 endif( BZIP2_FOUND )
 
 # This will become unnecessary once we update to websocketpp which fixes upstream issue #395
