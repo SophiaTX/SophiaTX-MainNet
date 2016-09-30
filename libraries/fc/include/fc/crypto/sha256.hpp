@@ -92,6 +92,8 @@ class sha256
      */
     uint32_t approx_log_32()const;
 
+    void set_to_inverse_approx_log_32( uint32_t x );
+
     uint64_t _hash[4];
 };
 
