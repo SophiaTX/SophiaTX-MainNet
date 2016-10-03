@@ -22,7 +22,7 @@ namespace fc
     {
       if (slot + 1 > specific_data->size())
         specific_data->resize(slot + 1);
-      (*specific_data)[slot] = std::move(detail::specific_data_info(new_value, cleanup));
+      (*specific_data)[slot] = detail::specific_data_info(new_value, cleanup);
     }
 
     void* get_thread_specific_data(unsigned slot)

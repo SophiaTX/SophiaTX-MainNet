@@ -76,7 +76,7 @@ namespace fc
                     const std::string& what_value = "unspecified");
          exception( const exception& e );
          exception( exception&& e );
-         ~exception();
+         virtual ~exception();
 
          const char*          name()const throw();
          int64_t              code()const throw();
