@@ -3,6 +3,7 @@
 #include <fc/fwd_impl.hpp>
 #include <openssl/sha.h>
 #include <string.h>
+#include <cmath>
 #include <fc/crypto/sha256.hpp>
 #include <fc/variant.hpp>
 #include <fc/exception/exception.hpp>
@@ -148,6 +149,16 @@ namespace fc {
       else
          (*this) = (*this) << (nzbits - 0x18);
       return;
+   }
+
+   double sha256::inverse_approx_log_32_double( uint32_t x )
+   {
+      uint8_t nzbits = uint8_t( x >> 0x18 );
+      if( nzbits == 0 )
+         return 0.0;
+      uint32_t b = 1 << 0x18;
+      uint32_t y = (x & (b-1)) | b;
+      return std::ldexp( y, int( nzbits ) - 0x18 );
    }
 
    uint16_t sha256::clz()const

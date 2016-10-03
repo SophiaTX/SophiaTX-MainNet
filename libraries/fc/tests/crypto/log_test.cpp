@@ -1,4 +1,6 @@
 
+#include <boost/multiprecision/cpp_int.hpp>
+
 #include <fc/crypto/sha256.hpp>
 #include <fc/exception/exception.hpp>
 
@@ -55,12 +57,23 @@ int main(int argc, char**argv, char** envp)
          std::cerr << "got error on log(" << str_h << ")" << std::endl;
          ++errors;
       }
+      double d_ilog_h_test = h.inverse_approx_log_32_double( ref_log );
       h.set_to_inverse_approx_log_32( ref_log );
       if( ref_log != h.approx_log_32() )
       {
          std::cerr << "got error on ilog(" << ref_log << ")" << std::endl;
          ++errors;
       }
+
+      std::string str_ilog_h = h.str();
+      boost::multiprecision::uint256_t u256_ilog_h( "0x" + str_ilog_h );
+      double d_ilog_h_ref = u256_ilog_h.template convert_to<double>();
+      if( d_ilog_h_ref != d_ilog_h_test )
+      {
+         std::cerr << "got error on d_ilog(" << ref_log << ")" << std::endl;
+         ++errors;
+      }
+
       if( h != fc::sha256() )
       {
          fc::sha256 h_before = h;
