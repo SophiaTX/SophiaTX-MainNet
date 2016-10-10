@@ -187,6 +187,7 @@ set( fc_sources
      src/interprocess/signals.cpp
      src/interprocess/file_mapping.cpp
      src/interprocess/mmap_struct.cpp
+     src/interprocess/file_mutex.cpp
      src/rpc/cli.cpp
      src/rpc/http_api.cpp
      src/rpc/json_connection.cpp
@@ -373,6 +374,9 @@ ELSE(MSVC)
 add_definitions(-DBOOST_TEST_DYN_LINK)
 ENDIF(MSVC)
 ENDIF()
+
+add_executable( bip_lock tests/bip_lock.cpp )
+target_link_libraries( bip_lock fc )
 
 add_executable( api tests/api.cpp )
 target_link_libraries( api fc )
