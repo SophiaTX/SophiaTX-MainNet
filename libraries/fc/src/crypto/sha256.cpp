@@ -3,6 +3,7 @@
 #include <fc/fwd_impl.hpp>
 #include <openssl/sha.h>
 #include <string.h>
+#include <cmath>
 #include <fc/crypto/sha256.hpp>
 #include <fc/variant.hpp>
 #include <fc/exception/exception.hpp>
@@ -121,6 +122,43 @@ namespace fc {
       y ^= 1 << 0x18;
       y |= uint32_t( nzbits ) << 0x18;
       return y;
+   }
+
+   void sha256::set_to_inverse_approx_log_32( uint32_t x )
+   {
+      uint8_t nzbits = uint8_t( x >> 0x18 );
+      _hash[0] = 0;
+      _hash[1] = 0;
+      _hash[2] = 0;
+      _hash[3] = 0;
+      if( nzbits == 0 )
+         return;
+      uint8_t x0 = uint8_t((x        ) & 0xFF);
+      uint8_t x1 = uint8_t((x >> 0x08) & 0xFF);
+      uint8_t x2 = uint8_t((x >> 0x10) & 0xFF);
+      uint8_t* my_bytes = (uint8_t*) data();
+      my_bytes[0x1F] = x0;
+      my_bytes[0x1E] = x1;
+      my_bytes[0x1D] = x2;
+      my_bytes[0x1C] = 1;
+
+      if( nzbits <= 0x18 )
+      {
+         (*this) = (*this) >> (0x18 - nzbits);
+      }
+      else
+         (*this) = (*this) << (nzbits - 0x18);
+      return;
+   }
+
+   double sha256::inverse_approx_log_32_double( uint32_t x )
+   {
+      uint8_t nzbits = uint8_t( x >> 0x18 );
+      if( nzbits == 0 )
+         return 0.0;
+      uint32_t b = 1 << 0x18;
+      uint32_t y = (x & (b-1)) | b;
+      return std::ldexp( y, int( nzbits ) - 0x18 );
    }
 
    uint16_t sha256::clz()const
