@@ -7,8 +7,8 @@
 #include <boost/interprocess/containers/map.hpp>
 #include <boost/interprocess/containers/flat_map.hpp>
 #include <boost/interprocess/containers/deque.hpp>
+#include <fc/crypto/hex.hpp>
 #include <fc/io/raw_fwd.hpp>
-
 
 namespace fc {
 
@@ -70,6 +70,29 @@ namespace fc {
       for( uint32_t i = 0; i < vars.size(); ++i ) {
          from_variant( vars[i], d[i] );
       }
+    }
+
+    template<typename... A>
+    void to_variant( const bip::vector<char, A...>& t, fc::variant& v )
+    {
+        if( t.size() )
+            v = variant(fc::to_hex(t.data(), t.size()));
+        else
+            v = "";
+    }
+
+    template<typename... A>
+    void from_variant( const fc::variant& v, bip::vector<char, A...>& d )
+    {
+         auto str = v.as_string();
+         d.resize( str.size() / 2 );
+         if( d.size() )
+         {
+            size_t r = fc::from_hex( str, d.data(), d.size() );
+            FC_ASSERT( r == d.size() );
+         }
+    //   std::string b64 = base64_decode( var.as_string() );
+    //   vo = std::vector<char>( b64.c_str(), b64.c_str() + b64.size() );
     }
 
    namespace raw {
