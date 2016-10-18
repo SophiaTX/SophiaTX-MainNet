@@ -663,7 +663,7 @@ void from_variant( const variant& var,  std::vector<char>& vo )
      if( vo.size() )
      {
         size_t r = from_hex( str, vo.data(), vo.size() );
-        FC_ASSERT( r = vo.size() );
+        FC_ASSERT( r == vo.size() );
      }
 //   std::string b64 = base64_decode( var.as_string() );
 //   vo = std::vector<char>( b64.c_str(), b64.c_str() + b64.size() );
