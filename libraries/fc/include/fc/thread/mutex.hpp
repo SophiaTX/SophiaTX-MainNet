@@ -61,7 +61,7 @@ namespace fc {
    *
    *  @code
    *    void write_message() {
-   *      boost::unique_lock<cmt::mutex> lock(sock->write_lock);
+   *      boost::unique_lock<fc::mutex> lock(sock->write_lock);
    *      sock->write(part1); // may yield
    *      sock->write(part2); // may yield
    *      sock->write(part3); // may yield
