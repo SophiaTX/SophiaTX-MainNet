@@ -6,6 +6,7 @@
 #include <boost/interprocess/containers/vector.hpp>
 #include <boost/interprocess/containers/map.hpp>
 #include <boost/interprocess/containers/flat_map.hpp>
+#include <boost/interprocess/containers/set.hpp>
 #include <boost/interprocess/containers/deque.hpp>
 #include <fc/crypto/hex.hpp>
 #include <fc/io/raw_fwd.hpp>
@@ -33,25 +34,25 @@ namespace fc {
       }
     }
 
-    /*  bip::flat_map == boost::flat_map
+    //bip::map == boost::map
     template<typename K, typename V, typename... T >
-    void to_variant( const bip::flat_map< K, V, T... >& var, fc::variant& vo ) {
+    void to_variant( const bip::map< K, V, T... >& var, fc::variant& vo ) {
        std::vector< variant > vars(var.size());
        size_t i = 0;
        for( auto itr = var.begin(); itr != var.end(); ++itr, ++i )
           vars[i] = fc::variant(*itr);
        vo = vars;
     }
-
+/*
     template<typename K, typename V, typename... A>
-    void from_variant( const variant& var,  bip::flat_map<K, V, A...>& vo )
+    void from_variant( const variant& var,  bip::map<K, V, A...>& vo )
     {
        const variants& vars = var.get_array();
        vo.clear();
        for( auto itr = vars.begin(); itr != vars.end(); ++itr )
-          vo.insert( itr->as< std::pair<K,V> >() );
+          vo.insert( itr->as< std::pair<K,V> >() ); Not safe for interprocess. Needs allocator
     }
-    */
+*/
 
     template<typename... T >
     void to_variant( const bip::vector< T... >& t, fc::variant& v ) {
@@ -71,6 +72,28 @@ namespace fc {
          from_variant( vars[i], d[i] );
       }
     }
+
+    template<typename... T >
+    void to_variant( const bip::set< T... >& t, fc::variant& v ) {
+      std::vector<variant> vars;
+      vars.reserve(t.size());
+      for( const auto& item : t ) {
+         vars.emplace_back( item );
+      }
+      v = std::move(vars);
+    }
+
+/*
+    template<typename T, typename... A>
+    void from_variant( const fc::variant& v, bip::set< T, A... >& d ) {
+      const variants& vars = v.get_array();
+      d.clear();
+      d.reserve( vars.size() );
+      for( uint32_t i = 0; i < vars.size(); ++i ) {
+         from_variant( vars[i], d[i] ); Not safe for interprocess. Needs allocator
+      }
+    }
+*/
 
     template<typename... A>
     void to_variant( const bip::vector<char, A...>& t, fc::variant& v )
