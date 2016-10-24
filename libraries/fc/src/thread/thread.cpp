@@ -92,7 +92,7 @@ namespace fc {
       p->wait();
       my->boost_thread = t;
       my->name = name;
-      wlog("name:${n} tid:${tid}", ("n", name)("tid", (uintptr_t)my->boost_thread->native_handle()) );
+      //wlog("name:${n} tid:${tid}", ("n", name)("tid", (uintptr_t)my->boost_thread->native_handle()) );
    }
    thread::thread( thread_d* ) {
      my = new thread_d(*this);
@@ -118,24 +118,24 @@ namespace fc {
    }
 
    thread& thread::current() {
-     if( !current_thread() ) 
+     if( !current_thread() )
        current_thread() = new thread((thread_d*)0);
      return *current_thread();
    }
 
-   const string& thread::name()const 
-   { 
-     return my->name; 
+   const string& thread::name()const
+   {
+     return my->name;
    }
 
    void thread::set_name( const fc::string& n )
-   { 
+   {
      if (!is_current())
      {
        async([=](){ set_name(n); }, "set_name").wait();
        return;
      }
-     my->name = n; 
+     my->name = n;
      set_thread_name(my->name.c_str()); // set thread's name for the debugger to display
    }
 
@@ -145,17 +145,17 @@ namespace fc {
          return my->current->cur_task->get_desc();
       return NULL;
    }
-   
+
    void          thread::debug( const fc::string& d ) { /*my->debug(d);*/ }
 
-  void thread::quit() 
+  void thread::quit()
   {
     //if quitting from a different thread, start quit task on thread.
     //If we have and know our attached boost thread, wait for it to finish, then return.
-    if( &current() != this ) 
+    if( &current() != this )
     {
       async( [=](){quit();}, "thread::quit" );//.wait();
-      if( my->boost_thread ) 
+      if( my->boost_thread )
       {
         //wlog("destroying boost thread ${tid}",("tid",(uintptr_t)my->boost_thread->native_handle()));
         my->boost_thread->join();
@@ -170,23 +170,23 @@ namespace fc {
     // We are quiting from our own thread...
 
     // break all promises, thread quit!
-    while( my->blocked ) 
+    while( my->blocked )
     {
       fc::context* cur  = my->blocked;
-      while( cur ) 
+      while( cur )
       {
         fc::context* n = cur->next;
         // this will move the context into the ready list.
         //cur->prom->set_exception( boost::copy_exception( error::thread_quit() ) );
         //cur->set_exception_on_blocking_promises( thread_quit() );
         cur->set_exception_on_blocking_promises( std::make_shared<canceled_exception>(FC_LOG_MESSAGE(error, "cancellation reason: thread quitting")) );
-               
+
         cur = n;
       }
-      if( my->blocked ) 
-      { 
+      if( my->blocked )
+      {
         //wlog( "still blocking... whats up with that?");
-        debug( "on quit" ); 
+        debug( "on quit" );
       }
     }
     BOOST_ASSERT( my->blocked == 0 );
@@ -200,7 +200,7 @@ namespace fc {
       scheduled_task->set_exception(std::make_shared<canceled_exception>(FC_LOG_MESSAGE(error, "cancellation reason: thread quitting")));
     my->task_sch_queue.clear();
 
-    
+
 
     // move all sleep tasks to ready
     for( uint32_t i = 0; i < my->sleep_pqueue.size(); ++i )
@@ -209,7 +209,7 @@ namespace fc {
 
     // move all idle tasks to ready
     fc::context* cur = my->pt_head;
-    while( cur ) 
+    while( cur )
     {
       fc::context* n = cur->next;
       cur->next = 0;
@@ -217,7 +217,7 @@ namespace fc {
       cur = n;
     }
 
-    // mark all ready tasks (should be everyone)... as canceled 
+    // mark all ready tasks (should be everyone)... as canceled
     for (fc::context* ready_context : my->ready_heap)
       ready_context->canceled = true;
 
@@ -225,22 +225,22 @@ namespace fc {
     // let them all quit.
     while (!my->ready_heap.empty())
     {
-      my->start_next_fiber(true); 
+      my->start_next_fiber(true);
       my->check_for_timeouts();
     }
     my->clear_free_list();
     my->cleanup_thread_specific_data();
   }
-     
-   void thread::exec() 
+
+   void thread::exec()
    {
-      if( !my->current ) 
+      if( !my->current )
         my->current = new fc::context(&fc::thread::current());
-      
-      try 
+
+      try
       {
-        my->process_tasks(); 
-      } 
+        my->process_tasks();
+      }
       catch( canceled_exception& e )
       {
         dlog( "thread canceled: ${e}", ("e", e.to_detail_string()) );
@@ -248,40 +248,40 @@ namespace fc {
       delete my->current;
       my->current = 0;
    }
-     
-   bool thread::is_running()const 
+
+   bool thread::is_running()const
    {
       return !my->done;
    }
-     
-   priority thread::current_priority()const 
+
+   priority thread::current_priority()const
    {
       BOOST_ASSERT(my);
-      if( my->current ) 
+      if( my->current )
         return my->current->prio;
       return priority();
    }
 
-   void thread::yield(bool reschedule) 
+   void thread::yield(bool reschedule)
    {
       my->check_fiber_exceptions();
       my->start_next_fiber(reschedule);
       my->check_fiber_exceptions();
    }
 
-   void thread::sleep_until( const time_point& tp ) 
+   void thread::sleep_until( const time_point& tp )
    {
-     if( tp <= (time_point::now()+fc::microseconds(10000)) ) 
+     if( tp <= (time_point::now()+fc::microseconds(10000)) )
        yield(true);
      my->yield_until( tp, false );
    }
 
    int  thread::wait_any_until( std::vector<promise_base::ptr>&& p, const time_point& timeout) {
        for( size_t i = 0; i < p.size(); ++i )
-         if( p[i]->ready() ) 
+         if( p[i]->ready() )
            return i;
 
-       if( timeout < time_point::now() ) 
+       if( timeout < time_point::now() )
        {
          fc::stringstream ss;
          for( auto i = p.begin(); i != p.end(); ++i )
@@ -289,20 +289,20 @@ namespace fc {
 
          FC_THROW_EXCEPTION( timeout_exception, "${task}", ("task",ss.str()) );
        }
-       
+
        if( !my->current )
-         my->current = new fc::context(&fc::thread::current()); 
-     
+         my->current = new fc::context(&fc::thread::current());
+
        for( uint32_t i = 0; i < p.size(); ++i )
          my->current->add_blocking_promise(p[i].get(),false);
 
        // if not max timeout, added to sleep pqueue
-       if( timeout != time_point::maximum() ) 
+       if( timeout != time_point::maximum() )
        {
            my->current->resume_time = timeout;
            my->sleep_pqueue.push_back(my->current);
            std::push_heap( my->sleep_pqueue.begin(),
-                           my->sleep_pqueue.end(), 
+                           my->sleep_pqueue.end(),
                            sleep_priority_less()   );
        }
 
@@ -311,11 +311,11 @@ namespace fc {
 
        for( auto i = p.begin(); i != p.end(); ++i )
          my->current->remove_blocking_promise(i->get());
-     
+
        my->check_fiber_exceptions();
 
        for( uint32_t i = 0; i < p.size(); ++i )
-         if( p[i]->ready() ) 
+         if( p[i]->ready() )
            return i;
 
        //BOOST_THROW_EXCEPTION( wait_any_error() );
@@ -342,8 +342,8 @@ namespace fc {
 
       // Because only one thread can post the 'first task', only that thread will attempt
       // to aquire the lock and therefore there should be no contention on this lock except
-      // when *this thread is about to block on a wait condition.  
-      if( this != &current() &&  !stale_head ) { 
+      // when *this thread is about to block on a wait condition.
+      if( this != &current() &&  !stale_head ) {
           boost::unique_lock<boost::mutex> lock(my->task_ready_mutex);
           my->task_ready.notify_one();
       }
@@ -359,42 +359,42 @@ namespace fc {
       thread::current().sleep_until(tp);
    }
 
-   void  exec() 
+   void  exec()
    {
       return thread::current().exec();
    }
 
-   int wait_any( std::vector<promise_base::ptr>&& v, const microseconds& timeout_us  ) 
+   int wait_any( std::vector<promise_base::ptr>&& v, const microseconds& timeout_us  )
    {
       return thread::current().wait_any_until( fc::move(v), time_point::now() + timeout_us );
    }
 
-   int wait_any_until( std::vector<promise_base::ptr>&& v, const time_point& tp ) 
+   int wait_any_until( std::vector<promise_base::ptr>&& v, const time_point& tp )
    {
       return thread::current().wait_any_until( fc::move(v), tp );
    }
 
-   void thread::wait_until( promise_base::ptr&& p, const time_point& timeout ) 
+   void thread::wait_until( promise_base::ptr&& p, const time_point& timeout )
    {
-         if( p->ready() ) 
+         if( p->ready() )
            return;
 
-         if( timeout < time_point::now() ) 
+         if( timeout < time_point::now() )
            FC_THROW_EXCEPTION( timeout_exception, "${task}", ("task", p->get_desc()) );
-         
-         if( !my->current ) 
-           my->current = new fc::context(&fc::thread::current()); 
-         
+
+         if( !my->current )
+           my->current = new fc::context(&fc::thread::current());
+
          //slog( "                                 %1% blocking on %2%", my->current, p.get() );
          my->current->add_blocking_promise(p.get(), true);
 
          // if not max timeout, added to sleep pqueue
-         if( timeout != time_point::maximum() ) 
+         if( timeout != time_point::maximum() )
          {
              my->current->resume_time = timeout;
              my->sleep_pqueue.push_back(my->current);
              std::push_heap( my->sleep_pqueue.begin(),
-                             my->sleep_pqueue.end(), 
+                             my->sleep_pqueue.end(),
                              sleep_priority_less() );
          }
 
@@ -412,34 +412,34 @@ namespace fc {
          my->check_fiber_exceptions();
     }
 
-    void thread::notify( const promise_base::ptr& p ) 
+    void thread::notify( const promise_base::ptr& p )
     {
       //slog( "this %p  my %p", this, my );
       BOOST_ASSERT(p->ready());
-      if( !is_current() ) 
+      if( !is_current() )
       {
         this->async( [=](){ notify(p); }, "notify", priority::max() );
         return;
       }
-      // TODO: store a list of blocked contexts with the promise 
+      // TODO: store a list of blocked contexts with the promise
       //  to accelerate the lookup.... unless it introduces contention...
-      
+
       // iterate over all blocked contexts
 
 
       fc::context* cur_blocked  = my->blocked;
       fc::context* prev_blocked = 0;
-      while( cur_blocked ) 
+      while( cur_blocked )
       {
-        // if the blocked context is waiting on this promise 
-        if( cur_blocked->try_unblock( p.get() )  ) 
+        // if the blocked context is waiting on this promise
+        if( cur_blocked->try_unblock( p.get() )  )
         {
           // remove it from the blocked list.
 
           // remove this context from the sleep queue...
-          for( uint32_t i = 0; i < my->sleep_pqueue.size(); ++i ) 
+          for( uint32_t i = 0; i < my->sleep_pqueue.size(); ++i )
           {
-            if( my->sleep_pqueue[i] == cur_blocked ) 
+            if( my->sleep_pqueue[i] == cur_blocked )
             {
               my->sleep_pqueue[i]->blocking_prom.clear();
               my->sleep_pqueue[i] = my->sleep_pqueue.back();
@@ -449,28 +449,28 @@ namespace fc {
             }
           }
           auto cur = cur_blocked;
-          if( prev_blocked ) 
-          {  
-              prev_blocked->next_blocked = cur_blocked->next_blocked; 
+          if( prev_blocked )
+          {
+              prev_blocked->next_blocked = cur_blocked->next_blocked;
               cur_blocked =  prev_blocked->next_blocked;
-          } 
-          else 
-          { 
-              my->blocked = cur_blocked->next_blocked; 
+          }
+          else
+          {
+              my->blocked = cur_blocked->next_blocked;
               cur_blocked = my->blocked;
           }
           cur->next_blocked = 0;
           my->add_context_to_ready_list( cur );
-        } 
-        else 
+        }
+        else
         { // goto the next blocked task
           prev_blocked  = cur_blocked;
           cur_blocked   = cur_blocked->next_blocked;
         }
       }
     }
-    
-    bool thread::is_current()const 
+
+    bool thread::is_current()const
     {
       return this == &current();
     }
