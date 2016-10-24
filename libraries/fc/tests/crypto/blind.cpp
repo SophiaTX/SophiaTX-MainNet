@@ -50,15 +50,15 @@ BOOST_AUTO_TEST_CASE(blind_test)
       auto B4 = fc::sha256::hash("B4");
       auto C1 = fc::ecc::blind( B1, 1  );
       auto C2 = fc::ecc::blind( B2, 2  );
-      auto c3 = fc::ecc::blind( b3, 3  );
-      auto C4 = fc::ecc::blind( B4, -1 );
+      /*auto c3 = */fc::ecc::blind( b3, 3  );
+      /*auto C4 = */fc::ecc::blind( B4, -1 );
 
       auto B3 = fc::ecc::blind_sum( {B1,B2}, 2 );
       auto C3 = fc::ecc::blind( B3, 3 );
 
 
       auto B2m1 = fc::ecc::blind_sum( {B2,B1}, 1 );
-      auto C2m1 = fc::ecc::blind( B2m1, 1 );
+      /*auto C2m1 = */fc::ecc::blind( B2m1, 1 );
 
       BOOST_CHECK( fc::ecc::verify_sum( {C1,C2}, {C3}, 0 ) );
       BOOST_CHECK( fc::ecc::verify_sum( {C1,C2}, {C3}, 0 ) );
@@ -68,9 +68,9 @@ BOOST_AUTO_TEST_CASE(blind_test)
 
       {
          auto B1 = fc::sha256::hash("B1");
-         auto B2 = fc::sha256::hash("B2");
-         auto B3 = fc::sha256::hash("B3");
-         auto B4 = fc::sha256::hash("B4");
+         /*auto B2 = */fc::sha256::hash("B2");
+         /*auto B3 = */fc::sha256::hash("B3");
+         /*auto B4 = */fc::sha256::hash("B4");
 
          //secp256k1_scalar_get_b32((unsigned char*)&B1, (const secp256k1_scalar_t*)&B2);
          //B1 = fc::variant("b2e5da56ef9f2a34d3e22fd12634bc99261e95c87b9960bf94ed3d27b30").as<fc::sha256>();
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(blind_test)
          auto C1 = fc::ecc::blind( B1, INT64_MAX );
          auto C2 = fc::ecc::blind( B1, 0 );
          auto C3 = fc::ecc::blind( B1, 1 );
-         auto C4 = fc::ecc::blind( B1, 2 );
+         /*auto C4 = */fc::ecc::blind( B1, 2 );
 
          BOOST_CHECK( fc::ecc::verify_sum( {C2}, {C3}, -1 ) );
          BOOST_CHECK( fc::ecc::verify_sum( {C1}, {C1}, 0 ) );
