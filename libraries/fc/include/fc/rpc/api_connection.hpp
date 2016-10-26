@@ -301,6 +301,8 @@ namespace fc {
                const std::shared_ptr<fc::api_connection>&  con
             )
             {
+               if( v.is_null() )
+                  return fc::api_ptr();
                return fc::api_ptr( new detail::any_api( v.as_uint64(), con ) );
             }
 
