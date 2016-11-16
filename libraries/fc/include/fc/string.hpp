@@ -29,6 +29,8 @@ namespace fc
   fc::string trim( const fc::string& );
   fc::string to_lower( const fc::string& );
   string trim_and_normalize_spaces( const string& s );
+
+  uint64_t parse_size( const string& s );
 }
 
 #else
