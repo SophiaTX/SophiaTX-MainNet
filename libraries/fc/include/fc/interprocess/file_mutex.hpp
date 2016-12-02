@@ -2,7 +2,9 @@
 #include <fc/time.hpp>
 #include <fc/thread/spin_yield_lock.hpp>
 
-namespace fc { 
+#include <memory>
+
+namespace fc {
   class microseconds;
   class time_point;
   class path;
@@ -11,8 +13,8 @@ namespace fc {
   namespace detail { class file_mutex_impl; }
 
   /**
-   *  The purpose of this class is to support synchronization of 
-   *  processes, threads, and coop-threads.  
+   *  The purpose of this class is to support synchronization of
+   *  processes, threads, and coop-threads.
    *
    *  Before grabbing the lock for a thread or coop, a file_mutex will first
    *  grab a process-level lock.  After grabbing the process level lock, it will
