@@ -8,7 +8,6 @@ Modifications by Steemit, Inc. 2016
 #include <equihash/blake2.h>
 #include <algorithm>
 
-
 static uint64_t rdtsc(void) {
 #ifdef _MSC_VER
     return __rdtsc();
@@ -158,7 +157,9 @@ Proof Equihash::FindProof(){
                     dup = true;
             }
             if (!dup)
-                return solutions[i];
+            {
+                return solutions[i].CanonizeIndexes();
+            }
         }
     }
     return Proof(n, k, seed, nonce, std::vector<uint32_t>());
@@ -188,10 +189,49 @@ Proof Equihash::FindProof( Nonce _nonce )
                 dup = true;
        }
        if (!dup)
-          return solutions[i];
+       {
+          return solutions[i].CanonizeIndexes();
+       }
     }
 
     return Proof(n, k, seed, nonce, std::vector<uint32_t>());
+}
+
+Proof Proof::CanonizeIndexes()const
+{
+   std::vector< uint32_t > new_inputs = inputs;
+
+   size_t step = 1;
+   while( step < new_inputs.size() )
+   {
+      for( size_t i=0; i<new_inputs.size(); i+=step+step )
+      {
+         auto ita = new_inputs.begin()+i, itb = ita+step;
+         if( (*ita) >= (*itb) )
+         {
+            std::swap_ranges( ita, itb, itb );
+         }
+      }
+      step += step;
+   }
+   return Proof(n, k, seed, nonce, new_inputs);
+}
+
+bool Proof::CheckIndexesCanon()const
+{
+   bool was_ok = true;
+   size_t step = 1;
+   while( step < inputs.size() )
+   {
+      for( size_t i=0; i<inputs.size(); i+=step+step )
+      {
+         auto ita = inputs.begin()+i, itb = ita+step;
+         if( (*ita) >= (*itb) )
+            return false;
+      }
+      step += step;
+   }
+   return was_ok;
 }
 
 bool Proof::Test()
@@ -217,4 +257,87 @@ bool Proof::Test()
     }
 
     return b;
+}
+
+bool Proof::FullTest()const
+{
+   // Length must be 2**k
+   if( inputs.size() != size_t(1 << k) )
+      return false;
+
+   // Ensure all values are distinct
+   std::vector<Input> sorted_inputs = inputs;
+   std::sort( sorted_inputs.begin(), sorted_inputs.end() );
+   for( size_t i=1; i<inputs.size(); i++ )
+   {
+      if( sorted_inputs[i-1] >= sorted_inputs[i] )
+         return false;
+   }
+
+   // Ensure all values are canonically indexed
+   /*
+   if( !CheckIndexesCanon() )
+      return false;
+   */
+
+   // Initialize blocks array
+   uint32_t input[SEED_LENGTH + 2];
+   for( size_t i=0; i<SEED_LENGTH; i++ )
+      input[i] = seed[i];
+   input[SEED_LENGTH] = nonce;
+   input[SEED_LENGTH + 1] = 0;
+   uint32_t buf[MAX_N / 4];
+
+   std::vector< std::vector< uint32_t > > blocks;
+
+   const uint32_t max_input = uint32_t(1) << (n / (k + 1) + 1);
+
+   for( size_t i=0; i<inputs.size(); i++ )
+   {
+      input[SEED_LENGTH + 1] = inputs[i];
+      if( inputs[i] >= max_input )
+         return false;
+
+      blake2b((uint8_t*)buf, &input, NULL, sizeof(buf), sizeof(input), 0);
+      blocks.emplace_back();
+      std::vector<uint32_t>& x = blocks.back();
+      x.resize(k+1);
+      for( size_t j=0; j<(k+1); j++ )
+      {
+         //select j-th block of n/(k+1) bits
+         x[j] = buf[j] >> (32 - n / (k + 1));
+      }
+   }
+
+   while( true )
+   {
+      /*
+      std::cout << "\n\nBegin loop iteration\n";
+      for( const std::vector< uint32_t >& x : blocks )
+      {
+         for( const uint32_t& e : x )
+            std::cout << std::hex << std::setw(5) << e << " ";
+         std::cout << std::endl;
+      }
+      */
+
+      size_t count = blocks.size();
+      if( count == 0 )
+         return false;
+      if( count == 1 )
+      {
+         return (blocks[0].size() == 1) && (blocks[0][0] == 0);
+      }
+      if( (count&1) != 0 )
+         return false;
+      for( size_t i=0,new_i=0; i<count; i+=2,new_i++ )
+      {
+         if( blocks[i][0] != blocks[i+1][0] )
+            return false;
+         for( size_t j=1; j<blocks[i].size(); j++ )
+            blocks[new_i][j-1] = blocks[i][j] ^ blocks[i+1][j];
+         blocks[new_i].resize(blocks[new_i].size()-1);
+      }
+      blocks.resize(blocks.size() >> 1);
+   }
 }

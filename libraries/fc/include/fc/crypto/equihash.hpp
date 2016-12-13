@@ -11,7 +11,8 @@ namespace fc { namespace equihash {
       sha256   seed;
       std::vector< uint32_t > inputs;
 
-      bool is_valid() const;
+      bool is_valid( bool test_canonical_order = false, bool test_intermediate_zeros = false ) const;
+      void canonize_indexes();
 
       static proof hash( uint32_t n, uint32_t k, sha256 seed );
    };
