@@ -8,6 +8,16 @@ Modifications by Steemit, Inc. 2016
 #include <equihash/blake2.h>
 #include <algorithm>
 
+#ifdef EQUIHASH_POW_VERBOSE
+#include <iomanip>
+#include <iostream>
+
+#define EQUIHASH_LOG(s) \
+   std::cerr << s << std::endl;
+#else
+#define EQUIHASH_LOG(s)
+#endif
+
 static uint64_t rdtsc(void) {
 #ifdef _MSC_VER
     return __rdtsc();
@@ -297,7 +307,10 @@ bool Proof::FullTest()const
 {
    // Length must be 2**k
    if( inputs.size() != size_t(1 << k) )
+   {
+      EQUIHASH_LOG( "PoW failed length test" );
       return false;
+   }
 
    // Ensure all values are distinct
    std::vector<Input> sorted_inputs = inputs;
@@ -305,7 +318,10 @@ bool Proof::FullTest()const
    for( size_t i=1; i<inputs.size(); i++ )
    {
       if( sorted_inputs[i-1] >= sorted_inputs[i] )
+      {
+         EQUIHASH_LOG( "PoW failed distinct test" );
          return false;
+      }
    }
 
    // Ensure all values are canonically indexed
@@ -330,7 +346,10 @@ bool Proof::FullTest()const
    {
       input[SEED_LENGTH + 1] = inputs[i];
       if( inputs[i] >= max_input )
+      {
+         EQUIHASH_LOG( "PoW failed max_input test" );
          return false;
+      }
 
       blake2b((uint8_t*)buf, &input, NULL, sizeof(buf), sizeof(input), 0);
       blocks.emplace_back();
@@ -345,29 +364,48 @@ bool Proof::FullTest()const
 
    while( true )
    {
-      /*
-      std::cout << "\n\nBegin loop iteration\n";
+#ifdef EQUIHASH_POW_VERBOSE
+      std::cerr << "\n\nBegin loop iteration\n";
       for( const std::vector< uint32_t >& x : blocks )
       {
          for( const uint32_t& e : x )
-            std::cout << std::hex << std::setw(5) << e << " ";
-         std::cout << std::endl;
+            std::cerr << std::hex << std::setw(5) << e << " ";
+         std::cerr << std::endl;
       }
-      */
+#endif
 
       size_t count = blocks.size();
       if( count == 0 )
+      {
+         EQUIHASH_LOG( "PoW failed with count == 0" );
          return false;
+      }
       if( count == 1 )
       {
-         return (blocks[0].size() == 1) && (blocks[0][0] == 0);
+         if( blocks[0].size() != 1 )
+         {
+            EQUIHASH_LOG( "PoW failed due to vector size" );
+            return false;
+         }
+         if( blocks[0][0] != 0 )
+         {
+            EQUIHASH_LOG( "PoW failed because final bits are not zero" );
+            return false;
+         }
+         return true;
       }
       if( (count&1) != 0 )
+      {
+         EQUIHASH_LOG( "PoW failed with odd count" );
          return false;
+      }
       for( size_t i=0,new_i=0; i<count; i+=2,new_i++ )
       {
          if( blocks[i][0] != blocks[i+1][0] )
+         {
+            EQUIHASH_LOG( "PoW failed because leading element of vector pair does not match" );
             return false;
+         }
          for( size_t j=1; j<blocks[i].size(); j++ )
             blocks[new_i][j-1] = blocks[i][j] ^ blocks[i+1][j];
          blocks[new_i].resize(blocks[new_i].size()-1);
