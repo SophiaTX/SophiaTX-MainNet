@@ -199,39 +199,73 @@ Proof Equihash::FindProof( Nonce _nonce )
 
 Proof Proof::CanonizeIndexes()const
 {
+   // We consider the index values in the inputs array to be the leaf nodes of a binary
+   // tree, and the inner nodes to be labelled with the XOR of the corresponding vector
+   // elements.
+   //
+   // Define a binary tree to be canonically sorted if, for each inner node, the least
+   // leaf descendant of the left child is less than the least leaf descendant of the
+   // right child.
+   //
+   // This method puts the inputs into canonical order without altering the inner node
+   // labels.  Thus canonization preserves the validity of the proof and the
+   // footprint of Wagner's algorithm.
+   //
+   // We use a bottom-up traversal, dividing the input into successively larger power-of-2
+   // blocks and swapping the two half-blocks if non-canonical.
+   //
+   // Say a block is least-first if the least element is the first element.
+   //
+   // If each half-block is least-first, the conditional swap ensures the full block will also
+   // be least-first. The half-blocks in the initial iteration are obviously least-first
+   // (they only have a single element!).  So by induction, at each later iteration the half-blocks
+   // of that iteration are least-first (since they were the full blocks of the previous iteration,
+   // which were made least-first by the previous iteration's conditional swap).
+   //
+   // As a consequence, no search is necessary to find the least element in each half-block,
+   // it is always the first element in the half-block.
+
    std::vector< uint32_t > new_inputs = inputs;
 
-   size_t step = 1;
-   while( step < new_inputs.size() )
+   size_t input_size = inputs.size();
+   size_t half_size = 1;
+   size_t block_size = 2;
+   while( block_size <= input_size )
    {
-      for( size_t i=0; i<new_inputs.size(); i+=step+step )
+      for( size_t i=0; i+block_size<=input_size; i+=block_size )
       {
-         auto ita = new_inputs.begin()+i, itb = ita+step;
+         auto ita = new_inputs.begin()+i, itb = ita+half_size;
          if( (*ita) >= (*itb) )
          {
             std::swap_ranges( ita, itb, itb );
          }
       }
-      step += step;
+      half_size = block_size;
+      block_size += block_size;
    }
    return Proof(n, k, seed, nonce, new_inputs);
 }
 
 bool Proof::CheckIndexesCanon()const
 {
-   bool was_ok = true;
-   size_t step = 1;
-   while( step < inputs.size() )
+   // This method is logically identical to CanonizeIndexes() but will return false
+   // instead of swapping elements.
+
+   size_t input_size = inputs.size();
+   size_t half_size = 1;
+   size_t block_size = 2;
+   while( block_size <= input_size )
    {
-      for( size_t i=0; i<inputs.size(); i+=step+step )
+      for( size_t i=0; i+block_size<=input_size; i+=block_size )
       {
-         auto ita = inputs.begin()+i, itb = ita+step;
+         auto ita = inputs.begin()+i, itb = ita+half_size;
          if( (*ita) >= (*itb) )
             return false;
       }
-      step += step;
+      half_size = block_size;
+      block_size += block_size;
    }
-   return was_ok;
+   return true;
 }
 
 bool Proof::Test()
