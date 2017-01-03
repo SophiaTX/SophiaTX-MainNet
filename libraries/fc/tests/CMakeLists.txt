@@ -29,13 +29,6 @@ target_link_libraries( hmac_test fc )
 add_executable( blinding_test blinding_test.cpp )
 target_link_libraries( blinding_test fc )
 
-
-add_executable( udt_server udts.cpp )
-target_link_libraries( udt_server fc udt )
-
-add_executable( udt_client udtc.cpp )
-target_link_libraries( udt_client fc udt )
-
 add_executable( ecc_test crypto/ecc_test.cpp )
 target_link_libraries( ecc_test fc )
 
