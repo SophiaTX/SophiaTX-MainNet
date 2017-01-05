@@ -98,9 +98,13 @@ void http_api_connection::on_request( const fc::http::request& req, const fc::ht
          auto call = var.as<fc::rpc::request>();
          try
          {
-            auto result = _rpc_state.local_call( call.method, call.params );
-            resp_body = fc::json::to_string( fc::rpc::response( *call.id, result ) );
-            resp_status = http::reply::OK;
+            try
+            {
+               auto result = _rpc_state.local_call( call.method, call.params );
+               resp_body = fc::json::to_string( fc::rpc::response( *call.id, result ) );
+               resp_status = http::reply::OK;
+            }
+            FC_CAPTURE_AND_RETHROW( (call.method)(call.params) );
          }
          catch ( const fc::exception& e )
          {

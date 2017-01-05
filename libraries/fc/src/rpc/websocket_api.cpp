@@ -96,14 +96,18 @@ std::string websocket_api_connection::on_message(
          exception_ptr optexcept;
          try
          {
-            auto result = _rpc_state.local_call( call.method, call.params );
-            if( call.id )
+            try
             {
-               auto reply = fc::json::to_string( response( *call.id, result ) );
-               if( send_message )
-                  _connection.send_message( reply );
-               return reply;
+               auto result = _rpc_state.local_call( call.method, call.params );
+               if( call.id )
+               {
+                  auto reply = fc::json::to_string( response( *call.id, result ) );
+                  if( send_message )
+                     _connection.send_message( reply );
+                  return reply;
+               }
             }
+            FC_CAPTURE_AND_RETHROW( (call.method)(call.params) )
          }
          catch ( const fc::exception& e )
          {
