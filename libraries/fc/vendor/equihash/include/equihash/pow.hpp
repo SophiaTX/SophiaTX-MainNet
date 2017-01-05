@@ -64,6 +64,9 @@ namespace _POW{
         Proof():n(0),k(1),seed(0),nonce(0),inputs(std::vector<Input>()) {};
 
         bool Test();
+        bool FullTest()const;
+        bool CheckIndexesCanon()const;
+        Proof CanonizeIndexes()const;
 	};
 
     class Tuple {

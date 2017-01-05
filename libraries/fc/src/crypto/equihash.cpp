@@ -23,11 +23,21 @@ namespace fc { namespace equihash {
       return new_seed;
    }
 
-   bool proof::is_valid() const
+   bool proof::is_valid( bool test_canonical_order, bool test_intermediate_zeros ) const
    {
       _POW::Proof test( n, k, sha_to_seed( seed ), EQUIHASH_NONCE, inputs );
+      if( test_canonical_order && !test.CheckIndexesCanon() )
+         return false;
+      if( test_intermediate_zeros )
+         return test.FullTest();
       return test.Test();
+   }
 
+   void proof::canonize_indexes()
+   {
+      _POW::Proof p( n, k, sha_to_seed( seed ), EQUIHASH_NONCE, inputs );
+      _POW::Proof p_canon = p.CanonizeIndexes();
+      inputs = p_canon.inputs;
    }
 
    proof proof::hash( uint32_t n, uint32_t k, sha256 seed )
