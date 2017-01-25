@@ -98,7 +98,15 @@ std::string websocket_api_connection::on_message(
          {
             try
             {
+               auto start = time_point::now();
                auto result = _rpc_state.local_call( call.method, call.params );
+               auto end = time_point::now();
+
+               if( end - start > fc::seconds( 1 ) )
+                  elog( "API call execution time limit exceeded.", ("method",call.method)("params",call.params)("time", end - start) );
+               else if( end - start > fc::milliseconds( 750 ) )
+                  wlog( "API call execution time nearing limit.", ("method",call.method)("params",call.params)("time", end - start) );
+
                if( call.id )
                {
                   auto reply = fc::json::to_string( response( *call.id, result ) );
