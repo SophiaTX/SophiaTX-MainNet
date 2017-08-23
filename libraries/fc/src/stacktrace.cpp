@@ -4,6 +4,7 @@
 // Downloaded from http://panthema.net/2008/0901-stacktrace-demangled/
 // and modified for C++ and FC by Steemit, Inc.
 
+#include <fc/filesystem.hpp>
 #include <fc/stacktrace.hpp>
 
 #ifdef __GNUC__
@@ -17,8 +18,67 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
+
+FILE *popen(const char *command, const char *mode);
+int pclose(FILE *stream);
 
 namespace fc {
+
+//
+// This function is based on http://www.cplusplus.com/forum/beginner/117874/
+// I use something platform-specific and self-contained, rather than using
+// e.g. boost::process, because I want stacktrace to be small and self-contained
+//
+std::string run_command( const std::string& command )
+{
+    FILE* file = popen( command.c_str(), "r" ) ;
+
+    if( file )
+    {
+        std::ostringstream ss;
+
+        constexpr std::size_t MAX_LINE_SZ = 8192;
+        char line[MAX_LINE_SZ];
+
+        while( fgets( line, MAX_LINE_SZ, file ) )
+           ss << line;
+
+        pclose(file);
+        return ss.str();
+    }
+
+    return "";
+}
+
+void print_stacktrace_linenums( void** addrlist, int addrlen )
+{
+   if( addrlen == 0 )
+      return;
+
+   char my_path[512];
+   auto result = readlink("/proc/self/exe", my_path, 511);
+   if( result < 0 )
+   {
+      std::cerr << "print_stacktrace_linenums() failed, could not read PID" << std::endl;
+      return;
+   }
+   else
+   {
+      my_path[result] = '\0';
+   }
+
+   std::ostringstream ss_cmd;
+   ss_cmd << "addr2line -p -a -f -C -i -e " << my_path;
+   for( int i=0; i<addrlen; i++ )
+      ss_cmd << " " << std::setfill('0') << std::setw(16) << std::hex << std::noshowbase << uint64_t(addrlist[i]);
+   std::string cmd = ss_cmd.str();
+   std::cerr << "executing command:" << std::endl;
+   std::cerr << cmd << std::endl;
+   std::string output = run_command(cmd);
+   std::cerr << output << std::endl;
+}
 
 void print_stacktrace(std::ostream& out, unsigned int max_frames /* = 63 */, void* caller_overwrite_hack /* = nullptr */ )
 {
@@ -102,6 +162,8 @@ void print_stacktrace(std::ostream& out, unsigned int max_frames /* = 63 */, voi
 	}
     }
 
+    print_stacktrace_linenums(addrlist, addrlen);
+
     free(funcname);
     free(symbollist);
 }
@@ -133,10 +195,7 @@ void segfault_handler(int sig_num, siginfo_t * info, void * ucontext)
 #error Unsupported architecture. // TODO: Add support for other arch.
 #endif
 
-   std::cerr << "without overwrite:" << std::endl;
    print_stacktrace( std::cerr, 128, nullptr );
-   std::cerr << "with overwrite:" << std::endl;
-   print_stacktrace( std::cerr, 128, caller_address );
    std::exit(EXIT_FAILURE);
 }
 
