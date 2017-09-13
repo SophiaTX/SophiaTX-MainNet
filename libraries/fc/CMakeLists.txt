@@ -170,6 +170,7 @@ set( fc_sources
      src/thread/mutex.cpp
      src/thread/non_preemptable_scope_check.cpp
      src/asio.cpp
+     src/stacktrace.cpp
      src/string.cpp
      src/shared_ptr.cpp
      src/time.cpp
