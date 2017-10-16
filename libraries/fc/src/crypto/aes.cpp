@@ -20,6 +20,8 @@
 # include <windows.h>
 #endif
 
+#include <fc/macros.hpp>
+
 namespace fc {
 
 struct aes_encoder::impl 
@@ -29,7 +31,8 @@ struct aes_encoder::impl
 
 aes_encoder::aes_encoder()
 {
-  static int init = init_openssl();
+   static int init = init_openssl();
+   FC_UNUSED(init);
 }
 
 aes_encoder::~aes_encoder()
@@ -98,6 +101,7 @@ struct aes_decoder::impl
 aes_decoder::aes_decoder()
   {
   static int init = init_openssl();
+  FC_UNUSED(init);
   }
 
 void aes_decoder::init( const fc::sha256& key, const fc::uint128& init_value )

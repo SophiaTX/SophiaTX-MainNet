@@ -6,6 +6,7 @@
 #include <fc/crypto/sha512.hpp>
 
 #include <fc/fwd_impl.hpp>
+#include <fc/macros.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/log/logger.hpp>
 
@@ -31,7 +32,7 @@ namespace fc { namespace ecc {
         void _init_lib() {
             static const secp256k1_context_t* ctx = _get_context();
             static int init_o = init_openssl();
-            (void)ctx;
+            FC_UNUSED(ctx, init_o);
         }
 
         class public_key_impl

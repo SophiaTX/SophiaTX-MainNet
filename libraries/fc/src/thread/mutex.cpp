@@ -15,14 +15,7 @@ namespace fc {
   mutex::~mutex() {
     if( m_blist ) 
     {
-      context* c = m_blist;
       fc::thread::current().debug("~mutex");
-#if 0
-      while( c )  {
- //       elog( "still blocking on context %p (%s)", m_blist, (m_blist->cur_task ? m_blist->cur_task->get_desc() : "no current task") ); 
-        c = c->next_blocked_mutex;
-      }
-#endif
       BOOST_ASSERT( false && "Attempt to free mutex while others are blocking on lock." );
     }
   }
