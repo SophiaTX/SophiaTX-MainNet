@@ -5,6 +5,7 @@
 // and modified for C++ and FC by Steemit, Inc.
 
 #include <fc/filesystem.hpp>
+#include <fc/macros.hpp>
 #include <fc/stacktrace.hpp>
 
 #if defined(__GNUC__) && !defined( __APPLE__ )
@@ -194,6 +195,8 @@ void segfault_handler(int sig_num, siginfo_t * info, void * ucontext)
 #else
 #error Unsupported architecture. // TODO: Add support for other arch.
 #endif
+
+   FC_UNUSED(caller_address);
 
    print_stacktrace( std::cerr, 128, nullptr );
    std::exit(EXIT_FAILURE);

@@ -8,6 +8,8 @@ Modifications by Steemit, Inc. 2016
 #include <equihash/blake2.h>
 #include <algorithm>
 
+#include <../../../include/fc/macros.hpp>
+
 #ifdef EQUIHASH_POW_VERBOSE
 #include <iomanip>
 #include <iostream>
@@ -137,16 +139,13 @@ Proof Equihash::FindProof(){
         uint64_t start_cycles = rdtsc();
         InitializeMemory(); //allocate
         FillMemory(4UL << (n / (k + 1)-1));   //fill with hashes
-        uint64_t fill_end = rdtsc();
         /*fp = fopen("proof.log", "a+");
         fprintf(fp, "\n===MEMORY FILLED:\n");
         PrintTuples(fp);
         fclose(fp);*/
         for (unsigned i = 1; i <= k; ++i) {
-            uint64_t resolve_start = rdtsc();
             bool to_store = (i == k);
             ResolveCollisions(to_store); //XOR collisions, concatenate indices and shift
-            uint64_t resolve_end = rdtsc();
            /* fp = fopen("proof.log", "a+");
             fprintf(fp, "\n===RESOLVED AFTER STEP %d:\n", i);
             PrintTuples(fp);
@@ -156,6 +155,8 @@ Proof Equihash::FindProof(){
 
         double  mcycles_d = (double)(stop_cycles - start_cycles) / (1UL << 20);
         uint32_t kbytes = (tupleList.size()*LIST_LENGTH*k*sizeof(uint32_t)) / (1UL << 10);
+
+        FC_UNUSED(mcycles_d, kbytes);
 
         //Duplicate check
         for (unsigned i = 0; i < solutions.size(); ++i) {

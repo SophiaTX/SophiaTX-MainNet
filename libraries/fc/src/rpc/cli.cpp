@@ -141,15 +141,15 @@ char * dupstr (const char* s) {
 
 char* my_generator(const char* text, int state)
 {
-   static int list_index, len;
-   const char *name;
+   static size_t list_index = 0, len = 0;
+   const char *name = nullptr;
 
    if (!state) {
       list_index = 0;
       len = strlen (text);
    }
 
-   auto& cmd = cli_commands();
+   const auto& cmd = cli_commands();
 
    while( list_index < cmd.size() )
    {
