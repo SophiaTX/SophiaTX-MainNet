@@ -42,6 +42,9 @@ target_link_libraries( log_test fc )
 #add_executable( test_rate_limiting rate_limiting.cpp )
 #target_link_libraries( test_rate_limiting fc )
 
+add_executable( sha_test sha_test.cpp )
+target_link_libraries( sha_test fc )
+
 add_executable( all_tests all_tests.cpp
                           compress/compress.cpp
                           crypto/aes_test.cpp

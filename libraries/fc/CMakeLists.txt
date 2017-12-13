@@ -222,6 +222,7 @@ set( fc_sources
      src/crypto/blowfish.cpp
      src/crypto/elliptic_common.cpp
      src/crypto/equihash.cpp
+     src/crypto/restartable_sha256.cpp
      ${ECC_REST}
      src/crypto/elliptic_${ECC_IMPL}.cpp
      src/crypto/rand.cpp
