@@ -249,7 +249,8 @@ namespace fc {
     }
 
     template<typename Stream> inline void unpack( Stream& s, fc::string& v )  {
-      std::vector<char> tmp; fc::raw::unpack(s,tmp);
+      std::vector<char> tmp;
+      fc::raw::unpack(s,tmp);
       if( tmp.size() )
          v = fc::string(tmp.data(),tmp.data()+tmp.size());
       else v = fc::string();
@@ -542,7 +543,8 @@ namespace fc {
     }
 
     template<typename T>
-    inline std::vector<char> pack(  const T& v ) {
+    inline std::vector<char> pack_to_vector( const T& v )
+    {
       datastream<size_t> ps;
       fc::raw::pack(ps,v );
       std::vector<char> vec(ps.tellp());
@@ -554,22 +556,8 @@ namespace fc {
       return vec;
     }
 
-    template<typename T, typename... Next>
-    inline std::vector<char> pack(  const T& v, Next... next ) {
-      datastream<size_t> ps;
-      fc::raw::pack(ps,v,next...);
-      std::vector<char> vec(ps.tellp());
-
-      if( vec.size() ) {
-        datastream<char*>  ds( vec.data(), size_t(vec.size()) );
-        fc::raw::pack(ds,v,next...);
-      }
-      return vec;
-    }
-
-
     template<typename T>
-    inline T unpack( const std::vector<char>& s )
+    inline T unpack_from_vector( const std::vector<char>& s )
     { try  {
       T tmp;
       if( s.size() ) {
@@ -580,7 +568,7 @@ namespace fc {
     } FC_RETHROW_EXCEPTIONS( warn, "error unpacking ${type}", ("type",fc::get_typename<T>::name() ) ) }
 
     template<typename T>
-    inline void unpack( const std::vector<char>& s, T& tmp )
+    inline void unpack_from_vector( const std::vector<char>& s, T& tmp )
     { try  {
       if( s.size() ) {
         datastream<const char*>  ds( s.data(), size_t(s.size()) );
@@ -589,13 +577,13 @@ namespace fc {
     } FC_RETHROW_EXCEPTIONS( warn, "error unpacking ${type}", ("type",fc::get_typename<T>::name() ) ) }
 
     template<typename T>
-    inline void pack( char* d, uint32_t s, const T& v ) {
+    inline void pack_to_char_array( char* d, uint32_t s, const T& v ) {
       datastream<char*> ds(d,s);
       fc::raw::pack(ds,v );
     }
 
     template<typename T>
-    inline T unpack( const char* d, uint32_t s )
+    inline T unpack_from_char_array( const char* d, uint32_t s )
     { try {
       T v;
       datastream<const char*>  ds( d, s );
@@ -604,7 +592,7 @@ namespace fc {
     } FC_RETHROW_EXCEPTIONS( warn, "error unpacking ${type}", ("type",fc::get_typename<T>::name() ) ) }
 
     template<typename T>
-    inline void unpack( const char* d, uint32_t s, T& v )
+    inline void unpack_from_char_array( const char* d, uint32_t s, T& v )
     { try {
       datastream<const char*>  ds( d, s );
       fc::raw::unpack(ds,v);
