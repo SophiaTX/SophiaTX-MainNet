@@ -1,6 +1,9 @@
 #pragma once
 #include <fc/thread/thread.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 #include <boost/context/all.hpp>
+#pragma GCC diagnostic pop
 #include <fc/exception/exception.hpp>
 #include <vector>
 
@@ -45,11 +48,11 @@ namespace fc {
   struct context  {
     typedef fc::context* ptr;
 
-#if BOOST_VERSION >= 105400 // && BOOST_VERSION <= 106100 
+#if BOOST_VERSION >= 105400 // && BOOST_VERSION <= 106100
     bco::stack_context stack_ctx;
 #endif
 
-#if BOOST_VERSION >= 106100 
+#if BOOST_VERSION >= 106100
     typedef bc::detail::transfer_t transfer_t;
 #else
     typedef intptr_t transfer_t;
@@ -58,9 +61,9 @@ namespace fc {
     context( void (*sf)(transfer_t), stack_allocator& alloc, fc::thread* t )
     : caller_context(0),
       stack_alloc(&alloc),
-      next_blocked(0), 
-      next_blocked_mutex(0), 
-      next(0), 
+      next_blocked(0),
+      next_blocked_mutex(0),
+      next(0),
       ctx_thread(t),
       canceled(false),
 #ifndef NDEBUG
@@ -79,7 +82,7 @@ namespace fc {
 #elif BOOST_VERSION >= 105600
      size_t stack_size = FC_CONTEXT_STACK_SIZE;
      alloc.allocate(stack_ctx, stack_size);
-     my_context = bc::make_fcontext( stack_ctx.sp, stack_ctx.size, sf); 
+     my_context = bc::make_fcontext( stack_ctx.sp, stack_ctx.size, sf);
 #elif BOOST_VERSION >= 105400
      size_t stack_size = FC_CONTEXT_STACK_SIZE;
      alloc.allocate(stack_ctx, stack_size);
@@ -97,16 +100,16 @@ namespace fc {
     }
 
     context( fc::thread* t) :
-#if BOOST_VERSION >= 105600 && BOOST_VERSION <= 106100 
+#if BOOST_VERSION >= 105600 && BOOST_VERSION <= 106100
      my_context(nullptr),
 #elif BOOST_VERSION >= 105300
      my_context(new bc::fcontext_t),
 #endif
      caller_context(0),
      stack_alloc(0),
-     next_blocked(0), 
-     next_blocked_mutex(0), 
-     next(0), 
+     next_blocked(0),
+     next_blocked_mutex(0),
+     next(0),
      ctx_thread(t),
      canceled(false),
 #ifndef NDEBUG
@@ -116,7 +119,7 @@ namespace fc {
      cur_task(0),
      context_posted_num(0)
     {
-    
+
 #if BOOST_VERSION >= 106100
        /*
         bc::execution_context<intptr_t> tmp(  [=]( bc::execution_context<intptr_t> sink, intptr_t ) { std::cerr<<"get current\n"; return sink; } );
@@ -170,7 +173,7 @@ namespace fc {
       promise_base* prom;
       bool          required;
     };
-    
+
     /**
      *  @todo Have a list of promises so that we can wait for
      *    P1 or P2 and either will unblock instead of requiring both
@@ -234,7 +237,7 @@ namespace fc {
 
 
 
-#if BOOST_VERSION >= 106100 
+#if BOOST_VERSION >= 106100
     //bc::execution_context<intptr_t>*   my_context;
     bc::detail::fcontext_t       my_context;
 #elif BOOST_VERSION >= 105300 && BOOST_VERSION < 105600
@@ -245,7 +248,7 @@ namespace fc {
     fc::context*                caller_context;
     stack_allocator*            stack_alloc;
     priority                     prio;
-    //promise_base*              prom; 
+    //promise_base*              prom;
     std::vector<blocked_promise> blocking_prom;
     time_point                   resume_time;
    // time_point                   ready_time; // time that this context was put on ready queue
@@ -262,5 +265,5 @@ namespace fc {
     uint64_t                     context_posted_num; // serial number set each tiem the context is added to the ready list
   };
 
-} // naemspace fc 
+} // naemspace fc
 
