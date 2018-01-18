@@ -29,5 +29,5 @@
 #define FC_UNUSED(...) DO_PRAGMA(unused(__VA_ARGS__))
 #endif /// __GNUC__
 
-/// Macro to force printing of TODO message at compiler output. 
+/// Macro to force printing of TODO message at compiler output.
 #define FC_TODO(msg) DO_PRAGMA(message("TODO: " #msg))
