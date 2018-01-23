@@ -19,7 +19,7 @@ namespace fc {
 // Implementation details, the user should not import this:
 namespace impl {
 
-template<int N, typename... Ts>
+template<int64_t N, typename... Ts>
 struct storage_ops;
 
 template<typename X, typename... Ts>
@@ -54,100 +54,100 @@ struct move_construct
    }
 };
 
-template<int N, typename T, typename... Ts>
+template<int64_t N, typename T, typename... Ts>
 struct storage_ops<N, T&, Ts...> {
-    static void del(int n, void *data) {}
-    static void con(int n, void *data) {}
+    static void del(int64_t n, void *data) {}
+    static void con(int64_t n, void *data) {}
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, void *data, visitor& v) {}
+    static typename visitor::result_type apply(int64_t n, void *data, visitor& v) {}
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, void *data, const visitor& v) {}
+    static typename visitor::result_type apply(int64_t n, void *data, const visitor& v) {}
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, const void *data, visitor& v) {}
+    static typename visitor::result_type apply(int64_t n, const void *data, visitor& v) {}
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, const void *data, const visitor& v) {}
+    static typename visitor::result_type apply(int64_t n, const void *data, const visitor& v) {}
 };
 
-template<int N, typename T, typename... Ts>
+template<int64_t N, typename T, typename... Ts>
 struct storage_ops<N, T, Ts...> {
-    static void del(int n, void *data) {
+    static void del(int64_t n, void *data) {
         if(n == N) reinterpret_cast<T*>(data)->~T();
         else storage_ops<N + 1, Ts...>::del(n, data);
     }
-    static void con(int n, void *data) {
+    static void con(int64_t n, void *data) {
         if(n == N) new(reinterpret_cast<T*>(data)) T();
         else storage_ops<N + 1, Ts...>::con(n, data);
     }
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, void *data, visitor& v) {
+    static typename visitor::result_type apply(int64_t n, void *data, visitor& v) {
         if(n == N) return v(*reinterpret_cast<T*>(data));
         else return storage_ops<N + 1, Ts...>::apply(n, data, v);
     }
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, void *data, const visitor& v) {
+    static typename visitor::result_type apply(int64_t n, void *data, const visitor& v) {
         if(n == N) return v(*reinterpret_cast<T*>(data));
         else return storage_ops<N + 1, Ts...>::apply(n, data, v);
     }
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, const void *data, visitor& v) {
+    static typename visitor::result_type apply(int64_t n, const void *data, visitor& v) {
         if(n == N) return v(*reinterpret_cast<const T*>(data));
         else return storage_ops<N + 1, Ts...>::apply(n, data, v);
     }
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, const void *data, const visitor& v) {
+    static typename visitor::result_type apply(int64_t n, const void *data, const visitor& v) {
         if(n == N) return v(*reinterpret_cast<const T*>(data));
         else return storage_ops<N + 1, Ts...>::apply(n, data, v);
     }
 };
 
-template<int N>
+template<int64_t N>
 struct storage_ops<N> {
-    static void del(int n, void *data) {
+    static void del(int64_t n, void *data) {
        FC_THROW_EXCEPTION( fc::assert_exception, "Internal error: static_variant tag is invalid.");
     }
-    static void con(int n, void *data) {
+    static void con(int64_t n, void *data) {
        FC_THROW_EXCEPTION( fc::assert_exception, "Internal error: static_variant tag is invalid." );
     }
 
     template<typename visitor>
-    static typename visitor::result_type apply(int n, void *data, visitor& v) {
+    static typename visitor::result_type apply(int64_t n, void *data, visitor& v) {
        FC_THROW_EXCEPTION( fc::assert_exception, "Internal error: static_variant tag is invalid." );
     }
     template<typename visitor>
-    static typename visitor::result_type apply(int n, void *data, const visitor& v) {
+    static typename visitor::result_type apply(int64_t n, void *data, const visitor& v) {
        FC_THROW_EXCEPTION( fc::assert_exception, "Internal error: static_variant tag is invalid." );
     }
     template<typename visitor>
-    static typename visitor::result_type apply(int n, const void *data, visitor& v) {
+    static typename visitor::result_type apply(int64_t n, const void *data, visitor& v) {
        FC_THROW_EXCEPTION( fc::assert_exception, "Internal error: static_variant tag is invalid." );
     }
     template<typename visitor>
-    static typename visitor::result_type apply(int n, const void *data, const visitor& v) {
+    static typename visitor::result_type apply(int64_t n, const void *data, const visitor& v) {
        FC_THROW_EXCEPTION( fc::assert_exception, "Internal error: static_variant tag is invalid." );
     }
 };
 
 template<typename X>
 struct position<X> {
-    static const int pos = -1;
+    static const int64_t pos = -1;
 };
 
 template<typename X, typename... Ts>
 struct position<X, X, Ts...> {
-    static const int pos = 0;
+    static const int64_t pos = 0;
 };
 
 template<typename X, typename T, typename... Ts>
 struct position<X, T, Ts...> {
-    static const int pos = position<X, Ts...>::pos != -1 ? position<X, Ts...>::pos + 1 : -1;
+    static const int64_t pos = position<X, Ts...>::pos != -1 ? position<X, Ts...>::pos + 1 : -1;
 };
 
 template<typename T, typename... Ts>
@@ -181,7 +181,7 @@ class static_variant {
     static_assert(impl::type_info<Types...>::no_reference_types, "Reference types are not permitted in static_variant.");
     static_assert(impl::type_info<Types...>::no_duplicates, "static_variant type arguments contain duplicate types.");
 
-    int _tag;
+    int64_t _tag;
     char storage[impl::type_info<Types...>::size];
 
     template<typename X>
@@ -208,7 +208,7 @@ public:
          impl::position<X, Types...>::pos != -1,
          "Type not in static_variant."
        );
-       static const int value = impl::position<X, Types...>::pos;
+       static const int64_t value = impl::position<X, Types...>::pos;
     };
     static_variant()
     {
@@ -325,15 +325,15 @@ public:
         return impl::storage_ops<0, Types...>::apply(_tag, storage, v);
     }
 
-    static int count() { return impl::type_info<Types...>::count; }
-    void set_which( int w ) {
+    static size_t count() { return impl::type_info<Types...>::count; }
+    void set_which( int64_t w ) {
       FC_ASSERT( w < count() );
       this->~static_variant();
       _tag = w;
       impl::storage_ops<0, Types...>::con(_tag, storage);
     }
 
-    int which() const {return _tag;}
+    int64_t which() const {return _tag;}
 };
 
 template<typename Result>
@@ -341,7 +341,7 @@ struct visitor {
     typedef Result result_type;
 };
 
-   struct from_static_variant 
+   struct from_static_variant
    {
       variant& var;
       from_static_variant( variant& dv ):var(dv){}
@@ -361,7 +361,7 @@ struct visitor {
       typedef void result_type;
       template<typename T> void operator()( T& v )const
       {
-         from_variant( var, v ); 
+         from_variant( var, v );
       }
    };
 
@@ -378,7 +378,7 @@ struct visitor {
    {
       auto ar = v.get_array();
       if( ar.size() < 2 ) return;
-      s.set_which( ar[0].as_uint64() );
+      s.set_which( static_cast< int64_t >( ar[0].as_uint64() ) );
       s.visit( to_static_variant(ar[1]) );
    }
 
