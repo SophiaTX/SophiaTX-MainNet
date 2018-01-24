@@ -325,7 +325,7 @@ public:
         return impl::storage_ops<0, Types...>::apply(_tag, storage, v);
     }
 
-    static size_t count() { return impl::type_info<Types...>::count; }
+    static int64_t count() { return static_cast< int64_t >( impl::type_info<Types...>::count ); }
     void set_which( int64_t w ) {
       FC_ASSERT( w < count() && w >= 0 );
       this->~static_variant();
