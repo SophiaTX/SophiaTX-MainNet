@@ -327,7 +327,7 @@ public:
 
     static size_t count() { return impl::type_info<Types...>::count; }
     void set_which( int64_t w ) {
-      FC_ASSERT( w < count() );
+      FC_ASSERT( w < count() && w >= 0 );
       this->~static_variant();
       _tag = w;
       impl::storage_ops<0, Types...>::con(_tag, storage);
