@@ -218,6 +218,55 @@ void print_stacktrace_on_segfault()
 
 }
 
+#elif defined( __APPLE__ )
+
+#include <execinfo.h>
+#include <signal.h>
+#include <stdio.h>
+
+namespace fc {
+
+void segfault_handler(int sig_num)
+{
+   std::cerr << "caught segfault\n";
+   print_stacktrace( std::cerr, 128, nullptr );
+   std::exit(EXIT_FAILURE);
+}
+
+void print_stacktrace( std::ostream& out, unsigned int max_frames /* = 63 */, void* caller_overwrite_hack /* = nullptr */ )
+{
+   std::cerr << "print stacktrace\n";
+   assert( max_frames <= 128 );
+   void* callstack[ 128 ];
+   int frames = backtrace( callstack, max_frames );
+   char** strs = backtrace_symbols( callstack, frames );
+
+   for( size_t i = 0; i < frames; ++i )
+   {
+      out << strs[i] << "\n";
+   }
+
+   free( strs );
+}
+
+void print_stacktrace_on_segfault()
+{
+   struct sigaction sigact;
+
+   sigact.sa_handler = &segfault_handler;
+   sigact.sa_flags = SA_RESTART | SA_SIGINFO;
+
+   std::cerr << "registering signal handler\n";
+
+   if( sigaction(SIGSEGV, &sigact, NULL) != 0 )
+   {
+      std::cerr << "Error setting signal handler" << std::endl;
+      std::exit(EXIT_FAILURE);
+   }
+}
+
+}
+
 #else
 
 namespace fc {
