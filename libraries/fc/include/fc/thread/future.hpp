@@ -238,6 +238,9 @@ namespace fc {
          }
       }
 
+      void set_value( const T& v ) { m_prom->set_value(v); }
+      void set_value( T&& v ) { m_prom->set_value(v); }
+
       /**
        * @pre valid()
        *
@@ -305,6 +308,10 @@ namespace fc {
       bool error()const { return m_prom->error(); }
 
       void cancel(const char* reason FC_CANCELATION_REASON_DEFAULT_ARG) const { if( m_prom ) m_prom->cancel(reason); }
+
+      void set_value(){ m_prom->set_value(); }
+      void set_value( const void_t&  ) { m_prom->set_value(); }
+
 
       template<typename CompletionHandler>
       void on_complete( CompletionHandler&& c ) {

@@ -382,5 +382,7 @@ struct visitor {
       s.visit( to_static_variant(ar[1]) );
    }
 
-  template<typename... T> struct get_typename { static const char* name()   { return typeid(static_variant<T...>).name();   } };
+   template<typename T0, typename... T> struct get_typename<T0, T...>  { static const char* name()   { return typeid(static_variant<T0, T...>).name();   } };
+
+
 } // namespace fc
