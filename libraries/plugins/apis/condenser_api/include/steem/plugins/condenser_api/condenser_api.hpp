@@ -5,7 +5,6 @@
 #include <steem/plugins/account_history_api/account_history_api.hpp>
 #include <steem/plugins/account_by_key_api/account_by_key_api.hpp>
 #include <steem/plugins/network_broadcast_api/network_broadcast_api.hpp>
-#include <steem/plugins/tags_api/tags_api.hpp>
 #include <steem/plugins/follow_api/follow_api.hpp>
 #include <steem/plugins/market_history_api/market_history_api.hpp>
 #include <steem/plugins/witness_api/witness_api.hpp>
@@ -239,7 +238,6 @@ struct extended_account : public api_account_object
    map< uint64_t, api_operation_object >   vote_history;
    map< uint64_t, api_operation_object >   other_history;
    set< string >                                            witness_votes;
-   vector< tags::tag_count_object >                         tags_usage;
    vector< follow::reblog_count >                           guest_bloggers;
 
    optional< map< uint32_t, api_limit_order_object > >      open_orders;
@@ -579,55 +577,7 @@ struct api_convert_request_object
 struct discussion
 {
    discussion() {}
-   discussion( const tags::discussion& d ) :
-      id( d.id ),
-      category( d.category ),
-      parent_author( d.parent_author ),
-      parent_permlink( d.parent_permlink ),
-      author( d.author ),
-      permlink( d.permlink ),
-      title( d.title ),
-      body( d.body ),
-      json_metadata( d.json_metadata ),
-      last_update( d.last_update ),
-      created( d.created ),
-      active( d.active ),
-      last_payout( d.last_payout ),
-      depth( d.depth ),
-      children( d.children ),
-      net_rshares( d.net_rshares ),
-      abs_rshares( d.abs_rshares ),
-      vote_rshares( d.vote_rshares ),
-      children_abs_rshares( d.children_abs_rshares ),
-      cashout_time( d.cashout_time ),
-      max_cashout_time( d.max_cashout_time ),
-      total_vote_weight( d.total_vote_weight ),
-      reward_weight( d.reward_weight ),
-      total_payout_value( legacy_asset::from_asset( d.total_payout_value ) ),
-      curator_payout_value( legacy_asset::from_asset( d.curator_payout_value ) ),
-      author_rewards( d.author_rewards ),
-      net_votes( d.net_votes ),
-      root_author( d.root_author ),
-      root_permlink( d.root_permlink ),
-      max_accepted_payout( legacy_asset::from_asset( d.max_accepted_payout ) ),
-      percent_steem_dollars( d.percent_steem_dollars ),
-      allow_replies( d.allow_replies ),
-      allow_votes( d.allow_votes ),
-      allow_curation_rewards( d.allow_curation_rewards ),
-      beneficiaries( d.beneficiaries ),
-      url( d.url ),
-      root_title( d.root_title ),
-      pending_payout_value( legacy_asset::from_asset( d.pending_payout_value ) ),
-      total_pending_payout_value( legacy_asset::from_asset( d.total_pending_payout_value ) ),
-      active_votes( d.active_votes ),
-      replies( d.replies ),
-      author_reputation( d.author_reputation ),
-      promoted( legacy_asset::from_asset( d.promoted ) ),
-      body_length( d.body_length ),
-      reblogged_by( d.reblogged_by ),
-      first_reblogged_by( d.first_reblogged_by ),
-      first_reblogged_on( d.first_reblogged_on )
-   {}
+
 
 
    comment_id_type   id;
@@ -680,7 +630,6 @@ struct discussion
    string                        root_title;
    legacy_asset                  pending_payout_value; ///< sbd
    legacy_asset                  total_pending_payout_value; ///< sbd including replies
-   vector< tags::vote_state >    active_votes;
    vector< string >              replies; ///< author/slug mapping
    share_type                    author_reputation = 0;
    legacy_asset                  promoted;
@@ -690,30 +639,6 @@ struct discussion
    optional< time_point_sec >    first_reblogged_on;
 };
 
-struct tag_index
-{
-   vector< tags::tag_name_type > trending; /// pending payouts
-};
-
-struct api_tag_object
-{
-   api_tag_object( const tags::api_tag_object& o ) :
-      name( o.name ),
-      total_payouts( legacy_asset::from_asset( o.total_payouts ) ),
-      net_votes( o.net_votes ),
-      top_posts( o.top_posts ),
-      comments( o.comments ),
-      trending( o.trending ) {}
-
-   api_tag_object() {}
-
-   string               name;
-   legacy_asset         total_payouts;
-   int32_t              net_votes = 0;
-   uint32_t             top_posts = 0;
-   uint32_t             comments = 0;
-   fc::uint128          trending = 0;
-};
 
 struct state
 {
@@ -721,19 +646,6 @@ struct state
 
    extended_dynamic_global_properties                 props;
 
-   tag_index                                          tag_idx;
-
-   /**
-    * "" is the global tags::discussion index
-    */
-   map< string, discussion_index >                    discussion_idx;
-
-   map< string, api_tag_object >                tags;
-
-   /**
-    *  map from account/slug to full nested tags::discussion
-    */
-   map< string, discussion >                          content;
    map< string, extended_account >                    accounts;
 
    map< string, api_witness_object >                  witnesses;
@@ -861,7 +773,6 @@ typedef arg_type api_name ## _args;                         \
 typedef return_type api_name ## _return;
 
 /*               API,                                    args,                return */
-DEFINE_API_ARGS( get_trending_tags,                      vector< variant >,   vector< api_tag_object > )
 DEFINE_API_ARGS( get_state,                              vector< variant >,   state )
 DEFINE_API_ARGS( get_active_witnesses,                   vector< variant >,   vector< account_name_type > )
 DEFINE_API_ARGS( get_block_header,                       vector< variant >,   optional< block_header > )
@@ -904,26 +815,7 @@ DEFINE_API_ARGS( get_required_signatures,                vector< variant >,   se
 DEFINE_API_ARGS( get_potential_signatures,               vector< variant >,   set< public_key_type > )
 DEFINE_API_ARGS( verify_authority,                       vector< variant >,   bool )
 DEFINE_API_ARGS( verify_account_authority,               vector< variant >,   bool )
-DEFINE_API_ARGS( get_active_votes,                       vector< variant >,   vector< tags::vote_state > )
 DEFINE_API_ARGS( get_account_votes,                      vector< variant >,   vector< account_vote > )
-DEFINE_API_ARGS( get_content,                            vector< variant >,   discussion )
-DEFINE_API_ARGS( get_content_replies,                    vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_tags_used_by_author,                vector< variant >,   vector< tags::tag_count_object > )
-DEFINE_API_ARGS( get_post_discussions_by_payout,         vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_comment_discussions_by_payout,      vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_trending,            vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_created,             vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_active,              vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_cashout,             vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_votes,               vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_children,            vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_hot,                 vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_feed,                vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_blog,                vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_comments,            vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_promoted,            vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_replies_by_last_update,             vector< variant >,   vector< discussion > )
-DEFINE_API_ARGS( get_discussions_by_author_before_date,  vector< variant >,   vector< discussion > )
 DEFINE_API_ARGS( get_account_history,                    vector< variant >,   get_account_history_return_type )
 DEFINE_API_ARGS( broadcast_transaction,                  vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   network_broadcast_api::broadcast_transaction_synchronous_return )
@@ -956,7 +848,6 @@ public:
 
    DECLARE_API(
       (get_version)
-      (get_trending_tags)
       (get_state)
       (get_active_witnesses)
       (get_block_header)
@@ -999,26 +890,7 @@ public:
       (get_potential_signatures)
       (verify_authority)
       (verify_account_authority)
-      (get_active_votes)
       (get_account_votes)
-      (get_content)
-      (get_content_replies)
-      (get_tags_used_by_author)
-      (get_post_discussions_by_payout)
-      (get_comment_discussions_by_payout)
-      (get_discussions_by_trending)
-      (get_discussions_by_created)
-      (get_discussions_by_active)
-      (get_discussions_by_cashout)
-      (get_discussions_by_votes)
-      (get_discussions_by_children)
-      (get_discussions_by_hot)
-      (get_discussions_by_feed)
-      (get_discussions_by_blog)
-      (get_discussions_by_comments)
-      (get_discussions_by_promoted)
-      (get_replies_by_last_update)
-      (get_discussions_by_author_before_date)
       (get_account_history)
       (broadcast_transaction)
       (broadcast_transaction_synchronous)
@@ -1054,11 +926,8 @@ public:
 FC_REFLECT( steem::plugins::condenser_api::discussion_index,
             (category)(trending)(payout)(payout_comments)(trending30)(updated)(created)(responses)(active)(votes)(maturing)(best)(hot)(promoted)(cashout) )
 
-FC_REFLECT( steem::plugins::condenser_api::api_tag_object,
-            (name)(total_payouts)(net_votes)(top_posts)(comments)(trending) )
-
 FC_REFLECT( steem::plugins::condenser_api::state,
-            (current_route)(props)(tag_idx)(tags)(content)(accounts)(witnesses)(discussion_idx)(witness_schedule)(feed_price)(error) )
+            (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_limit_order_object,
             (id)(created)(expiration)(seller)(orderid)(for_sale)(sell_price)(real_price)(rewarded) )
@@ -1085,7 +954,7 @@ FC_REFLECT( steem::plugins::condenser_api::api_account_object,
 
 FC_REFLECT_DERIVED( steem::plugins::condenser_api::extended_account, (steem::plugins::condenser_api::api_account_object),
             (average_bandwidth)(lifetime_bandwidth)(last_bandwidth_update)(average_market_bandwidth)(lifetime_market_bandwidth)(last_market_bandwidth_update)
-            (vesting_balance)(reputation)(transfer_history)(market_history)(post_history)(vote_history)(other_history)(witness_votes)(tags_usage)(guest_bloggers)(open_orders)(comments)(feed)(blog)(recent_replies)(recommended) )
+            (vesting_balance)(reputation)(transfer_history)(market_history)(post_history)(vote_history)(other_history)(witness_votes)(guest_bloggers)(open_orders)(comments)(feed)(blog)(recent_replies)(recommended) )
 
 FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
@@ -1188,7 +1057,7 @@ FC_REFLECT( steem::plugins::condenser_api::discussion,
              (max_accepted_payout)(percent_steem_dollars)(allow_replies)(allow_votes)(allow_curation_rewards)
              (beneficiaries)
              (url)(root_title)(pending_payout_value)(total_pending_payout_value)
-             (active_votes)(replies)(author_reputation)(promoted)
+             (replies)(author_reputation)(promoted)
              (body_length)(reblogged_by)(first_reblogged_by)(first_reblogged_on)
           )
 
@@ -1198,7 +1067,6 @@ FC_REFLECT( steem::plugins::condenser_api::scheduled_hardfork,
 FC_REFLECT( steem::plugins::condenser_api::account_vote,
             (authorperm)(weight)(rshares)(percent)(time) )
 
-FC_REFLECT( steem::plugins::condenser_api::tag_index, (trending) )
 
 FC_REFLECT_ENUM( steem::plugins::condenser_api::withdraw_route_type, (incoming)(outgoing)(all) )
 

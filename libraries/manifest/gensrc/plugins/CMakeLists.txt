@@ -24,8 +24,6 @@ target_link_libraries( steem_plugins appbase fc
 
    chain_api_plugin
 
-   tags_api_plugin
-
    account_by_key_api_plugin
 
    block_api_plugin
@@ -41,8 +39,6 @@ target_link_libraries( steem_plugins appbase fc
    chain_plugin
 
    debug_node_plugin
-
-   tags_plugin
 
    webserver_plugin
 

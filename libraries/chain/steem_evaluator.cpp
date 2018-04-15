@@ -10,7 +10,6 @@
 #include <fc/macros.hpp>
 
 #ifndef IS_LOW_MEM
-FC_TODO( "After we vendor fc, also vendor diff_match_patch and fix these warnings" )
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic push
@@ -82,23 +81,14 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    _db.get_account( o.owner ); // verify owner exists
 
-   if ( _db.has_hardfork( STEEM_HARDFORK_0_14__410 ) )
-   {
-      FC_ASSERT( o.props.account_creation_fee.symbol.is_canon() );
-   }
-   else if( !o.props.account_creation_fee.symbol.is_canon() )
-   {
-      // after HF, above check can be moved to validate() if reindex doesn't show this warning
-      wlog( "Wrong fee symbol in block ${b}", ("b", _db.head_block_num()+1) );
-   }
 
-   #pragma message( "TODO: This needs to be part of HF 20 and moved to validate if not triggered in previous blocks" )
+   FC_ASSERT( o.props.account_creation_fee.symbol.is_canon() );
+
    if( _db.is_producing() )
    {
       FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
    }
 
-   #pragma message( "TODO: This needs to be part of HF 20 and moved to validate if not triggered in previous blocks" )
    if( _db.is_producing() )
    {
       FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
@@ -128,8 +118,6 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 
 void witness_set_properties_evaluator::do_apply( const witness_set_properties_operation& o )
 {
-   FC_ASSERT( _db.has_hardfork( STEEM_HARDFORK_0_20__1620 ), "witness_set_properties_evaluator not enabled until HF 20" );
-
    const auto& witness = _db.get< witness_object, by_name >( o.owner ); // verifies witness exists;
 
    // Capture old properties. This allows only updating the object once.
@@ -254,27 +242,16 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_19__987) )
-   {
-      const witness_schedule_object& wso = _db.get_witness_schedule_object();
-      FC_ASSERT( o.fee >= asset( wso.median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ), "Insufficient Fee: ${f} required, ${p} provided.",
-                 ("f", wso.median_props.account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ) )
-                 ("p", o.fee) );
-   }
-   else if( _db.has_hardfork( STEEM_HARDFORK_0_1 ) )
-   {
-      const witness_schedule_object& wso = _db.get_witness_schedule_object();
-      FC_ASSERT( o.fee >= wso.median_props.account_creation_fee, "Insufficient Fee: ${f} required, ${p} provided.",
-                 ("f", wso.median_props.account_creation_fee)
-                 ("p", o.fee) );
-   }
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) )
-   {
-      verify_authority_accounts_exist( _db, o.owner, o.new_account_name, authority::owner );
-      verify_authority_accounts_exist( _db, o.active, o.new_account_name, authority::active );
-      verify_authority_accounts_exist( _db, o.posting, o.new_account_name, authority::posting );
-   }
+   const witness_schedule_object& wso = _db.get_witness_schedule_object();
+   FC_ASSERT( o.fee >= asset( wso.median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ), "Insufficient Fee: ${f} required, ${p} provided.",
+              ("f", wso.median_props.account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ) )
+                    ("p", o.fee) );
+
+   verify_authority_accounts_exist( _db, o.owner, o.new_account_name, authority::owner );
+   verify_authority_accounts_exist( _db, o.active, o.new_account_name, authority::active );
+   verify_authority_accounts_exist( _db, o.posting, o.new_account_name, authority::posting );
+
 
    _db.modify( creator, [&]( account_object& c ){
       c.balance -= o.fee;
@@ -288,10 +265,8 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       acc.last_vote_time = props.time;
       acc.mined = false;
 
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_11__169 ) )
-         acc.recovery_account = "steem";
-      else
-         acc.recovery_account = o.creator;
+
+      acc.recovery_account = o.creator;
 
 
       #ifndef IS_LOW_MEM
@@ -314,103 +289,16 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
 void account_create_with_delegation_evaluator::do_apply( const account_create_with_delegation_operation& o )
 {
-   FC_ASSERT( !_db.has_hardfork( STEEM_HARDFORK_0_20__1760 ), "Account creation with delegation is deprecated as of Hardfork 20" );
+   FC_ASSERT( false, "Account creation with delegation is deprecated " );
 
-   const auto& creator = _db.get_account( o.creator );
-   const auto& props = _db.get_dynamic_global_properties();
-   const witness_schedule_object& wso = _db.get_witness_schedule_object();
-
-   FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.",
-               ( "creator.balance", creator.balance )
-               ( "required", o.fee ) );
-
-   FC_ASSERT( creator.vesting_shares - creator.delegated_vesting_shares - asset( creator.to_withdraw - creator.withdrawn, VESTS_SYMBOL ) >= o.delegation, "Insufficient vesting shares to delegate to new account.",
-               ( "creator.vesting_shares", creator.vesting_shares )
-               ( "creator.delegated_vesting_shares", creator.delegated_vesting_shares )( "required", o.delegation ) );
-
-   auto target_delegation = asset( wso.median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER * STEEM_CREATE_ACCOUNT_DELEGATION_RATIO, STEEM_SYMBOL ) * props.get_vesting_share_price();
-
-   auto current_delegation = asset( o.fee.amount * STEEM_CREATE_ACCOUNT_DELEGATION_RATIO, STEEM_SYMBOL ) * props.get_vesting_share_price() + o.delegation;
-
-   FC_ASSERT( current_delegation >= target_delegation, "Inssufficient Delegation ${f} required, ${p} provided.",
-               ("f", target_delegation )
-               ( "p", current_delegation )
-               ( "account_creation_fee", wso.median_props.account_creation_fee )
-               ( "o.fee", o.fee )
-               ( "o.delegation", o.delegation ) );
-
-   FC_ASSERT( o.fee >= wso.median_props.account_creation_fee, "Insufficient Fee: ${f} required, ${p} provided.",
-               ("f", wso.median_props.account_creation_fee)
-               ("p", o.fee) );
-
-   for( const auto& a : o.owner.account_auths )
-   {
-      _db.get_account( a.first );
-   }
-
-   for( const auto& a : o.active.account_auths )
-   {
-      _db.get_account( a.first );
-   }
-
-   for( const auto& a : o.posting.account_auths )
-   {
-      _db.get_account( a.first );
-   }
-
-   _db.modify( creator, [&]( account_object& c )
-   {
-      c.balance -= o.fee;
-      c.delegated_vesting_shares += o.delegation;
-   });
-
-   const auto& new_account = _db.create< account_object >( [&]( account_object& acc )
-   {
-      acc.name = o.new_account_name;
-      acc.memo_key = o.memo_key;
-      acc.created = props.time;
-      acc.last_vote_time = props.time;
-      acc.mined = false;
-
-      acc.recovery_account = o.creator;
-
-      acc.received_vesting_shares = o.delegation;
-
-      #ifndef IS_LOW_MEM
-         from_string( acc.json_metadata, o.json_metadata );
-      #endif
-   });
-
-   _db.create< account_authority_object >( [&]( account_authority_object& auth )
-   {
-      auth.account = o.new_account_name;
-      auth.owner = o.owner;
-      auth.active = o.active;
-      auth.posting = o.posting;
-      auth.last_owner_update = fc::time_point_sec::min();
-   });
-
-   if( o.delegation.amount > 0 || !_db.has_hardfork( STEEM_HARDFORK_0_19__997 ) )
-   {
-      _db.create< vesting_delegation_object >( [&]( vesting_delegation_object& vdo )
-      {
-         vdo.delegator = o.creator;
-         vdo.delegatee = o.new_account_name;
-         vdo.vesting_shares = o.delegation;
-         vdo.min_delegation_time = _db.head_block_time() + STEEM_CREATE_ACCOUNT_DELEGATION_TIME;
-      });
-   }
-
-   if( o.fee.amount > 0 )
-      _db.create_vesting( new_account, o.fee );
 }
 
 
 void account_update_evaluator::do_apply( const account_update_operation& o )
 {
-   if( _db.has_hardfork( STEEM_HARDFORK_0_1 ) ) FC_ASSERT( o.account != STEEM_TEMP_ACCOUNT, "Cannot update temp account." );
+   FC_ASSERT( o.account != STEEM_TEMP_ACCOUNT, "Cannot update temp account." );
 
-   if( ( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) ) && o.posting )
+   if( o.posting )
       o.posting->validate();
 
    const auto& account = _db.get_account( o.account );
@@ -419,18 +307,16 @@ void account_update_evaluator::do_apply( const account_update_operation& o )
    if( o.owner )
    {
 #ifndef IS_TEST_NET
-      if( _db.has_hardfork( STEEM_HARDFORK_0_11 ) )
-         FC_ASSERT( _db.head_block_time() - account_auth.last_owner_update > STEEM_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
+      FC_ASSERT( _db.head_block_time() - account_auth.last_owner_update > STEEM_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
 #endif
 
-      if( ( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) ) )
-         verify_authority_accounts_exist( _db, *o.owner, o.account, authority::owner );
+      verify_authority_accounts_exist( _db, *o.owner, o.account, authority::owner );
 
       _db.update_owner_authority( account, *o.owner );
    }
-   if( o.active && ( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) ) )
+   if( o.active  )
       verify_authority_accounts_exist( _db, *o.active, o.account, authority::active );
-   if( o.posting && ( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) ) )
+   if( o.posting )
       verify_authority_accounts_exist( _db, *o.posting, o.account, authority::posting );
 
    _db.modify( account, [&]( account_object& acc )
@@ -466,11 +352,9 @@ void delete_comment_evaluator::do_apply( const delete_comment_operation& o )
    const auto& comment = _db.get_comment( o.author, o.permlink );
    FC_ASSERT( comment.children == 0, "Cannot delete a comment with replies." );
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_19__876 ) )
-      FC_ASSERT( comment.cashout_time != fc::time_point_sec::maximum() );
+   FC_ASSERT( comment.cashout_time != fc::time_point_sec::maximum() );
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_19__977 ) )
-      FC_ASSERT( comment.net_rshares <= 0, "Cannot delete a comment with net positive votes." );
+   FC_ASSERT( comment.net_rshares <= 0, "Cannot delete a comment with net positive votes." );
 
    if( comment.net_rshares > 0 ) return;
 
@@ -484,7 +368,7 @@ void delete_comment_evaluator::do_apply( const delete_comment_operation& o )
    }
 
    /// this loop can be skiped for validate-only nodes as it is merely gathering stats for indicies
-   if( _db.has_hardfork( STEEM_HARDFORK_0_6__80 ) && comment.parent_author != STEEM_ROOT_POST_PARENT )
+   if( comment.parent_author != STEEM_ROOT_POST_PARENT )
    {
       auto parent = &_db.get_comment( comment.parent_author, comment.parent_permlink );
       auto now = _db.head_block_time();
@@ -565,8 +449,7 @@ void comment_options_evaluator::do_apply( const comment_options_operation& o )
 
 void comment_evaluator::do_apply( const comment_operation& o )
 { try {
-   if( _db.has_hardfork( STEEM_HARDFORK_0_5__55 ) )
-      FC_ASSERT( o.title.size() + o.body.size() + o.json_metadata.size(), "Cannot update comment because nothing appears to be changing." );
+   FC_ASSERT( o.title.size() + o.body.size() + o.json_metadata.size(), "Cannot update comment because nothing appears to be changing." );
 
    const auto& by_permlink_idx = _db.get_index< comment_index >().indices().get< by_permlink >();
    auto itr = by_permlink_idx.find( boost::make_tuple( o.author, o.permlink ) );
@@ -579,10 +462,8 @@ void comment_evaluator::do_apply( const comment_operation& o )
    if( o.parent_author != STEEM_ROOT_POST_PARENT )
    {
       parent = &_db.get_comment( o.parent_author, o.parent_permlink );
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_17__767 ) )
-         FC_ASSERT( parent->depth < STEEM_MAX_COMMENT_DEPTH_PRE_HF17, "Comment is nested ${x} posts deep, maximum depth is ${y}.", ("x",parent->depth)("y",STEEM_MAX_COMMENT_DEPTH_PRE_HF17) );
-      else
-         FC_ASSERT( parent->depth < STEEM_MAX_COMMENT_DEPTH, "Comment is nested ${x} posts deep, maximum depth is ${y}.", ("x",parent->depth)("y",STEEM_MAX_COMMENT_DEPTH) );
+
+      FC_ASSERT( parent->depth < STEEM_MAX_COMMENT_DEPTH, "Comment is nested ${x} posts deep, maximum depth is ${y}.", ("x",parent->depth)("y",STEEM_MAX_COMMENT_DEPTH) );
    }
 
    FC_ASSERT( fc::is_utf8( o.json_metadata ), "JSON Metadata must be UTF-8" );
@@ -594,39 +475,17 @@ void comment_evaluator::do_apply( const comment_operation& o )
       if( o.parent_author != STEEM_ROOT_POST_PARENT )
       {
          FC_ASSERT( _db.get( parent->root_comment ).allow_replies, "The parent comment has disabled replies." );
-         if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) && !_db.has_hardfork( STEEM_HARDFORK_0_17__869 ) )
-            FC_ASSERT( _db.calculate_discussion_payout_time( *parent ) != fc::time_point_sec::maximum(), "Discussion is frozen." );
+
       }
 
-      if( _db.has_hardfork( STEEM_HARDFORK_0_12__176 ) )
-      {
-         if( o.parent_author == STEEM_ROOT_POST_PARENT )
-             FC_ASSERT( ( now - auth.last_root_post ) > STEEM_MIN_ROOT_COMMENT_INTERVAL, "You may only post once every 5 minutes.", ("now",now)("last_root_post", auth.last_root_post) );
-         else
-             FC_ASSERT( (now - auth.last_post) > STEEM_MIN_REPLY_INTERVAL, "You may only comment once every 20 seconds.", ("now",now)("auth.last_post",auth.last_post) );
-      }
-      else if( _db.has_hardfork( STEEM_HARDFORK_0_6__113 ) )
-      {
-         if( o.parent_author == STEEM_ROOT_POST_PARENT )
-             FC_ASSERT( (now - auth.last_post) > STEEM_MIN_ROOT_COMMENT_INTERVAL, "You may only post once every 5 minutes.", ("now",now)("auth.last_post",auth.last_post) );
-         else
-             FC_ASSERT( (now - auth.last_post) > STEEM_MIN_REPLY_INTERVAL, "You may only comment once every 20 seconds.", ("now",now)("auth.last_post",auth.last_post) );
-      }
+      if( o.parent_author == STEEM_ROOT_POST_PARENT )
+         FC_ASSERT( ( now - auth.last_root_post ) > STEEM_MIN_ROOT_COMMENT_INTERVAL, "You may only post once every 5 minutes.", ("now",now)("last_root_post", auth.last_root_post) );
       else
-      {
-         FC_ASSERT( (now - auth.last_post) > fc::seconds(60), "You may only post once per minute.", ("now",now)("auth.last_post",auth.last_post) );
-      }
+         FC_ASSERT( (now - auth.last_post) > STEEM_MIN_REPLY_INTERVAL, "You may only comment once every 20 seconds.", ("now",now)("auth.last_post",auth.last_post) );
+
 
       uint16_t reward_weight = STEEM_100_PERCENT;
       uint64_t post_bandwidth = auth.post_bandwidth;
-
-      if( _db.has_hardfork( STEEM_HARDFORK_0_12__176 ) && !_db.has_hardfork( STEEM_HARDFORK_0_17__733 ) && o.parent_author == STEEM_ROOT_POST_PARENT )
-      {
-         uint64_t post_delta_time = std::min( _db.head_block_time().sec_since_epoch() - auth.last_root_post.sec_since_epoch(), STEEM_POST_AVERAGE_WINDOW );
-         uint32_t old_weight = uint32_t( ( post_bandwidth * ( STEEM_POST_AVERAGE_WINDOW - post_delta_time ) ) / STEEM_POST_AVERAGE_WINDOW );
-         post_bandwidth = ( old_weight + STEEM_100_PERCENT );
-         reward_weight = uint16_t( std::min( ( STEEM_POST_WEIGHT_CONSTANT * STEEM_100_PERCENT ) / ( post_bandwidth * post_bandwidth ), uint64_t( STEEM_100_PERCENT ) ) );
-      }
 
       _db.modify( auth, [&]( account_object& a ) {
          if( o.parent_author == STEEM_ROOT_POST_PARENT )
@@ -640,11 +499,9 @@ void comment_evaluator::do_apply( const comment_operation& o )
 
       const auto& new_comment = _db.create< comment_object >( [&]( comment_object& com )
       {
-         if( _db.has_hardfork( STEEM_HARDFORK_0_1 ) )
-         {
-            validate_permlink_0_1( o.parent_permlink );
-            validate_permlink_0_1( o.permlink );
-         }
+         validate_permlink_0_1( o.parent_permlink );
+         validate_permlink_0_1( o.permlink );
+
 
          com.author = o.author;
          from_string( com.permlink, o.permlink );
@@ -661,9 +518,6 @@ void comment_evaluator::do_apply( const comment_operation& o )
             from_string( com.parent_permlink, o.parent_permlink );
             from_string( com.category, o.parent_permlink );
             com.root_comment = com.id;
-            com.cashout_time = _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) ?
-               _db.head_block_time() + STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF17 :
-               fc::time_point_sec::maximum();
          }
          else
          {
@@ -672,13 +526,10 @@ void comment_evaluator::do_apply( const comment_operation& o )
             com.depth = parent->depth + 1;
             com.category = parent->category;
             com.root_comment = parent->root_comment;
-            com.cashout_time = fc::time_point_sec::maximum();
          }
 
-         if( _db.has_hardfork( STEEM_HARDFORK_0_17__769 ) )
-         {
-            com.cashout_time = com.created + STEEM_CASHOUT_WINDOW_SECONDS;
-         }
+         com.cashout_time = com.created + STEEM_CASHOUT_WINDOW_SECONDS;
+
       });
 
       id = new_comment.id;
@@ -718,13 +569,6 @@ void comment_evaluator::do_apply( const comment_operation& o )
    {
       const auto& comment = *itr;
 
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_17__772 ) )
-      {
-         if( _db.has_hardfork( STEEM_HARDFORK_0_14__306 ) )
-            FC_ASSERT( _db.calculate_discussion_payout_time( comment ) != fc::time_point_sec::maximum(), "The comment is archived." );
-         else if( _db.has_hardfork( STEEM_HARDFORK_0_10 ) )
-            FC_ASSERT( comment.last_payout == fc::time_point_sec::min(), "Can only edit during the first 24 hours." );
-      }
       _db.modify( comment, [&]( comment_object& com )
       {
          com.last_update   = _db.head_block_time();
@@ -976,7 +820,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient Steem Power for withdraw." );
    FC_ASSERT( account.vesting_shares - account.delegated_vesting_shares >= o.vesting_shares, "Account does not have sufficient Steem Power for withdraw." );
 
-   if( !account.mined && _db.has_hardfork( STEEM_HARDFORK_0_1 ) )
+   if( !account.mined )
    {
       const auto& props = _db.get_dynamic_global_properties();
       const witness_schedule_object& wso = _db.get_witness_schedule_object();
@@ -984,14 +828,13 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
       asset min_vests = wso.median_props.account_creation_fee * props.get_vesting_share_price();
       min_vests.amount.value *= 10;
 
-      FC_ASSERT( account.vesting_shares > min_vests || ( _db.has_hardfork( STEEM_HARDFORK_0_16__562 ) && o.vesting_shares.amount == 0 ),
+      FC_ASSERT( account.vesting_shares > min_vests || ( o.vesting_shares.amount == 0 ),
                  "Account registered by another account requires 10x account creation fee worth of Steem Power before it can be powered down." );
    }
 
    if( o.vesting_shares.amount == 0 )
    {
-      if( _db.has_hardfork( STEEM_HARDFORK_0_5__57 ) )
-         FC_ASSERT( account.vesting_withdraw_rate.amount  != 0, "This operation would not change the vesting withdraw rate." );
+      FC_ASSERT( account.vesting_withdraw_rate.amount  != 0, "This operation would not change the vesting withdraw rate." );
 
       _db.modify( account, [&]( account_object& a ) {
          a.vesting_withdraw_rate = asset( 0, VESTS_SYMBOL );
@@ -1003,8 +846,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    else
    {
       int vesting_withdraw_intervals = STEEM_VESTING_WITHDRAW_INTERVALS_PRE_HF_16;
-      if( _db.has_hardfork( STEEM_HARDFORK_0_16__551 ) )
-         vesting_withdraw_intervals = STEEM_VESTING_WITHDRAW_INTERVALS; /// 13 weeks = 1 quarter of a year
+      vesting_withdraw_intervals = STEEM_VESTING_WITHDRAW_INTERVALS; /// 13 weeks = 1 quarter of a year
 
       _db.modify( account, [&]( account_object& a )
       {
@@ -1013,8 +855,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          if( new_vesting_withdraw_rate.amount == 0 )
             new_vesting_withdraw_rate.amount = 1;
 
-         if( _db.has_hardfork( STEEM_HARDFORK_0_5__57 ) )
-            FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
+         FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
 
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS);
@@ -1148,33 +989,15 @@ void account_witness_vote_evaluator::do_apply( const account_witness_vote_operat
    if( itr == by_account_witness_idx.end() ) {
       FC_ASSERT( o.approve, "Vote doesn't exist, user must indicate a desire to approve witness." );
 
-      if ( _db.has_hardfork( STEEM_HARDFORK_0_2 ) )
-      {
-         FC_ASSERT( voter.witnesses_voted_for < STEEM_MAX_ACCOUNT_WITNESS_VOTES, "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
+      FC_ASSERT( voter.witnesses_voted_for < STEEM_MAX_ACCOUNT_WITNESS_VOTES, "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
 
-         _db.create<witness_vote_object>( [&]( witness_vote_object& v ) {
-             v.witness = witness.owner;
-             v.account = voter.name;
-         });
+      _db.create<witness_vote_object>( [&]( witness_vote_object& v ) {
+           v.witness = witness.owner;
+           v.account = voter.name;
+      });
 
-         if( _db.has_hardfork( STEEM_HARDFORK_0_3 ) ) {
-            _db.adjust_witness_vote( witness, voter.witness_vote_weight() );
-         }
-         else {
-            _db.adjust_proxied_witness_votes( voter, voter.witness_vote_weight() );
-         }
+      _db.adjust_witness_vote( witness, voter.witness_vote_weight() );
 
-      } else {
-
-         _db.create<witness_vote_object>( [&]( witness_vote_object& v ) {
-             v.witness = witness.owner;
-             v.account = voter.name;
-         });
-         _db.modify( witness, [&]( witness_object& w ) {
-             w.votes += voter.witness_vote_weight();
-         });
-
-      }
       _db.modify( voter, [&]( account_object& a ) {
          a.witnesses_voted_for++;
       });
@@ -1182,16 +1005,8 @@ void account_witness_vote_evaluator::do_apply( const account_witness_vote_operat
    } else {
       FC_ASSERT( !o.approve, "Vote currently exists, user must indicate a desire to reject witness." );
 
-      if (  _db.has_hardfork( STEEM_HARDFORK_0_2 ) ) {
-         if( _db.has_hardfork( STEEM_HARDFORK_0_3 ) )
-            _db.adjust_witness_vote( witness, -voter.witness_vote_weight() );
-         else
-            _db.adjust_proxied_witness_votes( voter, -voter.witness_vote_weight() );
-      } else  {
-         _db.modify( witness, [&]( witness_object& w ) {
-             w.votes -= voter.witness_vote_weight();
-         });
-      }
+      _db.adjust_witness_vote( witness, -voter.witness_vote_weight() );
+
       _db.modify( voter, [&]( account_object& a ) {
          a.witnesses_voted_for--;
       });
@@ -1208,7 +1023,7 @@ void vote_evaluator::do_apply( const vote_operation& o )
 
    if( o.weight > 0 ) FC_ASSERT( comment.allow_votes, "Votes are not allowed on the comment." );
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) && _db.calculate_discussion_payout_time( comment ) == fc::time_point_sec::maximum() )
+   if(_db.calculate_discussion_payout_time( comment ) == fc::time_point_sec::maximum() )
    {
 #ifndef CLEAR_VOTES
       const auto& comment_vote_idx = _db.get_index< comment_vote_index >().indices().get< by_comment_voter >();
@@ -1237,8 +1052,7 @@ void vote_evaluator::do_apply( const vote_operation& o )
 
    int64_t elapsed_seconds   = (_db.head_block_time() - voter.last_vote_time).to_seconds();
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_11 ) )
-      FC_ASSERT( elapsed_seconds >= STEEM_MIN_VOTE_INTERVAL_SEC, "Can only vote once every 3 seconds." );
+   FC_ASSERT( elapsed_seconds >= STEEM_MIN_VOTE_INTERVAL_SEC, "Can only vote once every 3 seconds." );
 
    int64_t regenerated_power = (STEEM_100_PERCENT * elapsed_seconds) / STEEM_VOTE_REGENERATION_SECONDS;
    int64_t current_power     = std::min( int64_t(voter.voting_power + regenerated_power), int64_t(STEEM_100_PERCENT) );
@@ -1255,40 +1069,21 @@ void vote_evaluator::do_apply( const vote_operation& o )
    int64_t max_vote_denom = dgpo.vote_power_reserve_rate * STEEM_VOTE_REGENERATION_SECONDS;
    FC_ASSERT( max_vote_denom > 0 );
 
-   if( !_db.has_hardfork( STEEM_HARDFORK_0_14__259 ) )
-   {
-      used_power = (used_power / max_vote_denom)+1;
-   }
-   else
-   {
-      used_power = (used_power + max_vote_denom - 1) / max_vote_denom;
-   }
+   used_power = (used_power + max_vote_denom - 1) / max_vote_denom;
+
    FC_ASSERT( used_power <= current_power, "Account does not have enough power to vote." );
 
    int64_t abs_rshares    = ((uint128_t(voter.effective_vesting_shares().amount.value) * used_power) / (STEEM_100_PERCENT)).to_uint64();
-   if( !_db.has_hardfork( STEEM_HARDFORK_0_14__259 ) && abs_rshares == 0 ) abs_rshares = 1;
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_20__1764 ) )
-   {
-      abs_rshares -= STEEM_VOTE_DUST_THRESHOLD;
-      abs_rshares = std::max( int64_t(0), abs_rshares );
-   }
-   if( _db.has_hardfork( STEEM_HARDFORK_0_14__259 ) )
-   {
-      FC_ASSERT( abs_rshares > STEEM_VOTE_DUST_THRESHOLD || o.weight == 0, "Voting weight is too small, please accumulate more voting power or steem power." );
-   }
-   else if( _db.has_hardfork( STEEM_HARDFORK_0_13__248 ) )
-   {
-      FC_ASSERT( abs_rshares > STEEM_VOTE_DUST_THRESHOLD || abs_rshares == 1, "Voting weight is too small, please accumulate more voting power or steem power." );
-   }
+   abs_rshares -= STEEM_VOTE_DUST_THRESHOLD;
+   abs_rshares = std::max( int64_t(0), abs_rshares );
 
-
+   FC_ASSERT( abs_rshares > STEEM_VOTE_DUST_THRESHOLD || o.weight == 0, "Voting weight is too small, please accumulate more voting power or steem power." );
 
    // Lazily delete vote
    if( itr != comment_vote_idx.end() && itr->num_changes == -1 )
    {
-      if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) )
-         FC_ASSERT( false, "Cannot vote again on a comment after payout." );
+      FC_ASSERT( false, "Cannot vote again on a comment after payout." );
 
       _db.remove( *itr );
       itr = comment_vote_idx.end();
@@ -1302,10 +1097,7 @@ void vote_evaluator::do_apply( const vote_operation& o )
 
       if( rshares > 0 )
       {
-         if( _db.has_hardfork( STEEM_HARDFORK_0_17__900 ) )
-            FC_ASSERT( _db.head_block_time() < comment.cashout_time - STEEM_UPVOTE_LOCKOUT_HF17, "Cannot increase payout within last twelve hours before payout." );
-         else if( _db.has_hardfork( STEEM_HARDFORK_0_7 ) )
-            FC_ASSERT( _db.head_block_time() < _db.calculate_discussion_payout_time( comment ) - STEEM_UPVOTE_LOCKOUT_HF7, "Cannot increase payout within last minute before payout." );
+         FC_ASSERT( _db.head_block_time() < comment.cashout_time - STEEM_UPVOTE_LOCKOUT_HF17, "Cannot increase payout within last twelve hours before payout." );
       }
 
       //used_power /= (50*7); /// a 100% vote means use .28% of voting power which should force users to spread their votes around over 50+ posts day for a week
@@ -1323,18 +1115,6 @@ void vote_evaluator::do_apply( const vote_operation& o )
 
       fc::uint128_t avg_cashout_sec;
 
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_17__769 ) )
-      {
-         fc::uint128_t cur_cashout_time_sec = _db.calculate_discussion_payout_time( comment ).sec_since_epoch();
-         fc::uint128_t new_cashout_time_sec;
-
-         if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) && !_db.has_hardfork( STEEM_HARDFORK_0_13__257)  )
-            new_cashout_time_sec = _db.head_block_time().sec_since_epoch() + STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF17;
-         else
-            new_cashout_time_sec = _db.head_block_time().sec_since_epoch() + STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF12;
-
-         avg_cashout_sec = ( cur_cashout_time_sec * old_root_abs_rshares + new_cashout_time_sec * abs_rshares ) / ( old_root_abs_rshares + abs_rshares );
-      }
 
       FC_ASSERT( abs_rshares > 0, "Cannot vote with 0 rshares." );
 
@@ -1349,23 +1129,11 @@ void vote_evaluator::do_apply( const vote_operation& o )
             c.net_votes++;
          else
             c.net_votes--;
-         if( !_db.has_hardfork( STEEM_HARDFORK_0_6__114 ) && c.net_rshares == -c.abs_rshares) FC_ASSERT( c.net_votes < 0, "Comment has negative net votes?" );
       });
 
       _db.modify( root, [&]( comment_object& c )
       {
          c.children_abs_rshares += abs_rshares;
-
-         if( !_db.has_hardfork( STEEM_HARDFORK_0_17__769 ) )
-         {
-            if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) && c.last_payout > fc::time_point_sec::min() )
-               c.cashout_time = c.last_payout + STEEM_SECOND_CASHOUT_WINDOW;
-            else
-               c.cashout_time = fc::time_point_sec( std::min( uint32_t( avg_cashout_sec.to_uint64() ), c.max_cashout_time.sec_since_epoch() ) );
-
-            if( c.max_cashout_time == fc::time_point_sec::maximum() )
-               c.max_cashout_time = _db.head_block_time() + fc::seconds( STEEM_MAX_CASHOUT_WINDOW_SECONDS );
-         }
       });
 
       fc::uint128_t new_rshares = std::max( comment.net_rshares.value, int64_t(0));
@@ -1403,62 +1171,25 @@ void vote_evaluator::do_apply( const vote_operation& o )
 
          bool curation_reward_eligible = rshares > 0 && (comment.last_payout == fc::time_point_sec()) && comment.allow_curation_rewards;
 
-         if( curation_reward_eligible && _db.has_hardfork( STEEM_HARDFORK_0_17__774 ) )
+         if( curation_reward_eligible  )
             curation_reward_eligible = _db.get_curation_rewards_percent( comment ) > 0;
 
          if( curation_reward_eligible )
          {
-            if( comment.created < fc::time_point_sec(STEEM_HARDFORK_0_6_REVERSE_AUCTION_TIME) ) {
-               u512 rshares3(rshares);
-               u256 total2( comment.abs_rshares.value );
-
-               if( !_db.has_hardfork( STEEM_HARDFORK_0_1 ) )
-               {
-                  rshares3 *= 1000000;
-                  total2 *= 1000000;
-               }
-
-               rshares3 = rshares3 * rshares3 * rshares3;
-
-               total2 *= total2;
-               cv.weight = static_cast<uint64_t>( rshares3 / total2 );
-            } else {// cv.weight = W(R_1) - W(R_0)
-               const uint128_t two_s = 2 * util::get_content_constant_s();
-               if( _db.has_hardfork( STEEM_HARDFORK_0_17__774 ) )
-               {
-                  const auto& reward_fund = _db.get_reward_fund( comment );
-                  auto curve = !_db.has_hardfork( STEEM_HARDFORK_0_19__1052 ) && comment.created > STEEM_HF_19_SQRT_PRE_CALC
-                                 ? curve_id::square_root : reward_fund.curation_reward_curve;
-                  uint64_t old_weight = util::evaluate_reward_curve( old_vote_rshares.value, curve, reward_fund.content_constant ).to_uint64();
-                  uint64_t new_weight = util::evaluate_reward_curve( comment.vote_rshares.value, curve, reward_fund.content_constant ).to_uint64();
-                  cv.weight = new_weight - old_weight;
-               }
-               else if ( _db.has_hardfork( STEEM_HARDFORK_0_1 ) )
-               {
-                  uint64_t old_weight = ( ( std::numeric_limits< uint64_t >::max() * fc::uint128_t( old_vote_rshares.value ) ) / ( two_s + old_vote_rshares.value ) ).to_uint64();
-                  uint64_t new_weight = ( ( std::numeric_limits< uint64_t >::max() * fc::uint128_t( comment.vote_rshares.value ) ) / ( two_s + comment.vote_rshares.value ) ).to_uint64();
-                  cv.weight = new_weight - old_weight;
-               }
-               else
-               {
-                  uint64_t old_weight = ( ( std::numeric_limits< uint64_t >::max() * fc::uint128_t( 1000000 * old_vote_rshares.value ) ) / ( two_s + ( 1000000 * old_vote_rshares.value ) ) ).to_uint64();
-                  uint64_t new_weight = ( ( std::numeric_limits< uint64_t >::max() * fc::uint128_t( 1000000 * comment.vote_rshares.value ) ) / ( two_s + ( 1000000 * comment.vote_rshares.value ) ) ).to_uint64();
-                  cv.weight = new_weight - old_weight;
-               }
-            }
+            const uint128_t two_s = 2 * util::get_content_constant_s();
+            const auto& reward_fund = _db.get_reward_fund( comment );
+            auto curve = reward_fund.curation_reward_curve;
+            uint64_t old_weight = util::evaluate_reward_curve( old_vote_rshares.value, curve, reward_fund.content_constant ).to_uint64();
+            uint64_t new_weight = util::evaluate_reward_curve( comment.vote_rshares.value, curve, reward_fund.content_constant ).to_uint64();
+            cv.weight = new_weight - old_weight;
 
             max_vote_weight = cv.weight;
+            uint128_t w(max_vote_weight);
+            uint64_t delta_t = std::min( uint64_t((cv.last_update - comment.created).to_seconds()), uint64_t(STEEM_REVERSE_AUCTION_WINDOW_SECONDS) );
 
-            if( _db.head_block_time() > fc::time_point_sec(STEEM_HARDFORK_0_6_REVERSE_AUCTION_TIME) )  /// start enforcing this prior to the hardfork
-            {
-               /// discount weight by time
-               uint128_t w(max_vote_weight);
-               uint64_t delta_t = std::min( uint64_t((cv.last_update - comment.created).to_seconds()), uint64_t(STEEM_REVERSE_AUCTION_WINDOW_SECONDS) );
-
-               w *= delta_t;
-               w /= STEEM_REVERSE_AUCTION_WINDOW_SECONDS;
-               cv.weight = w.to_uint64();
-            }
+            w *= delta_t;
+            w /= STEEM_REVERSE_AUCTION_WINDOW_SECONDS;
+            cv.weight = w.to_uint64();
          }
          else
          {
@@ -1473,25 +1204,20 @@ void vote_evaluator::do_apply( const vote_operation& o )
             c.total_vote_weight += max_vote_weight;
          });
       }
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_17__774) )
-         _db.adjust_rshares2( comment, old_rshares, new_rshares );
+
    }
    else
    {
       FC_ASSERT( itr->num_changes < STEEM_MAX_VOTE_CHANGES, "Voter has used the maximum number of vote changes on this comment." );
 
-      if( _db.has_hardfork( STEEM_HARDFORK_0_6__112 ) )
-         FC_ASSERT( itr->vote_percent != o.weight, "You have already voted in a similar way." );
+      FC_ASSERT( itr->vote_percent != o.weight, "You have already voted in a similar way." );
 
       /// this is the rshares voting for or against the post
       int64_t rshares        = o.weight < 0 ? -abs_rshares : abs_rshares;
 
       if( itr->rshares < rshares )
       {
-         if( _db.has_hardfork( STEEM_HARDFORK_0_17__900 ) )
-            FC_ASSERT( _db.head_block_time() < comment.cashout_time - STEEM_UPVOTE_LOCKOUT_HF17, "Cannot increase payout within last twelve hours before payout." );
-         else if( _db.has_hardfork( STEEM_HARDFORK_0_7 ) )
-            FC_ASSERT( _db.head_block_time() < _db.calculate_discussion_payout_time( comment ) - STEEM_UPVOTE_LOCKOUT_HF7, "Cannot increase payout within last minute before payout." );
+         FC_ASSERT( _db.head_block_time() < comment.cashout_time - STEEM_UPVOTE_LOCKOUT_HF17, "Cannot increase payout within last twelve hours before payout." );
       }
 
       _db.modify( voter, [&]( account_object& a ){
@@ -1505,22 +1231,6 @@ void vote_evaluator::do_apply( const vote_operation& o )
       auto old_root_abs_rshares = root.children_abs_rshares.value;
 
       fc::uint128_t avg_cashout_sec;
-
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_17__769 ) )
-      {
-         fc::uint128_t cur_cashout_time_sec = _db.calculate_discussion_payout_time( comment ).sec_since_epoch();
-         fc::uint128_t new_cashout_time_sec;
-
-         if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) && ! _db.has_hardfork( STEEM_HARDFORK_0_13__257 )  )
-            new_cashout_time_sec = _db.head_block_time().sec_since_epoch() + STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF17;
-         else
-            new_cashout_time_sec = _db.head_block_time().sec_since_epoch() + STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF12;
-
-         if( _db.has_hardfork( STEEM_HARDFORK_0_14__259 ) && abs_rshares == 0 )
-            avg_cashout_sec = cur_cashout_time_sec;
-         else
-            avg_cashout_sec = ( cur_cashout_time_sec * old_root_abs_rshares + new_cashout_time_sec * abs_rshares ) / ( old_root_abs_rshares + abs_rshares );
-      }
 
       _db.modify( comment, [&]( comment_object& c )
       {
@@ -1547,16 +1257,6 @@ void vote_evaluator::do_apply( const vote_operation& o )
       {
          c.children_abs_rshares += abs_rshares;
 
-         if( !_db.has_hardfork( STEEM_HARDFORK_0_17__769 ) )
-         {
-            if( _db.has_hardfork( STEEM_HARDFORK_0_12__177 ) && c.last_payout > fc::time_point_sec::min() )
-               c.cashout_time = c.last_payout + STEEM_SECOND_CASHOUT_WINDOW;
-            else
-               c.cashout_time = fc::time_point_sec( std::min( uint32_t( avg_cashout_sec.to_uint64() ), c.max_cashout_time.sec_since_epoch() ) );
-
-            if( c.max_cashout_time == fc::time_point_sec::maximum() )
-               c.max_cashout_time = _db.head_block_time() + fc::seconds( STEEM_MAX_CASHOUT_WINDOW_SECONDS );
-         }
       });
 
       fc::uint128_t new_rshares = std::max( comment.net_rshares.value, int64_t(0));
@@ -1580,8 +1280,6 @@ void vote_evaluator::do_apply( const vote_operation& o )
          cv.num_changes += 1;
       });
 
-      if( !_db.has_hardfork( STEEM_HARDFORK_0_17__774) )
-         _db.adjust_rshares2( comment, old_rshares, new_rshares );
    }
 
 } FC_CAPTURE_AND_RETHROW( (o)) }
@@ -1614,7 +1312,6 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 {
    database& d = db();
-   FC_ASSERT( d.has_hardfork( STEEM_HARDFORK_0_14__317 ) );
 
    std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.id );
    if( !eval )
@@ -1641,14 +1338,11 @@ void pow_apply( database& db, Operation o )
 {
    const auto& dgp = db.get_dynamic_global_properties();
 
-   if( db.has_hardfork( STEEM_HARDFORK_0_5__59 ) )
+   const auto& witness_by_work = db.get_index<witness_index>().indices().get<by_work>();
+   auto work_itr = witness_by_work.find( o.work.work );
+   if( work_itr != witness_by_work.end() )
    {
-      const auto& witness_by_work = db.get_index<witness_index>().indices().get<by_work>();
-      auto work_itr = witness_by_work.find( o.work.work );
-      if( work_itr != witness_by_work.end() )
-      {
-          FC_ASSERT( !"DUPLICATE WORK DISCOVERED", "${w}  ${witness}",("w",o)("wit",*work_itr) );
-      }
+      FC_ASSERT( !"DUPLICATE WORK DISCOVERED", "${w}  ${witness}",("w",o)("wit",*work_itr) );
    }
 
    const auto& accounts_by_name = db.get_index<account_index>().indices().get<by_name>();
@@ -1662,11 +1356,7 @@ void pow_apply( database& db, Operation o )
          acc.memo_key = o.work.worker;
          acc.created = dgp.time;
          acc.last_vote_time = dgp.time;
-
-         if( !db.has_hardfork( STEEM_HARDFORK_0_11__169 ) )
-            acc.recovery_account = "steem";
-         else
-            acc.recovery_account = ""; /// highest voted witness at time of recovery
+         acc.recovery_account = ""; /// highest voted witness at time of recovery
       });
 
       db.create< account_authority_object >( [&]( account_authority_object& auth )
@@ -1684,8 +1374,7 @@ void pow_apply( database& db, Operation o )
    FC_ASSERT( worker_auth.active.key_auths.size() == 1, "Miners may only have one key authority." );
    FC_ASSERT( worker_auth.active.key_auths.begin()->first == o.work.worker, "Work must be performed by key that signed the work." );
    FC_ASSERT( o.block_id == db.head_block_id(), "pow not for last block" );
-   if( db.has_hardfork( STEEM_HARDFORK_0_13__256 ) )
-      FC_ASSERT( worker_account.last_account_update < db.head_block_time(), "Worker account must not have updated their account this block." );
+   FC_ASSERT( worker_account.last_account_update < db.head_block_time(), "Worker account must not have updated their account this block." );
 
    fc::sha256 target = db.get_pow_target();
 
@@ -1731,7 +1420,7 @@ void pow_apply( database& db, Operation o )
 }
 
 void pow_evaluator::do_apply( const pow_operation& o ) {
-   FC_ASSERT( !db().has_hardfork( STEEM_HARDFORK_0_13__256 ), "pow is deprecated. Use pow2 instead" );
+   FC_ASSERT( false, "pow is deprecated. Use pow2 instead" );
    pow_apply( db(), o );
 }
 
@@ -1739,29 +1428,19 @@ void pow_evaluator::do_apply( const pow_operation& o ) {
 void pow2_evaluator::do_apply( const pow2_operation& o )
 {
    database& db = this->db();
-   FC_ASSERT( !db.has_hardfork( STEEM_HARDFORK_0_17__770 ), "mining is now disabled" );
+   FC_ASSERT( false, "mining is now disabled" );
 
    const auto& dgp = db.get_dynamic_global_properties();
    uint32_t target_pow = db.get_pow_summary_target();
    account_name_type worker_account;
 
-   if( db.has_hardfork( STEEM_HARDFORK_0_16__551 ) )
-   {
-      const auto& work = o.work.get< equihash_pow >();
-      FC_ASSERT( work.prev_block == db.head_block_id(), "Equihash pow op not for last block" );
-      auto recent_block_num = protocol::block_header::num_from_id( work.input.prev_block );
-      FC_ASSERT( recent_block_num > dgp.last_irreversible_block_num,
-         "Equihash pow done for block older than last irreversible block num" );
-      FC_ASSERT( work.pow_summary < target_pow, "Insufficient work difficulty. Work: ${w}, Target: ${t}", ("w",work.pow_summary)("t", target_pow) );
-      worker_account = work.input.worker_account;
-   }
-   else
-   {
-      const auto& work = o.work.get< pow2 >();
-      FC_ASSERT( work.input.prev_block == db.head_block_id(), "Work not for last block" );
-      FC_ASSERT( work.pow_summary < target_pow, "Insufficient work difficulty. Work: ${w}, Target: ${t}", ("w",work.pow_summary)("t", target_pow) );
-      worker_account = work.input.worker_account;
-   }
+   const auto& work = o.work.get< equihash_pow >();
+   FC_ASSERT( work.prev_block == db.head_block_id(), "Equihash pow op not for last block" );
+   auto recent_block_num = protocol::block_header::num_from_id( work.input.prev_block );
+   FC_ASSERT( recent_block_num > dgp.last_irreversible_block_num,
+              "Equihash pow done for block older than last irreversible block num" );
+   FC_ASSERT( work.pow_summary < target_pow, "Insufficient work difficulty. Work: ${w}, Target: ${t}", ("w",work.pow_summary)("t", target_pow) );
+   worker_account = work.input.worker_account;
 
    FC_ASSERT( o.props.maximum_block_size >= STEEM_MIN_BLOCK_SIZE_LIMIT * 2, "Voted maximum block size is too small." );
 
@@ -1814,21 +1493,12 @@ void pow2_evaluator::do_apply( const pow2_operation& o )
       });
    }
 
-   if( !db.has_hardfork( STEEM_HARDFORK_0_16__551) )
-   {
-      /// pay the witness that includes this POW
-      asset inc_reward = db.get_pow_reward();
-      db.adjust_supply( inc_reward, true );
 
-      const auto& inc_witness = db.get_account( dgp.current_witness );
-      db.create_vesting( inc_witness, inc_reward );
-   }
 }
 
 void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
 {
-   if( _db.has_hardfork( STEEM_HARDFORK_0_20__409 ) )
-      FC_ASSERT( is_asset_type( o.exchange_rate.base, SBD_SYMBOL ) && is_asset_type( o.exchange_rate.quote, STEEM_SYMBOL ),
+   FC_ASSERT( is_asset_type( o.exchange_rate.base, SBD_SYMBOL ) && is_asset_type( o.exchange_rate.quote, STEEM_SYMBOL ),
             "Price feed must be a SBD/STEEM price" );
 
    const auto& witness = _db.get_witness( o.publisher );
@@ -1849,8 +1519,7 @@ void convert_evaluator::do_apply( const convert_operation& o )
   FC_ASSERT( !fhistory.current_median_history.is_null(), "Cannot convert SBD because there is no price feed." );
 
   auto steem_conversion_delay = STEEM_CONVERSION_DELAY_PRE_HF_16;
-  if( _db.has_hardfork( STEEM_HARDFORK_0_16__551) )
-     steem_conversion_delay = STEEM_CONVERSION_DELAY;
+  steem_conversion_delay = STEEM_CONVERSION_DELAY;
 
   _db.create<convert_request_object>( [&]( convert_request_object& obj )
   {
@@ -1915,7 +1584,7 @@ void limit_order_cancel_evaluator::do_apply( const limit_order_cancel_operation&
 
 void report_over_production_evaluator::do_apply( const report_over_production_operation& o )
 {
-   FC_ASSERT( !_db.has_hardfork( STEEM_HARDFORK_0_4 ), "report_over_production_operation is disabled." );
+   FC_ASSERT( false, "report_over_production_operation is disabled." );
 }
 
 void placeholder_a_evaluator::do_apply( const placeholder_a_operation& o )
@@ -1946,13 +1615,11 @@ void request_account_recovery_evaluator::do_apply( const request_account_recover
       FC_ASSERT( o.new_owner_authority.weight_threshold, "Cannot recover using an open authority." );
 
       // Check accounts in the new authority exist
-      if( ( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) ) )
+      for( auto& a : o.new_owner_authority.account_auths )
       {
-         for( auto& a : o.new_owner_authority.account_auths )
-         {
-            _db.get_account( a.first );
-         }
+         _db.get_account( a.first );
       }
+
 
       _db.create< account_recovery_request_object >( [&]( account_recovery_request_object& req )
       {
@@ -1970,12 +1637,10 @@ void request_account_recovery_evaluator::do_apply( const request_account_recover
       FC_ASSERT( !o.new_owner_authority.is_impossible(), "Cannot recover using an impossible authority." );
 
       // Check accounts in the new authority exist
-      if( ( _db.has_hardfork( STEEM_HARDFORK_0_15__465 ) ) )
+
+      for( auto& a : o.new_owner_authority.account_auths )
       {
-         for( auto& a : o.new_owner_authority.account_auths )
-         {
-            _db.get_account( a.first );
-         }
+         _db.get_account( a.first );
       }
 
       _db.modify( *request, [&]( account_recovery_request_object& req )
@@ -1990,8 +1655,7 @@ void recover_account_evaluator::do_apply( const recover_account_operation& o )
 {
    const auto& account = _db.get_account( o.account_to_recover );
 
-   if( _db.has_hardfork( STEEM_HARDFORK_0_12 ) )
-      FC_ASSERT( _db.head_block_time() - account.last_account_recovery > STEEM_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
+   FC_ASSERT( _db.head_block_time() - account.last_account_recovery > STEEM_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
 
    const auto& recovery_request_idx = _db.get_index< account_recovery_request_index >().indices().get< by_account >();
    auto request = recovery_request_idx.find( o.account_to_recover );
@@ -2102,8 +1766,6 @@ void cancel_transfer_from_savings_evaluator::do_apply( const cancel_transfer_fro
 
 void decline_voting_rights_evaluator::do_apply( const decline_voting_rights_operation& o )
 {
-   FC_ASSERT( _db.has_hardfork( STEEM_HARDFORK_0_14__324 ) );
-
    const auto& account = _db.get_account( o.account );
    const auto& request_idx = _db.get_index< decline_voting_rights_request_index >().indices().get< by_account >();
    auto itr = request_idx.find( account.name );

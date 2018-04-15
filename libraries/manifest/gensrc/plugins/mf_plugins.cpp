@@ -22,8 +22,6 @@
 
 #include <steem/plugins/chain_api/chain_api_plugin.hpp>
 
-#include <steem/plugins/tags_api/tags_api_plugin.hpp>
-
 #include <steem/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
 
 #include <steem/plugins/block_api/block_api_plugin.hpp>
@@ -39,8 +37,6 @@
 #include <steem/plugins/chain/chain_plugin.hpp>
 
 #include <steem/plugins/debug_node/debug_node_plugin.hpp>
-
-#include <steem/plugins/tags/tags_plugin.hpp>
 
 #include <steem/plugins/webserver/webserver_plugin.hpp>
 
@@ -76,8 +72,6 @@ void register_plugins()
    
    appbase::app().register_plugin< steem::plugins::chain::chain_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::tags::tags_api_plugin >();
-   
    appbase::app().register_plugin< steem::plugins::account_by_key::account_by_key_api_plugin >();
    
    appbase::app().register_plugin< steem::plugins::block_api::block_api_plugin >();
@@ -93,8 +87,6 @@ void register_plugins()
    appbase::app().register_plugin< steem::plugins::chain::chain_plugin >();
    
    appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::tags::tags_plugin >();
    
    appbase::app().register_plugin< steem::plugins::webserver::webserver_plugin >();
    
