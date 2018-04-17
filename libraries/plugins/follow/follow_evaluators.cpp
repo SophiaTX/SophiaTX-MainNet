@@ -3,7 +3,6 @@
 #include <steem/plugins/follow/follow_objects.hpp>
 
 #include <steem/chain/account_object.hpp>
-#include <steem/chain/comment_object.hpp>
 
 namespace steem { namespace plugins { namespace follow {
 

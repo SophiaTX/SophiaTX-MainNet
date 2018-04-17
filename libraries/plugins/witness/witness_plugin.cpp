@@ -3,7 +3,6 @@
 
 #include <steem/chain/database_exceptions.hpp>
 #include <steem/chain/account_object.hpp>
-#include <steem/chain/comment_object.hpp>
 #include <steem/chain/witness_objects.hpp>
 #include <steem/chain/index.hpp>
 

@@ -10,7 +10,6 @@
 #include <steem/chain/index.hpp>
 #include <steem/chain/operation_notification.hpp>
 #include <steem/chain/account_object.hpp>
-#include <steem/chain/comment_object.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/thread/thread.hpp>
