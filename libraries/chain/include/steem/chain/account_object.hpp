@@ -59,7 +59,7 @@ namespace steem { namespace chain {
 
          /// This function should be used only when the account votes for a witness directly
          share_type        witness_vote_weight()const {
-            return proxied_vsf_votes_total + balance.amount;
+            return proxied_vsf_votes_total() + balance.amount + vesting_shares.amount;
          }
 
          share_type        proxied_vsf_votes_total()const {
@@ -165,6 +165,12 @@ namespace steem { namespace chain {
                member< account_object, account_name_type, &account_object::proxy >,
                member< account_object, account_name_type, &account_object::name >
             > /// composite key by proxy
+         >,
+         ordered_unique< tag< by_next_vesting_withdrawal >,
+            composite_key< account_object,
+               member< account_object, time_point_sec, &account_object::next_vesting_withdrawal >,
+               member< account_object, account_name_type, &account_object::name >
+            > /// composite key by_next_vesting_withdrawal
          >
       >,
       allocator< account_object >
@@ -274,7 +280,7 @@ FC_REFLECT( steem::chain::account_object,
 CHAINBASE_SET_INDEX_TYPE( steem::chain::account_object, steem::chain::account_index )
 
 FC_REFLECT( steem::chain::account_authority_object,
-             (id)(account)(owner)(active)(posting)(last_owner_update)
+             (id)(account)(owner)(active)(last_owner_update)
 )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::account_authority_object, steem::chain::account_authority_index )
 

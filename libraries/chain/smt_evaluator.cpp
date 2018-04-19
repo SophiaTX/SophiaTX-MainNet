@@ -4,7 +4,6 @@
 #include <steem/chain/steem_objects.hpp>
 #include <steem/chain/smt_objects.hpp>
 
-#include <steem/chain/util/reward.hpp>
 
 #include <steem/protocol/smt_operations.hpp>
 

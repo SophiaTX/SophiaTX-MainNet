@@ -48,10 +48,6 @@ namespace steem { namespace chain {
             return price ( asset( 1, STEEM_SYMBOL ), asset( 1, VESTS_SYMBOL ) );
          }
 
-         price get_reward_vesting_share_price() const
-         {
-            return get_vesting_share_price();
-         }
 
          /**
           *  Maximum block size is decided by the set of active witnesses which change every round.

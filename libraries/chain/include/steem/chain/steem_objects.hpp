@@ -38,7 +38,6 @@ namespace steem { namespace chain {
          account_name_type agent;
          time_point_sec    ratification_deadline;
          time_point_sec    escrow_expiration;
-         asset             sbd_balance;
          asset             steem_balance;
          asset             pending_fee;
          bool              to_approved = false;
@@ -154,7 +153,7 @@ CHAINBASE_SET_INDEX_TYPE( steem::chain::feed_history_object, steem::chain::feed_
 FC_REFLECT( steem::chain::escrow_object,
              (id)(escrow_id)(from)(to)(agent)
              (ratification_deadline)(escrow_expiration)
-             (sbd_balance)(steem_balance)(pending_fee)
+             (steem_balance)(pending_fee)
              (to_approved)(agent_approved)(disputed) )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::escrow_object, steem::chain::escrow_index )
 

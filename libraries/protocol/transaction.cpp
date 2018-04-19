@@ -75,11 +75,10 @@ void transaction::set_reference_block( const block_id_type& reference_block )
 
 void transaction::get_required_authorities( flat_set< account_name_type >& active,
                                             flat_set< account_name_type >& owner,
-                                            flat_set< account_name_type >& posting,
                                             vector< authority >& other )const
 {
    for( const auto& op : operations )
-      operation_get_required_authorities( op, active, owner, posting, other );
+      operation_get_required_authorities( op, active, owner, other );
 }
 
 flat_set<public_key_type> signed_transaction::get_signature_keys( const chain_id_type& chain_id )const
@@ -103,35 +102,13 @@ set<public_key_type> signed_transaction::get_required_signatures(
    const flat_set<public_key_type>& available_keys,
    const authority_getter& get_active,
    const authority_getter& get_owner,
-   const authority_getter& get_posting,
    uint32_t max_recursion_depth )const
 {
    flat_set< account_name_type > required_active;
    flat_set< account_name_type > required_owner;
-   flat_set< account_name_type > required_posting;
    vector< authority > other;
-   get_required_authorities( required_active, required_owner, required_posting, other );
+   get_required_authorities( required_active, required_owner, other );
 
-   /** posting authority cannot be mixed with active authority in same transaction */
-   if( required_posting.size() ) {
-      sign_state s(get_signature_keys( chain_id ),get_posting,available_keys);
-      s.max_recursion = max_recursion_depth;
-
-      FC_ASSERT( !required_owner.size() );
-      FC_ASSERT( !required_active.size() );
-      for( auto& posting : required_posting )
-         s.check_authority( posting  );
-
-      s.remove_unused_signatures();
-
-      set<public_key_type> result;
-
-      for( auto& provided_sig : s.provided_signatures )
-         if( available_keys.find( provided_sig.first ) != available_keys.end() )
-            result.insert( provided_sig.first );
-
-      return result;
-   }
 
 
    sign_state s(get_signature_keys( chain_id ),get_active,available_keys);
@@ -160,11 +137,10 @@ set<public_key_type> signed_transaction::minimize_required_signatures(
    const flat_set< public_key_type >& available_keys,
    const authority_getter& get_active,
    const authority_getter& get_owner,
-   const authority_getter& get_posting,
    uint32_t max_recursion
    ) const
 {
-   set< public_key_type > s = get_required_signatures( chain_id, available_keys, get_active, get_owner, get_posting, max_recursion );
+   set< public_key_type > s = get_required_signatures( chain_id, available_keys, get_active, get_owner, max_recursion );
    flat_set< public_key_type > result( s.begin(), s.end() );
 
    for( const public_key_type& k : s )
@@ -172,12 +148,11 @@ set<public_key_type> signed_transaction::minimize_required_signatures(
       result.erase( k );
       try
       {
-         steem::protocol::verify_authority( operations, result, get_active, get_owner, get_posting, max_recursion );
+         steem::protocol::verify_authority( operations, result, get_active, get_owner, max_recursion );
          continue;  // element stays erased if verify_authority is ok
       }
       catch( const tx_missing_owner_auth& e ) {}
       catch( const tx_missing_active_auth& e ) {}
-      catch( const tx_missing_posting_auth& e ) {}
       catch( const tx_missing_other_auth& e ) {}
       result.insert( k );
    }
@@ -188,10 +163,9 @@ void signed_transaction::verify_authority(
    const chain_id_type& chain_id,
    const authority_getter& get_active,
    const authority_getter& get_owner,
-   const authority_getter& get_posting,
    uint32_t max_recursion )const
 { try {
-   steem::protocol::verify_authority( operations, get_signature_keys( chain_id ), get_active, get_owner, get_posting, max_recursion );
+   steem::protocol::verify_authority( operations, get_signature_keys( chain_id ), get_active, get_owner, max_recursion );
 } FC_CAPTURE_AND_RETHROW( (*this) ) }
 
 } } // steem::protocol

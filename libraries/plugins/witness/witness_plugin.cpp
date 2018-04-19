@@ -77,29 +77,6 @@ namespace detail {
       boost::signals2::connection   on_pre_apply_transaction_connection;
    };
 
-   struct comment_options_extension_visitor
-   {
-      comment_options_extension_visitor( const comment_object& c, const database& db ) : _c( c ), _db( db ) {}
-
-      typedef void result_type;
-
-      const comment_object& _c;
-      const database& _db;
-
-#ifdef STEEM_ENABLE_SMT
-      void operator()( const allowed_vote_assets& va) const
-      {
-         FC_TODO("To be implemented  suppport for allowed_vote_assets");
-      }
-#endif
-
-      void operator()( const comment_payout_beneficiaries& cpb )const
-      {
-         STEEM_ASSERT( cpb.beneficiaries.size() <= 8,
-            plugin_exception,
-            "Cannot specify more than 8 beneficiaries." );
-      }
-   };
 
    void check_memo( const string& memo, const chain::account_object& account, const account_authority_object& auth )
    {
@@ -141,13 +118,6 @@ namespace detail {
                "Detected private active key in memo field. You should change your active keys." );
       }
 
-      for( auto& key_weight_pair : auth.posting.key_auths )
-      {
-         for( auto& key : keys )
-            STEEM_ASSERT( key_weight_pair.first != key,  plugin_exception,
-               "Detected private posting key in memo field. You should change your posting keys." );
-      }
-
       const auto& memo_key = account.memo_key;
       for( auto& key : keys )
          STEEM_ASSERT( memo_key != key,  plugin_exception,
@@ -165,31 +135,6 @@ namespace detail {
       template< typename T >
       void operator()( const T& )const {}
 
-      void operator()( const comment_options_operation& o )const
-      {
-         const auto& comment = _db.get_comment( o.author, o.permlink );
-
-         comment_options_extension_visitor v( comment, _db );
-
-         for( auto& e : o.extensions )
-         {
-            e.visit( v );
-         }
-      }
-
-      void operator()( const comment_operation& o )const
-      {
-         if( o.parent_author != STEEM_ROOT_POST_PARENT )
-         {
-            const auto& parent = _db.find_comment( o.parent_author, o.parent_permlink );
-
-            if( parent != nullptr )
-            STEEM_ASSERT( parent->depth < STEEM_SOFT_MAX_COMMENT_DEPTH,
-               plugin_exception,
-               "Comment is nested ${x} posts deep, maximum depth is ${y}.", ("x",parent->depth)("y",STEEM_SOFT_MAX_COMMENT_DEPTH) );
-         }
-      }
-
       void operator()( const transfer_operation& o )const
       {
          if( o.memo.length() > 0 )
@@ -198,21 +143,6 @@ namespace detail {
                         _db.get< account_authority_object, chain::by_account >( o.from ) );
       }
 
-      void operator()( const transfer_to_savings_operation& o )const
-      {
-         if( o.memo.length() > 0 )
-            check_memo( o.memo,
-                        _db.get< chain::account_object, chain::by_name >( o.from ),
-                        _db.get< account_authority_object, chain::by_account >( o.from ) );
-      }
-
-      void operator()( const transfer_from_savings_operation& o )const
-      {
-         if( o.memo.length() > 0 )
-            check_memo( o.memo,
-                        _db.get< chain::account_object, chain::by_name >( o.from ),
-                        _db.get< account_authority_object, chain::by_account >( o.from ) );
-      }
    };
 
    void witness_plugin_impl::pre_transaction( const steem::protocol::signed_transaction& trx )

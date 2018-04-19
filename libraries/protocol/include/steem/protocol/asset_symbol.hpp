@@ -3,29 +3,6 @@
 #include <fc/io/raw.hpp>
 #include <steem/protocol/types_fwd.hpp>
 
-#define STEEM_ASSET_SYMBOL_PRECISION_BITS    4
-#define SMT_MAX_NAI                          99999999
-#define SMT_MIN_NAI                          1
-#define SMT_MIN_NON_RESERVED_NAI             10000000
-#define STEEM_ASSET_SYMBOL_NAI_LENGTH        10
-#define STEEM_ASSET_SYMBOL_NAI_STRING_LENGTH ( STEEM_ASSET_SYMBOL_NAI_LENGTH + 2 )
-
-#define STEEM_PRECISION_SBD   (3)
-#define STEEM_PRECISION_STEEM (3)
-#define STEEM_PRECISION_VESTS (6)
-
-// One's place is used for check digit, which means NAI 0-9 all have NAI data of 0 which is invalid
-// This space is safe to use because it would alwasys result in failure to convert from NAI
-#define STEEM_NAI_SBD   (1)
-#define STEEM_NAI_STEEM (2)
-#define STEEM_NAI_VESTS (3)
-
-#define STEEM_ASSET_NUM_SBD \
-  (((SMT_MAX_NAI + STEEM_NAI_SBD)   << STEEM_ASSET_SYMBOL_PRECISION_BITS) | STEEM_PRECISION_SBD)
-#define STEEM_ASSET_NUM_STEEM \
-  (((SMT_MAX_NAI + STEEM_NAI_STEEM) << STEEM_ASSET_SYMBOL_PRECISION_BITS) | STEEM_PRECISION_STEEM)
-#define STEEM_ASSET_NUM_VESTS \
-  (((SMT_MAX_NAI + STEEM_NAI_VESTS) << STEEM_ASSET_SYMBOL_PRECISION_BITS) | STEEM_PRECISION_VESTS)
 
 #ifdef IS_TEST_NET
 
@@ -36,62 +13,95 @@
 #else
 
 #define VESTS_SYMBOL_U64  (uint64_t('V') | (uint64_t('E') << 8) | (uint64_t('S') << 16) | (uint64_t('T') << 24) | (uint64_t('S') << 32))
-#define STEEM_SYMBOL_U64  (uint64_t('S') | (uint64_t('T') << 8) | (uint64_t('E') << 16) | (uint64_t('E') << 24) | (uint64_t('M') << 32))
+#define STEEM_SYMBOL_U64  (uint64_t('S') | (uint64_t('P') << 8) | (uint64_t('H') << 16) | (uint64_t('T') << 24) | (uint64_t('X') << 32))
 #define SBD_SYMBOL_U64    (uint64_t('S') | (uint64_t('B') << 8) | (uint64_t('D') << 16))
 
 #endif
 
 #define VESTS_SYMBOL_SER  (uint64_t(6) | (VESTS_SYMBOL_U64 << 8)) ///< VESTS|VESTS with 6 digits of precision
-#define STEEM_SYMBOL_SER  (uint64_t(3) | (STEEM_SYMBOL_U64 << 8)) ///< STEEM|TESTS with 3 digits of precision
-#define SBD_SYMBOL_SER    (uint64_t(3) |   (SBD_SYMBOL_U64 << 8)) ///< SBD|TBD with 3 digits of precision
+#define STEEM_SYMBOL_SER  (uint64_t(6) | (STEEM_SYMBOL_U64 << 8)) ///< SPHTX|TESTS with 6 digits of precision
+#define SBD_SYMBOL_SER    (uint64_t(6) |   (SBD_SYMBOL_U64 << 8)) ///< SBD|TBD with 4 digits of precision
 
 #define STEEM_ASSET_MAX_DECIMALS 12
 
 namespace steem { namespace protocol {
 
+  class asset_symbol_type
+  {
+  public:
+     uint64_t value = STEEM_SYMBOL_SER;
+  public:
+     asset_symbol_type() {}
+     asset_symbol_type(uint64_t v): value(v) {}
+     asset_symbol_type(const asset_symbol_type& as){value = as.value;}
+
+
+     static asset_symbol_type from_string( const std::string& str ){
+       FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
+       const char* c_str = str.c_str();
+       uint64_t ret;
+       int i =0;
+       while( c_str[i] ){
+          ret = (ret << 8) | uint64_t(c_str[i]);
+          i++;
+       }
+       asset_symbol_type rv (ret <<8 & (uint64_t(6))) ;
+       return rv;
+     }
+
+     static asset_symbol_type from_string( const std::string& str, uint decimals ){
+       FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
+       FC_ASSERT(STEEM_ASSET_MAX_DECIMALS>= decimals);
+       const char* c_str = str.c_str();
+       uint64_t ret;
+       int i =0;
+       while( c_str[i] ){
+         ret = (ret << 8) | uint64_t(c_str[i]);
+         i++;
+       }
+
+        asset_symbol_type rv (ret <<8 & (uint64_t(decimals))) ;
+        return rv;
+     }
+
+     std::string to_string()const{
+       std::string ret;
+       uint64_t symbol = value >>8;
+       while ( symbol ) {
+         ret.push_back(symbol & (uint64_t(255)));
+         symbol = symbol >> 8;
+       }
+       FC_ASSERT((ret.size() >= 3), "invalid symbol length");
+       return ret;
+     }
+
+     uint8_t decimals()const{ uint64_t dec = value & (uint64_t(255)); return (uint8_t)dec; };
+
+     friend bool operator == ( const asset_symbol_type& a, const asset_symbol_type& b )
+     {  return (a.value == b.value);   }
+     friend bool operator != ( const asset_symbol_type& a, const asset_symbol_type& b )
+     {  return (a.value != b.value);   }
+  };
+/*
 class asset_symbol_type
 {
    public:
-      enum asset_symbol_space
-      {
-         legacy_space = 1,
-         smt_nai_space = 2
-      };
 
       asset_symbol_type() {}
 
       // buf must have space for STEEM_ASSET_SYMBOL_MAX_LENGTH+1
       static asset_symbol_type from_string( const std::string& str );
-      static asset_symbol_type from_nai_string( const char* buf, uint8_t decimal_places );
       static asset_symbol_type from_asset_num( uint32_t asset_num )
       {   asset_symbol_type result;   result.asset_num = asset_num;   return result;   }
-      static uint32_t asset_num_from_nai( uint32_t nai, uint8_t decimal_places );
-      static asset_symbol_type from_nai( uint32_t nai, uint8_t decimal_places )
-      {   return from_asset_num( asset_num_from_nai( nai, decimal_places ) );          }
 
       std::string to_string()const;
 
-      void to_nai_string( char* buf )const;
-      std::string to_nai_string()const
-      {
-         char buf[ STEEM_ASSET_SYMBOL_NAI_STRING_LENGTH ];
-         to_nai_string( buf );
-         return std::string( buf );
-      }
-
-      uint32_t to_nai()const;
-
-      /**Returns true when symbol represents vesting variant of the token,
-       * false for liquid one.
-       */
+      //Returns true when symbol represents vesting variant of the token, false for liquid one.
       bool is_vesting() const;
-      /**Returns vesting symbol when called from liquid one
-       * and liquid symbol when called from vesting one.
-       * Returns back the SBD symbol if represents SBD.
-       */
+      //Returns vesting symbol when called from liquid one and liquid symbol when called from vesting one. Returns back the SBD symbol if represents SBD.
+
       asset_symbol_type get_paired_symbol() const;
 
-      asset_symbol_space space()const;
       uint8_t decimals()const
       {  return uint8_t( asset_num & 0x0F );    }
       void validate()const;
@@ -111,22 +121,15 @@ class asset_symbol_type
 
       uint32_t asset_num = 0;
 };
-
+*/
 } } // steem::protocol
 
+FC_REFLECT(steem::protocol::asset_symbol_type, (value))
+
+/*
 FC_REFLECT(steem::protocol::asset_symbol_type, (asset_num))
 
 namespace fc { namespace raw {
-
-// Legacy serialization of assets
-// 0000pppp aaaaaaaa bbbbbbbb cccccccc dddddddd eeeeeeee ffffffff 00000000
-// Symbol = abcdef
-//
-// NAI serialization of assets
-// aaa1pppp bbbbbbbb cccccccc dddddddd
-// NAI = (MSB to LSB) dddddddd cccccccc bbbbbbbb aaa
-//
-// NAI internal storage of legacy assets
 
 template< typename Stream >
 inline void pack( Stream& s, const steem::protocol::asset_symbol_type& sym )
@@ -214,3 +217,4 @@ inline void from_variant( const fc::variant& var, steem::protocol::asset_symbol_
 }
 
 } // fc
+*/

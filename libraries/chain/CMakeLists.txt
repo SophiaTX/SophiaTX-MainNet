@@ -16,8 +16,7 @@ add_library( steem_chain
              shared_authority.cpp
              block_log.cpp
 
-             util/reward.cpp
-             util/impacted.cpp
+        util/impacted.cpp
 
              ${HEADERS}
            )

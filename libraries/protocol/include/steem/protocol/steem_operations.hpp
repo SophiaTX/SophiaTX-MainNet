@@ -102,7 +102,6 @@ namespace steem { namespace protocol {
       account_name_type agent;
       uint32_t          escrow_id = 30;
 
-      asset             sbd_amount = asset( 0, SBD_SYMBOL );
       asset             steem_amount = asset( 0, STEEM_SYMBOL );
       asset             fee;
 
@@ -626,7 +625,7 @@ FC_REFLECT( steem::protocol::allowed_vote_assets, (votable_assets) )
 #endif
 
 
-FC_REFLECT( steem::protocol::escrow_transfer_operation, (from)(to)(sbd_amount)(steem_amount)(escrow_id)(agent)(fee)(json_meta)(ratification_deadline)(escrow_expiration) );
+FC_REFLECT( steem::protocol::escrow_transfer_operation, (from)(to)(steem_amount)(escrow_id)(agent)(fee)(json_meta)(ratification_deadline)(escrow_expiration) );
 FC_REFLECT( steem::protocol::escrow_approve_operation, (from)(to)(agent)(who)(escrow_id)(approve) );
 FC_REFLECT( steem::protocol::escrow_dispute_operation, (from)(to)(agent)(who)(escrow_id) );
 FC_REFLECT( steem::protocol::escrow_release_operation, (from)(to)(agent)(who)(receiver)(escrow_id)(sbd_amount)(steem_amount) );

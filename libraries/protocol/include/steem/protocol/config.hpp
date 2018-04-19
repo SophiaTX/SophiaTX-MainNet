@@ -70,9 +70,9 @@
 
 #endif
 
-#define VESTS_SYMBOL  (steem::protocol::asset_symbol_type::from_asset_num( STEEM_ASSET_NUM_VESTS ) )
-#define STEEM_SYMBOL  (steem::protocol::asset_symbol_type::from_asset_num( STEEM_ASSET_NUM_STEEM ) )
-#define SBD_SYMBOL    (steem::protocol::asset_symbol_type::from_asset_num( STEEM_ASSET_NUM_SBD ) )
+#define VESTS_SYMBOL  ( steem::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
+#define STEEM_SYMBOL  ( steem::protocol::asset_symbol_type( STEEM_SYMBOL_SER ) )
+#define SBD_SYMBOL    ( steem::protocol::asset_symbol_type( SBD_SYMBOL_SER ) )
 
 #define STEEM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( STEEM_BLOCKCHAIN_VERSION ) )
 
@@ -89,12 +89,10 @@
 #define STEEM_MAX_WITNESSES                   21
 
 #define STEEM_MAX_VOTED_WITNESSES_HF0         19
-#define STEEM_MAX_MINER_WITNESSES_HF0         1
-#define STEEM_MAX_RUNNER_WITNESSES_HF0        1
+#define STEEM_MAX_MINER_WITNESSES_HF0         0
+#define STEEM_MAX_RUNNER_WITNESSES_HF0        2
 
-#define STEEM_MAX_VOTED_WITNESSES_HF17        20
-#define STEEM_MAX_MINER_WITNESSES_HF17        0
-#define STEEM_MAX_RUNNER_WITNESSES_HF17       1
+
 
 #define STEEM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 21 dpos witnesses (20 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define STEEM_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour

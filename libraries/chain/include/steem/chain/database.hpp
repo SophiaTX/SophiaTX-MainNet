@@ -31,9 +31,6 @@ namespace steem { namespace chain {
    class database_impl;
    class custom_operation_interpreter;
 
-   namespace util {
-      struct comment_reward_context;
-   }
 
    /**
     *   @class database
@@ -126,8 +123,6 @@ namespace steem { namespace chain {
           */
          bool                       is_known_block( const block_id_type& id )const;
          bool                       is_known_transaction( const transaction_id_type& id )const;
-         fc::sha256                 get_pow_target()const;
-         uint32_t                   get_pow_summary_target()const;
          block_id_type              find_block_id_for_num( uint32_t block_num )const;
          block_id_type              get_block_id_for_num( uint32_t block_num )const;
          optional<signed_block>     fetch_block_by_id( const block_id_type& id )const;
@@ -146,29 +141,14 @@ namespace steem { namespace chain {
          const account_object&  get_account(  const account_name_type& name )const;
          const account_object*  find_account( const account_name_type& name )const;
 
-         const comment_object&  get_comment(  const account_name_type& author, const shared_string& permlink )const;
-         const comment_object*  find_comment( const account_name_type& author, const shared_string& permlink )const;
-
-         const comment_object&  get_comment(  const account_name_type& author, const string& permlink )const;
-         const comment_object*  find_comment( const account_name_type& author, const string& permlink )const;
-
          const escrow_object&   get_escrow(  const account_name_type& name, uint32_t escrow_id )const;
          const escrow_object*   find_escrow( const account_name_type& name, uint32_t escrow_id )const;
-
-         const limit_order_object& get_limit_order(  const account_name_type& owner, uint32_t id )const;
-         const limit_order_object* find_limit_order( const account_name_type& owner, uint32_t id )const;
-
-         const savings_withdraw_object& get_savings_withdraw(  const account_name_type& owner, uint32_t request_id )const;
-         const savings_withdraw_object* find_savings_withdraw( const account_name_type& owner, uint32_t request_id )const;
 
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
          const node_property_object&            get_node_properties()const;
          const feed_history_object&             get_feed_history()const;
          const witness_schedule_object&         get_witness_schedule_object()const;
          const hardfork_property_object&        get_hardfork_property_object()const;
-
-         const time_point_sec                   calculate_discussion_payout_time( const comment_object& comment )const;
-         const reward_fund_object&              get_reward_fund( const comment_object& c )const;
 
          /**
           *  Deducts fee from the account and the share supply
@@ -305,14 +285,11 @@ namespace steem { namespace chain {
           */
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
-         /** @return the sbd created and deposited to_account, may return STEEM if there is no median feed */
-         std::pair< asset, asset > create_sbd( const account_object& to_account, asset steem, bool to_reward_balance=false );
          asset create_vesting( const account_object& to_account, asset steem, bool to_reward_balance=false );
-         void adjust_total_payout( const comment_object& a, const asset& sbd, const asset& curator_sbd_value, const asset& beneficiary_value );
 
          void        adjust_balance( const account_object& a, const asset& delta );
          void        adjust_balance( const account_name_type& name, const asset& delta );
-         void        adjust_supply( const asset& delta, bool adjust_vesting = false );
+         void        adjust_supply( const asset& delta );
          void        update_owner_authority( const account_object& account, const authority& owner_authority );
 
          asset       get_balance( const account_object& a, asset_symbol_type symbol )const;
@@ -338,33 +315,23 @@ namespace steem { namespace chain {
           */
          void clear_witness_votes( const account_object& a );
          void process_vesting_withdrawals();
-         share_type pay_curators( const comment_object& c, share_type& max_rewards );
-         share_type cashout_comment_helper( util::comment_reward_context& ctx, const comment_object& comment );
-         void process_comment_cashout();
-         void process_funds();
-         void process_conversions();
-         void process_savings_withdraws();
-         void account_recovery_processing();
+
+
+      void process_funds();
+
+      void account_recovery_processing();
          void expire_escrow_ratification();
-         void process_decline_voting_rights();
-         void update_median_feed();
 
-         asset get_liquidity_reward()const;
-         asset get_content_reward()const;
-         asset get_producer_reward();
-         asset get_curation_reward()const;
-         asset get_pow_reward()const;
+      void update_median_feed();
 
-         uint16_t get_curation_rewards_percent( const comment_object& c ) const;
+      asset get_producer_reward();
 
-         share_type pay_reward_funds( share_type reward );
+      asset get_pow_reward()const;
 
-         void  pay_liquidity_reward();
-
-         /**
-          * Helper method to return the current sbd value of a given amount of
-          * STEEM.  Return 0 SBD if there isn't a current_median_history
-          */
+      /**
+       * Helper method to return the current sbd value of a given amount of
+       * STEEM.  Return 0 SBD if there isn't a current_median_history
+       */
          asset to_sbd( const asset& steem )const;
          asset to_steem( const asset& sbd )const;
 
@@ -378,8 +345,8 @@ namespace steem { namespace chain {
          //////////////////// db_init.cpp ////////////////////
 
          void initialize_evaluators();
-         void set_custom_operation_interpreter( const std::string& id, std::shared_ptr< custom_operation_interpreter > registry );
-         std::shared_ptr< custom_operation_interpreter > get_custom_json_evaluator( const std::string& id );
+         void set_custom_operation_interpreter( const uint32_t id, std::shared_ptr< custom_operation_interpreter > registry );
+         std::shared_ptr< custom_operation_interpreter > get_custom_json_evaluator( const uint32_t id );
 
          /// Reset the object graph in-memory
          void initialize_indexes();
@@ -397,17 +364,9 @@ namespace steem { namespace chain {
          std::deque< signed_transaction >       _popped_tx;
          vector< signed_transaction >           _pending_tx;
 
-         bool apply_order( const limit_order_object& new_order_object );
-         bool fill_order( const limit_order_object& order, const asset& pays, const asset& receives );
-         void cancel_order( const limit_order_object& obj );
-         int  match( const limit_order_object& bid, const limit_order_object& ask, const price& trade_price );
+      void retally_witness_votes();
 
-         void perform_vesting_share_split( uint32_t magnitude );
-         void retally_comment_children();
-         void retally_witness_votes();
-         void retally_witness_vote_counts( bool force = false );
-         void retally_liquidity_weight();
-         void update_virtual_supply();
+      void update_virtual_supply();
 
          bool has_hardfork( uint32_t hardfork )const;
 
@@ -478,9 +437,8 @@ namespace steem { namespace chain {
          void update_signing_witness(const witness_object& signing_witness, const signed_block& new_block);
          void update_last_irreversible_block();
          void clear_expired_transactions();
-         void clear_expired_orders();
-         void clear_expired_delegations();
-         void process_header_extensions( const signed_block& next_block );
+
+      void process_header_extensions( const signed_block& next_block );
 
          void init_hardforks();
          void process_hardforks();
@@ -522,13 +480,11 @@ namespace steem { namespace chain {
          uint32_t                      _next_flush_block = 0;
 
          uint32_t                      _last_free_gb_printed = 0;
-         /// For Initial value see appropriate comment where get_smt_next_identifier is implemented.
-         uint32_t                      _next_available_nai = SMT_MIN_NON_RESERVED_NAI;
 
          uint16_t                      _shared_file_full_threshold = 0;
          uint16_t                      _shared_file_scale_rate = 0;
 
-         flat_map< std::string, std::shared_ptr< custom_operation_interpreter > >   _custom_operation_interpreters;
+         flat_map< uint32_t, std::shared_ptr< custom_operation_interpreter > >   _custom_operation_interpreters;
          std::string                   _json_schema;
 
          fc::signal<on_reindex_start_t>   _on_reindex_start;

@@ -26,10 +26,11 @@ inline void pack( Stream& s, const steem::protocol::fixed_string_impl< Storage >
 template< typename Stream, typename Storage >
 inline void unpack( Stream& s, steem::protocol::fixed_string_impl< Storage >& u );
 
-template< typename Stream >
+/*template< typename Stream >
 inline void pack( Stream& s, const steem::protocol::asset_symbol_type& sym );
 template< typename Stream >
 inline void unpack( Stream& s, steem::protocol::asset_symbol_type& sym );
+*/
 
 template< typename Stream >
 inline void pack( Stream& s, const steem::protocol::legacy_steem_asset_symbol_type& sym );
@@ -43,7 +44,7 @@ inline void to_variant( const steem::protocol::fixed_string_impl< Storage >& s, 
 template< typename Storage >
 inline void from_variant( const variant& v, steem::protocol::fixed_string_impl< Storage >& s );
 
-inline void to_variant( const steem::protocol::asset_symbol_type& sym, fc::variant& v );
+//inline void to_variant( const steem::protocol::asset_symbol_type& sym, fc::variant& v );
 
 inline void from_variant( const fc::variant& v, steem::protocol::legacy_steem_asset& leg );
 inline void to_variant( const steem::protocol::legacy_steem_asset& leg, fc::variant& v );

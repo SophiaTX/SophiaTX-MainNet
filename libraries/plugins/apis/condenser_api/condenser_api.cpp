@@ -12,7 +12,6 @@
 
 #include <steem/utilities/git_revision.hpp>
 
-#include <steem/chain/util/reward.hpp>
 #include <steem/chain/util/uint256.hpp>
 
 #include <fc/git_revision.hpp>

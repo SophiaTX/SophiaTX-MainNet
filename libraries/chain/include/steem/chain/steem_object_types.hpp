@@ -177,7 +177,6 @@ FC_REFLECT_ENUM( steem::chain::object_type,
                  (account_recovery_request_object_type)
                  (change_recovery_account_request_object_type)
                  (escrow_object_type)
-                 (savings_withdraw_object_type)
                  (block_stats_object_type)
                  (reward_fund_object_type)
 

@@ -286,7 +286,6 @@ const account_object& database_fixture::account_create(
    const private_key_type& creator_key,
    const share_type& fee,
    const public_key_type& key,
-   const public_key_type& post_key,
    const string& json_metadata
    )
 {
@@ -298,7 +297,6 @@ const account_object& database_fixture::account_create(
       op.fee = asset( fee, STEEM_SYMBOL );
       op.owner = authority( 1, key, 1 );
       op.active = authority( 1, key, 1 );
-      op.posting = authority( 1, post_key, 1 );
       op.memo_key = key;
       op.json_metadata = json_metadata;
 
@@ -321,7 +319,6 @@ const account_object& database_fixture::account_create(
 const account_object& database_fixture::account_create(
    const string& name,
    const public_key_type& key,
-   const public_key_type& post_key
 )
 {
    try
@@ -332,7 +329,6 @@ const account_object& database_fixture::account_create(
          init_account_priv_key,
          std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, share_type( 100 ) ),
          key,
-         post_key,
          "" );
    }
    FC_CAPTURE_AND_RETHROW( (name) );
