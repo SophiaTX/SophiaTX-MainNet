@@ -8,13 +8,9 @@
 
 #include <steem/plugins/witness/witness_plugin.hpp>
 
-#include <steem/plugins/follow_api/follow_api_plugin.hpp>
-
 #include <steem/plugins/account_history_api/account_history_api_plugin.hpp>
 
 #include <steem/plugins/witness_api/witness_api_plugin.hpp>
-
-#include <steem/plugins/market_history_api/market_history_api_plugin.hpp>
 
 #include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 
@@ -32,8 +28,6 @@
 
 #include <steem/plugins/account_history/account_history_plugin.hpp>
 
-#include <steem/plugins/follow/follow_plugin.hpp>
-
 #include <steem/plugins/chain/chain_plugin.hpp>
 
 #include <steem/plugins/debug_node/debug_node_plugin.hpp>
@@ -46,8 +40,6 @@
 
 #include <steem/plugins/account_by_key/account_by_key_plugin.hpp>
 
-#include <steem/plugins/market_history/market_history_plugin.hpp>
-
 
 namespace steem { namespace plugins {
 
@@ -58,13 +50,9 @@ void register_plugins()
    
    appbase::app().register_plugin< steem::plugins::witness::witness_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::follow::follow_api_plugin >();
-   
    appbase::app().register_plugin< steem::plugins::account_history::account_history_api_plugin >();
    
    appbase::app().register_plugin< steem::plugins::witness::witness_api_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::market_history::market_history_api_plugin >();
    
    appbase::app().register_plugin< steem::plugins::network_broadcast_api::network_broadcast_api_plugin >();
    
@@ -82,8 +70,6 @@ void register_plugins()
    
    appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::follow::follow_plugin >();
-   
    appbase::app().register_plugin< steem::plugins::chain::chain_plugin >();
    
    appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
@@ -95,8 +81,6 @@ void register_plugins()
    appbase::app().register_plugin< steem::plugins::block_log_info::block_log_info_plugin >();
    
    appbase::app().register_plugin< steem::plugins::account_by_key::account_by_key_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::market_history::market_history_plugin >();
    
 }
 
