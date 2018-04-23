@@ -41,7 +41,6 @@ namespace steem { namespace chain {
          asset       current_supply             = asset( 0, STEEM_SYMBOL );
          asset       total_vesting_shares       = asset( 0, VESTS_SYMBOL );
          asset       total_reward_fund    = asset( 0, STEEM_SYMBOL );
-         asset       pending_rewarded_vesting_shares = asset( 0, VESTS_SYMBOL );
 
          price       get_vesting_share_price() const
          {
@@ -100,7 +99,6 @@ FC_REFLECT( steem::chain::dynamic_global_property_object,
              (current_supply)
              (total_vesting_shares)
              (total_reward_fund)
-             (pending_rewarded_vesting_shares)
              (maximum_block_size)
              (current_aslot)
              (recent_slots_filled)

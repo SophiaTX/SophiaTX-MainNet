@@ -6,8 +6,6 @@
 #include <steem/plugins/account_history_api/account_history_api_plugin.hpp>
 #include <steem/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
 #include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
-#include <steem/plugins/follow_api/follow_api_plugin.hpp>
-#include <steem/plugins/market_history_api/market_history_api_plugin.hpp>
 #include <steem/plugins/witness_api/witness_api_plugin.hpp>
 
 #include <steem/utilities/git_revision.hpp>
@@ -56,51 +54,25 @@ namespace detail
             (get_owner_history)
             (get_recovery_request)
             (get_escrow)
-            (get_withdraw_routes)
-            (get_account_bandwidth)
-            (get_savings_withdraw_from)
-            (get_savings_withdraw_to)
-            (get_vesting_delegations)
-            (get_expiring_vesting_delegations)
             (get_witnesses)
-            (get_conversion_requests)
             (get_witness_by_account)
             (get_witnesses_by_vote)
             (lookup_witness_accounts)
             (get_witness_count)
-            (get_open_orders)
             (get_transaction_hex)
             (get_transaction)
             (get_required_signatures)
             (get_potential_signatures)
             (verify_authority)
             (verify_account_authority)
-            (get_account_votes)
+  //          (get_account_votes)
             (get_account_history)
             (broadcast_transaction)
             (broadcast_transaction_synchronous)
             (broadcast_block)
-            (get_followers)
-            (get_following)
-            (get_follow_count)
-            (get_feed_entries)
-            (get_feed)
-            (get_blog_entries)
-            (get_blog)
-            (get_account_reputations)
-            (get_reblogged_by)
-            (get_blog_authors)
-            (get_ticker)
-            (get_volume)
-            (get_order_book)
-            (get_trade_history)
-            (get_recent_trades)
-            (get_market_history)
-            (get_market_history_buckets)
          )
 
 
-         void set_pending_payout( discussion& d );
 
          chain::database& _db;
 
@@ -109,8 +81,6 @@ namespace detail
          std::shared_ptr< account_history::account_history_api > _account_history_api;
          std::shared_ptr< account_by_key::account_by_key_api > _account_by_key_api;
          std::shared_ptr< network_broadcast_api::network_broadcast_api > _network_broadcast_api;
-         std::shared_ptr< follow::follow_api > _follow_api;
-         std::shared_ptr< market_history::market_history_api > _market_history_api;
          std::shared_ptr< witness::witness_api > _witness_api;
    };
 
@@ -140,10 +110,6 @@ namespace detail
          if( path.size() && path[0] == '/' )
             path = path.substr(1); /// remove '/' from front
 
-         if( !path.size() )
-            path = "trending";
-
-
          /// END FETCH CATEGORY STATE
 
          set<string> accounts;
@@ -157,12 +123,6 @@ namespace detail
          if( part[0].size() && part[0][0] == '@' ) {
             auto acnt = part[0].substr(1);
             _state.accounts[acnt] = extended_account( database_api::api_account_object( _db.get_account( acnt ), _db ) );
-
-            if( _follow_api )
-            {
-               _state.accounts[acnt].guest_bloggers = _follow_api->get_blog_authors( { acnt } ).blog_authors;
-               _state.accounts[acnt].reputation     = _follow_api->get_account_reputations( { acnt, 1 } ).reputations[0].reputation;
-            }
 
             auto& eacnt = _state.accounts[acnt];
             if( part[1] == "transfers" )
@@ -179,41 +139,23 @@ namespace detail
                         case operation::tag<withdraw_vesting_operation>::value:
                         case operation::tag<interest_operation>::value:
                         case operation::tag<transfer_operation>::value:
-                        case operation::tag<liquidity_reward_operation>::value:
-                        case operation::tag<author_reward_operation>::value:
-                        case operation::tag<curation_reward_operation>::value:
-                        case operation::tag<comment_benefactor_reward_operation>::value:
-                        case operation::tag<transfer_to_savings_operation>::value:
-                        case operation::tag<transfer_from_savings_operation>::value:
-                        case operation::tag<cancel_transfer_from_savings_operation>::value:
                         case operation::tag<escrow_transfer_operation>::value:
                         case operation::tag<escrow_approve_operation>::value:
                         case operation::tag<escrow_dispute_operation>::value:
                         case operation::tag<escrow_release_operation>::value:
-                        case operation::tag<fill_convert_request_operation>::value:
-                        case operation::tag<fill_order_operation>::value:
-                        case operation::tag<claim_reward_balance_operation>::value:
                            if( item.second.op.visit( visitor ) )
                            {
                               eacnt.transfer_history.emplace( item.first, api_operation_object( item.second, visitor.l_op ) );
                            }
                            break;
-                        case operation::tag<comment_operation>::value:
-                        //   eacnt.post_history[item.first] =  item.second;
-                           break;
-                        case operation::tag<limit_order_create_operation>::value:
-                        case operation::tag<limit_order_cancel_operation>::value:
-                        //   eacnt.market_history[item.first] =  item.second;
-                           break;
-                        case operation::tag<vote_operation>::value:
                         case operation::tag<account_witness_vote_operation>::value:
                         case operation::tag<account_witness_proxy_operation>::value:
+                           //TODO_SOPHIA Shall we return the vote history???
                         //   eacnt.vote_history[item.first] =  item.second;
                            break;
                         case operation::tag<account_create_operation>::value:
                         case operation::tag<account_update_operation>::value:
                         case operation::tag<witness_update_operation>::value:
-                        case operation::tag<pow_operation>::value:
                         case operation::tag<custom_operation>::value:
                         case operation::tag<producer_reward_operation>::value:
                         default:
@@ -225,66 +167,8 @@ namespace detail
                   }
                }
             }
-            else if( part[1] == "recent-replies" )
-            {
+            //else if( part[1].size() == 0 || part[1] == "blog" )
 
-            }
-            else if( part[1] == "posts" || part[1] == "comments" )
-            {
-      #ifndef IS_LOW_MEM
-               int count = 0;
-               const auto& pidx = _db.get_index< comment_index, by_author_last_update >();
-               auto itr = pidx.lower_bound( acnt );
-               eacnt.comments = vector<string>();
-
-               while( itr != pidx.end() && itr->author == acnt && count < 20 )
-               {
-                  if( itr->parent_author.size() )
-                  {
-                     const auto link = acnt + "/" + to_string( itr->permlink );
-                     eacnt.comments->push_back( link );
-
-                     ++count;
-                  }
-
-                  ++itr;
-               }
-      #endif
-            }
-            else if( part[1].size() == 0 || part[1] == "blog" )
-            {
-               if( _follow_api )
-               {
-                  auto blog = _follow_api->get_blog_entries( { eacnt.name, 0, 20 } ).blog;
-                  eacnt.blog = vector<string>();
-                  eacnt.blog->reserve(blog.size());
-
-                  for( const auto& b: blog )
-                  {
-                     const auto link = b.author + "/" + b.permlink;
-                     eacnt.blog->push_back( link );
-
-
-                  }
-               }
-            }
-            else if( part[1].size() == 0 || part[1] == "feed" )
-            {
-               if( _follow_api )
-               {
-                  auto feed = _follow_api->get_feed_entries( { eacnt.name, 0, 20 } ).feed;
-                  eacnt.feed = vector<string>();
-                  eacnt.feed->reserve( feed.size());
-
-                  for( const auto& f: feed )
-                  {
-                     const auto link = f.author + "/" + f.permlink;
-                     eacnt.feed->push_back( link );
-
-
-                  }
-               }
-            }
          }
          /// pull a complete discussion
          else if( part[1].size() && part[1][0] == '@' )
@@ -303,53 +187,13 @@ namespace detail
                _state.witnesses[w.owner] = w;
             }
          }
-         else if( part[0] == "trending"  )
-         {
-
-         }
          else if( part[0] == "payout"  )
          {
-
-         }
-         else if( part[0] == "payout_comments"  )
-         {
-
-         }
-         else if( part[0] == "promoted" )
-         {
-
-         }
-         else if( part[0] == "responses"  )
-         {
-
-         }
-         else if( !part[0].size() || part[0] == "hot" )
-         {
-
-         }
-         else if( !part[0].size() || part[0] == "promoted" )
-         {
-
+            //TODO_SOPHIA - payouts from mining
          }
          else if( part[0] == "votes"  )
          {
-
-         }
-         else if( part[0] == "cashout"  )
-         {
-
-         }
-         else if( part[0] == "active"  )
-         {
-
-         }
-         else if( part[0] == "created"  )
-         {
-
-         }
-         else if( part[0] == "recent"  )
-         {
-
+            //TODO_SOPHIA Shall we return the vote history???
          }
          else {
             elog( "What... no matches" );
@@ -360,10 +204,6 @@ namespace detail
             _state.accounts.erase("");
             _state.accounts[a] = extended_account( database_api::api_account_object( _db.get_account( a ), _db ) );
 
-            if( _follow_api )
-            {
-               _state.accounts[a].reputation = _follow_api->get_account_reputations( { a, 1 } ).reputations[0].reputation;
-            }
          }
 
 
@@ -440,7 +280,6 @@ namespace detail
       {
          auto reserve_ratio = _witness_api->get_reserve_ratio( {} );
          gpo.average_block_size = reserve_ratio.average_block_size;
-         gpo.current_reserve_ratio = reserve_ratio.current_reserve_ratio;
          gpo.max_virtual_bandwidth = reserve_ratio.max_virtual_bandwidth;
       }
 
@@ -522,31 +361,6 @@ namespace detail
          if ( itr != idx.end() )
          {
             results.emplace_back( extended_account( database_api::api_account_object( *itr, _db ) ) );
-
-            if( _follow_api )
-            {
-               results.back().reputation = _follow_api->get_account_reputations( { itr->name, 1 } ).reputations[0].reputation;
-            }
-
-            if( _witness_api )
-            {
-               auto& e_acct = results.back();
-               auto forum_bandwidth = _witness_api->get_account_bandwidth( { itr->name, witness::bandwidth_type::forum } );
-               if( forum_bandwidth.bandwidth.valid() )
-               {
-                  e_acct.average_bandwidth = forum_bandwidth.bandwidth->average_bandwidth;
-                  e_acct.lifetime_bandwidth = forum_bandwidth.bandwidth->lifetime_bandwidth;
-                  e_acct.last_bandwidth_update = forum_bandwidth.bandwidth->last_bandwidth_update;
-               }
-
-               auto market_bandwidth = _witness_api->get_account_bandwidth( { itr->name, witness::bandwidth_type::market } );
-               if( market_bandwidth.bandwidth.valid() )
-               {
-                  e_acct.average_market_bandwidth = market_bandwidth.bandwidth->average_bandwidth;
-                  e_acct.lifetime_market_bandwidth = market_bandwidth.bandwidth->lifetime_bandwidth;
-                  e_acct.last_market_bandwidth_update = market_bandwidth.bandwidth->last_bandwidth_update;
-               }
-            }
 
             auto vitr = vidx.lower_bound( boost::make_tuple( itr->name, account_name_type() ) );
             while( vitr != vidx.end() && vitr->account == itr->name ) {
@@ -651,119 +465,7 @@ namespace detail
       return result;
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_withdraw_routes )
-   {
-      FC_ASSERT( args.size() == 1 || args.size() == 2, "Expected 1-2 arguments, was ${n}", ("n", args.size()) );
 
-      auto account = args[0].as< string >();
-      auto destination = args.size() == 2 ? args[1].as< withdraw_route_type >() : outgoing;
-
-      get_withdraw_routes_return result;
-
-      if( destination == outgoing || destination == all )
-      {
-         auto routes = _database_api->find_withdraw_vesting_routes( { account, database_api::by_withdraw_route } ).routes;
-         result.insert( result.end(), routes.begin(), routes.end() );
-      }
-
-      if( destination == incoming || destination == all )
-      {
-         auto routes = _database_api->find_withdraw_vesting_routes( { account, database_api::by_destination } ).routes;
-         result.insert( result.end(), routes.begin(), routes.end() );
-      }
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_account_bandwidth )
-   {
-      CHECK_ARG_SIZE( 2 )
-      FC_ASSERT( _witness_api, "witness_api_plugin not enabled." );
-      return _witness_api->get_account_bandwidth(
-         {
-            args[0].as< string >(),
-            args[1].as< witness::bandwidth_type >()
-         }).bandwidth;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_savings_withdraw_from )
-   {
-      CHECK_ARG_SIZE( 1 )
-
-      auto withdrawals = _database_api->find_savings_withdrawals(
-         {
-            args[0].as< string >()
-         }).withdrawals;
-
-      get_savings_withdraw_from_return result;
-
-      for( auto& w : withdrawals )
-      {
-         result.push_back( api_savings_withdraw_object( w ) );
-      }
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_savings_withdraw_to )
-   {
-      CHECK_ARG_SIZE( 1 )
-      account_name_type account = args[0].as< account_name_type >();
-
-      get_savings_withdraw_to_return result;
-
-      const auto& to_complete_idx = _db.get_index< savings_withdraw_index, by_to_complete >();
-      auto itr = to_complete_idx.lower_bound( account );
-      while( itr != to_complete_idx.end() && itr->to == account )
-      {
-         result.push_back( api_savings_withdraw_object( *itr ) );
-         ++itr;
-      }
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_vesting_delegations )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-
-      database_api::list_vesting_delegations_args a;
-      account_name_type account = args[0].as< account_name_type >();
-      a.start = fc::variant( (vector< variant >){ args[0], args[1] } );
-      a.limit = args.size() == 3 ? args[2].as< uint32_t >() : 100;
-      a.order = database_api::by_delegation;
-
-      auto delegations = _database_api->list_vesting_delegations( a ).delegations;
-      get_vesting_delegations_return result;
-
-      for( auto itr = delegations.begin(); itr != delegations.end() && itr->delegator == account; ++itr )
-      {
-         result.push_back( api_vesting_delegation_object( *itr ) );
-      }
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_expiring_vesting_delegations )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-
-      database_api::list_vesting_delegation_expirations_args a;
-      account_name_type account = args[0].as< account_name_type >();
-      a.start = fc::variant( (vector< variant >){ args[0], args[1], fc::variant( vesting_delegation_expiration_id_type() ) } );
-      a.limit = args.size() == 3 ? args[2].as< uint32_t >() : 100;
-      a.order = database_api::by_account_expiration;
-
-      auto delegations = _database_api->list_vesting_delegation_expirations( a ).delegations;
-      get_expiring_vesting_delegations_return result;
-
-      for( auto itr = delegations.begin(); itr != delegations.end() && itr->delegator == account; ++itr )
-      {
-         result.push_back( api_vesting_delegation_expiration_object( *itr ) );
-      }
-
-      return result;
-   }
 
    DEFINE_API_IMPL( condenser_api_impl, get_witnesses )
    {
@@ -783,24 +485,6 @@ namespace detail
                return api_witness_object( database_api::api_witness_object ( *o ) );
             return {};
          });
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_conversion_requests )
-   {
-      CHECK_ARG_SIZE( 1 )
-      auto requests = _database_api->find_sbd_conversion_requests(
-         {
-            args[0].as< account_name_type >()
-         }).requests;
-
-      get_conversion_requests_return result;
-
-      for( auto& r : requests )
-      {
-         result.push_back( api_convert_request_object( r ) );
-      }
 
       return result;
    }
@@ -872,34 +556,11 @@ namespace detail
 
       return result;
    }
+
    DEFINE_API_IMPL( condenser_api_impl, get_witness_count )
    {
       CHECK_ARG_SIZE( 0 )
       return _db.get_index< witness_index >().indices().size();
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_open_orders )
-   {
-      CHECK_ARG_SIZE( 1 )
-      account_name_type owner = args[0].as< account_name_type >();
-
-      vector< api_limit_order_object > result;
-      const auto& idx = _db.get_index< limit_order_index, by_account >();
-      auto itr = idx.lower_bound( owner );
-
-      while( itr != idx.end() && itr->seller == owner )
-      {
-         result.push_back( *itr );
-
-         // if( itr->sell_price.base.symbol == STEEM_SYMBOL )
-         //    result.back().real_price = (~result.back().sell_price).to_real();
-         // else
-         //    result.back().real_price = (result.back().sell_price).to_real();
-         result.back().real_price = 0.0;
-         ++itr;
-      }
-
-      return result;
    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_transaction_hex )
@@ -943,7 +604,7 @@ namespace detail
       return _database_api->verify_account_authority( { args[0].as< account_name_type >(), args[1].as< flat_set< public_key_type > >() } ).valid;
    }
 
-
+/*
    DEFINE_API_IMPL( condenser_api_impl, get_account_votes )
    {
       CHECK_ARG_SIZE( 1 )
@@ -971,7 +632,7 @@ namespace detail
       }
 
       return result;
-   }
+   }*/
 
    DEFINE_API_IMPL( condenser_api_impl, get_account_history )
    {
@@ -1019,157 +680,7 @@ namespace detail
       return _network_broadcast_api->broadcast_block( { signed_block( args[0].as< legacy_signed_block >() ) } );
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_followers )
-   {
-      CHECK_ARG_SIZE( 4 )
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
 
-      return _follow_api->get_followers( { args[0].as< account_name_type >(), args[1].as< account_name_type >(), args[2].as< follow::follow_type >(), args[3].as< uint32_t >() } ).followers;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_following )
-   {
-      CHECK_ARG_SIZE( 4 )
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_following( { args[0].as< account_name_type >(), args[1].as< account_name_type >(), args[2].as< follow::follow_type >(), args[3].as< uint32_t >() } ).following;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_follow_count )
-   {
-      CHECK_ARG_SIZE( 1 )
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_follow_count( { args[0].as< account_name_type >() } );
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_feed_entries )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_feed_entries( { args[0].as< account_name_type >(), args[1].as< uint32_t >(), args.size() == 3 ? args[2].as< uint32_t >() : 500 } ).feed;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_feed )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_feed( { args[0].as< account_name_type >(), args[1].as< uint32_t >(), args.size() == 3 ? args[2].as< uint32_t >() : 500 } ).feed;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_blog_entries )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_blog_entries( { args[0].as< account_name_type >(), args[1].as< uint32_t >(), args.size() == 3 ? args[2].as< uint32_t >() : 500 } ).blog;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_blog )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_blog( { args[0].as< account_name_type >(), args[1].as< uint32_t >(), args.size() == 3 ? args[2].as< uint32_t >() : 500 } ).blog;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_account_reputations )
-   {
-      FC_ASSERT( args.size() == 1 || args.size() == 2, "Expected 1-2 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_account_reputations( { args[0].as< account_name_type >(), args.size() == 2 ? args[1].as< uint32_t >() : 1000 } ).reputations;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_reblogged_by )
-   {
-      CHECK_ARG_SIZE( 2 )
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_reblogged_by( { args[0].as< account_name_type >(), args[1].as< string >() } ).accounts;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_blog_authors )
-   {
-      CHECK_ARG_SIZE( 1 )
-      FC_ASSERT( _follow_api, "follow_api_plugin not enabled." );
-
-      return _follow_api->get_blog_authors( { args[0].as< account_name_type >() } ).blog_authors;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_ticker )
-   {
-      CHECK_ARG_SIZE( 0 )
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      return get_ticker_return( _market_history_api->get_ticker( {} ) );
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_volume )
-   {
-      CHECK_ARG_SIZE( 0 )
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      return get_volume_return( _market_history_api->get_volume( {} ) );
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_order_book )
-   {
-      FC_ASSERT( args.size() == 0 || args.size() == 1, "Expected 0-1 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      return get_order_book_return( _market_history_api->get_order_book( { args.size() == 1 ? args[0].as< uint32_t >() : 500 } ) );
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_trade_history )
-   {
-      FC_ASSERT( args.size() == 2 || args.size() == 3, "Expected 2-3 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      const auto& trades = _market_history_api->get_trade_history( { args[0].as< time_point_sec >(), args[1].as< time_point_sec >(), args.size() == 3 ? args[2].as< uint32_t >() : 1000 } ).trades;
-      get_trade_history_return result;
-
-      for( const auto& t : trades ) result.push_back( market_trade( t ) );
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_recent_trades )
-   {
-      FC_ASSERT( args.size() == 0 || args.size() == 1, "Expected 0-1 arguments, was ${n}", ("n", args.size()) );
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      const auto& trades = _market_history_api->get_recent_trades( { args.size() == 1 ? args[0].as< uint32_t >() : 1000 } ).trades;
-      get_trade_history_return result;
-
-      for( const auto& t : trades ) result.push_back( market_trade( t ) );
-
-      return result;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_market_history )
-   {
-      CHECK_ARG_SIZE( 3 )
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      return _market_history_api->get_market_history( { args[0].as< uint32_t >(), args[1].as< time_point_sec >(), args[2].as< time_point_sec >() } ).buckets;
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_market_history_buckets )
-   {
-      CHECK_ARG_SIZE( 0 )
-      FC_ASSERT( _market_history_api, "market_history_api_plugin not enabled." );
-
-      return _market_history_api->get_market_history_buckets( {} ).bucket_sizes;
-   }
-
-
-   void condenser_api_impl::set_pending_payout( discussion& d ) {
-      return;
-
-   }
 
 } // detail
 
@@ -1203,14 +714,6 @@ void condenser_api::api_startup()
    if( network_broadcast != nullptr )
       my->_network_broadcast_api = network_broadcast->api;
 
-   auto follow = appbase::app().find_plugin< follow::follow_api_plugin >();
-   if( follow != nullptr )
-      my->_follow_api = follow->api;
-
-   auto market_history = appbase::app().find_plugin< market_history::market_history_api_plugin >();
-   if( market_history != nullptr )
-      my->_market_history_api = market_history->api;
-
    auto witness = appbase::app().find_plugin< witness::witness_api_plugin >();
    if( witness != nullptr )
       my->_witness_api = witness->api;
@@ -1223,7 +726,6 @@ DEFINE_LOCKLESS_APIS( condenser_api,
    (broadcast_transaction)
    (broadcast_transaction_synchronous)
    (broadcast_block)
-   (get_market_history_buckets)
 )
 
 DEFINE_READ_APIS( condenser_api,
@@ -1248,43 +750,20 @@ DEFINE_READ_APIS( condenser_api,
    (get_owner_history)
    (get_recovery_request)
    (get_escrow)
-   (get_withdraw_routes)
-   (get_account_bandwidth)
-   (get_savings_withdraw_from)
-   (get_savings_withdraw_to)
-   (get_vesting_delegations)
-   (get_expiring_vesting_delegations)
    (get_witnesses)
-   (get_conversion_requests)
    (get_witness_by_account)
    (get_witnesses_by_vote)
    (lookup_witness_accounts)
    (get_witness_count)
-   (get_open_orders)
    (get_transaction_hex)
    (get_transaction)
    (get_required_signatures)
    (get_potential_signatures)
    (verify_authority)
    (verify_account_authority)
-   (get_account_votes)
+ //  (get_account_votes)
    (get_account_history)
-   (get_followers)
-   (get_following)
-   (get_follow_count)
-   (get_feed_entries)
-   (get_feed)
-   (get_blog_entries)
-   (get_blog)
-   (get_account_reputations)
-   (get_reblogged_by)
-   (get_blog_authors)
-   (get_ticker)
-   (get_volume)
-   (get_order_book)
-   (get_trade_history)
-   (get_recent_trades)
-   (get_market_history)
+
 )
 
 } } } // steem::plugins::condenser_api

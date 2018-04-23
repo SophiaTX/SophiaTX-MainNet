@@ -403,19 +403,13 @@ void database_fixture::fund(
          {
             if( amount.symbol == STEEM_SYMBOL )
                a.balance += amount;
-            else if( amount.symbol == SBD_SYMBOL )
-            {
-               a.sbd_balance += amount;
-               a.sbd_seconds_last_update = db.head_block_time();
-            }
          });
 
          db.modify( db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
          {
             if( amount.symbol == STEEM_SYMBOL )
                gpo.current_supply += amount;
-            else if( amount.symbol == SBD_SYMBOL )
-               gpo.current_sbd_supply += amount;
+
          });
 
          if( amount.symbol == SBD_SYMBOL )
@@ -432,29 +426,6 @@ void database_fixture::fund(
       }, default_skip );
    }
    FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
-}
-
-void database_fixture::convert(
-   const string& account_name,
-   const asset& amount )
-{
-   try
-   {
-      if ( amount.symbol == STEEM_SYMBOL )
-      {
-         db->adjust_balance( account_name, -amount );
-         db->adjust_balance( account_name, db->to_sbd( amount ) );
-         db->adjust_supply( -amount );
-         db->adjust_supply( db->to_sbd( amount ) );
-      }
-      else if ( amount.symbol == SBD_SYMBOL )
-      {
-         db->adjust_balance( account_name, -amount );
-         db->adjust_balance( account_name, db->to_steem( amount ) );
-         db->adjust_supply( -amount );
-         db->adjust_supply( db->to_steem( amount ) );
-      }
-   } FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
 }
 
 void database_fixture::transfer(

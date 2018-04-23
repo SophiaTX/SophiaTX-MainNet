@@ -5,15 +5,7 @@
 #include <boost/rational.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 
-/*
 
-The bounds on asset serialization are as follows:
-
-index : field
-0     : decimals
-1..6  : symbol
-   7  : \0
-*/
 
 namespace steem { namespace protocol {
 
@@ -90,10 +82,9 @@ namespace fc {
    {
       try
       {
-         std::vector< variant > v( 3 );
+         std::vector< variant > v( 2 );
          v[0] = boost::lexical_cast< std::string >( var.amount.value );
-         v[1] = uint64_t( var.symbol.decimals() );
-         v[2] = var.symbol.to_string();
+         v[1] = var.symbol.to_string();
          vo = v;
       } FC_CAPTURE_AND_RETHROW()
    }
@@ -103,12 +94,12 @@ namespace fc {
       try
       {
          auto v = var.as< std::vector< variant > >();
-         FC_ASSERT( v.size() == 3, "Expected tuple of length 3." );
+         FC_ASSERT( v.size() == 2, "Expected tuple of length 2." );
 
          // share_type is safe< int64_t >
          vo.amount = boost::lexical_cast< int64_t >( v[0].as< std::string >() );
          FC_ASSERT( vo.amount >= 0, "Asset amount cannot be negative" );
-         vo.symbol = steem::protocol::asset_symbol_type::from_string( v[2].as< std::string >(), v[1].as< uint8_t >() );
+         vo.symbol = steem::protocol::asset_symbol_type::from_string( v[1].as< std::string >() );
       } FC_CAPTURE_AND_RETHROW()
    }
 }

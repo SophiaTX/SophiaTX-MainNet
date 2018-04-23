@@ -239,7 +239,6 @@ namespace steem { namespace protocol {
        *  to tune rate limiting and capacity
        */
       uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
-      uint16_t          sbd_interest_rate  = STEEM_DEFAULT_SBD_INTEREST_RATE;
 
       template< bool force_canon >
       void validate()const
@@ -250,8 +249,7 @@ namespace steem { namespace protocol {
          }
          FC_ASSERT( account_creation_fee.amount >= STEEM_MIN_ACCOUNT_CREATION_FEE);
          FC_ASSERT( maximum_block_size >= STEEM_MIN_BLOCK_SIZE_LIMIT);
-         FC_ASSERT( sbd_interest_rate >= 0 );
-         FC_ASSERT( sbd_interest_rate <= STEEM_100_PERCENT );
+
       }
    };
 
@@ -588,7 +586,6 @@ FC_REFLECT( steem::protocol::feed_publish_operation, (publisher)(exchange_rate) 
 FC_REFLECT( steem::protocol::legacy_chain_properties,
             (account_creation_fee)
             (maximum_block_size)
-            (sbd_interest_rate)
           )
 
 FC_REFLECT( steem::protocol::account_create_operation,

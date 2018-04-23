@@ -18,11 +18,11 @@
 
 #endif
 
-#define VESTS_SYMBOL_SER  (uint64_t(6) | (VESTS_SYMBOL_U64 << 8)) ///< VESTS|VESTS with 6 digits of precision
-#define STEEM_SYMBOL_SER  (uint64_t(6) | (STEEM_SYMBOL_U64 << 8)) ///< SPHTX|TESTS with 6 digits of precision
-#define SBD_SYMBOL_SER    (uint64_t(6) |   (SBD_SYMBOL_U64 << 8)) ///< SBD|TBD with 4 digits of precision
+#define VESTS_SYMBOL_SER  (VESTS_SYMBOL_U64) ///< VESTS|VESTS with 6 digits of precision
+#define STEEM_SYMBOL_SER  (STEEM_SYMBOL_U64) ///< SPHTX|TESTS with 6 digits of precision
+#define SBD_SYMBOL_SER    (SBD_SYMBOL_U64)   ///< SBD|TBD with 4 digits of precision
 
-#define STEEM_ASSET_MAX_DECIMALS 12
+#define STEEM_ASSET_MAX_DECIMALS 6
 
 namespace steem { namespace protocol {
 
@@ -45,28 +45,13 @@ namespace steem { namespace protocol {
           ret = (ret << 8) | uint64_t(c_str[i]);
           i++;
        }
-       asset_symbol_type rv (ret <<8 & (uint64_t(6))) ;
+       asset_symbol_type rv (ret) ;
        return rv;
-     }
-
-     static asset_symbol_type from_string( const std::string& str, uint decimals ){
-       FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
-       FC_ASSERT(STEEM_ASSET_MAX_DECIMALS>= decimals);
-       const char* c_str = str.c_str();
-       uint64_t ret;
-       int i =0;
-       while( c_str[i] ){
-         ret = (ret << 8) | uint64_t(c_str[i]);
-         i++;
-       }
-
-        asset_symbol_type rv (ret <<8 & (uint64_t(decimals))) ;
-        return rv;
      }
 
      std::string to_string()const{
        std::string ret;
-       uint64_t symbol = value >>8;
+       uint64_t symbol = value;
        while ( symbol ) {
          ret.push_back(symbol & (uint64_t(255)));
          symbol = symbol >> 8;
@@ -75,7 +60,7 @@ namespace steem { namespace protocol {
        return ret;
      }
 
-     uint8_t decimals()const{ uint64_t dec = value & (uint64_t(255)); return (uint8_t)dec; };
+     uint8_t decimals()const{ return SOPHIATX_DECIMALS; };
 
      friend bool operator == ( const asset_symbol_type& a, const asset_symbol_type& b )
      {  return (a.value == b.value);   }

@@ -42,7 +42,6 @@ namespace steem { namespace chain {
          account_name_type recovery_account;
          account_name_type reset_account = STEEM_NULL_ACCOUNT;
          time_point_sec    last_account_recovery;
-         uint32_t          lifetime_vote_count = 0;
 
          asset             balance = asset( 0, STEEM_SYMBOL );  ///< total liquid shares held by this account
          asset             vesting_shares = asset( 0, VESTS_SYMBOL ); ///< total vesting shares held by this account, controls its voting power
@@ -274,7 +273,7 @@ FC_REFLECT( steem::chain::account_object,
              (created)(mined)
              (vesting_shares)(vesting_withdraw_rate)(next_vesting_withdrawal)(withdrawn)(to_withdraw)
              (recovery_account)(last_account_recovery)(reset_account)
-             (lifetime_vote_count)(balance)
+             (balance)
              (proxied_vsf_votes)(witnesses_voted_for)
           )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::account_object, steem::chain::account_index )

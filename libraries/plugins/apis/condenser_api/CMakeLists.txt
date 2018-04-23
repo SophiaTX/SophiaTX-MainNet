@@ -11,8 +11,6 @@ target_link_libraries( condenser_api_plugin
    account_history_api_plugin
    database_api_plugin
    block_api_plugin
-   follow_api_plugin
-   market_history_api_plugin
    network_broadcast_api_plugin
    witness_api_plugin
    steem_utilities )

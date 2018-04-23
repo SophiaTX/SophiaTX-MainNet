@@ -70,6 +70,8 @@
 
 #endif
 
+#define SOPHIATX_DECIMALS 6
+
 #define VESTS_SYMBOL  ( steem::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
 #define STEEM_SYMBOL  ( steem::protocol::asset_symbol_type( STEEM_SYMBOL_SER ) )
 #define SBD_SYMBOL    ( steem::protocol::asset_symbol_type( SBD_SYMBOL_SER ) )
