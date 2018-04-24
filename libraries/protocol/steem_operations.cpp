@@ -84,7 +84,7 @@ namespace steem { namespace protocol {
       FC_ASSERT( url.size() > 0, "URL size must be greater than 0" );
       FC_ASSERT( fc::is_utf8( url ), "URL is not valid UTF8" );
       FC_ASSERT( fee >= asset( 0, STEEM_SYMBOL ), "Fee cannot be negative" );
-      props.validate< false >();
+      props.validate();
    }
 
    void witness_set_properties_operation::validate() const

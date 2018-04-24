@@ -29,7 +29,7 @@ struct remote_node_api
    vector< condenser_api::api_operation_object > get_ops_in_block( uint32_t, bool only_virtual = true );
    fc::variant_object get_config();
    condenser_api::extended_dynamic_global_properties get_dynamic_global_properties();
-   chain_properties get_chain_properties();
+   legacy_chain_properties get_chain_properties();
    condenser_api::legacy_price get_current_median_history_price();
    condenser_api::api_feed_history_object get_feed_history();
    condenser_api::api_witness_schedule_object get_witness_schedule();

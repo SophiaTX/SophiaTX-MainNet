@@ -116,12 +116,11 @@ extern uint32_t ( STEEM_TESTING_GENESIS_TIMESTAMP );
 
 #define PREP_ACTOR(name) \
    fc::ecc::private_key name ## _private_key = generate_private_key(BOOST_PP_STRINGIZE(name));   \
-   fc::ecc::private_key name ## _post_key = generate_private_key(std::string( BOOST_PP_STRINGIZE(name) ) + "_post" ); \
    public_key_type name ## _public_key = name ## _private_key.get_public_key();
 
 #define ACTOR(name) \
    PREP_ACTOR(name) \
-   const auto& name = account_create(BOOST_PP_STRINGIZE(name), name ## _public_key, name ## _post_key.get_public_key()); \
+   const auto& name = account_create(BOOST_PP_STRINGIZE(name), name ## _public_key); \
    account_id_type name ## _id = name.id; (void)name ## _id;
 
 #define GET_ACTOR(name) \
@@ -233,20 +232,14 @@ struct database_fixture {
       const private_key_type& creator_key,
       const share_type& fee,
       const public_key_type& key,
-      const public_key_type& post_key,
       const string& json_metadata
-   );
-
-   const account_object& account_create(
-      const string& name,
-      const public_key_type& key,
-      const public_key_type& post_key
    );
 
    const account_object& account_create(
       const string& name,
       const public_key_type& key
    );
+
 
 
    const witness_object& witness_create(

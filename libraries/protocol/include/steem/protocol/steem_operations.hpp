@@ -3,7 +3,6 @@
 #include <steem/protocol/block_header.hpp>
 #include <steem/protocol/asset.hpp>
 #include <steem/protocol/validation.hpp>
-#include <steem/protocol/legacy_asset.hpp>
 
 #include <fc/crypto/equihash.hpp>
 
@@ -232,7 +231,7 @@ namespace steem { namespace protocol {
        *  fee requires all accounts to have some kind of commitment to the network that includes the
        *  ability to vote and make transactions.
        */
-      legacy_steem_asset account_creation_fee = legacy_steem_asset::from_amount( STEEM_MIN_ACCOUNT_CREATION_FEE );
+      asset account_creation_fee = asset( STEEM_MIN_ACCOUNT_CREATION_FEE, STEEM_SYMBOL );
 
       /**
        *  This witnesses vote for the maximum_block_size which is used by the network
@@ -240,13 +239,9 @@ namespace steem { namespace protocol {
        */
       uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
 
-      template< bool force_canon >
       void validate()const
       {
-         if( force_canon )
-         {
-            FC_ASSERT( account_creation_fee.symbol.is_canon() );
-         }
+
          FC_ASSERT( account_creation_fee.amount >= STEEM_MIN_ACCOUNT_CREATION_FEE);
          FC_ASSERT( maximum_block_size >= STEEM_MIN_BLOCK_SIZE_LIMIT);
 

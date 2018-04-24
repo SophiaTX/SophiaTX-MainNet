@@ -37,13 +37,12 @@ namespace steem { namespace protocol {
 
 
      static asset_symbol_type from_string( const std::string& str ){
-       FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
+        FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
        const char* c_str = str.c_str();
-       uint64_t ret;
-       int i =0;
-       while( c_str[i] ){
+       uint64_t ret = 0;
+       int i = str.size();
+       while( i-- ){
           ret = (ret << 8) | uint64_t(c_str[i]);
-          i++;
        }
        asset_symbol_type rv (ret) ;
        return rv;

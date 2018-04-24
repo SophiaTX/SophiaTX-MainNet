@@ -285,10 +285,10 @@ namespace detail {
       switch(result)
       {
          case block_production_condition::produced:
-            ilog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
+            elog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
             break;
          case block_production_condition::not_synced:
-            ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
+            elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
             break;
          case block_production_condition::not_my_turn:
    //         ilog("Not producing block because it isn't my turn");

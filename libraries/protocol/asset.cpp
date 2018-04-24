@@ -75,23 +75,83 @@ DEFINE_PRICE_COMPARISON_OPERATOR( >= )
       } FC_CAPTURE_AND_RETHROW( (base)(quote) ) }
 
 
+string asset::to_string()const
+{
+   int64_t prec = 10^SOPHIATX_DECIMALS;
+   string result = fc::to_string(amount.value / prec);
+   if( prec > 1 )
+   {
+      auto fract = amount.value % prec;
+      // prec is a power of ten, so for example when working with
+      // 7.005 we have fract = 5, prec = 1000.  So prec+fract=1005
+      // has the correct number of zeros and we can simply trim the
+      // leading 1.
+      result += "." + fc::to_string(prec + fract).erase(0,1);
+   }
+   return result + " " + symbol.to_string();
+}
+
+asset asset::from_string( const std::string& from )
+{
+   try
+   {
+      std::string s = fc::trim( from );
+      auto space_pos = s.find( " " );
+      auto dot_pos = s.find( "." );
+
+      FC_ASSERT( space_pos != std::string::npos );
+
+      asset result;
+
+      std::string str_symbol = s.substr( space_pos + 1 );
+
+      if( dot_pos != std::string::npos )
+      {
+         FC_ASSERT( space_pos > dot_pos );
+
+         auto intpart = s.substr( 0, dot_pos );
+         auto fractpart = "1" + s.substr( dot_pos + 1, space_pos - dot_pos - 1 );
+         uint8_t decimals = uint8_t( fractpart.size() - 1 );
+
+         result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
+
+         int64_t prec = 10^SOPHIATX_DECIMALS;
+
+         result.amount = fc::to_int64( intpart );
+         result.amount.value *= prec;
+         result.amount.value += fc::to_int64( fractpart );
+         result.amount.value -= prec;
+      }
+      else
+      {
+         auto intpart = s.substr( 0, space_pos );
+         result.amount = fc::to_int64( intpart );
+         result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
+      }
+      return result;
+   }
+   FC_CAPTURE_AND_RETHROW( (from) )
+}
+
 } } // steem::protocol
 
 namespace fc {
    void to_variant( const steem::protocol::asset& var, fc::variant& vo )
    {
-      try
+      vo = var.to_string();
+      /*try
       {
          std::vector< variant > v( 2 );
          v[0] = boost::lexical_cast< std::string >( var.amount.value );
          v[1] = var.symbol.to_string();
          vo = v;
-      } FC_CAPTURE_AND_RETHROW()
+      } FC_CAPTURE_AND_RETHROW()*/
    }
 
    void from_variant( const fc::variant& var, steem::protocol::asset& vo )
    {
-      try
+      vo = steem::protocol::asset::from_string(var.as< std::string >());
+      /*try
       {
          auto v = var.as< std::vector< variant > >();
          FC_ASSERT( v.size() == 2, "Expected tuple of length 2." );
@@ -100,6 +160,6 @@ namespace fc {
          vo.amount = boost::lexical_cast< int64_t >( v[0].as< std::string >() );
          FC_ASSERT( vo.amount >= 0, "Asset amount cannot be negative" );
          vo.symbol = steem::protocol::asset_symbol_type::from_string( v[1].as< std::string >() );
-      } FC_CAPTURE_AND_RETHROW()
+      } FC_CAPTURE_AND_RETHROW((var))*/
    }
 }

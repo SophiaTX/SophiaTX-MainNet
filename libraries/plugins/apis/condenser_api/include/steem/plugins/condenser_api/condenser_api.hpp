@@ -128,6 +128,7 @@ struct extended_account : public api_account_object
     /// posts recommened for this user
 };
 
+
 struct extended_dynamic_global_properties
 {
    extended_dynamic_global_properties() {}

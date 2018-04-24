@@ -31,8 +31,6 @@ struct legacy_asset
       string to_string()const;
       static legacy_asset from_string( const string& from );
 
-      string amount_to_string(share_type amount) const;
-      share_type amount_from_string(string amount_string) const;
 
       share_type                       amount;
       asset_symbol_type                symbol = STEEM_SYMBOL;

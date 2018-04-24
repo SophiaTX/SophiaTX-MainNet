@@ -50,16 +50,13 @@ struct strcmp_equal
 template< bool force_canon >
 void copy_legacy_chain_properties( chain_properties& dest, const legacy_chain_properties& src )
 {
-   dest.account_creation_fee = src.account_creation_fee.to_asset< force_canon >();
+   dest.account_creation_fee = src.account_creation_fee;
    dest.maximum_block_size = src.maximum_block_size;
 }
 
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    _db.get_account( o.owner ); // verify owner exists
-
-
-   FC_ASSERT( o.props.account_creation_fee.symbol.is_canon() );
 
    if( _db.is_producing() )
    {

@@ -44,13 +44,13 @@
 
 #define STEEM_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-#define STEEM_INIT_PUBLIC_KEY_STR             "STM8GC13uCZbP44HzMLV6zPZGwVQ8Nt4Kji8PapsPiNq1BK153XTX"
+#define STEEM_INIT_PUBLIC_KEY_STR             "STM8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
 #define STEEM_CHAIN_ID_NAME ""
 #define STEEM_CHAIN_ID fc::sha256()
 #define STEEM_ADDRESS_PREFIX                  "STM"
 
-#define STEEM_GENESIS_TIME                    (fc::time_point_sec(1458835200))
-#define STEEM_MINING_TIME                     (fc::time_point_sec(1458838800))
+#define STEEM_GENESIS_TIME                    (fc::time_point_sec(1524563000))
+#define STEEM_MINING_TIME                     (fc::time_point_sec(1524563200))
 #define STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF12 (60*60*24)    /// 1 day
 #define STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF17 (60*60*12)    /// 12 hours
 #define STEEM_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days

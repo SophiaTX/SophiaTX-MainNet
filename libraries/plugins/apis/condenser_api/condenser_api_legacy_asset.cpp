@@ -26,7 +26,7 @@ int64_t precision( const steem::protocol::asset_symbol_type& symbol )
    };
    uint8_t d = symbol.decimals();
    return table[ d ];*/
-   return 1000000;
+   return 10^SOPHIATX_DECIMALS;
 }
 
 
@@ -34,80 +34,6 @@ int64_t precision( const steem::protocol::asset_symbol_type& symbol )
 
 namespace steem { namespace plugins { namespace condenser_api {
 
-
-share_type legacy_asset::amount_from_string(std::string amount_string) const
-{
-
-   try {
-      remove_trailing_zeros(amount_string);
-
-      bool negative_found = false;
-      bool decimal_found = false;
-      for( const char c : amount_string )
-      {
-         if( isdigit( c ) )
-            continue;
-
-         if( c == '-' && !negative_found )
-         {
-            negative_found = true;
-            continue;
-         }
-
-         if( c == '.' && !decimal_found )
-         {
-            decimal_found = true;
-            continue;
-         }
-
-         FC_THROW( (amount_string) );
-      }
-
-      share_type satoshis = 0;
-
-      uint32_t num_precision = this->symbol.decimals();
-      share_type scaled_precision = precision(this->symbol);
-
-      const auto decimal_pos = amount_string.find( '.' );
-      const string lhs = amount_string.substr( negative_found, decimal_pos );
-      if( !lhs.empty() )
-         satoshis += fc::safe<int64_t>(std::stoll(lhs)) *= scaled_precision;
-
-      if( decimal_found )
-      {
-         const size_t max_rhs_size = std::to_string( scaled_precision.value ).substr( 1 ).size();
-
-         string rhs = amount_string.substr( decimal_pos + 1, num_precision );
-         FC_ASSERT( rhs.size() <= max_rhs_size );
-
-         while( rhs.size() < max_rhs_size )
-            rhs += '0';
-
-         if( !rhs.empty() )
-            satoshis += std::stoll( rhs );
-      }
-
-      if( negative_found )
-         satoshis *= -1;
-
-      return satoshis;
-   } FC_CAPTURE_AND_RETHROW( (amount_string) )
-
-}
-
-string legacy_asset::amount_to_string(share_type amount) const
-{
-   share_type scaled_precision = 1;
-   for( uint8_t i = 0; i < this->symbol.decimals(); ++i )
-      scaled_precision *= 10;
-   assert(scaled_precision > 0);
-
-   string result = fc::to_string(amount.value / scaled_precision.value);
-   auto decimals = amount.value % scaled_precision.value;
-   if( decimals )
-      result += "." + fc::to_string(scaled_precision.value + decimals).erase(0,1);
-   return result;
-}
 
 
 

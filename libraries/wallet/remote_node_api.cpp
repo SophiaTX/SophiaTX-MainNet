@@ -44,7 +44,7 @@ condenser_api::extended_dynamic_global_properties remote_node_api::get_dynamic_g
    FC_ASSERT( false );
 }
 
-chain_properties remote_node_api::get_chain_properties()
+legacy_chain_properties remote_node_api::get_chain_properties()
 {
    FC_ASSERT( false );
 }
