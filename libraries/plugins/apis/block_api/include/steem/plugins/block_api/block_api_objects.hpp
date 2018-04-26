@@ -1,7 +1,6 @@
 #pragma once
 #include <steem/chain/account_object.hpp>
 #include <steem/chain/block_summary_object.hpp>
-#include <steem/chain/comment_object.hpp>
 #include <steem/chain/global_property_object.hpp>
 #include <steem/chain/history_object.hpp>
 #include <steem/chain/steem_objects.hpp>

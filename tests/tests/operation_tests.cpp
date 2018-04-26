@@ -59,11 +59,6 @@ BOOST_AUTO_TEST_CASE( account_create_authorities )
       op.get_required_active_authorities( auths );
       BOOST_REQUIRE( auths == expected );
 
-      BOOST_TEST_MESSAGE( "--- Testing posting authority" );
-      expected.clear();
-      auths.clear();
-      op.get_required_posting_authorities( auths );
-      BOOST_REQUIRE( auths == expected );
    }
    FC_LOG_AND_RETHROW()
 }
@@ -182,9 +177,9 @@ BOOST_AUTO_TEST_CASE( account_update_validate )
 
       account_update_operation op;
       op.account = "alice";
-      op.posting = authority();
-      op.posting->weight_threshold = 1;
-      op.posting->add_authorities( "abcdefghijklmnopq", 1 );
+      op.active = authority();
+      op.active->weight_threshold = 1;
+      op.active->add_authorities( "abcdefghijklmnopq", 1 );
 
       try
       {
@@ -345,9 +340,9 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       tx.clear();
       op = account_update_operation();
       op.account = "alice";
-      op.posting = authority();
-      op.posting->weight_threshold = 1;
-      op.posting->add_authorities( "dave", 1 );
+      op.active = authority();
+      op.active->weight_threshold = 1;
+      op.active->add_authorities( "dave", 1 );
       tx.operations.push_back( op );
       tx.sign( new_private_key, db->get_chain_id() );
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );

@@ -8,58 +8,21 @@ template< typename AuthContainerType >
 void verify_authority( const vector<AuthContainerType>& auth_containers, const flat_set<public_key_type>& sigs,
                        const authority_getter& get_active,
                        const authority_getter& get_owner,
-                       const authority_getter& get_posting,
                        uint32_t max_recursion_depth = STEEM_MAX_SIG_CHECK_DEPTH,
                        bool allow_committe = false,
                        const flat_set< account_name_type >& active_approvals = flat_set< account_name_type >(),
-                       const flat_set< account_name_type >& owner_approvals = flat_set< account_name_type >(),
-                       const flat_set< account_name_type >& posting_approvals = flat_set< account_name_type >()
+                       const flat_set< account_name_type >& owner_approvals = flat_set< account_name_type >()
                        )
 { try {
    flat_set< account_name_type > required_active;
    flat_set< account_name_type > required_owner;
-   flat_set< account_name_type > required_posting;
    vector< authority > other;
 
-   get_required_auth_visitor auth_visitor( required_active, required_owner, required_posting, other );
+   get_required_auth_visitor auth_visitor( required_active, required_owner, other );
 
    for( const auto& a : auth_containers )
       auth_visitor( a );
 
-   /**
-    *  Transactions with operations required posting authority cannot be combined
-    *  with transactions requiring active or owner authority. This is for ease of
-    *  implementation. Future versions of authority verification may be able to
-    *  check for the merged authority of active and posting.
-    */
-   if( required_posting.size() ) {
-      FC_ASSERT( required_active.size() == 0 );
-      FC_ASSERT( required_owner.size() == 0 );
-      FC_ASSERT( other.size() == 0 );
-
-      flat_set< public_key_type > avail;
-      sign_state s(sigs,get_posting,avail);
-      s.max_recursion = max_recursion_depth;
-      for( auto& id : posting_approvals )
-         s.approved_by.insert( id );
-      for( const auto& id : required_posting )
-      {
-         STEEM_ASSERT( s.check_authority(id) ||
-                          s.check_authority(get_active(id)) ||
-                          s.check_authority(get_owner(id)),
-                          tx_missing_posting_auth, "Missing Posting Authority ${id}",
-                          ("id",id)
-                          ("posting",get_posting(id))
-                          ("active",get_active(id))
-                          ("owner",get_owner(id)) );
-      }
-      STEEM_ASSERT(
-         !s.remove_unused_signatures(),
-         tx_irrelevant_sig,
-         "Unnecessary signature(s) detected"
-         );
-      return;
-   }
 
    flat_set< public_key_type > avail;
    sign_state s(sigs,get_active,avail);

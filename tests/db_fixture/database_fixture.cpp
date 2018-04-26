@@ -217,14 +217,8 @@ asset_symbol_type database_fixture::name_to_asset_symbol( const std::string& nam
    // Example:
    // alice -> sha256(alice) -> 2bd806c9... -> 2bd806c9 -> low 27 bits is 64489161 -> add check digit -> @@644891612
 
-   uint32_t h0 = (boost::endian::native_to_big( fc::sha256::hash( name )._hash[0] ) >> 32) & 0x7FFFFFF;
-   FC_ASSERT( decimal_places <= STEEM_ASSET_MAX_DECIMALS, "Invalid decimal_places" );
-   while( h0 > SMT_MAX_NAI )
-      h0 -= SMT_MAX_NAI;
-   while( h0 < SMT_MIN_NAI )
-      h0 += SMT_MIN_NAI;
-   uint32_t asset_num = (h0 << 5) | 0x10 | decimal_places;
-   return asset_symbol_type::from_asset_num( asset_num );
+   return asset_symbol_type::from_string(name);
+
 }
 
 #ifdef STEEM_ENABLE_SMT
@@ -286,7 +280,6 @@ const account_object& database_fixture::account_create(
    const private_key_type& creator_key,
    const share_type& fee,
    const public_key_type& key,
-   const public_key_type& post_key,
    const string& json_metadata
    )
 {
@@ -298,7 +291,6 @@ const account_object& database_fixture::account_create(
       op.fee = asset( fee, STEEM_SYMBOL );
       op.owner = authority( 1, key, 1 );
       op.active = authority( 1, key, 1 );
-      op.posting = authority( 1, post_key, 1 );
       op.memo_key = key;
       op.json_metadata = json_metadata;
 
@@ -320,8 +312,7 @@ const account_object& database_fixture::account_create(
 
 const account_object& database_fixture::account_create(
    const string& name,
-   const public_key_type& key,
-   const public_key_type& post_key
+   const public_key_type& key
 )
 {
    try
@@ -332,19 +323,11 @@ const account_object& database_fixture::account_create(
          init_account_priv_key,
          std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, share_type( 100 ) ),
          key,
-         post_key,
          "" );
    }
    FC_CAPTURE_AND_RETHROW( (name) );
 }
 
-const account_object& database_fixture::account_create(
-   const string& name,
-   const public_key_type& key
-)
-{
-   return account_create( name, key, key );
-}
 
 const witness_object& database_fixture::witness_create(
    const string& owner,
@@ -395,31 +378,17 @@ void database_fixture::fund(
    {
       db_plugin->debug_update( [=]( database& db)
       {
-         if( amount.symbol.space() == asset_symbol_type::smt_nai_space )
-         {
-            db.adjust_balance(account_name, amount);
-            db.adjust_supply(amount);
-            // Note that SMT have no equivalent of SBD, hence no virtual supply, hence no need to update it.
-            return;
-         }
-
          db.modify( db.get_account( account_name ), [&]( account_object& a )
          {
             if( amount.symbol == STEEM_SYMBOL )
                a.balance += amount;
-            else if( amount.symbol == SBD_SYMBOL )
-            {
-               a.sbd_balance += amount;
-               a.sbd_seconds_last_update = db.head_block_time();
-            }
          });
 
          db.modify( db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
          {
             if( amount.symbol == STEEM_SYMBOL )
                gpo.current_supply += amount;
-            else if( amount.symbol == SBD_SYMBOL )
-               gpo.current_sbd_supply += amount;
+
          });
 
          if( amount.symbol == SBD_SYMBOL )
@@ -436,29 +405,6 @@ void database_fixture::fund(
       }, default_skip );
    }
    FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
-}
-
-void database_fixture::convert(
-   const string& account_name,
-   const asset& amount )
-{
-   try
-   {
-      if ( amount.symbol == STEEM_SYMBOL )
-      {
-         db->adjust_balance( account_name, -amount );
-         db->adjust_balance( account_name, db->to_sbd( amount ) );
-         db->adjust_supply( -amount );
-         db->adjust_supply( db->to_sbd( amount ) );
-      }
-      else if ( amount.symbol == SBD_SYMBOL )
-      {
-         db->adjust_balance( account_name, -amount );
-         db->adjust_balance( account_name, db->to_steem( amount ) );
-         db->adjust_supply( -amount );
-         db->adjust_supply( db->to_steem( amount ) );
-      }
-   } FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
 }
 
 void database_fixture::transfer(

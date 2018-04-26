@@ -46,11 +46,6 @@ struct pre_operation_visitor
       _plugin.clear_cache();
    }
 
-   void operator()( const account_create_with_delegation_operation& op )const
-   {
-      _plugin.clear_cache();
-   }
-
    void operator()( const account_update_operation& op )const
    {
       _plugin.clear_cache();
@@ -65,15 +60,6 @@ struct pre_operation_visitor
       if( acct_itr ) _plugin.cache_auths( *acct_itr );
    }
 
-   void operator()( const pow_operation& op )const
-   {
-      _plugin.clear_cache();
-   }
-
-   void operator()( const pow2_operation& op )const
-   {
-      _plugin.clear_cache();
-   }
 };
 
 struct pow2_work_get_account_visitor
@@ -104,11 +90,6 @@ struct post_operation_visitor
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
-   void operator()( const account_create_with_delegation_operation& op )const
-   {
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.new_account_name );
-      if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
-   }
 
    void operator()( const account_update_operation& op )const
    {
@@ -122,41 +103,6 @@ struct post_operation_visitor
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
-   void operator()( const pow_operation& op )const
-   {
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.worker_account );
-      if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
-   }
-
-   void operator()( const pow2_operation& op )const
-   {
-      const account_name_type* worker_account = op.work.visit( pow2_work_get_account_visitor() );
-      if( worker_account == nullptr )
-         return;
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( *worker_account );
-      if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
-   }
-
-   void operator()( const hardfork_operation& op )const
-   {
-      if( op.hardfork_id == STEEM_HARDFORK_0_9 )
-      {
-         auto& db = _plugin._db;
-
-         for( const std::string& acc : hardfork9::get_compromised_accounts() )
-         {
-            const account_object* account = db.find_account( acc );
-            if( account == nullptr )
-               continue;
-
-            db.create< key_lookup_object >( [&]( key_lookup_object& o )
-            {
-               o.key = public_key_type( "STM7sw22HqsXbz7D2CmJfmMwt9rimtk518dRzsR1f8Cgw52dQR1pR" );
-               o.account = account->name;
-            });
-         }
-      }
-   }
 };
 
 void account_by_key_plugin_impl::clear_cache()
@@ -170,8 +116,7 @@ void account_by_key_plugin_impl::cache_auths( const account_authority_object& a 
       cached_keys.insert( item.first );
    for( const auto& item : a.active.key_auths )
       cached_keys.insert( item.first );
-   for( const auto& item : a.posting.key_auths )
-      cached_keys.insert( item.first );
+
 }
 
 void account_by_key_plugin_impl::update_key_lookup( const account_authority_object& a )
@@ -183,8 +128,7 @@ void account_by_key_plugin_impl::update_key_lookup( const account_authority_obje
       new_keys.insert( item.first );
    for( const auto& item : a.active.key_auths )
       new_keys.insert( item.first );
-   for( const auto& item : a.posting.key_auths )
-      new_keys.insert( item.first );
+
 
    // For each key that needs a lookup
    for( const auto& key : new_keys )

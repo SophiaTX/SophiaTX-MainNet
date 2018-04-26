@@ -44,7 +44,6 @@ namespace steem { namespace protocol {
 
       void get_required_authorities( flat_set< account_name_type >& active,
                                      flat_set< account_name_type >& owner,
-                                     flat_set< account_name_type >& posting,
                                      vector< authority >& other )const;
    };
 
@@ -62,7 +61,6 @@ namespace steem { namespace protocol {
          const flat_set<public_key_type>& available_keys,
          const authority_getter& get_active,
          const authority_getter& get_owner,
-         const authority_getter& get_posting,
          uint32_t max_recursion = STEEM_MAX_SIG_CHECK_DEPTH
          )const;
 
@@ -70,7 +68,6 @@ namespace steem { namespace protocol {
          const chain_id_type& chain_id,
          const authority_getter& get_active,
          const authority_getter& get_owner,
-         const authority_getter& get_posting,
          uint32_t max_recursion = STEEM_MAX_SIG_CHECK_DEPTH )const;
 
       set<public_key_type> minimize_required_signatures(
@@ -78,7 +75,6 @@ namespace steem { namespace protocol {
          const flat_set<public_key_type>& available_keys,
          const authority_getter& get_active,
          const authority_getter& get_owner,
-         const authority_getter& get_posting,
          uint32_t max_recursion = STEEM_MAX_SIG_CHECK_DEPTH
          ) const;
 
