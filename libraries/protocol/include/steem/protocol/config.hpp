@@ -66,11 +66,18 @@
 #define STEEM_OWNER_UPDATE_LIMIT                          fc::minutes(60)
 #define STEEM_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 3186477
 
-#define STEEM_INIT_SUPPLY                     int64_t(0)
+#define STEEM_INIT_SUPPLY                     int64_t(350000000000000)
 
 #endif
 
-#define SOPHIATX_DECIMALS 6
+#define SOPHIATX_DECIMALS (6)
+#define SOPHIATX_SATOSHIS (1000000)
+#define SOPHIATX_PROMOTION_POOL_PERCENTAGE (1000)
+#define SOPHIATX_MINING_POOL_PERCENTAGE (2500)
+#define SOPHIATX_INTEREST_POOL_PERCENTAGE (6500)
+#define SOPHIATX_COINBASE_YEARS (20)
+#define SOPHIATX_COINBASE_BLOCKS ( STEEM_BLOCKS_PER_YEAR * SOPHIATX_COINBASE_YEARS )
+
 
 #define VESTS_SYMBOL  ( steem::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
 #define STEEM_SYMBOL  ( steem::protocol::asset_symbol_type( STEEM_SYMBOL_SER ) )

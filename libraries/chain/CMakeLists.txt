@@ -15,6 +15,7 @@ add_library( steem_chain
 
              shared_authority.cpp
              block_log.cpp
+             economics.cpp
 
         util/impacted.cpp
 

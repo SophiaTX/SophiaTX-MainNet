@@ -77,17 +77,14 @@ DEFINE_PRICE_COMPARISON_OPERATOR( >= )
 
 string asset::to_string()const
 {
-   int64_t prec = 10^SOPHIATX_DECIMALS;
-   string result = fc::to_string(amount.value / prec);
-   if( prec > 1 )
-   {
-      auto fract = amount.value % prec;
+   string result = fc::to_string(amount.value / SOPHIATX_SATOSHIS);
+   auto fract = amount.value % SOPHIATX_SATOSHIS;
       // prec is a power of ten, so for example when working with
       // 7.005 we have fract = 5, prec = 1000.  So prec+fract=1005
       // has the correct number of zeros and we can simply trim the
       // leading 1.
-      result += "." + fc::to_string(prec + fract).erase(0,1);
-   }
+   result += "." + fc::to_string(SOPHIATX_SATOSHIS + fract).erase(0,1);
+   
    return result + " " + symbol.to_string();
 }
 
@@ -115,12 +112,10 @@ asset asset::from_string( const std::string& from )
 
          result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
 
-         int64_t prec = 10^SOPHIATX_DECIMALS;
-
          result.amount = fc::to_int64( intpart );
-         result.amount.value *= prec;
+         result.amount.value *= SOPHIATX_SATOSHIS;
          result.amount.value += fc::to_int64( fractpart );
-         result.amount.value -= prec;
+         result.amount.value -= SOPHIATX_SATOSHIS;
       }
       else
       {
