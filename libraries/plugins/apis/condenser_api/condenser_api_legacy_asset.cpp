@@ -26,7 +26,7 @@ int64_t precision( const steem::protocol::asset_symbol_type& symbol )
    };
    uint8_t d = symbol.decimals();
    return table[ d ];*/
-   return 10^SOPHIATX_DECIMALS;
+   return SOPHIATX_SATOSHIS;
 }
 
 

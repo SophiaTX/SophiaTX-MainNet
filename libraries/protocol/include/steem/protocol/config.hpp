@@ -67,6 +67,7 @@
 #define STEEM_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 3186477
 
 #define STEEM_INIT_SUPPLY                     int64_t(350000000000000)
+#define STEEM_TOTAL_SUPPLY                    int64_t(500000000000000)
 
 #endif
 
@@ -170,10 +171,6 @@
 #define STEEM_ACTIVE_CHALLENGE_COOLDOWN       fc::days(1)
 #define STEEM_OWNER_CHALLENGE_COOLDOWN        fc::days(1)
 
-#define STEEM_POST_REWARD_FUND_NAME           ("post")
-#define STEEM_COMMENT_REWARD_FUND_NAME        ("comment")
-#define STEEM_RECENT_RSHARES_DECAY_TIME_HF17    (fc::days(30))
-#define STEEM_RECENT_RSHARES_DECAY_TIME_HF19    (fc::days(15))
 #define STEEM_CONTENT_CONSTANT_HF0            (uint128_t(uint64_t(2000000000000ll)))
 // note, if redefining these constants make sure calculate_claims doesn't overflow
 

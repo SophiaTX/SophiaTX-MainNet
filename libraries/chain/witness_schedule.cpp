@@ -226,6 +226,10 @@ void update_witness_schedule4( database& db )
       }
 
       _wso.num_scheduled_witnesses = std::max< uint8_t >( active_witnesses.size(), 1 );
+
+      _wso.top19_weight = (num_elected + num_timeshare);
+      _wso.timeshare_weight = 3 * _wso.top19_weight;
+
       _wso.witness_pay_normalization_factor =
            _wso.top19_weight * num_elected
          + _wso.timeshare_weight * num_timeshare;

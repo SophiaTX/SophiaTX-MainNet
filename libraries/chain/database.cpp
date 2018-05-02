@@ -423,7 +423,12 @@ const escrow_object* database::find_escrow( const account_name_type& name, uint3
 
 const dynamic_global_property_object&database::get_dynamic_global_properties() const
 { try {
-   return get< dynamic_global_property_object >();
+      return get< dynamic_global_property_object >();
+   } FC_CAPTURE_AND_RETHROW() }
+
+const economic_model_object&database::get_economic_model() const
+{ try {
+   return get< economic_model_object >();
 } FC_CAPTURE_AND_RETHROW() }
 
 const node_property_object& database::get_node_properties() const
@@ -1213,51 +1218,39 @@ void database::process_vesting_withdrawals()
  */
 void database::process_funds()
 {
- /*  const auto& props = get_dynamic_global_properties();
+   const auto& props = get_dynamic_global_properties();
    const auto& wso = get_witness_schedule_object();
+   const auto& economics = get_economic_model();
 
+   share_type witness_reward;
+   uint32_t denominator = wso.witness_pay_normalization_factor;
+   uint32_t nominator;
+
+   const auto& cwit = get_witness( props.current_witness );
+   if( cwit.schedule == witness_object::timeshare )
+      nominator = wso.timeshare_weight;
+   else if( cwit.schedule == witness_object::top19 )
+      nominator = wso.top19_weight;
+   // b - avg block reward
+   //(no_voted * x + no_timeshared *y) = (no_voted+no_timeshared) * b
+   //y=3x
+   //25 * x = 21 * b
+   // x = 21 / 25 * b
+   // y = 63 / 25 * b
+
+   modify(economics, [&](economic_model_object& e){
+      witness_reward = e.withdraw_mining_reward(_current_block_num, nominator, denominator);
+   });
+
+
+   push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, STEEM_SYMBOL) ) );
+   adjust_balance(cwit.owner, asset(witness_reward, STEEM_SYMBOL));
+
+   modify( props, [&]( dynamic_global_property_object& p )
    {
-      /**
-       * At block 7,000,000 have a 9.5% instantaneous inflation rate, decreasing to 0.95% at a rate of 0.01%
-       * every 250k blocks. This narrowing will take approximately 20.5 years and will complete on block 220,750,000
-
-      int64_t start_inflation_rate = int64_t( STEEM_INFLATION_RATE_START_PERCENT );
-      int64_t inflation_rate_adjustment = int64_t( head_block_num() / STEEM_INFLATION_NARROWING_PERIOD );
-      int64_t inflation_rate_floor = int64_t( STEEM_INFLATION_RATE_STOP_PERCENT );
-
-      // below subtraction cannot underflow int64_t because inflation_rate_adjustment is <2^32
-      int64_t current_inflation_rate = std::max( start_inflation_rate - inflation_rate_adjustment, inflation_rate_floor );
-
-      auto new_steem = ( props.virtual_supply.amount * current_inflation_rate ) / ( int64_t( STEEM_100_PERCENT ) * int64_t( STEEM_BLOCKS_PER_YEAR ) );
-      auto content_reward = ( new_steem * STEEM_CONTENT_REWARD_PERCENT ) / STEEM_100_PERCENT;
-      content_reward = pay_reward_funds( content_reward ); /// 75% to content creator
-      auto vesting_reward = ( new_steem * STEEM_VESTING_FUND_PERCENT ) / STEEM_100_PERCENT; /// 15% to vesting fund
-      auto witness_reward = new_steem - content_reward - vesting_reward; /// Remaining 10% to witness pay
-
-      const auto& cwit = get_witness( props.current_witness );
-      witness_reward *= STEEM_MAX_WITNESSES;
-
-      if( cwit.schedule == witness_object::timeshare )
-         witness_reward *= wso.timeshare_weight;
-      else if( cwit.schedule == witness_object::top19 )
-         witness_reward *= wso.top19_weight;
-      else
-         wlog( "Encountered unknown witness type for witness: ${w}", ("w", cwit.owner) );
-
-      witness_reward /= wso.witness_pay_normalization_factor;
-
-      new_steem = content_reward + vesting_reward + witness_reward;
-
-      modify( props, [&]( dynamic_global_property_object& p )
-      {
-         p.current_supply           += asset( new_steem, STEEM_SYMBOL );
-         p.virtual_supply           += asset( new_steem, STEEM_SYMBOL );
-      });
-
-      const auto& producer_reward = create_vesting( get_account( cwit.owner ), asset( witness_reward, STEEM_SYMBOL ) );
-      push_virtual_operation( producer_reward_operation( cwit.owner, producer_reward ) );
-
-   }*/
+        p.current_supply           += asset( witness_reward, STEEM_SYMBOL );
+        p.virtual_supply           += asset( witness_reward, STEEM_SYMBOL );
+   });
 
 }
 
@@ -1412,6 +1405,7 @@ std::shared_ptr< custom_operation_interpreter > database::get_custom_json_evalua
 void database::initialize_indexes()
 {
    add_core_index< dynamic_global_property_index           >(*this);
+   add_core_index< economic_model_index                    >(*this);
    add_core_index< account_index                           >(*this);
    add_core_index< account_authority_index                 >(*this);
    add_core_index< witness_index                           >(*this);
@@ -1591,6 +1585,12 @@ void database::init_genesis( uint64_t init_supply )
          p.maximum_block_size = STEEM_MAX_BLOCK_SIZE;
       } );
 
+      create< economic_model_object >( [&]( economic_model_object& e )
+                                                {
+                                                    e.init_economics(init_supply, STEEM_TOTAL_SUPPLY);
+                                                    edump((e));
+
+                                                } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {});
       for( int i = 0; i < 0x10000; i++ )

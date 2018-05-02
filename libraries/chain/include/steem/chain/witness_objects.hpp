@@ -166,8 +166,8 @@ namespace steem { namespace chain {
          uint32_t                                                          next_shuffle_block_num = 1;
          fc::array< account_name_type, STEEM_MAX_WITNESSES >             current_shuffled_witnesses;
          uint8_t                                                           num_scheduled_witnesses = 1;
-         uint8_t                                                           top19_weight = 1;
-         uint8_t                                                           timeshare_weight = 5;
+         uint8_t                                                           top19_weight = 21;
+         uint8_t                                                           timeshare_weight = 63;
          uint32_t                                                          witness_pay_normalization_factor = 25;
          chain_properties                                                  median_props;
          version                                                           majority_version;

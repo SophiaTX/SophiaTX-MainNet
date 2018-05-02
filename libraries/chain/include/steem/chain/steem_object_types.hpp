@@ -53,6 +53,7 @@ enum object_type
    escrow_object_type,
    block_stats_object_type,
    reward_fund_object_type,
+   economic_model_object_type,
 #ifdef STEEM_ENABLE_SMT
    // SMT objects
    smt_token_object_type,
@@ -79,6 +80,7 @@ class change_recovery_account_request_object;
 class escrow_object;
 class block_stats_object;
 class reward_fund_object;
+class economic_model_object;
 
 #ifdef STEEM_ENABLE_SMT
 class smt_token_object;
@@ -105,6 +107,7 @@ typedef oid< change_recovery_account_request_object > change_recovery_account_re
 typedef oid< escrow_object                          > escrow_id_type;
 typedef oid< block_stats_object                     > block_stats_id_type;
 typedef oid< reward_fund_object                     > reward_fund_id_type;
+typedef oid< economic_model_object                  > economic_model_id_type;
 
 #ifdef STEEM_ENABLE_SMT
 typedef oid< smt_token_object                       > smt_token_id_type;
@@ -179,6 +182,7 @@ FC_REFLECT_ENUM( steem::chain::object_type,
                  (escrow_object_type)
                  (block_stats_object_type)
                  (reward_fund_object_type)
+                 (economic_model_object_type)
 
 #ifdef STEEM_ENABLE_SMT
                  (smt_token_object_type)

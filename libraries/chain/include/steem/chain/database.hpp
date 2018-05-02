@@ -9,6 +9,7 @@
 #include <steem/chain/block_log.hpp>
 #include <steem/chain/operation_notification.hpp>
 #include <steem/chain/util/signal.hpp>
+#include <steem/chain/economics.hpp>
 
 #include <steem/protocol/protocol.hpp>
 #include <steem/protocol/hardfork.hpp>
@@ -145,6 +146,7 @@ namespace steem { namespace chain {
          const escrow_object*   find_escrow( const account_name_type& name, uint32_t escrow_id )const;
 
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
+         const economic_model_object&           get_economic_model() const;
          const node_property_object&            get_node_properties()const;
          const feed_history_object&             get_feed_history()const;
          const witness_schedule_object&         get_witness_schedule_object()const;
