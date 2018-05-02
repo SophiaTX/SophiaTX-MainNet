@@ -65,7 +65,8 @@ namespace steem { namespace protocol {
             fill_vesting_withdraw_operation,
             shutdown_witness_operation,
             hardfork_operation,
-            producer_reward_operation
+            producer_reward_operation,
+            promotion_pool_withdraw_operation
          > operation;
 
    /*void operation_get_required_authorities( const operation& op,

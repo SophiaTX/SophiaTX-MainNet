@@ -54,6 +54,16 @@ namespace steem { namespace protocol {
       asset             deposited;
    };
 
+   struct promotion_pool_withdraw_operation : public virtual_operation
+   {
+      promotion_pool_withdraw_operation(){}
+      promotion_pool_withdraw_operation( const string& t, const asset& w )
+            :to_account(t), withdrawn(w) {}
+
+      account_name_type to_account;
+      asset             withdrawn;
+   };
+
 } } //steem::protocol
 
 FC_REFLECT( steem::protocol::interest_operation, (owner)(interest) )
@@ -61,3 +71,4 @@ FC_REFLECT( steem::protocol::shutdown_witness_operation, (owner) )
 FC_REFLECT( steem::protocol::hardfork_operation, (hardfork_id) )
 FC_REFLECT( steem::protocol::producer_reward_operation, (producer)(vesting_shares) )
 FC_REFLECT( steem::protocol::fill_vesting_withdraw_operation, (from_account)(to_account)(withdrawn)(deposited) )
+FC_REFLECT( steem::protocol::promotion_pool_withdraw_operation, (to_account)(withdrawn) )

@@ -341,6 +341,23 @@ namespace steem { namespace plugins { namespace condenser_api {
       legacy_asset      vesting_shares;
    };
 
+   struct legacy_promotion_pool_withdraw_operation
+   {
+      legacy_promotion_pool_withdraw_operation() {}
+      legacy_promotion_pool_withdraw_operation( const promotion_pool_withdraw_operation& op): to_account(op.to_account), withdrawn(legacy_asset::from_asset(op.withdrawn)) {}
+
+      operator promotion_pool_withdraw_operation() const
+      {
+         promotion_pool_withdraw_operation op;
+         op.to_account = to_account;
+         op.withdrawn = withdrawn;
+      }
+
+      account_name_type to_account;
+      legacy_asset      withdrawn;
+
+   };
+
    typedef fc::static_variant<
             legacy_transfer_operation,
             legacy_transfer_to_vesting_operation,
@@ -371,7 +388,8 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_fill_vesting_withdraw_operation,
             legacy_shutdown_witness_operation,
             legacy_hardfork_operation,
-            legacy_producer_reward_operation
+            legacy_producer_reward_operation,
+            legacy_promotion_pool_withdraw_operation
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor
@@ -468,6 +486,11 @@ namespace steem { namespace plugins { namespace condenser_api {
          return true;
       }
 
+      bool operator()( const promotion_pool_withdraw_operation& op) const
+      {
+         l_op = legacy_promotion_pool_withdraw_operation(op);
+         return true;
+      }
 
       // Should only be SMT ops
       template< typename T >
@@ -535,6 +558,11 @@ struct convert_from_legacy_operation_visitor
       return operation( producer_reward_operation( op ) );
    }
 
+   operation operator()( const legacy_promotion_pool_withdraw_operation& op)const
+   {
+      return operation( promotion_pool_withdraw_operation(op) );
+   }
+
    template< typename T >
    operation operator()( const T& t )const
    {
@@ -571,5 +599,6 @@ FC_REFLECT( steem::plugins::condenser_api::legacy_escrow_release_operation, (fro
 FC_REFLECT( steem::plugins::condenser_api::legacy_interest_operation, (owner)(interest) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_fill_vesting_withdraw_operation, (from_account)(to_account)(withdrawn)(deposited) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_producer_reward_operation, (producer)(vesting_shares) )
+FC_REFLECT( steem::plugins::condenser_api::legacy_promotion_pool_withdraw_operation, (to_account)(withdrawn) )
 
 FC_REFLECT_TYPENAME( steem::plugins::condenser_api::legacy_operation )

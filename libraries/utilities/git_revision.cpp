@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <steem/utilities/git_revision.hpp>
 
-#define STEEM_GIT_REVISION_SHA "6c85f17fd5ea61fb1c0d1ae8c678e16594ef1553"
-#define STEEM_GIT_REVISION_UNIX_TIMESTAMP 1524731259
+#define STEEM_GIT_REVISION_SHA "1114587e9a22fe20d5b3901e586317535c20ace3"
+#define STEEM_GIT_REVISION_UNIX_TIMESTAMP 1525247054
 #define STEEM_GIT_REVISION_DESCRIPTION "unknown"
 
 namespace steem { namespace utilities {
