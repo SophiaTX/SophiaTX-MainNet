@@ -1,5 +1,9 @@
 #include <fc/crypto/dh.hpp>
 #include <openssl/dh.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/evp.h>
+#include <openssl/bn.h>
+
 
 namespace fc {
     SSL_TYPE(ssl_dh, DH, DH_free)
