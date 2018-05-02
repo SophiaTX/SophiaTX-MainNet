@@ -2354,21 +2354,25 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 //TODO_SOPHIA - rework
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
+   const auto& economics = get_economic_model();
+
+   FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
+   modify(economics, [&](economic_model_object& e){
+      e.withdraw_interests(a.balance.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
+   });
+
    modify( a, [&]( account_object& acnt )
    {
-      switch( delta.symbol.value )
-      {
-         case STEEM_SYMBOL_SER:
-            acnt.balance += delta;
-            if( check_balance )
-            {
-               FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient STEEM funds" );
-            }
-            adjust_proxied_witness_votes(a, delta.amount);
-            break;
-         default:
-            FC_ASSERT( false, "invalid symbol" );
-      }
+        acnt.balance += delta;
+        acnt.last_interests_in_block = head_block_num();
+        acnt.last_interests_coinbase_accumulator = economics.interest_coinbase_accumulator;
+        acnt.last_interests_fees_accumulator = economics.interest_fees_accumulator;
+        if( check_balance )
+        {
+           FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient STEEM funds" );
+        }
+        adjust_proxied_witness_votes(a, delta.amount);
+
    } );
 }
 

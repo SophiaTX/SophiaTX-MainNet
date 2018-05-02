@@ -37,6 +37,10 @@ namespace steem { namespace chain {
 
          time_point_sec    last_account_update;
 
+         uint32_t          last_interests_in_block = 0;
+         uint128_t         last_interests_coinbase_accumulator;
+         uint128_t         last_interests_fees_accumulator;
+
          time_point_sec    created;
          bool              mined = true;
          account_name_type recovery_account;
@@ -273,7 +277,7 @@ FC_REFLECT( steem::chain::account_object,
              (created)(mined)
              (vesting_shares)(vesting_withdraw_rate)(next_vesting_withdrawal)(withdrawn)(to_withdraw)
              (recovery_account)(last_account_recovery)(reset_account)
-             (balance)
+             (balance)(last_interests_in_block)(last_interests_coinbase_accumulator)(last_interests_fees_accumulator)
              (proxied_vsf_votes)(witnesses_voted_for)
           )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::account_object, steem::chain::account_index )
