@@ -204,10 +204,6 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    verify_authority_accounts_exist( _db, o.active, o.new_account_name, authority::active );
 
 
-   _db.modify( creator, [&]( account_object& c ){
-      c.balance -= o.fee;
-   });
-
    const auto& new_account = _db.create< account_object >( [&]( account_object& acc )
    {
       acc.name = o.new_account_name;
@@ -231,7 +227,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    });
 
    if( o.fee.amount > 0 )
-      _db.create_vesting( new_account, o.fee );
+      _db.pay_fee( creator, o.fee );
 }
 
 

@@ -32,6 +32,7 @@ share_type economic_model_object::get_mining_reward(uint32_t block_number){
    // and fees rewards, where each block is rewarded one 1/(STEEM_BLOCKS_PER_DAY * 7) of the current pool.
    share_type reward = mining_pool_from_coinbase / blocks_to_coinbase_end;
    reward += mining_pool_from_fees / (STEEM_BLOCKS_PER_DAY * 7);
+   return reward;
 }
 
 share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, uint32_t nominator, uint32_t denominator){
@@ -58,14 +59,15 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
    FC_ASSERT((unallocated_interests)>= util::to256(uint64_t(0)));
    uint128_t supply_share = multiplier / uint128_t(current_supply.value);
    interest_coinbase_accumulator += supply_share * next_block_interests;
-   interest_fees_accumulator += supply_share * uint128_t(block_fees.value);
-   block_fees = 0;
+   interest_fees_accumulator += supply_share * uint128_t(interest_block_fees.value);
+   interest_block_fees = 0;
    //TODO_SOPHIATX - check invariants here.
 }
 
 share_type economic_model_object::get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
    u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
    u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
+
    FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
    return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
 }
@@ -73,16 +75,24 @@ share_type economic_model_object::get_interests(share_type holding, uint128_t la
 share_type economic_model_object::withdraw_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
    u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
    u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
+
+   interest_pool_from_coinbase -= coinbase_reward;
+   interest_pool_from_fees -= fees_reward;
+
+   edump((interest_pool_from_fees)(fees_reward.str())(interest_fees_accumulator)(last_fees_acumulator)(holding.value)(multiplier));
+
    FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
    return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
 }
 
 void economic_model_object::add_fee(share_type fee) {
-   mining_pool_from_fees += fee * SOPHIATX_MINING_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   promotion_pool += fee * SOPHIATX_PROMOTION_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   share_type interest_added = fee * SOPHIATX_INTEREST_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   interest_pool_from_fees += interest_added;
-   block_fees += fee;
+   auto to_mining_pool = fee * SOPHIATX_MINING_POOL_PERCENTAGE / STEEM_100_PERCENT;
+   auto to_promotion_pool = fee * SOPHIATX_PROMOTION_POOL_PERCENTAGE / STEEM_100_PERCENT;
+   mining_pool_from_fees += to_mining_pool;
+   promotion_pool += to_promotion_pool;
+   share_type to_interests = fee - to_mining_pool - to_promotion_pool;
+   interest_pool_from_fees += to_interests;
+   interest_block_fees += to_interests;
 }
 
 share_type economic_model_object::get_available_promotion_pool(uint32_t block_number) {
