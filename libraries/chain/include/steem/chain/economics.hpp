@@ -34,7 +34,7 @@ public:
    share_type init_supply;
    share_type total_supply;
    share_type unallocated_interests;
-   share_type block_fees = 0;
+   share_type interest_block_fees = 0;
 
    void init_economics(share_type init_supply, share_type total_supply);
    void record_block(uint32_t block, share_type current_supply);
@@ -73,6 +73,6 @@ FC_REFLECT(steem::chain::economic_model_object,
            (init_supply)
            (total_supply)
            (unallocated_interests)
-           (block_fees)
+           (interest_block_fees)
 )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::economic_model_object, steem::chain::economic_model_index )

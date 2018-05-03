@@ -457,9 +457,15 @@ void database::pay_fee( const account_object& account, asset fee )
    if( fee.amount == 0 )
       return;
 
+   FC_ASSERT(fee.symbol == STEEM_SYMBOL);
+
    FC_ASSERT( account.balance >= fee );
    adjust_balance( account, -fee );
    adjust_supply( -fee );
+   const auto& econ = get_economic_model();
+   modify(econ, [&](economic_model_object&e){
+      e.add_fee(fee.amount);
+   });
 }
 
 uint32_t database::witness_participation_rate()const
@@ -1689,13 +1695,13 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
       _apply_block( next_block );
    } );
 
-   /*try
+   try
    {
-   /// check invariants
-   if( is_producing() || !( skip & skip_validate_invariants ) )
-      validate_invariants();
+         /// check invariants
+         if( is_producing() || !( skip & skip_validate_invariants ) )
+            validate_invariants();
    }
-   FC_CAPTURE_AND_RETHROW( (next_block) );*/
+   FC_CAPTURE_AND_RETHROW( (next_block) );
 
    //fc::time_point end_time = fc::time_point::now();
    //fc::microseconds dt = end_time - begin_time;
@@ -1901,10 +1907,12 @@ void database::_apply_block( const signed_block& next_block )
    notify_applied_block( next_block );
 
    notify_changed_objects();
-   const auto& economics = get_economic_model();
+
+   const auto& econ = get_economic_model();
    const auto& gpo = get_dynamic_global_properties();
-   modify(economics, [&](economic_model_object& e){
-      e.record_block(next_block.block_num(), gpo.current_supply.amount);
+
+   modify(econ, [&](economic_model_object& e){
+      e.record_block(next_block_num, gpo.current_supply.amount);
    });
 
 }
@@ -2360,19 +2368,26 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 //TODO_SOPHIA - rework
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   elog("modify balance called");
    const auto& economics = get_economic_model();
    const auto& gpo = get_dynamic_global_properties();
    share_type interests;
 
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
    modify(economics, [&](economic_model_object& e){
-        interests = e.withdraw_interests(a.balance.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
+      interests = e.withdraw_interests(a.balance.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
    });
+
+   if(interests > 0){
+      modify(gpo, [&](dynamic_global_property_object& d){
+           d.current_supply.amount += interests;
+           d.virtual_supply.amount += interests;
+      });
+      push_virtual_operation(interest_operation(a.name, asset(interests, STEEM_SYMBOL)));
+   }
 
    modify( a, [&]( account_object& acnt )
    {
-        acnt.balance += delta + asset(interests, STEEM_SYMBOL);
+        acnt.balance.amount += delta.amount + interests;
         acnt.last_interests_in_block = head_block_num();
         acnt.last_interests_coinbase_accumulator = economics.interest_coinbase_accumulator;
         acnt.last_interests_fees_accumulator = economics.interest_fees_accumulator;
@@ -2384,14 +2399,6 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
 
    } );
 
-   if(interests > 0 ) {
-      elog("adding interests of value ${i}", ("i", interests));
-      push_virtual_operation(interest_operation(a.name, asset(interests, STEEM_SYMBOL)));
-      modify(gpo, [&](dynamic_global_property_object& gpo){
-         gpo.current_supply+=asset(interests, STEEM_SYMBOL);
-         gpo.virtual_supply+=asset(interests, STEEM_SYMBOL);
-      });
-   }
 }
 
 
@@ -2589,7 +2596,8 @@ void database::validate_invariants()const
       asset total_vesting = asset( 0, VESTS_SYMBOL );
       share_type total_vsf_votes = share_type( 0 );
 
-      auto gpo = get_dynamic_global_properties();
+      const auto& gpo = get_dynamic_global_properties();
+      const auto& econ = get_economic_model();
 
       /// verify no witness has too many votes
       const auto& witness_idx = get_index< witness_index >().indices();
@@ -2622,9 +2630,12 @@ void database::validate_invariants()const
 
       FC_ASSERT( gpo.current_supply == total_supply, "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
-      FC_ASSERT( gpo.total_vesting_shares.amount == total_vsf_votes, "", ("total_vesting_shares",gpo.total_vesting_shares)("total_vsf_votes",total_vsf_votes) );
 
       FC_ASSERT( gpo.virtual_supply >= gpo.current_supply );
+
+      edump((gpo.current_supply.amount)(econ)(STEEM_TOTAL_SUPPLY));
+      FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == STEEM_TOTAL_SUPPLY);
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );
