@@ -351,6 +351,7 @@ namespace steem { namespace plugins { namespace condenser_api {
          promotion_pool_withdraw_operation op;
          op.to_account = to_account;
          op.withdrawn = withdrawn;
+         return op;
       }
 
       account_name_type to_account;
