@@ -1901,7 +1901,15 @@ void database::_apply_block( const signed_block& next_block )
    notify_applied_block( next_block );
 
    notify_changed_objects();
-} //FC_CAPTURE_AND_RETHROW( (next_block.block_num()) )  }
+
+   const auto& econ = get_economic_model();
+   const auto& gpo = get_dynamic_global_properties();
+
+   modify(econ, [&](economic_model_object& e){
+      e.record_block(next_block_num, gpo.current_supply.amount);
+   });
+
+}
 FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) )
 }
 
@@ -2355,15 +2363,24 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
    const auto& economics = get_economic_model();
+   const auto& gpo = get_dynamic_global_properties();
+   share_type interests;
 
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
    modify(economics, [&](economic_model_object& e){
-      e.withdraw_interests(a.balance.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
+      interests = e.withdraw_interests(a.balance.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
    });
+
+   if(interests > 0){
+      modify(gpo, [&](dynamic_global_property_object& d){
+           d.current_supply.amount += interests;
+           d.virtual_supply.amount += interests;
+      });
+   }
 
    modify( a, [&]( account_object& acnt )
    {
-        acnt.balance += delta;
+        acnt.balance.amount += delta.amount + interests;
         acnt.last_interests_in_block = head_block_num();
         acnt.last_interests_coinbase_accumulator = economics.interest_coinbase_accumulator;
         acnt.last_interests_fees_accumulator = economics.interest_fees_accumulator;
@@ -2374,6 +2391,8 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
         adjust_proxied_witness_votes(a, delta.amount);
 
    } );
+
+
 }
 
 

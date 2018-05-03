@@ -48,10 +48,7 @@ share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, 
 
    mining_pool_from_coinbase -= reward_from_coinbase;
    mining_pool_from_fees -= reward_from_fees;
-   edump((blocks_to_coinbase_end));
-   edump((mining_pool_from_coinbase));
-   edump((nominator));
-   edump((denominator));
+
    return reward_from_coinbase + reward_from_fees;
 }
 
@@ -67,15 +64,15 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
 }
 
 share_type economic_model_object::get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
-   u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value);
-   u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value);
+   u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
+   u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
    FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
    return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
 }
 
 share_type economic_model_object::withdraw_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
-   u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value);
-   u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value);
+   u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
+   u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
    FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
    return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
 }
