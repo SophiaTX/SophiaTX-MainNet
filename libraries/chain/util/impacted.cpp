@@ -129,6 +129,11 @@ struct get_impacted_account_visitor
       _impacted.insert( op.producer );
    }
 
+   void operator()( const promotion_pool_withdraw_operation& op )
+   {
+      _impacted.insert( op.to_account );
+   }
+
    //void operator()( const operation& op ){}
 };
 
