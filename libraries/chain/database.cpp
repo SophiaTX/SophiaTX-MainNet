@@ -1588,8 +1588,6 @@ void database::init_genesis( uint64_t init_supply )
       create< economic_model_object >( [&]( economic_model_object& e )
                                                 {
                                                     e.init_economics(init_supply, STEEM_TOTAL_SUPPLY);
-                                                    edump((e));
-
                                                 } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {});

@@ -71,11 +71,8 @@ share_type economic_model_object::get_interests(share_type holding, uint128_t la
 }
 
 share_type economic_model_object::withdraw_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
-   edump((holding)(last_supply_acumulator)(last_fees_acumulator)(last_interest)(current_block));
-   edump((*this));
    u256 coinbase_reward = (util::to256((interest_coinbase_accumulator - last_supply_acumulator) / multiplier) * u256(holding.value));
    u256 fees_reward = (util::to256((interest_fees_accumulator - last_fees_acumulator) / multiplier) * u256(holding.value));
-   edump((coinbase_reward.str())(fees_reward.str())(interest_coinbase_accumulator)(total_supply.value));
    FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
    return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
 }
