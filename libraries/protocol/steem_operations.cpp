@@ -2,7 +2,6 @@
 
 #include <fc/macros.hpp>
 #include <fc/io/json.hpp>
-#include <fc/macros.hpp>
 
 #include <locale>
 
