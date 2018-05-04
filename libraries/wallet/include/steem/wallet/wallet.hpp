@@ -483,6 +483,15 @@ class wallet_api
                                         const legacy_chain_properties& props,
                                         bool broadcast = false);
 
+      /**
+       * Stop being a witness, effectively deleting the witness object owned by the given account.
+       *
+       * @param witness_name The name of the witness account.
+       * @param broadcast true if you wish to broadcast the transaction.
+       */
+      annotated_signed_transaction stop_witness(string witness_name,
+                                               bool broadcast = false);
+
       /** Set the voting proxy for an account.
        *
        * If a user does not wish to take an active part in voting, they can choose

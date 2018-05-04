@@ -54,6 +54,19 @@ void copy_legacy_chain_properties( chain_properties& dest, const legacy_chain_pr
    dest.maximum_block_size = src.maximum_block_size;
 }
 
+
+void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
+   _db.get_account( o.owner );
+   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   auto wit_itr = by_witness_name_idx.find( o.owner );
+   if( wit_itr != by_witness_name_idx.end() )
+   {
+      _db.modify(*wit_itr, [&]( witness_object& w ) {
+         w.stopped = true;
+      });
+   }
+}
+
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    const account_object& acn = _db.get_account( o.owner ); // verify owner exists
@@ -494,7 +507,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.withdrawn = 0;
 
          auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || account.vesting_shares.amount - o.to_withdraw.amount >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       });
    }
 }
