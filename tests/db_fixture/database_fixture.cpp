@@ -62,13 +62,18 @@ clean_database_fixture::clean_database_fixture()
    db = &appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
    BOOST_REQUIRE( db );
 
+   elog("cp 1");
    init_account_pub_key = init_account_priv_key.get_public_key();
 
    open_database();
+   elog("cp 2");
+
 
    generate_block();
+   elog("cp 3");
    db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
    generate_block();
+   elog("cp 4");
 
    vest( "initminer", 10000 );
 

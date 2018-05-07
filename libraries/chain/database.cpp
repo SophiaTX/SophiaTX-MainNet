@@ -1073,7 +1073,6 @@ void database::adjust_witness_vote( const witness_object& witness, share_type de
 
       w.virtual_last_update = wso.current_virtual_time;
       w.votes += delta;
-      FC_ASSERT( w.votes <= get_dynamic_global_properties().total_vesting_shares.amount, "", ("w.votes", w.votes)("props",get_dynamic_global_properties().total_vesting_shares) );
 
       w.virtual_scheduled_time = w.virtual_last_update + (STEEM_VIRTUAL_SCHEDULE_LAP_LENGTH2 - w.virtual_position)/(w.votes.value+1);
       /** witnesses with a low number of votes could overflow the time field and end up with a scheduled time in the past */
@@ -1696,7 +1695,7 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    try
    {
          /// check invariants
-         if( is_producing() || !( skip & skip_validate_invariants ) )
+         //if( is_producing() || !( skip & skip_validate_invariants ) )
             validate_invariants();
    }
    FC_CAPTURE_AND_RETHROW( (next_block) );
@@ -2626,7 +2625,7 @@ void database::validate_invariants()const
       }
 
 
-      FC_ASSERT( gpo.current_supply == total_supply, "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
+      FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, STEEM_SYMBOL), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( gpo.virtual_supply >= gpo.current_supply );
