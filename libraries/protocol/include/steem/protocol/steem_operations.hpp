@@ -297,6 +297,13 @@ namespace steem { namespace protocol {
       }
    };
 
+   struct witness_stop_operation : public base_operation
+   {
+      account_name_type owner;
+      void validate()const {};
+      void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(owner); }
+   };
+
    /**
     * All accounts with a VFS can vote for or against any witness.
     *
@@ -604,6 +611,7 @@ FC_REFLECT( steem::protocol::transfer_operation, (from)(to)(amount)(memo) )
 FC_REFLECT( steem::protocol::transfer_to_vesting_operation, (from)(to)(amount) )
 FC_REFLECT( steem::protocol::withdraw_vesting_operation, (account)(vesting_shares) )
 FC_REFLECT( steem::protocol::witness_update_operation, (owner)(url)(block_signing_key)(props)(fee) )
+FC_REFLECT( steem::protocol::witness_stop_operation, (owner) )
 FC_REFLECT( steem::protocol::witness_set_properties_operation, (owner)(props)(extensions) )
 FC_REFLECT( steem::protocol::account_witness_vote_operation, (account)(witness)(approve) )
 FC_REFLECT( steem::protocol::account_witness_proxy_operation, (account)(proxy) )
