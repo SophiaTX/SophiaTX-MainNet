@@ -162,8 +162,10 @@ live_database_fixture::live_database_fixture()
       FC_ASSERT( fc::exists( _chain_dir ), "Requires blockchain to test on in ./test_blockchain" );
 
       appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
+
       appbase::app().initialize<
-         steem::plugins::account_history::account_history_plugin
+         steem::plugins::account_history::account_history_plugin, steem::plugins::debug_node::debug_node_plugin
          >( argc, argv );
 
       db = &appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
