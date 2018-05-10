@@ -44,6 +44,7 @@ class database_api_impl
          (verify_authority)
          (verify_account_authority)
          (verify_signatures)
+         (list_applications)
 #ifdef STEEM_ENABLE_SMT
          (get_smt_next_identifier)
 #endif
@@ -527,7 +528,45 @@ DEFINE_API_IMPL( database_api_impl, find_escrows )
    return result;
 }
 
+//////////////////////////////////////////////////////////////////////
+//                                                                  //
+// Applications                                                     //
+//                                                                  //
+//////////////////////////////////////////////////////////////////////
 
+DEFINE_API_IMPL( database_api_impl, list_applications )
+{
+   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+
+   list_applications_return result;
+   result.applications.reserve( args.limit );
+
+   switch( args.order )
+   {
+      case( by_name ):
+      {
+         iterate_results< chain::application_index, chain::by_name >(
+                 args.start.as<string>(),
+                 result.applications,
+                 args.limit,
+                 [&]( const application_object& a ){ return api_account_object( a ); } );
+         break;
+      }
+      case( by_author ):
+      {
+         iterate_results< chain::application_index, chain::by_author >(
+                 args.start.as< protocol::account_name_type >(),
+                 result.applications,
+                 args.limit,
+                 [&]( const application_object& a ){ return api_account_object( a ); } );
+         break;
+      }
+      default:
+         FC_ASSERT( false, "Unknown or unsupported sort order" );
+   }
+
+   return result;
+}
 
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
@@ -677,6 +716,7 @@ DEFINE_READ_APIS( database_api,
    (verify_authority)
    (verify_account_authority)
    (verify_signatures)
+   (list_applications)
 #ifdef STEEM_ENABLE_SMT
    (get_smt_next_identifier)
 #endif

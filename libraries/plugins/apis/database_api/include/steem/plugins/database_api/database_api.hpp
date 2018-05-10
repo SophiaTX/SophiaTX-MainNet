@@ -69,6 +69,12 @@ class database_api
          (list_escrows)
          (find_escrows)
 
+         //////////////////
+         // Applications //
+         //////////////////
+
+         (list_applications)
+
          ////////////////////////////
          // Authority / validation //
          ////////////////////////////

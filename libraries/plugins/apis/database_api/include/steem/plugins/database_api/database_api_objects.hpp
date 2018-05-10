@@ -8,6 +8,7 @@
 #include <steem/chain/transaction_object.hpp>
 #include <steem/chain/witness_objects.hpp>
 #include <steem/chain/database.hpp>
+#include <steem/chain/application_object.hpp>
 
 namespace steem { namespace plugins { namespace database_api {
 
@@ -279,7 +280,26 @@ struct api_hardfork_property_object
    fc::time_point_sec            next_hardfork_time;
 };
 
+struct api_application_object
+{
+    api_application_object( const api_application_object& a ) :
+        id( a.id ),
+        name( a.name ),
+        author( a.author ),
+        url( a.url ),
+        metadata( a.metadata ),
+        price_param( a.price_param)
+    {}
 
+    api_application_object() {}
+
+    application_id_type         id;
+    string                      name;
+    account_name_type           author;
+    string                      url;
+    string                      metadata;
+    application_price_param     price_param;
+};
 
 
 } } } // steem::plugins::database_api
@@ -357,3 +377,5 @@ FC_REFLECT( steem::plugins::database_api::api_hardfork_property_object,
             (next_hardfork)
             (next_hardfork_time)
           )
+
+FC_REFLECT( steem::plugins::database_api::api_application_object, (id)(name)(author)(url)(metadata)(price_param))

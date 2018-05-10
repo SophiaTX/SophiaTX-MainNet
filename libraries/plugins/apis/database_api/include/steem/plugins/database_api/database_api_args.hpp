@@ -34,7 +34,8 @@ enum sort_order_type
    by_complete_from_id,
    by_to_complete,
    by_account_expiration,
-   by_price
+   by_price,
+   by_author
 };
 
 /* get_config */
@@ -321,6 +322,20 @@ struct verify_signatures_return
    bool valid;
 };
 
+/* Applications */
+
+struct list_applications_args
+{
+    fc::variant       start;
+    uint32_t          limit;
+    sort_order_type   order;
+};
+
+struct list_applications_return
+{
+    vector< api_application_object > applications;
+};
+
 #ifdef STEEM_ENABLE_SMT
 typedef void_type get_smt_next_identifier_args;
 
@@ -454,6 +469,12 @@ FC_REFLECT( steem::plugins::database_api::verify_signatures_args,
 
 FC_REFLECT( steem::plugins::database_api::verify_signatures_return,
    (valid) )
+
+FC_REFLECT( steem::plugins::database_api::list_applications_args,
+            (start)(limit)(order) )
+
+FC_REFLECT( steem::plugins::database_api::list_applications_return,
+            (applications) )
 
 #ifdef STEEM_ENABLE_SMT
 FC_REFLECT( steem::plugins::database_api::get_smt_next_identifier_return,
