@@ -8,6 +8,11 @@ pipeline {
         sh 'make -j4'
       }
     }
+    stage('Clean WS') {
+      steps {
+        cleanWs()
+      }
+    }
   }
   post {
     success {
