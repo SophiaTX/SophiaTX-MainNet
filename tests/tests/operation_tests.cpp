@@ -25,6 +25,7 @@ using namespace steem::chain;
 using namespace steem::protocol;
 using fc::string;
 
+#define DUMP( x ) {fc::variant vo; fc::to_variant( x , vo); std::cout<< fc::json::to_string(vo) <<"\n";}
 BOOST_FIXTURE_TEST_SUITE( operation_tests, clean_database_fixture )
 
 BOOST_AUTO_TEST_CASE( account_create_validate )
@@ -80,7 +81,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       account_create_operation op;
 
-      op.fee = asset( 100000, STEEM_SYMBOL );
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.new_account_name = "alice";
       op.creator = STEEM_INIT_MINER_NAME;
       op.owner = authority( 1, priv_key.get_public_key(), 1 );
@@ -94,6 +95,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       tx.sign( init_account_priv_key, db->get_chain_id() );
       tx.validate();
       db->push_transaction( tx, 0 );
+
 
       const account_object& acct = db->get_account( "alice" );
       const account_authority_object& acct_auth = db->get< account_authority_object, by_account >( "alice" );
@@ -111,7 +113,8 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_REQUIRE( acct.vesting_shares.amount.value == 0 );
       BOOST_REQUIRE( acct.vesting_withdraw_rate.amount.value == 0 );
       BOOST_REQUIRE( acct.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( ( init_starting_balance.amount.value - 100000 ) == init.balance.amount.value  );
+      //This doeas not hold due to interests...
+      // BOOST_REQUIRE( ( init_starting_balance - ASSET( "0.100000 SPHTX" ) ).amount.value == init.balance.amount.value );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure of duplicate account creation" );
@@ -123,11 +126,12 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_REQUIRE( acct.memo_key == priv_key.get_public_key() );
       BOOST_REQUIRE( acct.proxy == "" );
       BOOST_REQUIRE( acct.created == db->head_block_time() );
-      BOOST_REQUIRE( acct.balance.amount.value == ASSET( "0.000 SPHTX " ).amount.value );
+      BOOST_REQUIRE( acct.balance.amount.value == ASSET( "0.000000 SPHTX " ).amount.value );
       BOOST_REQUIRE( acct.vesting_shares.amount.value == 0 );
       BOOST_REQUIRE( acct.vesting_withdraw_rate.amount.value == ASSET( "0.000000 VESTS" ).amount.value );
       BOOST_REQUIRE( acct.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( ( init_starting_balance - ASSET( "0.100 SPHTX" ) ).amount.value == init.balance.amount.value );
+      //This doeas not hold due to interests...
+      //BOOST_REQUIRE( ( init_starting_balance - ASSET( "0.100000 SPHTX" ) ).amount.value == init.balance.amount.value );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure when creator cannot cover fee" );
@@ -146,13 +150,13 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       {
          db.modify( db.get_witness_schedule_object(), [&]( witness_schedule_object& wso )
          {
-            wso.median_props.account_creation_fee = ASSET( "10.000 SPHTX" );
+            wso.median_props.account_creation_fee = ASSET( "10.000000 SPHTX" );
          });
       });
       generate_block();
 
       tx.clear();
-      op.fee = ASSET( "1.000 SPHTX" );
+      op.fee = ASSET( "1.000000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -361,7 +365,7 @@ BOOST_AUTO_TEST_CASE( transfer_authorities )
    try
    {
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000 );
+      fund( "alice", 10000000 );
 
       BOOST_TEST_MESSAGE( "Testing: transfer_authorities" );
 
@@ -408,7 +412,7 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       // Sam shouldn't be able to add or remove signatures to get the transaction to process multiple times.
 
       ACTORS( (alice)(bob)(sam)(corp) )
-      fund( "corp", 10000 );
+      fund( "corp", 10000000 );
 
       account_update_operation update_op;
       update_op.account = "corp";
@@ -460,17 +464,17 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       BOOST_TEST_MESSAGE( "Testing: transfer_apply" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000 );
+      fund( "alice", 10000000 );
 
-      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "10.000 SPHTX" ).amount.value );
-      BOOST_REQUIRE( bob.balance.amount.value == ASSET(" 0.000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "10.000000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( bob.balance.amount.value == ASSET(" 0.000000 SPHTX" ).amount.value );
 
       signed_transaction tx;
       transfer_operation op;
 
       op.from = "alice";
       op.to = "bob";
-      op.amount = ASSET( "5.000 SPHTX" );
+      op.amount = ASSET( "5.000000 SPHTX" );
 
       BOOST_TEST_MESSAGE( "--- Test normal transaction" );
       tx.operations.push_back( op );
@@ -478,8 +482,8 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "5.000 SPHTX" ).amount.value );
-      BOOST_REQUIRE( bob.balance.amount.value == ASSET( "5.000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( alice.balance.amount.value >= ASSET( "5.000000 SPHTX" ).amount.value && alice.balance.amount.value < ASSET( "5.010000 SPHTX" ).amount.value);
+      BOOST_REQUIRE( bob.balance.amount.value == ASSET( "5.000000 SPHTX" ).amount.value );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Generating a block" );
@@ -488,8 +492,8 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       const auto& new_alice = db->get_account( "alice" );
       const auto& new_bob = db->get_account( "bob" );
 
-      BOOST_REQUIRE( new_alice.balance.amount.value == ASSET( "5.000 SPHTX" ).amount.value );
-      BOOST_REQUIRE( new_bob.balance.amount.value == ASSET( "5.000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "5.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "5.010000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( new_bob.balance.amount.value == ASSET( "5.000000 SPHTX" ).amount.value );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test emptying an account" );
@@ -500,8 +504,8 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, database::skip_transaction_dupe_check );
 
-      BOOST_REQUIRE( new_alice.balance.amount.value == ASSET( "0.000 SPHTX" ).amount.value );
-      BOOST_REQUIRE( new_bob.balance.amount.value == ASSET( "10.000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "0.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "0.010000 SPHTX" ).amount.value);
+      BOOST_REQUIRE( new_bob.balance.amount.value >= ASSET( "10.000000 SPHTX" ).amount.value && new_bob.balance.amount.value < ASSET( "10.010000 SPHTX" ).amount.value);
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test transferring non-existent funds" );
@@ -512,8 +516,8 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
-      BOOST_REQUIRE( new_alice.balance.amount.value == ASSET( "0.000 SPHTX" ).amount.value );
-      BOOST_REQUIRE( new_bob.balance.amount.value == ASSET( "10.000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "0.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "0.010000 SPHTX" ).amount.value);
+      BOOST_REQUIRE( new_bob.balance.amount.value >= ASSET( "10.000000 SPHTX" ).amount.value && new_bob.balance.amount.value < ASSET( "10.010000 SPHTX" ).amount.value);
       validate_database();
 
    }
@@ -536,7 +540,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_authorities )
    try
    {
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000 );
+      fund( "alice", 10000000 );
 
       BOOST_TEST_MESSAGE( "Testing: transfer_to_vesting_authorities" );
 
@@ -585,7 +589,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
 
       const auto& gpo = db->get_dynamic_global_properties();
 
-      BOOST_REQUIRE( alice.balance == ASSET( "10.000 SPHTX" ) );
+      BOOST_REQUIRE( alice.balance == ASSET( "10.000000 SPHTX" ) );
 
       auto alice_shares = alice.vesting_shares;
       auto bob_shares = bob.vesting_shares;
@@ -593,7 +597,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
       transfer_to_vesting_operation op;
       op.from = "alice";
       op.to = "";
-      op.amount = ASSET( "7.500 SPHTX" );
+      op.amount = ASSET( "7.500000 SPHTX" );
 
       signed_transaction tx;
       tx.operations.push_back( op );
@@ -627,12 +631,13 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_authorities )
       BOOST_TEST_MESSAGE( "Testing: withdraw_vesting_authorities" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000 );
-      vest( "alice", 10000 );
+      fund( "alice", 10000000 );
+      vest( "alice", 10000000 );
 
+      const auto& new_alice = db->get_account("alice");
       withdraw_vesting_operation op;
       op.account = "alice";
-      op.vesting_shares = ASSET( "0.001000 VESTS" );
+      op.vesting_shares = ASSET( "1.000000 VESTS" );
 
       signed_transaction tx;
       tx.operations.push_back( op );
@@ -668,7 +673,10 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       ACTORS( (alice) )
       generate_block();
+      fund( "alice", 10000000 );
       vest( "alice", ASSET( "10.000000 SPHTX" ) );
+      generate_block();
+
 
       BOOST_TEST_MESSAGE( "--- Test withdraw of existing VESTS" );
 
@@ -796,7 +804,7 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( "alice", 10000 );
+      fund( "alice", 10000000 );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -854,9 +862,8 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       witness_update_operation op;
       op.owner = "alice";
       op.url = "foo.bar";
-      op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
-      op.props.account_creation_fee = ASSET(" 1.000000 SPHTX");
+      op.props.account_creation_fee = ASSET("1.000000 SPHTX");
       op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
 
       signed_transaction tx;
@@ -881,7 +888,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_REQUIRE( alice_witness.virtual_last_update == 0 );
       BOOST_REQUIRE( alice_witness.virtual_position == 0 );
       BOOST_REQUIRE( alice_witness.virtual_scheduled_time == fc::uint128_t::max_value() );
-      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "9.000000 SPHTX" ).amount.value ); // No fee
+      BOOST_REQUIRE( alice.balance.amount.value >= ASSET( "10.000000 SPHTX" ).amount.value && alice.balance.amount.value < ASSET( "10.010000 SPHTX" ).amount.value); // No fee
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test updating a witness" );
@@ -907,7 +914,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_REQUIRE( alice_witness.virtual_last_update == 0 );
       BOOST_REQUIRE( alice_witness.virtual_position == 0 );
       BOOST_REQUIRE( alice_witness.virtual_scheduled_time == fc::uint128_t::max_value() );
-      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "9.000000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( alice.balance.amount.value >= ASSET( "10.000000 SPHTX" ).amount.value && alice.balance.amount.value < ASSET( "10.010000 SPHTX" ).amount.value); // No fee
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure when upgrading a non-existent account" );
@@ -942,9 +949,9 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
 
       ACTORS( (alice)(bob)(sam) )
 
-      fund( "alice", 1000 );
+      fund( "alice", 1000000 );
       private_key_type alice_witness_key = generate_private_key( "alice_witness" );
-      witness_create( "alice", alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 1000 );
+      witness_create( "alice", alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 1000000 );
 
       account_witness_vote_operation op;
       op.account = "bob";
@@ -992,9 +999,9 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_TEST_MESSAGE( "Testing: account_witness_vote_apply" );
 
       ACTORS( (alice)(bob)(sam) )
-      fund( "alice" , 5000 );
-      vest( "alice", 5000 );
-      fund( "sam", 1000 );
+      fund( "alice" , 5000000 );
+      vest( "alice", 5000000 );
+      fund( "sam", 1000000 );
 
       private_key_type sam_witness_key = generate_private_key( "sam_key" );
       witness_create( "sam", sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 1000 );
@@ -1188,10 +1195,12 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( bob.proxy == "alice" );
-      BOOST_REQUIRE( bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( alice.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( alice.proxied_vsf_votes_total() == bob.vesting_shares.amount );
+      const auto& new_bob = db->get_account("bob");
+      const auto& new_alice = db->get_account("alice");
+      BOOST_REQUIRE( new_bob.proxy == "alice" );
+      BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_alice.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_alice.proxied_vsf_votes_total() == new_bob.witness_vote_weight() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test changing proxy" );
@@ -1204,22 +1213,23 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
+      const auto& new_sam = db->get_account("sam");
 
-      BOOST_REQUIRE( bob.proxy == "sam" );
-      BOOST_REQUIRE( bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( alice.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( sam.proxied_vsf_votes_total().value == bob.vesting_shares.amount );
+      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total().value == new_bob.witness_vote_weight() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure when changing proxy to existing proxy" );
 
       STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
-      BOOST_REQUIRE( bob.proxy == "sam" );
-      BOOST_REQUIRE( bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( sam.proxied_vsf_votes_total() == bob.vesting_shares.amount );
+      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.witness_vote_weight());
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test adding a grandparent proxy" );
@@ -1233,13 +1243,14 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
+      const auto& new_dave = db->get_account("dave");
 
-      BOOST_REQUIRE( bob.proxy == "sam" );
-      BOOST_REQUIRE( bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( sam.proxy == "dave" );
-      BOOST_REQUIRE( sam.proxied_vsf_votes_total() == bob.vesting_shares.amount );
-      BOOST_REQUIRE( dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( dave.proxied_vsf_votes_total() == ( sam.vesting_shares + bob.vesting_shares ).amount );
+      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_sam.proxy == "dave" );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.witness_vote_weight() );
+      BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.witness_vote_weight() + new_bob.witness_vote_weight() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test adding a grandchild proxy" );
@@ -1256,14 +1267,18 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( alice.proxy == "sam" );
-      BOOST_REQUIRE( alice.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( bob.proxy == "sam" );
-      BOOST_REQUIRE( bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( sam.proxy == "dave" );
-      BOOST_REQUIRE( sam.proxied_vsf_votes_total() == ( bob.vesting_shares + alice.vesting_shares ).amount );
-      BOOST_REQUIRE( dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( dave.proxied_vsf_votes_total() == ( sam.vesting_shares + bob.vesting_shares + alice.vesting_shares ).amount );
+      BOOST_REQUIRE( new_alice.proxy == "sam" );
+      BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_sam.proxy == "dave" );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == ( new_bob.witness_vote_weight() + new_alice.witness_vote_weight() ) );
+      BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      DUMP(new_dave)
+      DUMP(new_sam)
+      DUMP(new_bob)
+      DUMP(new_alice)
+      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.witness_vote_weight() + new_bob.witness_vote_weight() + new_alice.witness_vote_weight() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test removing a grandchild proxy" );
@@ -1278,14 +1293,14 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( alice.proxy == "sam" );
-      BOOST_REQUIRE( alice.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( bob.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( sam.proxy == "dave" );
-      BOOST_REQUIRE( sam.proxied_vsf_votes_total() == alice.vesting_shares.amount );
-      BOOST_REQUIRE( dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( dave.proxied_vsf_votes_total() == ( sam.vesting_shares + alice.vesting_shares ).amount );
+      BOOST_REQUIRE( new_alice.proxy == "sam" );
+      BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_bob.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
+      BOOST_REQUIRE( new_sam.proxy == "dave" );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_alice.witness_vote_weight() );
+      BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.witness_vote_weight() + new_alice.witness_vote_weight() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test votes are transferred when a proxy is added" );
@@ -1308,7 +1323,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == ( alice.vesting_shares + bob.vesting_shares ).amount );
+      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == ( new_alice.witness_vote_weight() + new_bob.witness_vote_weight() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test votes are removed when a proxy is removed" );
@@ -1320,7 +1335,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == bob.vesting_shares.amount );
+      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == new_bob.witness_vote_weight() );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -1531,7 +1546,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       BOOST_TEST_MESSAGE( "Testing: account recovery" );
 
       ACTORS( (alice) );
-      fund( "alice", 1000000 );
+      fund( "alice", 10000000 );
 
       BOOST_TEST_MESSAGE( "Creating account bob with alice" );
 
@@ -1582,6 +1597,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.clear();
       tx.signatures.clear();
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( request );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -1603,6 +1619,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( recover );
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "new_key" ), db->get_chain_id() );
       db->push_transaction( tx, 0 );
@@ -1647,6 +1665,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.clear();
       tx.signatures.clear();
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( recover );
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
@@ -1968,23 +1987,20 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       escrow_transfer_operation op;
       op.from = "alice";
       op.to = "bob";
-      op.steem_amount = ASSET( "1.000 SPHTX" );
+      op.steem_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
-      op.fee = ASSET( "0.100 SPHTX" );
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
       op.ratification_deadline = db->head_block_time() + 100;
       op.escrow_expiration = db->head_block_time() + 200;
 
-      BOOST_TEST_MESSAGE( "--- failure when from cannot cover sbd amount" );
       signed_transaction tx;
-      tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+
 
       BOOST_TEST_MESSAGE( "--- falure when from cannot cover amount + fee" );
-      op.steem_amount.amount = 10000;
+      op.steem_amount.amount = 10000000;
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
@@ -1992,7 +2008,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when ratification deadline is in the past" );
-      op.steem_amount.amount = 1000;
+      op.steem_amount.amount = 1000000;
       op.ratification_deadline = db->head_block_time() - 200;
       tx.operations.clear();
       tx.signatures.clear();
@@ -2122,8 +2138,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
-      et_op.steem_amount = ASSET( "1.000 SPHTX" );
-      et_op.fee = ASSET( "0.100 SPHTX" );
+      et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.fee = ASSET( "0.100000 SPHTX" );
       et_op.json_meta = "";
       et_op.ratification_deadline = db->head_block_time() + 100;
       et_op.escrow_expiration = db->head_block_time() + 200;
@@ -2249,7 +2265,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
 
       STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "10.000000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "10.000000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "10.010000 SPHTX" ) );
       validate_database();
 
 
@@ -2274,7 +2290,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
 
       STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "10.000000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "10.000000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "10.010000 SPHTX" ) );
       validate_database();
 
 
@@ -2298,7 +2314,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
 
       STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "10.000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "10.000000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "10.010000 SPHTX" ) );
       validate_database();
 
 
@@ -2433,8 +2449,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
-      et_op.steem_amount = ASSET( "1.000 SPHTX" );
-      et_op.fee = ASSET( "0.100 SPHTX" );
+      et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.fee = ASSET( "0.100000 SPHTX" );
       et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
       et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
 
@@ -3003,18 +3019,18 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "9.200000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.200000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.210000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.500000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- success deleting escrow when balances are both zero" );
       tx.clear();
-      op.steem_amount = ASSET( "0.500 SPHTX" );
+      op.steem_amount = ASSET( "0.500000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "9.700 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.710000 SPHTX" ) );
       STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
 
 
@@ -3082,7 +3098,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.300000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.300000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.310000 SPHTX" ));
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.900000 SPHTX" ) );
 
 
@@ -3093,7 +3109,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.700000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.710000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.800000 SPHTX" ) );
 
 
@@ -3121,7 +3137,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.400000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.400000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.410000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.700000 SPHTX" ) );
 
 
@@ -3132,7 +3148,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.800 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.800000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.810000 SPHTX" ));
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.600000 SPHTX" ) );
 
 
@@ -3143,7 +3159,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "9.400000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.410000 SPHTX" ));
       STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
    }
    FC_LOG_AND_RETHROW()
@@ -3157,7 +3173,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( "alice", 10000 );
+      fund( "alice", 10000000 );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;

@@ -463,8 +463,15 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
    const auto& to_account = o.to.size() ? _db.get_account(o.to) : from_account;
 
    FC_ASSERT( _db.get_balance( from_account, STEEM_SYMBOL) >= o.amount, "Account does not have sufficient STEEM for transfer." );
-   _db.adjust_balance( from_account, -o.amount );
-   _db.create_vesting( to_account, o.amount );
+
+   if( from_account.id == to_account.id )
+      _db.vest( from_account, o.amount.amount );
+   else {
+      _db.adjust_balance(o.from, -o.amount);
+      _db.adjust_balance(o.to, o.amount);
+      _db.vest(to_account, o.amount.amount);
+   }
+
 }
 
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
@@ -473,8 +480,6 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 
    FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient Steem Power for withdraw." );
    FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient Steem Power for withdraw." );
-
-   auto wit = _db.find_witness( o. account );
 
 
    if( o.vesting_shares.amount == 0 )
@@ -520,7 +525,7 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
 
    /// remove all current votes
    std::array<share_type, STEEM_MAX_PROXY_RECURSION_DEPTH+1> delta;
-   delta[0] = -account.vesting_shares.amount;
+   delta[0] = -account.witness_vote_weight();
    for( int i = 0; i < STEEM_MAX_PROXY_RECURSION_DEPTH; ++i )
       delta[i+1] = -account.proxied_vsf_votes[i];
    _db.adjust_proxied_witness_votes( account, delta );
