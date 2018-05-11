@@ -525,7 +525,7 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
 
    /// remove all current votes
    std::array<share_type, STEEM_MAX_PROXY_RECURSION_DEPTH+1> delta;
-   delta[0] = -account.witness_vote_weight();
+   delta[0] = -account.total_balance();
    for( int i = 0; i < STEEM_MAX_PROXY_RECURSION_DEPTH; ++i )
       delta[i+1] = -account.proxied_vsf_votes[i];
    _db.adjust_proxied_witness_votes( account, delta );

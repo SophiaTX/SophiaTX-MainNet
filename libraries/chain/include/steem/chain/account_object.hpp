@@ -60,6 +60,7 @@ namespace steem { namespace chain {
          uint16_t          witnesses_voted_for = 0;
 
 
+         share_type        total_balance() const{ return balance.amount + vesting_shares.amount;}
          /// This function should be used only when the account votes for a witness directly
          share_type        witness_vote_weight()const {
             return proxied_vsf_votes_total() + balance.amount + vesting_shares.amount;

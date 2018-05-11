@@ -1200,7 +1200,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxy == "alice" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_alice.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( new_alice.proxied_vsf_votes_total() == new_bob.witness_vote_weight() );
+      BOOST_REQUIRE( new_alice.proxied_vsf_votes_total() == new_bob.total_balance() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test changing proxy" );
@@ -1219,7 +1219,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total().value == new_bob.witness_vote_weight() );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total().value == new_bob.total_balance() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure when changing proxy to existing proxy" );
@@ -1229,7 +1229,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxy == "sam" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.witness_vote_weight());
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.total_balance());
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test adding a grandparent proxy" );
@@ -1248,9 +1248,10 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxy == "sam" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == "dave" );
-      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.witness_vote_weight() );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.total_balance() );
       BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.witness_vote_weight() + new_bob.witness_vote_weight() ) );
+      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_bob.total_balance() ) );
+
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test adding a grandchild proxy" );
@@ -1272,13 +1273,9 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxy == "sam" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == "dave" );
-      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == ( new_bob.witness_vote_weight() + new_alice.witness_vote_weight() ) );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == ( new_bob.total_balance() + new_alice.total_balance() ) );
       BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      DUMP(new_dave)
-      DUMP(new_sam)
-      DUMP(new_bob)
-      DUMP(new_alice)
-      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.witness_vote_weight() + new_bob.witness_vote_weight() + new_alice.witness_vote_weight() ) );
+      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_bob.total_balance() + new_alice.total_balance() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test removing a grandchild proxy" );
@@ -1298,9 +1295,9 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == "dave" );
-      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_alice.witness_vote_weight() );
+      BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_alice.total_balance() );
       BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
-      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.witness_vote_weight() + new_alice.witness_vote_weight() ) );
+      BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_alice.total_balance() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test votes are transferred when a proxy is added" );
@@ -1322,8 +1319,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
-
-      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == ( new_alice.witness_vote_weight() + new_bob.witness_vote_weight() ) );
+      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == ( new_alice.total_balance() + new_bob.total_balance() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test votes are removed when a proxy is removed" );
@@ -1335,7 +1331,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == new_bob.witness_vote_weight() );
+      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == new_bob.total_balance() );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
