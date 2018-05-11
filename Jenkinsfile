@@ -9,7 +9,7 @@ pipeline {
       }
     }
     stage('Clean WS') {
-      steps {
+     steps {
         cleanWs()
       }
     }
@@ -17,11 +17,8 @@ pipeline {
   post {
     success {
       echo 'TODO'
-      //sh 'ciscripts/buildsuccess.sh'
     }
     failure {
-      echo 'TODO'
-      //sh 'ciscripts/buildfailure.sh'
       slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     }
   }
