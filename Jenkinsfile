@@ -2,9 +2,6 @@
 pipeline {
   agent any
   stages {
-    stage('Checkout') {
-      checkout scm
-    }
     stage('Build') {
       steps {
         sh 'cmake -DBOOST_ROOT=$BOOST_160 -DOPENSSL_ROOT_DIR=$OPENSSL_102'
