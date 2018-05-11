@@ -8,23 +8,21 @@ pipeline {
         sh 'make -j4'
       }
     }
-    stage('Clean WS') {
-      steps {
-        cleanWs()
-      }
-    }
+//    stage('Clean WS') {
+//     steps {
+//        cleanWs()
+//      }
+//    }
   }
   post {
     always {
       updateGithubCommitStatus()
+      cleanWs()
     }
     success {
       echo 'TODO'
-      //sh 'ciscripts/buildsuccess.sh'
     }
     failure {
-      echo 'TODO'
-      //sh 'ciscripts/buildfailure.sh'
       slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     }
   }
