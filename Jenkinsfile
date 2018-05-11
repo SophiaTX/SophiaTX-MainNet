@@ -22,7 +22,7 @@ pipeline {
       slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     }
     cleanup {
-      updateGithubCommitStatus()
+      //updateGithubCommitStatus()
       cleanWs()
     }
   }
