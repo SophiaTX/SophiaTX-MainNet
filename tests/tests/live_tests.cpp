@@ -16,7 +16,7 @@ using namespace steem;
 using namespace steem::chain;
 using namespace steem::protocol;
 
-#ifndef IS_TEST_NET
+#ifdef IS_TEST_NET
 
 BOOST_FIXTURE_TEST_SUITE( live_tests, live_database_fixture )
 
