@@ -15,15 +15,15 @@ pipeline {
 //    }
   }
   post {
-    always {
-      updateGithubCommitStatus()
-      cleanWs()
-    }
     success {
       echo 'TODO'
     }
     failure {
       slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+    cleanup {
+      updateGithubCommitStatus()
+      cleanWs()
     }
   }
 }
