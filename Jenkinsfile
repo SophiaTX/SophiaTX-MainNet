@@ -12,6 +12,7 @@ pipeline {
       steps {
         sh './tests/chain_test'
       }
+    }
     stage('Clean WS') {
       steps {
         cleanWs()
