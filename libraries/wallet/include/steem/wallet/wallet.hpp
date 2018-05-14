@@ -480,7 +480,7 @@ class wallet_api
       annotated_signed_transaction update_witness(string witness_name,
                                         string url,
                                         public_key_type block_signing_key,
-                                        const legacy_chain_properties& props,
+                                        const chain_properties& props,
                                         bool broadcast = false);
 
       /**

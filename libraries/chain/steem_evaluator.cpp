@@ -47,12 +47,6 @@ struct strcmp_equal
    }
 };
 
-template< bool force_canon >
-void copy_legacy_chain_properties( chain_properties& dest, const legacy_chain_properties& src )
-{
-   dest.account_creation_fee = src.account_creation_fee;
-   dest.maximum_block_size = src.maximum_block_size;
-}
 
 
 void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
@@ -85,7 +79,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
       _db.modify( *wit_itr, [&]( witness_object& w ) {
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
-         copy_legacy_chain_properties< false >( w.props, o.props );
+         w.props = o.props;
       });
    }
    else
@@ -95,7 +89,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
          w.created            = _db.head_block_time();
-         copy_legacy_chain_properties< false >( w.props, o.props );
+         w.props = o.props;
       });
    }
 }

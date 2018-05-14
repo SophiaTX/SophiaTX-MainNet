@@ -1408,7 +1408,7 @@ annotated_signed_transaction wallet_api::create_account( string creator, string 
 annotated_signed_transaction wallet_api::update_witness( string witness_account_name,
                                                string url,
                                                public_key_type block_signing_key,
-                                               const legacy_chain_properties& props,
+                                               const chain_properties& props,
                                                bool broadcast  )
 {
    FC_ASSERT( !is_locked() );

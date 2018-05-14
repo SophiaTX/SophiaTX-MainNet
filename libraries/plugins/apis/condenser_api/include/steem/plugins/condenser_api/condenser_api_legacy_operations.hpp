@@ -252,7 +252,7 @@ namespace steem { namespace plugins { namespace condenser_api {
       account_name_type       owner;
       string                  url;
       public_key_type         block_signing_key;
-      legacy_chain_properties props;
+      chain_properties        props;
       legacy_asset            fee;
    };
 

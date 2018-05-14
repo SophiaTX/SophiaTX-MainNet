@@ -223,7 +223,7 @@ namespace steem { namespace protocol {
     * and well functioning network.  Any time @owner is in the active set of witnesses these
     * properties will be used to control the blockchain configuration.
     */
-   struct legacy_chain_properties
+   struct chain_properties
    {
       /**
        *  This fee, paid in STEEM, is converted into VESTING SHARES for the new account. Accounts
@@ -238,6 +238,8 @@ namespace steem { namespace protocol {
        *  to tune rate limiting and capacity
        */
       uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
+
+
 
       void validate()const
       {
@@ -268,7 +270,7 @@ namespace steem { namespace protocol {
       account_name_type owner;
       string            url;
       public_key_type   block_signing_key;
-      legacy_chain_properties  props;
+      chain_properties  props;
       asset             fee; ///< the fee paid to register a new witness, should be 10x current block production pay
 
       void validate()const;
@@ -585,7 +587,7 @@ FC_REFLECT( steem::protocol::set_reset_account_operation, (account)(current_rese
 
 FC_REFLECT( steem::protocol::report_over_production_operation, (reporter)(first_block)(second_block) )
 FC_REFLECT( steem::protocol::feed_publish_operation, (publisher)(exchange_rate) )
-FC_REFLECT( steem::protocol::legacy_chain_properties,
+FC_REFLECT( steem::protocol::chain_properties,
             (account_creation_fee)
             (maximum_block_size)
           )
