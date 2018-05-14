@@ -42,28 +42,18 @@ enum object_type
    transaction_object_type,
    block_summary_object_type,
    witness_schedule_object_type,
-   comment_object_type,
-   comment_content_object_type,
-   comment_vote_object_type,
    witness_vote_object_type,
-   limit_order_object_type,
    feed_history_object_type,
-   convert_request_object_type,
-   liquidity_reward_balance_object_type,
    operation_object_type,
    account_history_object_type,
    hardfork_property_object_type,
-   withdraw_vesting_route_object_type,
    owner_authority_history_object_type,
    account_recovery_request_object_type,
    change_recovery_account_request_object_type,
    escrow_object_type,
-   savings_withdraw_object_type,
-   decline_voting_rights_request_object_type,
    block_stats_object_type,
    reward_fund_object_type,
-   vesting_delegation_object_type,
-   vesting_delegation_expiration_object_type,
+   economic_model_object_type,
 #ifdef STEEM_ENABLE_SMT
    // SMT objects
    smt_token_object_type,
@@ -79,28 +69,18 @@ class witness_object;
 class transaction_object;
 class block_summary_object;
 class witness_schedule_object;
-class comment_object;
-class comment_content_object;
-class comment_vote_object;
 class witness_vote_object;
-class limit_order_object;
 class feed_history_object;
-class convert_request_object;
-class liquidity_reward_balance_object;
 class operation_object;
 class account_history_object;
 class hardfork_property_object;
-class withdraw_vesting_route_object;
 class owner_authority_history_object;
 class account_recovery_request_object;
 class change_recovery_account_request_object;
 class escrow_object;
-class savings_withdraw_object;
-class decline_voting_rights_request_object;
 class block_stats_object;
 class reward_fund_object;
-class vesting_delegation_object;
-class vesting_delegation_expiration_object;
+class economic_model_object;
 
 #ifdef STEEM_ENABLE_SMT
 class smt_token_object;
@@ -116,28 +96,18 @@ typedef oid< witness_object                         > witness_id_type;
 typedef oid< transaction_object                     > transaction_object_id_type;
 typedef oid< block_summary_object                   > block_summary_id_type;
 typedef oid< witness_schedule_object                > witness_schedule_id_type;
-typedef oid< comment_object                         > comment_id_type;
-typedef oid< comment_content_object                 > comment_content_id_type;
-typedef oid< comment_vote_object                    > comment_vote_id_type;
 typedef oid< witness_vote_object                    > witness_vote_id_type;
-typedef oid< limit_order_object                     > limit_order_id_type;
 typedef oid< feed_history_object                    > feed_history_id_type;
-typedef oid< convert_request_object                 > convert_request_id_type;
-typedef oid< liquidity_reward_balance_object        > liquidity_reward_balance_id_type;
 typedef oid< operation_object                       > operation_id_type;
 typedef oid< account_history_object                 > account_history_id_type;
 typedef oid< hardfork_property_object               > hardfork_property_id_type;
-typedef oid< withdraw_vesting_route_object          > withdraw_vesting_route_id_type;
 typedef oid< owner_authority_history_object         > owner_authority_history_id_type;
 typedef oid< account_recovery_request_object        > account_recovery_request_id_type;
 typedef oid< change_recovery_account_request_object > change_recovery_account_request_id_type;
 typedef oid< escrow_object                          > escrow_id_type;
-typedef oid< savings_withdraw_object                > savings_withdraw_id_type;
-typedef oid< decline_voting_rights_request_object   > decline_voting_rights_request_id_type;
 typedef oid< block_stats_object                     > block_stats_id_type;
 typedef oid< reward_fund_object                     > reward_fund_id_type;
-typedef oid< vesting_delegation_object              > vesting_delegation_id_type;
-typedef oid< vesting_delegation_expiration_object   > vesting_delegation_expiration_id_type;
+typedef oid< economic_model_object                  > economic_model_id_type;
 
 #ifdef STEEM_ENABLE_SMT
 typedef oid< smt_token_object                       > smt_token_id_type;
@@ -201,28 +171,18 @@ FC_REFLECT_ENUM( steem::chain::object_type,
                  (transaction_object_type)
                  (block_summary_object_type)
                  (witness_schedule_object_type)
-                 (comment_object_type)
-                 (comment_content_object_type)
-                 (comment_vote_object_type)
                  (witness_vote_object_type)
-                 (limit_order_object_type)
                  (feed_history_object_type)
-                 (convert_request_object_type)
-                 (liquidity_reward_balance_object_type)
                  (operation_object_type)
                  (account_history_object_type)
                  (hardfork_property_object_type)
-                 (withdraw_vesting_route_object_type)
                  (owner_authority_history_object_type)
                  (account_recovery_request_object_type)
                  (change_recovery_account_request_object_type)
                  (escrow_object_type)
-                 (savings_withdraw_object_type)
-                 (decline_voting_rights_request_object_type)
                  (block_stats_object_type)
                  (reward_fund_object_type)
-                 (vesting_delegation_object_type)
-                 (vesting_delegation_expiration_object_type)
+                 (economic_model_object_type)
 
 #ifdef STEEM_ENABLE_SMT
                  (smt_token_object_type)

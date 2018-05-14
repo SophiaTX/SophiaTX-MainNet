@@ -33,19 +33,7 @@ enum sort_order_type
    by_destination,
    by_complete_from_id,
    by_to_complete,
-   by_delegation,
    by_account_expiration,
-   by_conversion_date,
-   by_cashout_time,
-   by_permlink,
-   by_root,
-   by_parent,
-   by_last_update,
-   by_author_last_update,
-   by_comment_voter,
-   by_voter_comment,
-   by_voter_last_update,
-   by_comment_weight_voter,
    by_price
 };
 
@@ -255,225 +243,6 @@ struct find_escrows_args
 typedef list_escrows_return find_escrows_return;
 
 
-/* Vesting Withdraw Routes */
-
-struct list_withdraw_vesting_routes_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_withdraw_vesting_routes_return
-{
-   vector< api_withdraw_vesting_route_object > routes;
-};
-
-
-struct find_withdraw_vesting_routes_args
-{
-   account_name_type account;
-   sort_order_type   order;
-};
-
-typedef list_withdraw_vesting_routes_return find_withdraw_vesting_routes_return;
-
-
-/* Savings Withdraw */
-
-struct list_savings_withdrawals_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_savings_withdrawals_return
-{
-   vector< api_savings_withdraw_object > withdrawals;
-};
-
-
-struct find_savings_withdrawals_args
-{
-   account_name_type account;
-};
-
-typedef list_savings_withdrawals_return find_savings_withdrawals_return;
-
-
-/* Vesting Delegations */
-
-struct list_vesting_delegations_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_vesting_delegations_return
-{
-   vector< api_vesting_delegation_object > delegations;
-};
-
-
-struct find_vesting_delegations_args
-{
-   account_name_type account;
-};
-
-typedef list_vesting_delegations_return find_vesting_delegations_return;
-
-
-/* Vesting Delegation Expirations */
-
-struct list_vesting_delegation_expirations_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_vesting_delegation_expirations_return
-{
-   vector< api_vesting_delegation_expiration_object > delegations;
-};
-
-
-struct find_vesting_delegation_expirations_args
-{
-   account_name_type account;
-};
-
-typedef list_vesting_delegation_expirations_return find_vesting_delegation_expirations_return;
-
-
-/* SBD Converstions */
-
-struct list_sbd_conversion_requests_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_sbd_conversion_requests_return
-{
-   vector< api_convert_request_object > requests;
-};
-
-
-struct find_sbd_conversion_requests_args
-{
-   account_name_type account;
-};
-
-typedef list_sbd_conversion_requests_return find_sbd_conversion_requests_return;
-
-
-/* Decline Voting Rights Requests */
-
-struct list_decline_voting_rights_requests_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_decline_voting_rights_requests_return
-{
-   vector< api_decline_voting_rights_request_object > requests;
-};
-
-
-struct find_decline_voting_rights_requests_args
-{
-   vector< account_name_type > accounts;
-};
-
-typedef list_decline_voting_rights_requests_return find_decline_voting_rights_requests_return;
-
-
-/* Comments */
-
-struct list_comments_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_comments_return
-{
-   vector< api_comment_object > comments;
-};
-
-
-struct find_comments_args
-{
-   vector< std::pair< account_name_type, string > > comments;
-};
-
-typedef list_comments_return find_comments_return;
-
-
-/* Votes */
-
-struct list_votes_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_votes_return
-{
-   vector< api_comment_vote_object > votes;
-};
-
-
-struct find_votes_args
-{
-   account_name_type author;
-   string            permlink;
-};
-
-typedef list_votes_return find_votes_return;
-
-
-/* Limit Orders */
-
-struct list_limit_orders_args
-{
-   fc::variant       start;
-   uint32_t          limit;
-   sort_order_type   order;
-};
-
-struct list_limit_orders_return
-{
-   vector< api_limit_order_object > orders;
-};
-
-
-struct find_limit_orders_args
-{
-   account_name_type account;
-};
-
-typedef list_limit_orders_return find_limit_orders_return;
-
-
-/* Order Book */
-
-struct get_order_book_args
-{
-   uint32_t          limit;
-};
-
-typedef order_book get_order_book_return;
-
-
 struct get_transaction_hex_args
 {
    signed_transaction trx;
@@ -529,7 +298,6 @@ struct verify_signatures_args
    vector< signature_type >      signatures;
    vector< account_name_type >   required_owner;
    vector< account_name_type >   required_active;
-   vector< account_name_type >   required_posting;
    vector< authority >           required_other;
 
    void get_required_owner_authorities( flat_set< account_name_type >& a )const
@@ -540,11 +308,6 @@ struct verify_signatures_args
    void get_required_active_authorities( flat_set< account_name_type >& a )const
    {
       a.insert( required_active.begin(), required_active.end() );
-   }
-
-   void get_required_posting_authorities( flat_set< account_name_type >& a )const
-   {
-      a.insert( required_posting.begin(), required_posting.end() );
    }
 
    void get_required_authorities( vector< authority >& a )const
@@ -586,19 +349,7 @@ FC_REFLECT_ENUM( steem::plugins::database_api::sort_order_type,
    (by_destination)
    (by_complete_from_id)
    (by_to_complete)
-   (by_delegation)
    (by_account_expiration)
-   (by_conversion_date)
-   (by_cashout_time)
-   (by_permlink)
-   (by_root)
-   (by_parent)
-   (by_last_update)
-   (by_author_last_update)
-   (by_comment_voter)
-   (by_voter_comment)
-   (by_voter_last_update)
-   (by_comment_weight_voter)
    (by_price) )
 
 FC_REFLECT( steem::plugins::database_api::get_reward_funds_return,
@@ -668,90 +419,6 @@ FC_REFLECT( steem::plugins::database_api::list_escrows_return,
 FC_REFLECT( steem::plugins::database_api::find_escrows_args,
    (from) )
 
-FC_REFLECT( steem::plugins::database_api::list_withdraw_vesting_routes_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_withdraw_vesting_routes_return,
-   (routes) )
-
-FC_REFLECT( steem::plugins::database_api::find_withdraw_vesting_routes_args,
-   (account)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_savings_withdrawals_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_savings_withdrawals_return,
-   (withdrawals) )
-
-FC_REFLECT( steem::plugins::database_api::find_savings_withdrawals_args,
-   (account) )
-
-FC_REFLECT( steem::plugins::database_api::list_vesting_delegations_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_vesting_delegations_return,
-   (delegations) )
-
-FC_REFLECT( steem::plugins::database_api::find_vesting_delegations_args,
-   (account) )
-
-FC_REFLECT( steem::plugins::database_api::list_vesting_delegation_expirations_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_vesting_delegation_expirations_return,
-   (delegations) )
-
-FC_REFLECT( steem::plugins::database_api::find_vesting_delegation_expirations_args,
-   (account) )
-
-FC_REFLECT( steem::plugins::database_api::list_sbd_conversion_requests_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_sbd_conversion_requests_return,
-   (requests) )
-
-FC_REFLECT( steem::plugins::database_api::find_sbd_conversion_requests_args,
-   (account) )
-
-FC_REFLECT( steem::plugins::database_api::list_decline_voting_rights_requests_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_decline_voting_rights_requests_return,
-   (requests) )
-
-FC_REFLECT( steem::plugins::database_api::find_decline_voting_rights_requests_args,
-   (accounts) )
-
-FC_REFLECT( steem::plugins::database_api::list_comments_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_comments_return,
-   (comments) )
-
-FC_REFLECT( steem::plugins::database_api::find_comments_args,
-   (comments) )
-
-FC_REFLECT( steem::plugins::database_api::list_votes_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_votes_return,
-   (votes) )
-
-FC_REFLECT( steem::plugins::database_api::find_votes_args,
-   (author)(permlink) )
-
-FC_REFLECT( steem::plugins::database_api::list_limit_orders_args,
-   (start)(limit)(order) )
-
-FC_REFLECT( steem::plugins::database_api::list_limit_orders_return,
-   (orders) )
-
-FC_REFLECT( steem::plugins::database_api::find_limit_orders_args,
-   (account) )
-
-FC_REFLECT( steem::plugins::database_api::get_order_book_args,
-   (limit) )
-
 FC_REFLECT( steem::plugins::database_api::get_transaction_hex_args,
    (trx) )
 
@@ -783,7 +450,6 @@ FC_REFLECT( steem::plugins::database_api::verify_signatures_args,
    (signatures)
    (required_owner)
    (required_active)
-   (required_posting)
    (required_other) )
 
 FC_REFLECT( steem::plugins::database_api::verify_signatures_return,

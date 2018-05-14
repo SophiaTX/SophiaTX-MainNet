@@ -31,25 +31,6 @@ struct get_impacted_account_visitor
       _impacted.insert( op.creator );
    }
 
-   void operator()( const account_create_with_delegation_operation& op )
-   {
-      _impacted.insert( op.new_account_name );
-      _impacted.insert( op.creator );
-   }
-
-   void operator()( const comment_operation& op )
-   {
-      _impacted.insert( op.author );
-      if( op.parent_author.size() )
-         _impacted.insert( op.parent_author );
-   }
-
-   void operator()( const vote_operation& op )
-   {
-      _impacted.insert( op.voter );
-      _impacted.insert( op.author );
-   }
-
    void operator()( const transfer_operation& op )
    {
       _impacted.insert( op.from );
@@ -94,12 +75,6 @@ struct get_impacted_account_visitor
       }
    }
 
-   void operator()( const set_withdraw_vesting_route_operation& op )
-   {
-      _impacted.insert( op.from_account );
-      _impacted.insert( op.to_account );
-   }
-
    void operator()( const account_witness_vote_operation& op )
    {
       _impacted.insert( op.account );
@@ -115,29 +90,6 @@ struct get_impacted_account_visitor
    void operator()( const feed_publish_operation& op )
    {
       _impacted.insert( op.publisher );
-   }
-
-   void operator()( const pow_operation& op )
-   {
-      _impacted.insert( op.worker_account );
-   }
-
-   struct pow2_impacted_visitor
-   {
-      pow2_impacted_visitor(){}
-
-      typedef const account_name_type& result_type;
-
-      template< typename WorkType >
-      result_type operator()( const WorkType& work )const
-      {
-         return work.input.worker_account;
-      }
-   };
-
-   void operator()( const pow2_operation& op )
-   {
-      _impacted.insert( op.work.visit( pow2_impacted_visitor() ) );
    }
 
    void operator()( const request_account_recovery_operation& op )
@@ -156,48 +108,7 @@ struct get_impacted_account_visitor
       _impacted.insert( op.account_to_recover );
    }
 
-   void operator()( const transfer_to_savings_operation& op )
-   {
-      _impacted.insert( op.from );
-      _impacted.insert( op.to );
-   }
-
-   void operator()( const transfer_from_savings_operation& op )
-   {
-      _impacted.insert( op.from );
-      _impacted.insert( op.to );
-   }
-
-   void operator()( const delegate_vesting_shares_operation& op )
-   {
-      _impacted.insert( op.delegator );
-      _impacted.insert( op.delegatee );
-   }
-
-
-   // vops
-
-   void operator()( const author_reward_operation& op )
-   {
-      _impacted.insert( op.author );
-   }
-
-   void operator()( const curation_reward_operation& op )
-   {
-      _impacted.insert( op.curator );
-   }
-
-   void operator()( const liquidity_reward_operation& op )
-   {
-      _impacted.insert( op.owner );
-   }
-
    void operator()( const interest_operation& op )
-   {
-      _impacted.insert( op.owner );
-   }
-
-   void operator()( const fill_convert_request_operation& op )
    {
       _impacted.insert( op.owner );
    }
@@ -213,32 +124,24 @@ struct get_impacted_account_visitor
       _impacted.insert( op.owner );
    }
 
-   void operator()( const fill_order_operation& op )
-   {
-      _impacted.insert( op.current_owner );
-      _impacted.insert( op.open_owner );
-   }
-
-   void operator()( const fill_transfer_from_savings_operation& op )
-   {
-      _impacted.insert( op.from );
-      _impacted.insert( op.to );
-   }
-
-   void operator()( const return_vesting_delegation_operation& op )
-   {
-      _impacted.insert( op.account );
-   }
-
-   void operator()( const comment_benefactor_reward_operation& op )
-   {
-      _impacted.insert( op.benefactor );
-      _impacted.insert( op.author );
-   }
-
    void operator()( const producer_reward_operation& op )
    {
       _impacted.insert( op.producer );
+   }
+
+   void operator()( const promotion_pool_withdraw_operation& op )
+   {
+      _impacted.insert( op.to_account );
+   }
+
+   void operator()( const witness_update_operation& op)
+   {
+      _impacted.insert( op.owner );
+   }
+
+   void operator()( const witness_stop_operation& op)
+   {
+      _impacted.insert( op.owner );
    }
 
    //void operator()( const operation& op ){}

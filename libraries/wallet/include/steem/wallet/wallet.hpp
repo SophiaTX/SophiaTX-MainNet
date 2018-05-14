@@ -66,8 +66,7 @@ struct wallet_data
 enum authority_type
 {
    owner,
-   active,
-   posting
+   active
 };
 
 namespace detail {
@@ -138,14 +137,6 @@ class wallet_api
       condenser_api::state get_state( string url );
 
       /**
-       * Returns vesting withdraw routes for an account.
-       *
-       * @param account Account to query routes
-       * @param type Withdraw type type [incoming, outgoing, all]
-       */
-      vector< database_api::api_withdraw_vesting_route_object > get_withdraw_routes( string account, condenser_api::withdraw_route_type type = condenser_api::all )const;
-
-      /**
        *  Gets the account information for all accounts for which this wallet has a private key
        */
       vector< condenser_api::api_account_object > list_my_accounts();
@@ -196,7 +187,7 @@ class wallet_api
 
       /**
        *  @param account  - the name of the account to retrieve key for
-       *  @param role     - active | owner | posting | memo
+       *  @param role     - active | owner  | memo
        *  @param password - the password to be used at key generation
        *  @return public key corresponding to generated private key, and private key in WIF format.
        */
@@ -358,7 +349,6 @@ class wallet_api
        * @param json_meta JSON Metadata associated with the new account
        * @param owner public owner key of the new account
        * @param active public active key of the new account
-       * @param posting public posting key of the new account
        * @param memo public memo key of the new account
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -367,56 +357,10 @@ class wallet_api
                                             string json_meta,
                                             public_key_type owner,
                                             public_key_type active,
-                                            public_key_type posting,
                                             public_key_type memo,
                                             bool broadcast )const;
 
-      /**
-       *  This method will genrate new owner, active, and memo keys for the new account which
-       *  will be controlable by this wallet. There is a fee associated with account creation
-       *  that is paid by the creator. The current account creation fee can be found with the
-       *  'info' wallet command.
-       *
-       *  These accounts are created with combination of STEEM and delegated SP
-       *
-       *  @param creator The account creating the new account
-       *  @param steem_fee The amount of the fee to be paid with STEEM
-       *  @param delegated_vests The amount of the fee to be paid with delegation
-       *  @param new_account_name The name of the new account
-       *  @param json_meta JSON Metadata associated with the new account
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction create_account_delegated( string creator, asset steem_fee, asset delegated_vests, string new_account_name, string json_meta, bool broadcast );
 
-      /**
-       * This method is used by faucets to create new accounts for other users which must
-       * provide their desired keys. The resulting account may not be controllable by this
-       * wallet. There is a fee associated with account creation that is paid by the creator.
-       * The current account creation fee can be found with the 'info' wallet command.
-       *
-       * These accounts are created with combination of STEEM and delegated SP
-       *
-       * @param creator The account creating the new account
-       * @param steem_fee The amount of the fee to be paid with STEEM
-       * @param delegated_vests The amount of the fee to be paid with delegation
-       * @param newname The name of the new account
-       * @param json_meta JSON Metadata associated with the new account
-       * @param owner public owner key of the new account
-       * @param active public active key of the new account
-       * @param posting public posting key of the new account
-       * @param memo public memo key of the new account
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction create_account_with_keys_delegated( string creator,
-                                            asset steem_fee,
-                                            asset delegated_vests,
-                                            string newname,
-                                            string json_meta,
-                                            public_key_type owner,
-                                            public_key_type active,
-                                            public_key_type posting,
-                                            public_key_type memo,
-                                            bool broadcast )const;
 
       /**
        * This method updates the keys of an existing account.
@@ -425,7 +369,6 @@ class wallet_api
        * @param json_meta New JSON Metadata to be associated with the account
        * @param owner New public owner key for the account
        * @param active New public active key for the account
-       * @param posting New public posting key for the account
        * @param memo New public memo key for the account
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -433,7 +376,6 @@ class wallet_api
                                          string json_meta,
                                          public_key_type owner,
                                          public_key_type active,
-                                         public_key_type posting,
                                          public_key_type memo,
                                          bool broadcast )const;
 
@@ -441,10 +383,10 @@ class wallet_api
        * This method updates the key of an authority for an exisiting account.
        * Warning: You can create impossible authorities using this method. The method
        * will fail if you create an impossible owner authority, but will allow impossible
-       * active and posting authorities.
+       * active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param key The public key to add to the authority
        * @param weight The weight the key should have in the authority. A weight of 0 indicates the removal of the key.
        * @param broadcast true if you wish to broadcast the transaction.
@@ -455,10 +397,10 @@ class wallet_api
        * This method updates the account of an authority for an exisiting account.
        * Warning: You can create impossible authorities using this method. The method
        * will fail if you create an impossible owner authority, but will allow impossible
-       * active and posting authorities.
+       * active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param auth_account The account to add the the authority
        * @param weight The weight the account should have in the authority. A weight of 0 indicates the removal of the account.
        * @param broadcast true if you wish to broadcast the transaction.
@@ -470,10 +412,10 @@ class wallet_api
        * Warning: You can create impossible authorities using this method as well
        * as implicitly met authorities. The method will fail if you create an implicitly
        * true authority and if you create an impossible owner authoroty, but will allow
-       * impossible active and posting authorities.
+       * impossible active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param threshold The weight threshold required for the authority to be met
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -497,16 +439,6 @@ class wallet_api
        */
       annotated_signed_transaction update_account_memo_key( string account_name, public_key_type key, bool broadcast );
 
-
-      /**
-       * This method delegates VESTS from one account to another.
-       *
-       * @param delegator The name of the account delegating VESTS
-       * @param delegatee The name of the account receiving VESTS
-       * @param vesting_shares The amount of VESTS to delegate
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-       annotated_signed_transaction delegate_vesting_shares( string delegator, string delegatee, asset vesting_shares, bool broadcast );
 
 
       /**
@@ -535,15 +467,6 @@ class wallet_api
        */
       optional< condenser_api::api_witness_object > get_witness(string owner_account);
 
-      /** Returns conversion requests by an account
-       *
-       * @param owner Account name of the account owning the requests
-       *
-       * @returns All pending conversion requests by account
-       */
-      vector< condenser_api::api_convert_request_object > get_conversion_requests( string owner );
-
-
       /**
        * Update a witness object owned by the given account.
        *
@@ -558,6 +481,15 @@ class wallet_api
                                         public_key_type block_signing_key,
                                         const legacy_chain_properties& props,
                                         bool broadcast = false);
+
+      /**
+       * Stop being a witness, effectively deleting the witness object owned by the given account.
+       *
+       * @param witness_name The name of the witness account.
+       * @param broadcast true if you wish to broadcast the transaction.
+       */
+      annotated_signed_transaction stop_witness(string witness_name,
+                                               bool broadcast = false);
 
       /** Set the voting proxy for an account.
        *
@@ -612,7 +544,6 @@ class wallet_api
        * @param to The account the funds are going to
        * @param agent The account acting as the agent in case of dispute
        * @param escrow_id A unique id for the escrow transfer. (from, escrow_id) must be a unique pair
-       * @param sbd_amount The amount of SBD to transfer
        * @param steem_amount The amount of STEEM to transfer
        * @param fee The fee paid to the agent
        * @param ratification_deadline The deadline for 'to' and 'agent' to approve the escrow transfer
@@ -625,7 +556,6 @@ class wallet_api
          string to,
          string agent,
          uint32_t escrow_id,
-         asset sbd_amount,
          asset steem_amount,
          asset fee,
          time_point_sec ratification_deadline,
@@ -684,7 +614,6 @@ class wallet_api
        * @param who The account authorizing the release
        * @param receiver The account that will receive funds being released
        * @param escrow_id A unique id for the escrow transfer
-       * @param sbd_amount The amount of SBD that will be released
        * @param steem_amount The amount of STEEM that will be released
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -695,7 +624,6 @@ class wallet_api
          string who,
          string receiver,
          uint32_t escrow_id,
-         asset sbd_amount,
          asset steem_amount,
          bool broadcast = false
       );
@@ -712,62 +640,26 @@ class wallet_api
        */
       annotated_signed_transaction transfer_to_vesting(string from, string to, asset amount, bool broadcast = false);
 
-      /**
-       *  Transfers into savings happen immediately, transfers from savings take 72 hours
-       */
-      annotated_signed_transaction transfer_to_savings( string from, string to, asset amount, string memo, bool broadcast = false );
-
-      /**
-       *  @param from       - the account that initiated the transfer
-       *  @param request_id - an unique ID assigned by from account, the id is used to cancel the operation and can be reused after the transfer completes
-       *  @param to         - the account getting the transfer
-       *  @param amount     - the amount of assets to be transfered
-       *  @param memo A memo for the transactionm, encrypted with the to account's public memo key
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
+   /**
+    *  @param from       - the account that initiated the transfer
+    *  @param request_id - an unique ID assigned by from account, the id is used to cancel the operation and can be reused after the transfer completes
+    *  @param to         - the account getting the transfer
+    *  @param amount     - the amount of assets to be transfered
+    *  @param memo A memo for the transactionm, encrypted with the to account's public memo key
+    *  @param broadcast true if you wish to broadcast the transaction
+    */
       annotated_signed_transaction transfer_from_savings( string from, uint32_t request_id, string to, asset amount, string memo, bool broadcast = false );
 
-      /**
-       *  @param from the account that initiated the transfer
-       *  @param request_id the id used in transfer_from_savings
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction cancel_transfer_from_savings( string from, uint32_t request_id, bool broadcast = false );
 
-
-      /**
-       * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
-       *
-       * @param from The account the VESTS are withdrawn from
-       * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
-       *    withdrawn and deposited back as STEEM. i.e. "10.000000 VESTS"
-       * @param broadcast true if you wish to broadcast the transaction
-       */
+   /**
+    * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
+    *
+    * @param from The account the VESTS are withdrawn from
+    * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
+    *    withdrawn and deposited back as STEEM. i.e. "10.000000 VESTS"
+    * @param broadcast true if you wish to broadcast the transaction
+    */
       annotated_signed_transaction withdraw_vesting( string from, asset vesting_shares, bool broadcast = false );
-
-      /**
-       * Set up a vesting withdraw route. When vesting shares are withdrawn, they will be routed to these accounts
-       * based on the specified weights.
-       *
-       * @param from The account the VESTS are withdrawn from.
-       * @param to   The account receiving either VESTS or STEEM.
-       * @param percent The percent of the withdraw to go to the 'to' account. This is denoted in hundreths of a percent.
-       *    i.e. 100 is 1% and 10000 is 100%. This value must be between 1 and 100000
-       * @param auto_vest Set to true if the from account should receive the VESTS as VESTS, or false if it should receive
-       *    them as STEEM.
-       * @param broadcast true if you wish to broadcast the transaction.
-       */
-      annotated_signed_transaction set_withdraw_vesting_route( string from, string to, uint16_t percent, bool auto_vest, bool broadcast = false );
-
-      /**
-       *  This method will convert SBD to STEEM at the current_median_history price one
-       *  week from the time it is executed. This method depends upon there being a valid price feed.
-       *
-       *  @param from The account requesting conversion of its SBD i.e. "1.000 SBD"
-       *  @param amount The amount of SBD to convert
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction convert_sbd( string from, asset amount, bool broadcast = false );
 
       /**
        * A witness can public a price feed for the STEEM:SBD market. The median price feed is used
@@ -806,61 +698,6 @@ class wallet_api
        * @return a default-constructed operation of the given type
        */
       operation get_prototype_operation(string operation_type);
-
-      /**
-       * Gets the current order book for STEEM:SBD
-       *
-       * @param limit Maximum number of orders to return for bids and asks. Max is 1000.
-       */
-      condenser_api::get_order_book_return get_order_book( uint32_t limit = 1000 );
-      vector< condenser_api::api_limit_order_object > get_open_orders( string accountname );
-
-      /**
-       *  Creates a limit order at the price amount_to_sell / min_to_receive and will deduct amount_to_sell from account
-       *
-       *  @param owner The name of the account creating the order
-       *  @param order_id is a unique identifier assigned by the creator of the order, it can be reused after the order has been filled
-       *  @param amount_to_sell The amount of either SBD or STEEM you wish to sell
-       *  @param min_to_receive The amount of the other asset you will receive at a minimum
-       *  @param fill_or_kill true if you want the order to be killed if it cannot immediately be filled
-       *  @param expiration the time the order should expire if it has not been filled
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction create_order( string owner, uint32_t order_id, asset amount_to_sell, asset min_to_receive, bool fill_or_kill, uint32_t expiration, bool broadcast );
-
-      /**
-       * Cancel an order created with create_order
-       *
-       * @param owner The name of the account owning the order to cancel_order
-       * @param orderid The unique identifier assigned to the order by its creator
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction cancel_order( string owner, uint32_t orderid, bool broadcast );
-
-      /**
-       *  Post or update a comment.
-       *
-       *  @param author the name of the account authoring the comment
-       *  @param permlink the accountwide unique permlink for the comment
-       *  @param parent_author can be null if this is a top level comment
-       *  @param parent_permlink becomes category if parent_author is ""
-       *  @param title the title of the comment
-       *  @param body the body of the comment
-       *  @param json the json metadata of the comment
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction post_comment( string author, string permlink, string parent_author, string parent_permlink, string title, string body, string json, bool broadcast );
-
-      /**
-       * Vote on a comment to be paid STEEM
-       *
-       * @param voter The account voting
-       * @param author The author of the comment to be voted on
-       * @param permlink The permlink of the comment to be voted on. (author, permlink) is a unique pair
-       * @param weight The weight [-100,100] of the vote
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction vote( string voter, string author, string permlink, int16_t weight, bool broadcast );
 
       /**
        * Sets the amount of time in the future until a transaction expires.
@@ -915,16 +752,6 @@ class wallet_api
       map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
 
 
-      FC_TODO(Supplement API argument description)
-      /**
-       *  Marks one account as following another account.  Requires the posting authority of the follower.
-       *
-       *  @param follower
-       *  @param following
-       *  @param what - a set of things to follow: posts, comments, votes, ignore
-       *  @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction follow( string follower, string following, set<string> what, bool broadcast );
 
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
@@ -948,9 +775,6 @@ class wallet_api
        */
       string decrypt_memo( string memo );
 
-      annotated_signed_transaction decline_voting_rights( string account, bool decline, bool broadcast );
-
-      annotated_signed_transaction claim_reward_balance( string account, asset reward_steem, asset reward_sbd, asset reward_vests, bool broadcast );
 };
 
 struct plain_keys {
@@ -971,7 +795,7 @@ FC_REFLECT( steem::wallet::brain_key_info, (brain_priv_key)(wif_priv_key) (pub_k
 
 FC_REFLECT( steem::wallet::plain_keys, (checksum)(keys) )
 
-FC_REFLECT_ENUM( steem::wallet::authority_type, (owner)(active)(posting) )
+FC_REFLECT_ENUM( steem::wallet::authority_type, (owner)(active) )
 
 FC_API( steem::wallet::wallet_api,
         /// wallet api
@@ -997,27 +821,21 @@ FC_API( steem::wallet::wallet_api,
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
-        (get_conversion_requests)
         (get_account_history)
         (get_state)
-        (get_withdraw_routes)
 
         /// transaction api
         (create_account)
         (create_account_with_keys)
-        (create_account_delegated)
-        (create_account_with_keys_delegated)
         (update_account)
         (update_account_auth_key)
         (update_account_auth_account)
         (update_account_auth_threshold)
         (update_account_meta)
         (update_account_memo_key)
-        (delegate_vesting_shares)
         (update_witness)
         (set_voting_proxy)
         (vote_for_witness)
-        (follow)
         (transfer)
         (escrow_transfer)
         (escrow_approve)
@@ -1025,27 +843,14 @@ FC_API( steem::wallet::wallet_api,
         (escrow_release)
         (transfer_to_vesting)
         (withdraw_vesting)
-        (set_withdraw_vesting_route)
-        (convert_sbd)
         (publish_feed)
-        (get_order_book)
-        (get_open_orders)
-        (create_order)
-        (cancel_order)
-        (post_comment)
-        (vote)
         (set_transaction_expiration)
         (request_account_recovery)
         (recover_account)
         (change_recovery_account)
         (get_owner_history)
-        (transfer_to_savings)
-        (transfer_from_savings)
-        (cancel_transfer_from_savings)
         (get_encrypted_memo)
         (decrypt_memo)
-        (decline_voting_rights)
-        (claim_reward_balance)
 
         /// helper api
         (get_prototype_operation)

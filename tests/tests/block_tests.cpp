@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifdef IS_TEST_NET
+//#ifdef IS_TEST_NET
 #include <boost/test/unit_test.hpp>
 
 #include <steem/protocol/exceptions.hpp>
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
       signed_block b;
 
       // TODO:  Don't generate this here
-      auto init_account_priv_key = fc::ecc::private_key::regenerate( fc::sha256::hash( string( "init_key" ) ) );
+      fc::ecc::private_key init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       signed_block cutoff_block;
       {
          database db;
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE( undo_block )
          fc::time_point_sec now( STEEM_TESTING_GENESIS_TIMESTAMP );
          std::vector< time_point_sec > time_stack;
 
-         auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("init_key")) );
+         fc::ecc::private_key  init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
          for( uint32_t i = 0; i < 5; ++i )
          {
             now = db.get_slot_time(1);
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
       db2._log_hardforks = false;
       open_test_database( db2, data_dir2.path() );
 
-      auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("init_key")) );
+      fc::ecc::private_key init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       for( uint32_t i = 0; i < 10; ++i )
       {
          auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       db2._log_hardforks = false;
       open_test_database( db2, dir2.path() );
 
-      auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("init_key")) );
+      fc::ecc::private_key init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       public_key_type init_account_pub_key  = init_account_priv_key.get_public_key();
       db1.get_index< account_index >();
 
@@ -254,6 +254,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.creator = STEEM_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
+      cop.fee = asset(300, STEEM_SYMBOL);
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1.get_chain_id() );
@@ -305,7 +306,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       auto skip_sigs = database::skip_transaction_signatures | database::skip_authority_check;
 
-      auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("init_key")) );
+      fc::ecc::private_key init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       public_key_type init_account_pub_key  = init_account_priv_key.get_public_key();
 
       signed_transaction trx;
@@ -314,6 +315,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       cop.creator = STEEM_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
+      cop.fee = asset(300, STEEM_SYMBOL);
+
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1.get_chain_id() );
@@ -352,7 +355,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       db1._log_hardforks = false;
       open_test_database( db1, dir1.path() );
 
-      auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("init_key")) );
+      fc::ecc::private_key init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       public_key_type init_account_pub_key  = init_account_priv_key.get_public_key();
 
       auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing);
@@ -368,6 +371,8 @@ BOOST_AUTO_TEST_CASE( tapos )
       cop.creator = STEEM_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
+      cop.fee = asset(300, STEEM_SYMBOL);
+
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1.get_chain_id() );
@@ -522,7 +527,7 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, clean_database_fixture )
          );
 
       // Sam is the creator of accounts
-      auto init_account_priv_key  = fc::ecc::private_key::regenerate(fc::sha256::hash(string("init_key")) );
+      fc::ecc::private_key init_account_priv_key = *(steem::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       private_key_type sam_key = generate_private_key( "sam" );
       account_object sam_account_object = account_create( "sam", sam_key.get_public_key() );
 
@@ -761,7 +766,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
 
       BOOST_TEST_MESSAGE( "Check hardfork not applied at genesis" );
       BOOST_REQUIRE( db->has_hardfork( 0 ) );
-      BOOST_REQUIRE( !db->has_hardfork( STEEM_HARDFORK_0_1 ) );
+      /*BOOST_REQUIRE( !db->has_hardfork( STEEM_HARDFORK_0_1 ) );
 
       BOOST_TEST_MESSAGE( "Generate blocks up to the hardfork time and check hardfork still not applied" );
       generate_blocks( fc::time_point_sec( STEEM_HARDFORK_0_1_TIME - STEEM_BLOCK_INTERVAL ), true );
@@ -792,10 +797,10 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       BOOST_REQUIRE( get_last_operations( 1 )[0].get< custom_operation >().data == vector< char >( op_msg.begin(), op_msg.end() ) );
       BOOST_REQUIRE( db->get(itr->op).timestamp == db->head_block_time() - STEEM_BLOCK_INTERVAL );
 
-      db->wipe( data_dir->path(), data_dir->path(), true );
+      db->wipe( data_dir->path(), data_dir->path(), true );*/
    }
    FC_LOG_AND_RETHROW()
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif
+//#endif

@@ -4,16 +4,24 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'ciscripts/triggerbuild.sh'
+        sh 'cmake -DBOOST_ROOT=$BOOST_160 -DOPENSSL_ROOT_DIR=$OPENSSL_102'
+        sh 'make -j4'
+      }
+    }
+    stage('Clean WS') {
+      steps {
+        cleanWs()
       }
     }
   }
   post {
     success {
-      sh 'ciscripts/buildsuccess.sh'
+      echo 'TODO'
+      //sh 'ciscripts/buildsuccess.sh'
     }
     failure {
-      sh 'ciscripts/buildfailure.sh'
+      echo 'TODO'
+      //sh 'ciscripts/buildfailure.sh'
       slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     }
   }

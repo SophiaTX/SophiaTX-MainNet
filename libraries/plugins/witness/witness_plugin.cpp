@@ -3,7 +3,6 @@
 
 #include <steem/chain/database_exceptions.hpp>
 #include <steem/chain/account_object.hpp>
-#include <steem/chain/comment_object.hpp>
 #include <steem/chain/witness_objects.hpp>
 #include <steem/chain/index.hpp>
 
@@ -58,8 +57,6 @@ namespace detail {
       void pre_operation( const chain::operation_notification& note );
       void on_block( const signed_block& b );
 
-      void update_account_bandwidth( const chain::account_object& a, uint32_t trx_size, const bandwidth_type type );
-
       void schedule_production_loop();
       block_production_condition::block_production_condition_enum block_production_loop();
       block_production_condition::block_production_condition_enum maybe_produce_block(fc::mutable_variant_object& capture);
@@ -78,29 +75,6 @@ namespace detail {
       boost::signals2::connection   on_pre_apply_transaction_connection;
    };
 
-   struct comment_options_extension_visitor
-   {
-      comment_options_extension_visitor( const comment_object& c, const database& db ) : _c( c ), _db( db ) {}
-
-      typedef void result_type;
-
-      const comment_object& _c;
-      const database& _db;
-
-#ifdef STEEM_ENABLE_SMT
-      void operator()( const allowed_vote_assets& va) const
-      {
-         FC_TODO("To be implemented  suppport for allowed_vote_assets");
-      }
-#endif
-
-      void operator()( const comment_payout_beneficiaries& cpb )const
-      {
-         STEEM_ASSERT( cpb.beneficiaries.size() <= 8,
-            plugin_exception,
-            "Cannot specify more than 8 beneficiaries." );
-      }
-   };
 
    void check_memo( const string& memo, const chain::account_object& account, const account_authority_object& auth )
    {
@@ -142,13 +116,6 @@ namespace detail {
                "Detected private active key in memo field. You should change your active keys." );
       }
 
-      for( auto& key_weight_pair : auth.posting.key_auths )
-      {
-         for( auto& key : keys )
-            STEEM_ASSERT( key_weight_pair.first != key,  plugin_exception,
-               "Detected private posting key in memo field. You should change your posting keys." );
-      }
-
       const auto& memo_key = account.memo_key;
       for( auto& key : keys )
          STEEM_ASSERT( memo_key != key,  plugin_exception,
@@ -166,31 +133,6 @@ namespace detail {
       template< typename T >
       void operator()( const T& )const {}
 
-      void operator()( const comment_options_operation& o )const
-      {
-         const auto& comment = _db.get_comment( o.author, o.permlink );
-
-         comment_options_extension_visitor v( comment, _db );
-
-         for( auto& e : o.extensions )
-         {
-            e.visit( v );
-         }
-      }
-
-      void operator()( const comment_operation& o )const
-      {
-         if( o.parent_author != STEEM_ROOT_POST_PARENT )
-         {
-            const auto& parent = _db.find_comment( o.parent_author, o.parent_permlink );
-
-            if( parent != nullptr )
-            STEEM_ASSERT( parent->depth < STEEM_SOFT_MAX_COMMENT_DEPTH,
-               plugin_exception,
-               "Comment is nested ${x} posts deep, maximum depth is ${y}.", ("x",parent->depth)("y",STEEM_SOFT_MAX_COMMENT_DEPTH) );
-         }
-      }
-
       void operator()( const transfer_operation& o )const
       {
          if( o.memo.length() > 0 )
@@ -199,45 +141,16 @@ namespace detail {
                         _db.get< account_authority_object, chain::by_account >( o.from ) );
       }
 
-      void operator()( const transfer_to_savings_operation& o )const
-      {
-         if( o.memo.length() > 0 )
-            check_memo( o.memo,
-                        _db.get< chain::account_object, chain::by_name >( o.from ),
-                        _db.get< account_authority_object, chain::by_account >( o.from ) );
-      }
-
-      void operator()( const transfer_from_savings_operation& o )const
-      {
-         if( o.memo.length() > 0 )
-            check_memo( o.memo,
-                        _db.get< chain::account_object, chain::by_name >( o.from ),
-                        _db.get< account_authority_object, chain::by_account >( o.from ) );
-      }
    };
 
    void witness_plugin_impl::pre_transaction( const steem::protocol::signed_transaction& trx )
    {
       flat_set< account_name_type > required; vector<authority> other;
-      trx.get_required_authorities( required, required, required, other );
+      trx.get_required_authorities( required, required, other );
 
       auto trx_size = fc::raw::pack_size(trx);
 
-      for( const auto& auth : required )
-      {
-         const auto& acnt = _db.get_account( auth );
-
-         update_account_bandwidth( acnt, trx_size, bandwidth_type::forum );
-
-         for( const auto& op : trx.operations )
-         {
-            if( is_market_operation( op ) )
-            {
-               update_account_bandwidth( acnt, trx_size * 10, bandwidth_type::market );
-               break;
-            }
-         }
-      }
+      //TODO_SOPHIA - rework to evaluate if the fee is corresponding to the requirements.
    }
 
    void witness_plugin_impl::pre_operation( const chain::operation_notification& note )
@@ -324,60 +237,6 @@ namespace detail {
    } FC_LOG_AND_RETHROW() }
    #pragma message( "Remove FC_LOG_AND_RETHROW here before appbase release. It exists to help debug a rare lock exception" )
 
-   void witness_plugin_impl::update_account_bandwidth( const chain::account_object& a, uint32_t trx_size, const bandwidth_type type )
-   {
-      const auto& props = _db.get_dynamic_global_properties();
-      bool has_bandwidth = true;
-
-      if( props.total_vesting_shares.amount > 0 )
-      {
-         auto band = _db.find< account_bandwidth_object, by_account_bandwidth_type >( boost::make_tuple( a.name, type ) );
-
-         if( band == nullptr )
-         {
-            band = &_db.create< account_bandwidth_object >( [&]( account_bandwidth_object& b )
-            {
-               b.account = a.name;
-               b.type = type;
-            });
-         }
-
-         share_type new_bandwidth;
-         share_type trx_bandwidth = trx_size * STEEM_BANDWIDTH_PRECISION;
-         auto delta_time = ( _db.head_block_time() - band->last_bandwidth_update ).to_seconds();
-
-         if( delta_time > STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS )
-            new_bandwidth = 0;
-         else
-            new_bandwidth = ( ( ( STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS - delta_time ) * fc::uint128( band->average_bandwidth.value ) )
-               / STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS ).to_uint64();
-
-         new_bandwidth += trx_bandwidth;
-
-         _db.modify( *band, [&]( account_bandwidth_object& b )
-         {
-            b.average_bandwidth = new_bandwidth;
-            b.lifetime_bandwidth += trx_bandwidth;
-            b.last_bandwidth_update = _db.head_block_time();
-         });
-
-         fc::uint128 account_vshares( a.effective_vesting_shares().amount.value );
-         fc::uint128 total_vshares( props.total_vesting_shares.amount.value );
-         fc::uint128 account_average_bandwidth( band->average_bandwidth.value );
-         fc::uint128 max_virtual_bandwidth( _db.get( reserve_ratio_id_type() ).max_virtual_bandwidth );
-
-         has_bandwidth = ( account_vshares * max_virtual_bandwidth ) > ( account_average_bandwidth * total_vshares );
-
-         if( _db.is_producing() )
-            STEEM_ASSERT( has_bandwidth,  plugin_exception,
-               "Account: ${account} bandwidth limit exceeded. Please wait to transact or power up STEEM.",
-               ("account", a.name)
-               ("account_vshares", account_vshares)
-               ("account_average_bandwidth", account_average_bandwidth)
-               ("max_virtual_bandwidth", max_virtual_bandwidth)
-               ("total_vesting_shares", total_vshares) );
-      }
-   }
 
    void witness_plugin_impl::schedule_production_loop() {
       //Schedule for the next second's tick regardless of chain state
@@ -426,10 +285,10 @@ namespace detail {
       switch(result)
       {
          case block_production_condition::produced:
-            ilog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
+            elog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
             break;
          case block_production_condition::not_synced:
-   //         ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
+            elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
             break;
          case block_production_condition::not_my_turn:
    //         ilog("Not producing block because it isn't my turn");
@@ -550,7 +409,7 @@ void witness_plugin::set_program_options(
    string witness_id_example = "initwitness";
    cfg.add_options()
          ("enable-stale-production", bpo::bool_switch()->default_value(false), "Enable block production, even if the chain is stale.")
-         ("required-participation", bpo::value< uint32_t >()->default_value( 33 ), "Percent of witnesses (0-99) that must be participating in order to produce blocks")
+         ("required-participation", bpo::value< uint32_t >()->default_value( 67 ), "Percent of witnesses (0-99) that must be participating in order to produce blocks")
          ("witness,w", bpo::value<vector<string>>()->composing()->multitoken(),
             ("name of witness controlled by this node (e.g. " + witness_id_example + " )" ).c_str() )
          ("private-key", bpo::value<vector<string>>()->composing()->multitoken(), "WIF PRIVATE KEY to be used by one or more witnesses or miners" )

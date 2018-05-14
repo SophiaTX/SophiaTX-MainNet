@@ -9,7 +9,7 @@
 // This is checked by get_config_check.sh called from Dockerfile
 
 #ifdef IS_TEST_NET
-#define STEEM_BLOCKCHAIN_VERSION              ( version(0, 21, 0) )
+#define STEEM_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
 #define STEEM_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define STEEM_INIT_PUBLIC_KEY_STR             (std::string( steem::protocol::public_key_type(STEEM_INIT_PRIVATE_KEY.get_public_key()) ))
@@ -42,15 +42,15 @@
 
 #else // IS LIVE STEEM NETWORK
 
-#define STEEM_BLOCKCHAIN_VERSION              ( version(0, 19, 4) )
+#define STEEM_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-#define STEEM_INIT_PUBLIC_KEY_STR             "STM8GC13uCZbP44HzMLV6zPZGwVQ8Nt4Kji8PapsPiNq1BK153XTX"
+#define STEEM_INIT_PUBLIC_KEY_STR             "STM8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
 #define STEEM_CHAIN_ID_NAME ""
 #define STEEM_CHAIN_ID fc::sha256()
 #define STEEM_ADDRESS_PREFIX                  "STM"
 
-#define STEEM_GENESIS_TIME                    (fc::time_point_sec(1458835200))
-#define STEEM_MINING_TIME                     (fc::time_point_sec(1458838800))
+#define STEEM_GENESIS_TIME                    (fc::time_point_sec(1524563000))
+#define STEEM_MINING_TIME                     (fc::time_point_sec(1524563200))
 #define STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF12 (60*60*24)    /// 1 day
 #define STEEM_CASHOUT_WINDOW_SECONDS_PRE_HF17 (60*60*12)    /// 12 hours
 #define STEEM_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days
@@ -64,15 +64,24 @@
 #define STEEM_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
 #define STEEM_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
 #define STEEM_OWNER_UPDATE_LIMIT                          fc::minutes(60)
-#define STEEM_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 3186477
 
-#define STEEM_INIT_SUPPLY                     int64_t(0)
+#define STEEM_INIT_SUPPLY                     int64_t(350000000000000)
+#define STEEM_TOTAL_SUPPLY                    int64_t(500000000000000)
 
 #endif
 
-#define VESTS_SYMBOL  (steem::protocol::asset_symbol_type::from_asset_num( STEEM_ASSET_NUM_VESTS ) )
-#define STEEM_SYMBOL  (steem::protocol::asset_symbol_type::from_asset_num( STEEM_ASSET_NUM_STEEM ) )
-#define SBD_SYMBOL    (steem::protocol::asset_symbol_type::from_asset_num( STEEM_ASSET_NUM_SBD ) )
+#define SOPHIATX_DECIMALS (6)
+#define SOPHIATX_SATOSHIS uint64_t(1000000)
+#define SOPHIATX_PROMOTION_POOL_PERCENTAGE (1000)
+#define SOPHIATX_MINING_POOL_PERCENTAGE (2500)
+#define SOPHIATX_INTEREST_POOL_PERCENTAGE (6500)
+#define SOPHIATX_COINBASE_YEARS (20)
+#define SOPHIATX_COINBASE_BLOCKS ( STEEM_BLOCKS_PER_YEAR * SOPHIATX_COINBASE_YEARS )
+#define SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 0 )
+
+#define VESTS_SYMBOL  ( steem::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
+#define STEEM_SYMBOL  ( steem::protocol::asset_symbol_type( STEEM_SYMBOL_SER ) )
+#define SBD_SYMBOL    ( steem::protocol::asset_symbol_type( SBD_SYMBOL_SER ) )
 
 #define STEEM_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( STEEM_BLOCKCHAIN_VERSION ) )
 
@@ -89,12 +98,10 @@
 #define STEEM_MAX_WITNESSES                   21
 
 #define STEEM_MAX_VOTED_WITNESSES_HF0         19
-#define STEEM_MAX_MINER_WITNESSES_HF0         1
-#define STEEM_MAX_RUNNER_WITNESSES_HF0        1
+#define STEEM_MAX_MINER_WITNESSES_HF0         0
+#define STEEM_MAX_RUNNER_WITNESSES_HF0        2
 
-#define STEEM_MAX_VOTED_WITNESSES_HF17        20
-#define STEEM_MAX_MINER_WITNESSES_HF17        0
-#define STEEM_MAX_RUNNER_WITNESSES_HF17       1
+
 
 #define STEEM_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 21 dpos witnesses (20 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define STEEM_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
@@ -163,10 +170,6 @@
 #define STEEM_ACTIVE_CHALLENGE_COOLDOWN       fc::days(1)
 #define STEEM_OWNER_CHALLENGE_COOLDOWN        fc::days(1)
 
-#define STEEM_POST_REWARD_FUND_NAME           ("post")
-#define STEEM_COMMENT_REWARD_FUND_NAME        ("comment")
-#define STEEM_RECENT_RSHARES_DECAY_TIME_HF17    (fc::days(30))
-#define STEEM_RECENT_RSHARES_DECAY_TIME_HF19    (fc::days(15))
 #define STEEM_CONTENT_CONSTANT_HF0            (uint128_t(uint64_t(2000000000000ll)))
 // note, if redefining these constants make sure calculate_claims doesn't overflow
 

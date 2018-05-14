@@ -12,6 +12,10 @@ namespace steem { namespace protocol {
       asset()
          :amount(0),symbol(STEEM_SYMBOL){}
 
+
+      string to_string()const;
+      static asset from_string( const string& from );
+
       share_type        amount;
       asset_symbol_type symbol;
 
