@@ -54,19 +54,29 @@ void copy_legacy_chain_properties( chain_properties& dest, const legacy_chain_pr
    dest.maximum_block_size = src.maximum_block_size;
 }
 
+
+void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
+   _db.get_account( o.owner );
+   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   auto wit_itr = by_witness_name_idx.find( o.owner );
+   if( wit_itr != by_witness_name_idx.end() )
+   {
+      _db.modify(*wit_itr, [&]( witness_object& w ) {
+         w.stopped = true;
+      });
+   }
+}
+
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
-   _db.get_account( o.owner ); // verify owner exists
+   const account_object& acn = _db.get_account( o.owner ); // verify owner exists
+   FC_ASSERT( acn.vesting_shares.amount >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, "witness requires at least ${a} of vested balance", ("a", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE) );
 
    if( _db.is_producing() )
    {
       FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
    }
 
-   if( _db.is_producing() )
-   {
-      FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
-   }
 
    const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
@@ -453,8 +463,15 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
    const auto& to_account = o.to.size() ? _db.get_account(o.to) : from_account;
 
    FC_ASSERT( _db.get_balance( from_account, STEEM_SYMBOL) >= o.amount, "Account does not have sufficient STEEM for transfer." );
-   _db.adjust_balance( from_account, -o.amount );
-   _db.create_vesting( to_account, o.amount );
+
+   if( from_account.id == to_account.id )
+      _db.vest( from_account, o.amount.amount );
+   else {
+      _db.adjust_balance(o.from, -o.amount);
+      _db.adjust_balance(o.to, o.amount);
+      _db.vest(to_account, o.amount.amount);
+   }
+
 }
 
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
@@ -493,6 +510,9 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS);
          a.to_withdraw = o.vesting_shares.amount;
          a.withdrawn = 0;
+
+         auto wit = _db.find_witness( o. account );
+         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       });
    }
 }
@@ -505,7 +525,7 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
 
    /// remove all current votes
    std::array<share_type, STEEM_MAX_PROXY_RECURSION_DEPTH+1> delta;
-   delta[0] = -account.vesting_shares.amount;
+   delta[0] = -account.total_balance();
    for( int i = 0; i < STEEM_MAX_PROXY_RECURSION_DEPTH; ++i )
       delta[i+1] = -account.proxied_vsf_votes[i];
    _db.adjust_proxied_witness_votes( account, delta );

@@ -162,8 +162,10 @@ live_database_fixture::live_database_fixture()
       FC_ASSERT( fc::exists( _chain_dir ), "Requires blockchain to test on in ./test_blockchain" );
 
       appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
+
       appbase::app().initialize<
-         steem::plugins::account_history::account_history_plugin
+         steem::plugins::account_history::account_history_plugin, steem::plugins::debug_node::debug_node_plugin
          >( argc, argv );
 
       db = &appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
@@ -251,7 +253,7 @@ void database_fixture::open_database()
       args.data_dir = data_dir->path();
       args.shared_mem_dir = args.data_dir;
       args.initial_supply = INITIAL_TEST_SUPPLY;
-      args.shared_file_size = 1024 * 1024 * 8;     // 8MB file for testing
+      args.shared_file_size = 1024 * 1024 * 128;     // 8MB file for testing
       db->open(args);
    }
 }
@@ -427,39 +429,30 @@ void database_fixture::transfer(
    } FC_CAPTURE_AND_RETHROW( (from)(to)(amount) )
 }
 
-void database_fixture::vest( const string& from, const share_type& amount )
+void database_fixture::vest( const string& account_name, const share_type& amount )
 {
-   try
-   {
-      transfer_to_vesting_operation op;
-      op.from = from;
-      op.to = "";
-      op.amount = asset( amount, STEEM_SYMBOL );
 
-      trx.operations.push_back( op );
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
-      trx.validate();
-      db->push_transaction( trx, ~0 );
-      trx.operations.clear();
-   } FC_CAPTURE_AND_RETHROW( (from)(amount) )
+   vest(account_name, asset(amount, STEEM_SYMBOL));
 }
 
-void database_fixture::vest( const string& account, const asset& amount )
+void database_fixture::vest( const string& account_name, const asset& amount )
 {
    if( amount.symbol != STEEM_SYMBOL )
       return;
 
-   db_plugin->debug_update( [=]( database& db )
+   try
    {
-      db.modify( db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
-      {
-         gpo.current_supply += amount;
-      });
+      transfer_to_vesting_operation op;
+      op.from = account_name;
+      op.to = account_name;
+      op.amount = amount;
+      trx.operations.push_back( op );
+      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.validate();
 
-      db.create_vesting( db.get_account( account ), amount );
-
-      db.update_virtual_supply();
-   }, default_skip );
+      db->push_transaction( trx, ~0 );
+      trx.operations.clear();
+   } FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
 }
 
 void database_fixture::proxy( const string& account, const string& proxy )
@@ -470,6 +463,8 @@ void database_fixture::proxy( const string& account, const string& proxy )
       op.account = account;
       op.proxy = proxy;
       trx.operations.push_back( op );
+      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+
       db->push_transaction( trx, ~0 );
       trx.operations.clear();
    } FC_CAPTURE_AND_RETHROW( (account)(proxy) )

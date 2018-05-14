@@ -287,8 +287,9 @@ namespace steem { namespace chain {
           */
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
-         asset create_vesting( const account_object& to_account, asset steem, bool to_reward_balance=false );
+         void        vest( const account_name_type& name, const share_type delta);
 
+         void        vest( const account_object& a, const share_type delta);
          void        adjust_balance( const account_object& a, const asset& delta );
          void        adjust_balance( const account_name_type& name, const asset& delta );
          void        adjust_supply( const asset& delta );

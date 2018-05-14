@@ -1439,6 +1439,22 @@ annotated_signed_transaction wallet_api::update_witness( string witness_account_
    return my->sign_transaction( tx, broadcast );
 }
 
+annotated_signed_transaction wallet_api::stop_witness( string witness_account_name,
+                                                         bool broadcast  )
+{
+   FC_ASSERT( !is_locked() );
+
+   witness_stop_operation op;
+
+   op.owner = witness_account_name;
+
+   signed_transaction tx;
+   tx.operations.push_back(op);
+   tx.validate();
+
+   return my->sign_transaction( tx, broadcast );
+}
+
 annotated_signed_transaction wallet_api::vote_for_witness(string voting_account, string witness_to_vote_for, bool approve, bool broadcast )
 { try {
    FC_ASSERT( !is_locked() );

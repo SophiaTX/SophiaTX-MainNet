@@ -48,6 +48,7 @@ namespace steem { namespace protocol {
             claim_reward_balance2_operation,
 #endif
             witness_set_properties_operation,
+            witness_stop_operation,
 
 #ifdef STEEM_ENABLE_SMT
             /// SMT operations

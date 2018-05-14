@@ -134,6 +134,16 @@ struct get_impacted_account_visitor
       _impacted.insert( op.to_account );
    }
 
+   void operator()( const witness_update_operation& op)
+   {
+      _impacted.insert( op.owner );
+   }
+
+   void operator()( const witness_stop_operation& op)
+   {
+      _impacted.insert( op.owner );
+   }
+
    //void operator()( const operation& op ){}
 };
 

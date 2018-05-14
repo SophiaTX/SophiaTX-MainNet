@@ -42,10 +42,7 @@ namespace steem { namespace chain {
          asset       total_vesting_shares       = asset( 0, VESTS_SYMBOL );
          asset       total_reward_fund    = asset( 0, STEEM_SYMBOL );
 
-         price       get_vesting_share_price() const
-         {
-            return price ( asset( 1, STEEM_SYMBOL ), asset( 1, VESTS_SYMBOL ) );
-         }
+
 
 
          /**

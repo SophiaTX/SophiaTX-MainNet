@@ -120,7 +120,7 @@ namespace steem { namespace chain {
          fc::uint128       virtual_scheduled_time = fc::uint128::max_value();
          ///@}
 
-         digest_type       last_work;
+         bool              stopped = false;
 
          /**
           * This field represents the Steem blockchain version the witness is running.
@@ -181,8 +181,7 @@ namespace steem { namespace chain {
 
    struct by_vote_name;
    struct by_name;
-   struct by_pow;
-   struct by_work;
+   struct by_stopped;
    struct by_schedule_time;
    /**
     * @ingroup object_index
@@ -191,7 +190,7 @@ namespace steem { namespace chain {
       witness_object,
       indexed_by<
          ordered_unique< tag< by_id >, member< witness_object, witness_id_type, &witness_object::id > >,
-         ordered_non_unique< tag< by_work >, member< witness_object, digest_type, &witness_object::last_work > >,
+         ordered_non_unique< tag< by_stopped >, member< witness_object, bool, &witness_object::stopped > >,
          ordered_unique< tag< by_name >, member< witness_object, account_name_type, &witness_object::owner > >,
          ordered_unique< tag< by_vote_name >,
             composite_key< witness_object,
@@ -260,7 +259,7 @@ FC_REFLECT( steem::chain::witness_object,
              (last_aslot)(last_confirmed_block_num)(signing_key)
              (props)
              (sbd_exchange_rate)(last_sbd_exchange_update)
-             (last_work)
+             (stopped)
              (running_version)
              (hardfork_version_vote)(hardfork_time_vote)
           )

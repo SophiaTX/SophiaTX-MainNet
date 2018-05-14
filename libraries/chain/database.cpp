@@ -954,48 +954,25 @@ uint32_t database::get_slot_at_time(fc::time_point_sec when)const
    return (when - first_slot_time).to_seconds() / STEEM_BLOCK_INTERVAL + 1;
 }
 
+void  database::vest( const account_name_type& name, const share_type delta)
+{try{
+   const auto& a = get_account(name);
+   vest(a, delta);
+}FC_LOG_AND_RETHROW() }
 
-//TODO_SOPHIA - rework!!!
-/**
- * @param to_account - the account to receive the new vesting shares
- * @param STEEM - STEEM to be converted to vesting shares
- */
-asset database::create_vesting( const account_object& to_account, asset steem, bool to_reward_balance )
+void database::vest(const account_object& a, const share_type delta)
 {
-   try
+   FC_ASSERT(a.balance.amount >= delta);
+   modify(a, [&](account_object& ao){
+      ao.balance.amount -= delta;
+      ao.vesting_shares.amount += delta;
+   });
+   const auto& cprops = get_dynamic_global_properties();
+
+   modify( cprops, [&]( dynamic_global_property_object& o )
    {
-      const auto& cprops = get_dynamic_global_properties();
-
-      /**
-       *  The ratio of total_vesting_shares / total_vesting_fund_steem should not
-       *  change as the result of the user adding funds
-       *
-       *  V / C  = (V+Vn) / (C+Cn)
-       *
-       *  Simplifies to Vn = (V * Cn ) / C
-       *
-       *  If Cn equals o.amount, then we must solve for Vn to know how many new vesting shares
-       *  the user should receive.
-       *
-       *  128 bit math is requred due to multiplying of 64 bit numbers. This is done in asset and price.
-       */
-      asset new_vesting = steem * ( cprops.get_vesting_share_price() );
-
-      modify( to_account, [&]( account_object& to )
-      {
-         to.vesting_shares += new_vesting;
-      } );
-
-      modify( cprops, [&]( dynamic_global_property_object& props )
-      {
-         props.total_vesting_shares += new_vesting;
-      } );
-
-      adjust_proxied_witness_votes(to_account, new_vesting.amount);
-
-      return new_vesting;
-   }
-   FC_CAPTURE_AND_RETHROW( (to_account.name)(steem) )
+        o.total_vesting_shares.amount += delta;
+   });
 }
 
 void database::adjust_proxied_witness_votes( const account_object& a,
@@ -1073,7 +1050,7 @@ void database::adjust_witness_vote( const witness_object& witness, share_type de
 
       w.virtual_last_update = wso.current_virtual_time;
       w.votes += delta;
-      FC_ASSERT( w.votes <= get_dynamic_global_properties().total_vesting_shares.amount, "", ("w.votes", w.votes)("props",get_dynamic_global_properties().total_vesting_shares) );
+
 
       w.virtual_scheduled_time = w.virtual_last_update + (STEEM_VIRTUAL_SCHEDULE_LAP_LENGTH2 - w.virtual_position)/(w.votes.value+1);
       /** witnesses with a low number of votes could overflow the time field and end up with a scheduled time in the past */
@@ -1116,7 +1093,7 @@ void database::clear_null_account_balance()
    if( null_account.vesting_shares.amount > 0 )
    {
       const auto& gpo = get_dynamic_global_properties();
-      auto converted_steem = null_account.vesting_shares * gpo.get_vesting_share_price();
+      auto converted_steem = null_account.vesting_shares;
 
       modify( gpo, [&]( dynamic_global_property_object& g )
       {
@@ -1128,7 +1105,7 @@ void database::clear_null_account_balance()
          a.vesting_shares.amount = 0;
       });
 
-      total_steem += converted_steem;
+      total_steem.amount += converted_steem.amount;
    }
 
    if( total_steem.amount > 0 )
@@ -1138,20 +1115,18 @@ void database::clear_null_account_balance()
 
 void database::update_owner_authority( const account_object& account, const authority& owner_authority )
 {
-   if( head_block_num() >= STEEM_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM )
-   {
-      create< owner_authority_history_object >( [&]( owner_authority_history_object& hist )
-      {
-         hist.account = account.name;
-         hist.previous_owner_authority = get< account_authority_object, by_account >( account.name ).owner;
-         hist.last_valid_time = head_block_time();
-      });
-   }
+
+   create< owner_authority_history_object >( [&]( owner_authority_history_object& hist ) {
+        hist.account = account.name;
+        hist.previous_owner_authority = get< account_authority_object, by_account >( account.name ).owner;
+        hist.last_valid_time = head_block_time();
+   });
+
 
    modify( get< account_authority_object, by_account >( account.name ), [&]( account_authority_object& auth )
    {
-      auth.owner = owner_authority;
-      auth.last_owner_update = head_block_time();
+        auth.owner = owner_authority;
+        auth.last_owner_update = head_block_time();
    });
 }
 
@@ -1180,12 +1155,10 @@ void database::process_vesting_withdrawals()
          to_withdraw = std::min( from_account.vesting_shares.amount, from_account.vesting_withdraw_rate.amount ).value;
 
 
-      auto converted_steem = asset( to_withdraw, VESTS_SYMBOL ) * cprops.get_vesting_share_price();
-
       modify( from_account, [&]( account_object& a )
       {
          a.vesting_shares.amount -= to_withdraw;
-         a.balance += converted_steem;
+         a.balance.amount += to_withdraw;
          a.withdrawn += to_withdraw;
 
          if( a.withdrawn >= a.to_withdraw || a.vesting_shares.amount == 0 )
@@ -1207,7 +1180,7 @@ void database::process_vesting_withdrawals()
       //if( to_withdraw > 0 )
       //   adjust_proxied_witness_votes( from_account, -to_withdraw );
 
-      push_virtual_operation( fill_vesting_withdraw_operation( from_account.name, from_account.name, asset( to_withdraw, VESTS_SYMBOL ), converted_steem ) );
+      push_virtual_operation( fill_vesting_withdraw_operation( from_account.name, from_account.name, asset( to_withdraw, VESTS_SYMBOL ), asset( to_withdraw, STEEM_SYMBOL ) ) );
    }
 }
 
@@ -1358,6 +1331,7 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< account_create_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< account_update_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< witness_update_evaluator                 >();
+   _my->_evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
    _my->_evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();
    _my->_evaluator_registry.register_evaluator< account_witness_proxy_evaluator          >();
    _my->_evaluator_registry.register_evaluator< custom_evaluator                         >();
@@ -1561,7 +1535,6 @@ void database::init_genesis( uint64_t init_supply )
             a.name = STEEM_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
             a.memo_key = init_public_key;
             a.balance  = asset( i ? 0 : init_supply, STEEM_SYMBOL );
-            elog("initializing initminer account ${a} with ${bal} steems, a.balance is ${abal}",("a", a)("bal", init_supply)("abal",a.balance.amount));
          } );
 
          create< account_authority_object >( [&]( account_authority_object& auth )
@@ -1696,7 +1669,7 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    try
    {
          /// check invariants
-         if( is_producing() || !( skip & skip_validate_invariants ) )
+         //if( is_producing() || !( skip & skip_validate_invariants ) )
             validate_invariants();
    }
    FC_CAPTURE_AND_RETHROW( (next_block) );
@@ -2363,7 +2336,6 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 }
 #endif
 
-//TODO_SOPHIA - rework
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
    const auto& economics = get_economic_model();
@@ -2372,7 +2344,7 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
 
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
    modify(economics, [&](economic_model_object& e){
-      interests = e.withdraw_interests(a.balance.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
+      interests = e.withdraw_interests(a.balance.amount + a.vesting_shares.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
    });
 
    if(interests > 0){
@@ -2600,7 +2572,7 @@ void database::validate_invariants()const
       /// verify no witness has too many votes
       const auto& witness_idx = get_index< witness_index >().indices();
       for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr )
-         FC_ASSERT( itr->votes <= gpo.total_vesting_shares.amount, "", ("itr",*itr) );
+         FC_ASSERT( itr->votes <= gpo.current_supply.amount, "", ("itr",*itr) );
 
       for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr )
       {
@@ -2622,17 +2594,19 @@ void database::validate_invariants()const
          if( itr->pending_fee.symbol == STEEM_SYMBOL )
             total_supply += itr->pending_fee;
          else
-            FC_ASSERT( false, "found escrow pending fee that is not SBD or STEEM" );
+            FC_ASSERT( false, "found escrow pending fee that is not SPHTX" );
       }
 
 
-      FC_ASSERT( gpo.current_supply == total_supply, "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
+      FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, STEEM_SYMBOL), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( gpo.virtual_supply >= gpo.current_supply );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == STEEM_TOTAL_SUPPLY);
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == STEEM_TOTAL_SUPPLY, "difference is $diff", ("diff", STEEM_TOTAL_SUPPLY -
+                 (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool)));
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );
