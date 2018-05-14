@@ -549,7 +549,7 @@ DEFINE_API_IMPL( database_api_impl, list_applications )
                  args.start.as<string>(),
                  result.applications,
                  args.limit,
-                 [&]( const application_object& a ){ return api_account_object( a ); } );
+                 [&]( const application_object& a ){ return api_application_object( a ); } );
          break;
       }
       case( by_author ):
@@ -558,7 +558,7 @@ DEFINE_API_IMPL( database_api_impl, list_applications )
                  args.start.as< protocol::account_name_type >(),
                  result.applications,
                  args.limit,
-                 [&]( const application_object& a ){ return api_account_object( a ); } );
+                 [&]( const application_object& a ){ return api_application_object( a ); } );
          break;
       }
       default:

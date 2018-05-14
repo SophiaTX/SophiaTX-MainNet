@@ -55,7 +55,6 @@ class database_api
          *
          */
          (list_accounts)
-
          /**
          * @brief Find accounts by primary key (account name)
          */

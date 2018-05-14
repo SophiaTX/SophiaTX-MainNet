@@ -282,23 +282,23 @@ struct api_hardfork_property_object
 
 struct api_application_object
 {
-    api_application_object( const api_application_object& a ) :
+    api_application_object( const application_object& a ) :
         id( a.id ),
         name( a.name ),
         author( a.author ),
-        url( a.url ),
-        metadata( a.metadata ),
-        price_param( a.price_param)
+        url( to_string( a.url ) ),
+        metadata( to_string( a.metadata ) ),
+        price_param( a.price_param )
     {}
 
     api_application_object() {}
 
-    application_id_type         id;
-    string                      name;
-    account_name_type           author;
-    string                      url;
-    string                      metadata;
-    application_price_param     price_param;
+    application_id_type                             id;
+    string                                          name;
+    account_name_type                               author;
+    string                                          url;
+    string                                          metadata;
+    application_object::application_price_param     price_param;
 };
 
 
@@ -378,4 +378,11 @@ FC_REFLECT( steem::plugins::database_api::api_hardfork_property_object,
             (next_hardfork_time)
           )
 
-FC_REFLECT( steem::plugins::database_api::api_application_object, (id)(name)(author)(url)(metadata)(price_param))
+FC_REFLECT( steem::plugins::database_api::api_application_object,
+            (id)
+            (name)
+            (author)
+            (url)
+            (metadata)
+            (price_param)
+         )

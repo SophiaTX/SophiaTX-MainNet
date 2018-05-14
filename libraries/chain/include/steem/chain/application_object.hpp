@@ -36,7 +36,7 @@ namespace steem { namespace chain {
             };
 
             id_type                 id;
-            shared_string           name;
+            string                  name;
             account_name_type       author;
             shared_string           url;
             shared_string           metadata;
@@ -50,7 +50,7 @@ namespace steem { namespace chain {
                 application_object,
                 indexed_by<
                 ordered_unique< tag< by_id >, member< application_object, application_id_type, &application_object::id > >,
-                ordered_non_unique< tag< by_name >,  member<application_object, shared_string, &application_object::name > >,
+                ordered_unique< tag< by_name >,  member<application_object, string, &application_object::name > >,
                 ordered_non_unique< tag< by_author >, member<application_object, account_name_type, &application_object::author > >
         >,
         allocator< application_object >
