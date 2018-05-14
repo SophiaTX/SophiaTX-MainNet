@@ -8,6 +8,11 @@ pipeline {
         sh 'make -j4'
       }
     }
+    stage('Tests') {
+      steps {
+        sh './tests/chain_test'
+      }
+    }
     stage('Clean WS') {
       steps {
         cleanWs()
