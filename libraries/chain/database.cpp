@@ -1228,7 +1228,6 @@ void database::process_funds()
    modify( props, [&]( dynamic_global_property_object& p )
    {
         p.current_supply           += asset( witness_reward, STEEM_SYMBOL );
-        p.virtual_supply           += asset( witness_reward, STEEM_SYMBOL );
    });
 
 }
@@ -1560,7 +1559,6 @@ void database::init_genesis( uint64_t init_supply )
          p.recent_slots_filled = fc::uint128::max_value();
          p.participation_count = 128;
          p.current_supply = asset( init_supply, STEEM_SYMBOL );
-         p.virtual_supply = p.current_supply;
          p.maximum_block_size = STEEM_MAX_BLOCK_SIZE;
       } );
 
@@ -1862,12 +1860,10 @@ void database::_apply_block( const signed_block& next_block )
    update_witness_schedule(*this);
 
    update_median_feed();
-   update_virtual_supply();
 
    clear_null_account_balance();
    process_funds();
    process_vesting_withdrawals();
-   update_virtual_supply();
 
    account_recovery_processing();
    expire_escrow_ratification();
@@ -2181,15 +2177,6 @@ void database::update_global_dynamic_data( const signed_block& b )
    }
 } FC_CAPTURE_AND_RETHROW() }
 
-//TODO_SOPHIA - Rework
-void database::update_virtual_supply()
-{ try {
-   modify( get_dynamic_global_properties(), [&]( dynamic_global_property_object& dgp )
-   {
-      dgp.virtual_supply = dgp.current_supply;
-   });
-} FC_CAPTURE_AND_RETHROW() }
-
 void database::update_signing_witness(const witness_object& signing_witness, const signed_block& new_block)
 { try {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
@@ -2350,7 +2337,6 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
    if(interests > 0){
       modify(gpo, [&](dynamic_global_property_object& d){
            d.current_supply.amount += interests;
-           d.virtual_supply.amount += interests;
       });
       push_virtual_operation(interest_operation(a.name, asset(interests, STEEM_SYMBOL)));
    }
@@ -2429,7 +2415,6 @@ void database::adjust_supply( const asset& delta )
          case STEEM_SYMBOL_SER:
          {
             props.current_supply += delta;
-            props.virtual_supply += delta;
             FC_ASSERT( props.current_supply.amount.value >= 0 );
 
             break;
@@ -2600,8 +2585,6 @@ void database::validate_invariants()const
 
       FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, STEEM_SYMBOL), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
-
-      FC_ASSERT( gpo.virtual_supply >= gpo.current_supply );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
                  econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == STEEM_TOTAL_SUPPLY, "difference is $diff", ("diff", STEEM_TOTAL_SUPPLY -

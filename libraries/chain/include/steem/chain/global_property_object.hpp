@@ -37,8 +37,7 @@ namespace steem { namespace chain {
          time_point_sec    time;
          account_name_type current_witness;
 
-         asset       virtual_supply             = asset( 0, STEEM_SYMBOL );
-         asset       current_supply             = asset( 0, STEEM_SYMBOL );
+      asset       current_supply             = asset( 0, STEEM_SYMBOL );
          asset       total_vesting_shares       = asset( 0, VESTS_SYMBOL );
          asset       total_reward_fund    = asset( 0, STEEM_SYMBOL );
 
@@ -92,7 +91,6 @@ FC_REFLECT( steem::chain::dynamic_global_property_object,
              (head_block_id)
              (time)
              (current_witness)
-             (virtual_supply)
              (current_supply)
              (total_vesting_shares)
              (total_reward_fund)

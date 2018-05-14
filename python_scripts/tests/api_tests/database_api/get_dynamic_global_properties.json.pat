@@ -24,6 +24,5 @@
     "total_reward_shares2": "0",
     "total_vesting_fund_steem": "0.000 TESTS",
     "total_vesting_shares": "0.000000 VESTS",
-    "virtual_supply": "0.000 TESTS",
     "vote_power_reserve_rate": 40
 }
