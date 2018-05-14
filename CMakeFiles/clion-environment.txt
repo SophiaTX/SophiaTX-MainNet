@@ -1,3 +1,0 @@
-Options: 
-
-Options:-DBOOST_ROOT=/usr/local/opt/boost/
