@@ -767,8 +767,6 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
             w.median_props.account_creation_fee = ASSET( "10.000000 SPHTX" );
          });
 
-
-         db.update_virtual_supply();
       }, database::skip_witness_signature );
 
       withdraw_vesting_operation op;
