@@ -124,7 +124,7 @@ class wallet_api
        *
        * @returns Price feed history data on the blockchain
        */
-      condenser_api::api_feed_history_object get_feed_history()const;
+      condenser_api::api_feed_history_object get_feed_history( asset_symbol_type symbol)const;
 
       /**
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)
@@ -528,7 +528,7 @@ class wallet_api
                                           bool broadcast = false);
 
       /**
-       * Transfer funds from one account to another. STEEM and SBD can be transferred.
+       * Transfer funds from one account to another. STEEM can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
@@ -539,7 +539,7 @@ class wallet_api
       annotated_signed_transaction transfer(string from, string to, asset amount, string memo, bool broadcast = false);
 
       /**
-       * Transfer funds from one account to another using escrow. STEEM and SBD can be transferred.
+       * Transfer funds from one account to another using escrow. STEEM can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to

@@ -49,12 +49,12 @@ chain_properties remote_node_api::get_chain_properties()
    FC_ASSERT( false );
 }
 
-condenser_api::legacy_price remote_node_api::get_current_median_history_price()
+condenser_api::legacy_price remote_node_api::get_current_median_history_price( asset_symbol_type )
 {
    FC_ASSERT( false );
 }
 
-condenser_api::api_feed_history_object remote_node_api::get_feed_history()
+condenser_api::api_feed_history_object remote_node_api::get_feed_history( asset_symbol_type )
 {
    FC_ASSERT( false );
 }
@@ -70,11 +70,6 @@ hardfork_version remote_node_api::get_hardfork_version()
 }
 
 condenser_api::scheduled_hardfork remote_node_api::get_next_scheduled_hardfork()
-{
-   FC_ASSERT( false );
-}
-
-condenser_api::api_reward_fund_object remote_node_api::get_reward_fund( string )
 {
    FC_ASSERT( false );
 }

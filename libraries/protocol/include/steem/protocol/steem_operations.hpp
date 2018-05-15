@@ -172,7 +172,6 @@ namespace steem { namespace protocol {
       account_name_type receiver; ///< the account that should receive funds (might be from, might be to)
 
       uint32_t          escrow_id = 30;
-      asset             sbd_amount = asset( 0, SBD_SYMBOL ); ///< the amount of sbd to release
       asset             steem_amount = asset( 0, STEEM_SYMBOL ); ///< the amount of steem to release
 
       void validate()const;
@@ -239,6 +238,7 @@ namespace steem { namespace protocol {
        */
       uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
 
+      std::map<asset_symbol_type, price> price_feeds;
 
 
       void validate()const
@@ -246,6 +246,16 @@ namespace steem { namespace protocol {
 
          FC_ASSERT( account_creation_fee.amount >= STEEM_MIN_ACCOUNT_CREATION_FEE);
          FC_ASSERT( maximum_block_size >= STEEM_MIN_BLOCK_SIZE_LIMIT);
+         for (const auto&i : price_feeds){
+            FC_ASSERT(i.first == SBD1_SYMBOL_SER || i.first == SBD2_SYMBOL_SER ||
+                      i.first == SBD3_SYMBOL_SER || i.first == SBD4_SYMBOL_SER || i.first == SBD5_SYMBOL_SER );
+            if(i.second.base.symbol == STEEM_SYMBOL){
+               FC_ASSERT(i.second.quote.symbol == i.first);
+            }else{
+               FC_ASSERT(i.second.base.symbol == i.first && i.second.quote.symbol == STEEM_SYMBOL);
+            }
+            FC_ASSERT(i.second.quote.amount > 0 && i.second.base.amount > 0);
+         }
 
       }
    };
@@ -590,6 +600,7 @@ FC_REFLECT( steem::protocol::feed_publish_operation, (publisher)(exchange_rate) 
 FC_REFLECT( steem::protocol::chain_properties,
             (account_creation_fee)
             (maximum_block_size)
+            (price_feeds)
           )
 
 FC_REFLECT( steem::protocol::account_create_operation,
@@ -630,7 +641,7 @@ FC_REFLECT( steem::protocol::allowed_vote_assets, (votable_assets) )
 FC_REFLECT( steem::protocol::escrow_transfer_operation, (from)(to)(steem_amount)(escrow_id)(agent)(fee)(json_meta)(ratification_deadline)(escrow_expiration) );
 FC_REFLECT( steem::protocol::escrow_approve_operation, (from)(to)(agent)(who)(escrow_id)(approve) );
 FC_REFLECT( steem::protocol::escrow_dispute_operation, (from)(to)(agent)(who)(escrow_id) );
-FC_REFLECT( steem::protocol::escrow_release_operation, (from)(to)(agent)(who)(receiver)(escrow_id)(sbd_amount)(steem_amount) );
+FC_REFLECT( steem::protocol::escrow_release_operation, (from)(to)(agent)(who)(receiver)(escrow_id)(steem_amount) );
 FC_REFLECT( steem::protocol::placeholder_a_operation, );
 FC_REFLECT( steem::protocol::placeholder_b_operation, );
 FC_REFLECT( steem::protocol::request_account_recovery_operation, (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );

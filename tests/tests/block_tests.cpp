@@ -753,8 +753,9 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
       {
          account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-         fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), STEEM_MIN_PRODUCER_REWARD.amount.value );
-         witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, STEEM_MIN_PRODUCER_REWARD.amount );
+         fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
       }
 
       validate_database();

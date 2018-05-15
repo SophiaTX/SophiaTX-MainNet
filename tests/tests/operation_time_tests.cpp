@@ -194,13 +194,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          txs.push_back( signed_transaction() );
       }
 
-      ops[0].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset( 100000, STEEM_SYMBOL ) );
-      ops[1].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset( 105000, STEEM_SYMBOL ) );
-      ops[2].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset(  98000, STEEM_SYMBOL ) );
-      ops[3].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset(  97000, STEEM_SYMBOL ) );
-      ops[4].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset(  99000, STEEM_SYMBOL ) );
-      ops[5].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset(  97500, STEEM_SYMBOL ) );
-      ops[6].exchange_rate = price( asset( 1000, SBD_SYMBOL ), asset( 102000, STEEM_SYMBOL ) );
+      ops[0].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 100000, STEEM_SYMBOL ) );
+      ops[1].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 105000, STEEM_SYMBOL ) );
+      ops[2].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  98000, STEEM_SYMBOL ) );
+      ops[3].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97000, STEEM_SYMBOL ) );
+      ops[4].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  99000, STEEM_SYMBOL ) );
+      ops[5].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97500, STEEM_SYMBOL ) );
+      ops[6].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 102000, STEEM_SYMBOL ) );
 
       for( int i = 0; i < 7; i++ )
       {
@@ -214,10 +214,10 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
       generate_blocks( STEEM_BLOCKS_PER_HOUR ); // Jump forward 1 hour
       BOOST_TEST_MESSAGE( "Get feed history object" );
-      feed_history_object feed_history = db->get_feed_history();
+      feed_history_object feed_history = db->get_feed_history(asset_symbol_type());
       BOOST_TEST_MESSAGE( "Check state" );
-      BOOST_REQUIRE( feed_history.current_median_history == price( asset( 1000, SBD_SYMBOL ), asset( 99000, STEEM_SYMBOL) ) );
-      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 1000, SBD_SYMBOL ), asset( 99000, STEEM_SYMBOL) ) );
+      BOOST_REQUIRE( feed_history.current_median_history == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, STEEM_SYMBOL) ) );
+      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, STEEM_SYMBOL) ) );
       validate_database();
 
       for ( int i = 0; i < 23; i++ )

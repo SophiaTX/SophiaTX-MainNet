@@ -64,6 +64,7 @@ namespace steem { namespace chain {
          }
 
          id_type                                   id;
+         asset_symbol_type                         symbol;
 
          price                                     current_median_history; ///< the current median of the price history, used as the base for convert operations
          bip::deque< price, allocator< price > >   price_history; ///< tracks this last week of median_feed one per hour
@@ -71,40 +72,17 @@ namespace steem { namespace chain {
 
 
 
-   class reward_fund_object : public object< reward_fund_object_type, reward_fund_object >
-   {
-      public:
-         template< typename Constructor, typename Allocator >
-         reward_fund_object( Constructor&& c, allocator< Allocator > a )
-         {
-            c( *this );
-         }
 
-         reward_fund_object() {}
-
-         reward_fund_id_type     id;
-         reward_fund_name_type   name;
-         asset                   reward_balance = asset( 0, STEEM_SYMBOL );
-         fc::uint128_t           recent_claims = 0;
-         time_point_sec          last_update;
-         uint128_t               content_constant = 0;
-         uint16_t                percent_curation_rewards = 0;
-         uint16_t                percent_content_rewards = 0;
-         protocol::curve_id                author_reward_curve;
-         protocol::curve_id                curation_reward_curve;
-   };
-
-
+   struct by_symbol;
 
    typedef multi_index_container<
       feed_history_object,
       indexed_by<
-         ordered_unique< tag< by_id >, member< feed_history_object, feed_history_id_type, &feed_history_object::id > >
+         ordered_unique< tag< by_id >, member< feed_history_object, feed_history_id_type, &feed_history_object::id > >,
+         ordered_unique< tag< by_symbol >, member< feed_history_object, asset_symbol_type, &feed_history_object::symbol> >
       >,
       allocator< feed_history_object >
    > feed_history_index;
-
-
 
    struct by_from_id;
    struct by_ratification_deadline;
@@ -131,23 +109,12 @@ namespace steem { namespace chain {
    > escrow_index;
 
 
-
-   struct by_name;
-   typedef multi_index_container<
-      reward_fund_object,
-      indexed_by<
-         ordered_unique< tag< by_id >, member< reward_fund_object, reward_fund_id_type, &reward_fund_object::id > >,
-         ordered_unique< tag< by_name >, member< reward_fund_object, reward_fund_name_type, &reward_fund_object::name > >
-      >,
-      allocator< reward_fund_object >
-   > reward_fund_index;
-
 } } // steem::chain
 
 #include <steem/chain/account_object.hpp>
 
 FC_REFLECT( steem::chain::feed_history_object,
-             (id)(current_median_history)(price_history) )
+             (id)(current_median_history)(price_history)(symbol) )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::feed_history_object, steem::chain::feed_history_index )
 
 FC_REFLECT( steem::chain::escrow_object,
@@ -157,16 +124,3 @@ FC_REFLECT( steem::chain::escrow_object,
              (to_approved)(agent_approved)(disputed) )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::escrow_object, steem::chain::escrow_index )
 
-FC_REFLECT( steem::chain::reward_fund_object,
-            (id)
-            (name)
-            (reward_balance)
-            (recent_claims)
-            (last_update)
-            (content_constant)
-            (percent_curation_rewards)
-            (percent_content_rewards)
-            (author_reward_curve)
-            (curation_reward_curve)
-         )
-CHAINBASE_SET_INDEX_TYPE( steem::chain::reward_fund_object, steem::chain::reward_fund_index )

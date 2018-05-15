@@ -18,7 +18,10 @@ namespace steem { namespace chain {
    using steem::protocol::asset_symbol_type;
    using steem::protocol::chain_properties;
 
-
+   struct submitted_exchange_rate{
+      price            rate;
+      time_point_sec   last_change;
+   };
 
    /**
     *  All witnesses with at least 1% net positive approval and
@@ -60,8 +63,7 @@ namespace steem { namespace chain {
          public_key_type   signing_key;
 
          chain_properties  props;
-         price             sbd_exchange_rate;
-         time_point_sec    last_sbd_exchange_update;
+         std::map<asset_symbol_type, submitted_exchange_rate> submitted_exchange_rates;
 
 
          /**
@@ -225,6 +227,7 @@ namespace steem { namespace chain {
 
 FC_REFLECT_ENUM( steem::chain::witness_object::witness_schedule_type, (top19)(timeshare)(none) )
 
+FC_REFLECT( steem::chain::submitted_exchange_rate, (rate)(last_change))
 
 FC_REFLECT( steem::chain::witness_object,
              (id)
@@ -233,7 +236,7 @@ FC_REFLECT( steem::chain::witness_object,
              (url)(votes)(schedule)(virtual_last_update)(virtual_position)(virtual_scheduled_time)(total_missed)
              (last_aslot)(last_confirmed_block_num)(signing_key)
              (props)
-             (sbd_exchange_rate)(last_sbd_exchange_update)
+             (submitted_exchange_rates)
              (stopped)
              (running_version)
              (hardfork_version_vote)(hardfork_time_vote)

@@ -70,14 +70,15 @@ clean_database_fixture::clean_database_fixture()
    db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
-   vest( "initminer", 10000 );
+   vest( "initminer", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
    for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
    {
       account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), STEEM_MIN_PRODUCER_REWARD.amount.value );
-      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, STEEM_MIN_PRODUCER_REWARD.amount );
+      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -137,14 +138,15 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
-   vest( "initminer", 10000 );
+   vest( "initminer", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
    for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
    {
       account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), STEEM_MIN_PRODUCER_REWARD.amount.value );
-      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, STEEM_MIN_PRODUCER_REWARD.amount );
+      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -393,15 +395,6 @@ void database_fixture::fund(
 
          });
 
-         if( amount.symbol == SBD_SYMBOL )
-         {
-            const auto& median_feed = db.get_feed_history();
-            if( median_feed.current_median_history.is_null() )
-               db.modify( median_feed, [&]( feed_history_object& f )
-               {
-                  f.current_median_history = price( asset( 1, SBD_SYMBOL ), asset( 1, STEEM_SYMBOL ) );
-               });
-         }
 
          db.update_virtual_supply();
       }, default_skip );
@@ -561,12 +554,12 @@ asset_symbol_type t_smt_database_fixture< T >::create_smt( const string& account
       fund( account_name, 10 * 1000 * 1000 );
       this->generate_block();
 
-      set_price_feed( price( ASSET( "1.000 TBD" ), ASSET( "1.000 TESTS" ) ) );
-      convert( account_name, ASSET( "5000.000 TESTS" ) );
+      set_price_feed( price( ASSET( "1.000000 TBD" ), ASSET( "1.000000 TESTS" ) ) );
+      convert( account_name, ASSET( "5000.000000 TESTS" ) );
 
       op.symbol = this->get_new_smt_symbol( token_decimal_places, this->db );
       op.precision = op.symbol.decimals();
-      op.smt_creation_fee = ASSET( "1000.000 TBD" );
+      op.smt_creation_fee = ASSET( "1000.000000 TBD" );
       op.control_account = account_name;
 
       tx.operations.push_back( op );
@@ -585,7 +578,7 @@ asset_symbol_type t_smt_database_fixture< T >::create_smt( const string& account
 void sub_set_create_op(smt_create_operation* op, account_name_type control_acount)
 {
    op->precision = op->symbol.decimals();
-   op->smt_creation_fee = ASSET( "1000.000 TBD" );
+   op->smt_creation_fee = ASSET( "1000.000000 TBD" );
    op->control_account = control_acount;
 }
 
@@ -613,8 +606,8 @@ std::array<asset_symbol_type, 3> t_smt_database_fixture< T >::create_smt_3(const
       fund( control_account_name, 10 * 1000 * 1000 );
       this->generate_block();
 
-      set_price_feed( price( ASSET( "1.000 TBD" ), ASSET( "1.000 TESTS" ) ) );
-      convert( control_account_name, ASSET( "5000.000 TESTS" ) );
+      set_price_feed( price( ASSET( "1.000000 TBD" ), ASSET( "1.000000 TESTS" ) ) );
+      convert( control_account_name, ASSET( "5000.000000 TESTS" ) );
 
       set_create_op(this->db, &op0, control_account_name, 0);
       set_create_op(this->db, &op1, control_account_name, 1);
@@ -726,14 +719,15 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
-   vest( "initminer", 10000 );
+   vest( "initminer", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
    for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
    {
       account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), STEEM_MIN_PRODUCER_REWARD.amount.value );
-      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, STEEM_MIN_PRODUCER_REWARD.amount );
+      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
    }
 
    validate_database();

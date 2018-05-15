@@ -9,7 +9,7 @@ namespace steem { namespace protocol {
 
    struct interest_operation : public virtual_operation
    {
-      interest_operation( const string& o = "", const asset& i = asset(0,SBD_SYMBOL) )
+      interest_operation( const string& o = "", const asset& i = asset(0,STEEM_SYMBOL) )
          :owner(o),interest(i){}
 
       account_name_type owner;

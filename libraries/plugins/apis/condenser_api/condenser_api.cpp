@@ -44,7 +44,6 @@ namespace detail
             (get_witness_schedule)
             (get_hardfork_version)
             (get_next_scheduled_hardfork)
-            (get_reward_fund)
             (get_key_references)
             (get_accounts)
             (get_account_references)
@@ -296,14 +295,14 @@ namespace detail
 
    DEFINE_API_IMPL( condenser_api_impl, get_current_median_history_price )
    {
-      CHECK_ARG_SIZE( 0 )
-      return _database_api->get_current_price_feed( {} );
+      CHECK_ARG_SIZE( 1 )
+      return _database_api->get_current_price_feed( {args[0].as< asset_symbol_type >()} );
    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_feed_history )
    {
-      CHECK_ARG_SIZE( 0 )
-      return _database_api->get_feed_history( {} );
+      CHECK_ARG_SIZE( 1 )
+      return _database_api->get_feed_history( {args[0].as< asset_symbol_type>()} );
    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_witness_schedule )
@@ -328,16 +327,6 @@ namespace detail
       return shf;
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_reward_fund )
-   {
-      CHECK_ARG_SIZE( 1 )
-      string name = args[0].as< string >();
-
-      auto fund = _db.find< reward_fund_object, by_name >( name );
-      FC_ASSERT( fund != nullptr, "Invalid reward fund name" );
-
-      return api_reward_fund_object( *fund );
-   }
 
    DEFINE_API_IMPL( condenser_api_impl, get_key_references )
    {
@@ -743,7 +732,6 @@ DEFINE_READ_APIS( condenser_api,
    (get_witness_schedule)
    (get_hardfork_version)
    (get_next_scheduled_hardfork)
-   (get_reward_fund)
    (get_key_references)
    (get_accounts)
    (lookup_account_names)

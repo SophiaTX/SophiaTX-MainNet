@@ -108,7 +108,7 @@ asset asset::from_string( const std::string& from )
 
          auto intpart = s.substr( 0, dot_pos );
          auto fractpart = "1" + s.substr( dot_pos + 1, space_pos - dot_pos - 1 );
-         uint8_t decimals = uint8_t( fractpart.size() - 1 );
+         //uint8_t decimals = uint8_t( fractpart.size() - 1 );
 
          result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
 

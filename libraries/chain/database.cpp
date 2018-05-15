@@ -67,12 +67,6 @@ namespace steem { namespace chain {
 
 using boost::container::flat_set;
 
-struct reward_fund_context
-{
-   uint128_t   recent_claims = 0;
-   asset       reward_balance = asset( 0, STEEM_SYMBOL );
-   share_type  steem_awarded = 0;
-};
 
 class database_impl
 {
@@ -436,9 +430,11 @@ const node_property_object& database::get_node_properties() const
    return _node_property_object;
 }
 
-const feed_history_object& database::get_feed_history()const
+const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
    return get< feed_history_object >();
+      const auto& fh_idx = get_index<feed_history_index>().indices().get<by_symbol>();
+      return *fh_idx.find(a);
 } FC_CAPTURE_AND_RETHROW() }
 
 const witness_schedule_object& database::get_witness_schedule_object()const
@@ -1233,14 +1229,14 @@ void database::process_funds()
 
 }
 
-asset database::to_sbd( const asset& steem )const
+asset database::to_sbd(const asset &steem, asset_symbol_type to_symbol) const
 {
-   return util::to_sbd( get_feed_history().current_median_history, steem );
+   return util::to_sbd(get_feed_history(to_symbol).current_median_history, steem );
 }
 
 asset database::to_steem( const asset& sbd )const
 {
-   return util::to_steem( get_feed_history().current_median_history, sbd );
+   return util::to_steem(get_feed_history(sbd.symbol).current_median_history, sbd );
 }
 
 void database::account_recovery_processing()
@@ -1401,7 +1397,6 @@ void database::initialize_indexes()
    add_core_index< account_recovery_request_index          >(*this);
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
-   add_core_index< reward_fund_index                       >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
    add_core_index< account_regular_balance_index           >(*this);
@@ -1569,7 +1564,12 @@ void database::init_genesis( uint64_t init_supply )
                                                     e.init_economics(init_supply, STEEM_TOTAL_SUPPLY);
                                                 } );
       // Nothing to do
-      create< feed_history_object >( [&]( feed_history_object& o ) {});
+      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD1_SYMBOL;});
+      /*create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD2_SYMBOL;});
+      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD3_SYMBOL;});
+      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD4_SYMBOL;});
+      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD5_SYMBOL;});*/
+
       for( int i = 0; i < 0x10000; i++ )
          create< block_summary_object >( [&]( block_summary_object& ) {});
       create< hardfork_property_object >( [&](hardfork_property_object& hpo )
@@ -1861,7 +1861,7 @@ void database::_apply_block( const signed_block& next_block )
    clear_expired_transactions();
    update_witness_schedule(*this);
 
-   update_median_feed();
+      update_median_feeds();
    update_virtual_supply();
 
    clear_null_account_balance();
@@ -1946,58 +1946,42 @@ void database::process_header_extensions( const signed_block& next_block )
       e.visit( _v );
 }
 
-void database::update_median_feed() {
+void database::update_median_feeds() {
 try {
    if( (head_block_num() % STEEM_FEED_INTERVAL_BLOCKS) != 0 )
       return;
 
    auto now = head_block_time();
    const witness_schedule_object& wso = get_witness_schedule_object();
-   vector<price> feeds; feeds.reserve( wso.num_scheduled_witnesses );
+   map<asset_symbol_type, vector<price>> all_feeds;
    for( int i = 0; i < wso.num_scheduled_witnesses; i++ )
    {
       const auto& wit = get_witness( wso.current_shuffled_witnesses[i] );
       {
-         if( now < wit.last_sbd_exchange_update + STEEM_MAX_FEED_AGE_SECONDS
-            && !wit.sbd_exchange_rate.is_null() )
-         {
-            feeds.push_back( wit.sbd_exchange_rate );
-         }
+         for ( const auto& r: wit.submitted_exchange_rates )
+            if( r.second.last_change + STEEM_MAX_FEED_AGE_SECONDS > now  && !r.second.rate.is_null() )
+               all_feeds[r.first].push_back(r.second.rate);
       }
    }
 
-   if( feeds.size() >= STEEM_MIN_FEEDS )
-   {
-      std::sort( feeds.begin(), feeds.end() );
-      auto median_feed = feeds[feeds.size()/2];
-
-      modify( get_feed_history(), [&]( feed_history_object& fho )
+   for ( const auto& feeds: all_feeds){
+      if( feeds.second.size() >= STEEM_MIN_FEEDS )
       {
-         fho.price_history.push_back( median_feed );
-         size_t steem_feed_history_window = STEEM_FEED_HISTORY_WINDOW_PRE_HF_16;
-         steem_feed_history_window = STEEM_FEED_HISTORY_WINDOW;
+         vector<price> f = feeds.second;
+         std::sort( f.begin(), f.end() );
+         auto median_feed = f[f.size()/2];
 
-         if( fho.price_history.size() > steem_feed_history_window )
-            fho.price_history.pop_front();
-
-         if( fho.price_history.size() )
+         modify(get_feed_history(feeds.first), [&](feed_history_object& fho )
          {
-            /// BW-TODO Why deque is used here ? Also why don't make copy of whole container ?
-            std::deque< price > copy;
-            for( const auto& i : fho.price_history )
-            {
-               copy.push_back( i );
-            }
+            fho.price_history.push_back( median_feed );
+            size_t steem_feed_history_window = STEEM_FEED_HISTORY_WINDOW;
 
-            std::sort( copy.begin(), copy.end() ); /// TODO: use nth_item
-            fho.current_median_history = copy[copy.size()/2];
+            if( fho.price_history.size() > steem_feed_history_window )
+               fho.price_history.pop_front();
 
-#ifdef IS_TEST_NET
-            if( skip_price_feed_limit_check )
-               return;
-#endif
-         }
-      });
+            fho.current_median_history = median_feed;
+         });
+      }
    }
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -2665,9 +2649,6 @@ void database::validate_smt_invariants()const
                insertInfo.first->second += a;
          }
       }
-
-      // - Reward funds
-#pragma message( "TODO: Add reward_fund_object iteration here once they support SMTs." )
 
       // - Escrow & savings - no support of SMT is expected.
 
