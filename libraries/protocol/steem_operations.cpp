@@ -284,6 +284,54 @@ namespace steem { namespace protocol {
       FC_ASSERT( current_reset_account != reset_account, "new reset account cannot be current reset account" );
    }
 
+   void application_create_operation::validate() const
+   {
+      validate_account_name( author );
+
+      FC_ASSERT( name.size() <= STEEM_MAX_PERMLINK_LENGTH, "Name is too long" );
+      FC_ASSERT( name.size() > 0, "Name size must be greater than 0" );
+      FC_ASSERT( fc::is_utf8( name ), "Name is not valid UTF8" );
+
+      FC_ASSERT( url.size() <= STEEM_MAX_WITNESS_URL_LENGTH, "URL is too long" );
+      FC_ASSERT( url.size() > 0, "URL size must be greater than 0" );
+      FC_ASSERT( fc::is_utf8( url ), "URL is not valid UTF8" );
+
+      if ( metadata.size() > 0 )
+      {
+         FC_ASSERT( fc::is_utf8(metadata), "JSON Metadata not formatted in UTF8" );
+      }
+
+   }
+
+   void application_update_operation::validate() const
+   {
+      validate_account_name( author );
+      if(new_author)
+         validate_account_name( *new_author );
+
+      FC_ASSERT( name.size() <= STEEM_MAX_PERMLINK_LENGTH, "Name is too long" );
+      FC_ASSERT( name.size() > 0, "Name size must be greater than 0" );
+      FC_ASSERT( fc::is_utf8( name ), "Name is not valid UTF8" );
+
+      FC_ASSERT( url.size() <= STEEM_MAX_WITNESS_URL_LENGTH, "URL is too long" );
+      FC_ASSERT( url.size() > 0, "URL size must be greater than 0" );
+      FC_ASSERT( fc::is_utf8( url ), "URL is not valid UTF8" );
+
+      if ( metadata.size() > 0 )
+      {
+         FC_ASSERT( fc::is_utf8(metadata), "JSON Metadata not formatted in UTF8" );
+      }
+   }
+
+   void application_delete_operation::validate() const
+   {
+      validate_account_name( author );
+
+      FC_ASSERT( name.size() <= STEEM_MAX_PERMLINK_LENGTH, "Name is too long" );
+      FC_ASSERT( name.size() > 0, "Name size must be greater than 0" );
+      FC_ASSERT( fc::is_utf8( name ), "Name is not valid UTF8" );
+   }
+
 #ifdef STEEM_ENABLE_SMT
    void claim_reward_balance2_operation::validate()const
    {

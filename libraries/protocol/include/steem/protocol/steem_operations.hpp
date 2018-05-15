@@ -539,6 +539,38 @@ namespace steem { namespace protocol {
       }
    };
 
+   struct application_create_operation : public base_operation {
+      account_name_type       author;
+      string                  name;
+      string                  url;
+      string                  metadata;
+      uint8_t                 price_param;
+
+      void get_required_active_authorities( flat_set<account_name_type>& a )const { a.insert( author ); }
+      void validate()const;
+   };
+
+   struct application_update_operation : public base_operation {
+      account_name_type             author;
+      optional<account_name_type>   new_author;
+      string                        name;
+      string                        url;
+      string                        metadata;
+      optional<uint8_t>             price_param;
+
+      void get_required_owner_authorities( flat_set<account_name_type>& a )const {  a.insert( author ); }
+      void validate()const;
+   };
+
+   struct application_delete_operation : public base_operation {
+      account_name_type             author;
+      string                        name;
+
+      void get_required_owner_authorities( flat_set<account_name_type>& a )const { a.insert( author ); }
+      void validate()const;
+   };
+
+
 
    /**
     * Each account lists another account as their recovery account.
@@ -625,4 +657,7 @@ FC_REFLECT( steem::protocol::placeholder_a_operation, );
 FC_REFLECT( steem::protocol::placeholder_b_operation, );
 FC_REFLECT( steem::protocol::request_account_recovery_operation, (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );
 FC_REFLECT( steem::protocol::recover_account_operation, (account_to_recover)(new_owner_authority)(recent_owner_authority)(extensions) );
+FC_REFLECT( steem::protocol::application_create_operation, (author)(name)(url)(metadata)(price_param) )
+FC_REFLECT( steem::protocol::application_update_operation, (author)(new_author)(name)(url)(metadata)(price_param) )
+FC_REFLECT( steem::protocol::application_delete_operation, (author)(name) )
 FC_REFLECT( steem::protocol::change_recovery_account_operation, (account_to_recover)(new_recovery_account)(extensions) );

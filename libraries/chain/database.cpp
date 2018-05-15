@@ -17,6 +17,7 @@
 #include <steem/chain/shared_db_merkle.hpp>
 #include <steem/chain/operation_notification.hpp>
 #include <steem/chain/witness_schedule.hpp>
+#include <steem/chain/application_object.hpp>
 
 #include <steem/chain/util/asset.hpp>
 #include <steem/chain/util/uint256.hpp>
@@ -419,6 +420,13 @@ const escrow_object& database::get_escrow( const account_name_type& name, uint32
 const escrow_object* database::find_escrow( const account_name_type& name, uint32_t escrow_id )const
 {
    return find< escrow_object, by_from_id >( boost::make_tuple( name, escrow_id ) );
+}
+
+const application_object &database::get_application(const string &name) const
+{
+   try {
+      return get< application_object, by_name >( name );
+   } FC_CAPTURE_AND_RETHROW( (name) )
 }
 
 const dynamic_global_property_object&database::get_dynamic_global_properties() const
@@ -1376,6 +1384,9 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< escrow_release_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< reset_account_evaluator                  >();
    _my->_evaluator_registry.register_evaluator< set_reset_account_evaluator              >();
+   _my->_evaluator_registry.register_evaluator< application_create_evaluator             >();
+   _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
+   _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif

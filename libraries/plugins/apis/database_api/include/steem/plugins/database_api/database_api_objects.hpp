@@ -286,7 +286,7 @@ struct api_application_object
         id( a.id ),
         name( a.name ),
         author( a.author ),
-        url( to_string( a.url ) ),
+        url( a.url ),
         metadata( to_string( a.metadata ) ),
         price_param( a.price_param )
     {}

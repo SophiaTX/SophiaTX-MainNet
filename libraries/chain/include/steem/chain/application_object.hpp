@@ -6,15 +6,13 @@
 
 #include <steem/chain/steem_object_types.hpp>
 #include <steem/chain/account_object.hpp>
-#include <steem/chain/shared_authority.hpp>
+//#include <steem/chain/shared_authority.hpp>
 
 #include <boost/multi_index/composite_key.hpp>
 
 #include <numeric>
 
 namespace steem { namespace chain {
-
-        using steem::protocol::authority;
 
         class application_object : public object< application_object_type, application_object >
         {
@@ -30,7 +28,7 @@ namespace steem { namespace chain {
 
             template<typename Constructor, typename Allocator>
             application_object( Constructor&& c, allocator< Allocator > a )
-                    :metadata( a )
+                    : metadata( a )
             {
                 c(*this);
             };
@@ -38,7 +36,7 @@ namespace steem { namespace chain {
             id_type                 id;
             string                  name;
             account_name_type       author;
-            shared_string           url;
+            string                  url;
             shared_string           metadata;
             application_price_param price_param = none;
         };
