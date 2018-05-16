@@ -61,37 +61,19 @@ legacy_asset legacy_asset::from_string( const string& from )
    {
       string s = fc::trim( from );
       auto space_pos = s.find( " " );
-      auto dot_pos = s.find( "." );
 
       FC_ASSERT( space_pos != std::string::npos );
+
+      auto numpart = s.substr( 0, space_pos );
+      auto dvalue = fc::to_double(numpart);
 
       legacy_asset result;
 
       string str_symbol = s.substr( space_pos + 1 );
 
-      if( dot_pos != std::string::npos )
-      {
-         FC_ASSERT( space_pos > dot_pos );
+      result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
+      result.amount = dvalue * precision( result.symbol );
 
-         auto intpart = s.substr( 0, dot_pos );
-         auto fractpart = "1" + s.substr( dot_pos + 1, space_pos - dot_pos - 1 );
-         uint8_t decimals = uint8_t( fractpart.size() - 1 );
-
-         result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
-
-         int64_t prec = precision( result.symbol );
-
-         result.amount = fc::to_int64( intpart );
-         result.amount.value *= prec;
-         result.amount.value += fc::to_int64( fractpart );
-         result.amount.value -= prec;
-      }
-      else
-      {
-         auto intpart = s.substr( 0, space_pos );
-         result.amount = fc::to_int64( intpart );
-         result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
-      }
       return result;
    }
    FC_CAPTURE_AND_RETHROW( (from) )
