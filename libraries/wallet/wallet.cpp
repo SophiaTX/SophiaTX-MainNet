@@ -291,7 +291,12 @@ public:
                                                                           time_point_sec(time_point::now()),
                                                                           " old");
       result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
-      result["median_sbd_price"] = _remote_api->get_current_median_history_price();
+      result["median_sbd1_price"] = _remote_api->get_current_median_history_price(SBD1_SYMBOL);
+      result["median_sbd2_price"] = _remote_api->get_current_median_history_price(SBD2_SYMBOL);
+      result["median_sbd3_price"] = _remote_api->get_current_median_history_price(SBD3_SYMBOL);
+      result["median_sbd4_price"] = _remote_api->get_current_median_history_price(SBD4_SYMBOL);
+      result["median_sbd5_price"] = _remote_api->get_current_median_history_price(SBD5_SYMBOL);
+
       result["account_creation_fee"] = _remote_api->get_chain_properties().account_creation_fee;
       //result["post_reward_fund"] = fc::variant(_remote_api->get_reward_fund( STEEM_POST_REWARD_FUND_NAME )).get_object();
       return result;
@@ -1055,7 +1060,9 @@ pair<public_key_type,string> wallet_api::get_private_key_from_password( string a
    return std::make_pair( public_key_type( priv.get_public_key() ), key_to_wif( priv ) );
 }
 
-condenser_api::api_feed_history_object wallet_api::get_feed_history()const { return my->_remote_api->get_feed_history(); }
+condenser_api::api_feed_history_object wallet_api::get_feed_history(asset_symbol_type symbol)const {
+   return my->_remote_api->get_feed_history(symbol);
+}
 
 /**
  * This method is used by faucets to create new accounts for other users which must
@@ -1408,7 +1415,7 @@ annotated_signed_transaction wallet_api::create_account( string creator, string 
 annotated_signed_transaction wallet_api::update_witness( string witness_account_name,
                                                string url,
                                                public_key_type block_signing_key,
-                                               const legacy_chain_properties& props,
+                                               const chain_properties& props,
                                                bool broadcast  )
 {
    FC_ASSERT( !is_locked() );

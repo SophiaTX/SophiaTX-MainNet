@@ -118,14 +118,27 @@ namespace steem { namespace protocol {
          FC_UNUSED( signing_key ); // This tests the deserialization of the key
       }
 
-      itr = props.find( "sbd_exchange_rate" );
+      itr = props.find( "exchange_rates" );
       if( itr != props.end() )
       {
-         price sbd_exchange_rate;
-         fc::raw::unpack_from_vector( itr->second, sbd_exchange_rate );
-         FC_ASSERT( ( is_asset_type( sbd_exchange_rate.base, SBD_SYMBOL ) && is_asset_type( sbd_exchange_rate.quote, STEEM_SYMBOL ) ),
-            "Price feed must be a STEEM/SBD price" );
-         sbd_exchange_rate.validate();
+         std::vector<price> exchange_rates;
+         fc::raw::unpack_from_vector( itr->second, exchange_rates );
+         for(const auto &rate: exchange_rates){
+            if(rate.base.symbol == STEEM_SYMBOL){
+               FC_ASSERT(rate.quote.symbol == SBD1_SYMBOL || rate.quote.symbol == SBD2_SYMBOL ||
+                         rate.quote.symbol == SBD3_SYMBOL || rate.quote.symbol == SBD4_SYMBOL ||
+                         rate.quote.symbol == SBD5_SYMBOL );
+               
+            }else{
+               FC_ASSERT(rate.quote.symbol == STEEM_SYMBOL);
+               FC_ASSERT(rate.base.symbol == SBD1_SYMBOL || rate.base.symbol == SBD2_SYMBOL ||
+                         rate.base.symbol == SBD3_SYMBOL || rate.base.symbol == SBD4_SYMBOL ||
+                         rate.base.symbol == SBD5_SYMBOL );
+            }
+            FC_ASSERT(rate.quote.amount > 0 && rate.base.amount > 0);
+
+         }
+         //check if all symbols are unique
       }
 
       itr = props.find( "url" );
@@ -174,9 +187,18 @@ namespace steem { namespace protocol {
    void feed_publish_operation::validate()const
    {
       validate_account_name( publisher );
-      FC_ASSERT( ( is_asset_type( exchange_rate.base, STEEM_SYMBOL ) && is_asset_type( exchange_rate.quote, SBD_SYMBOL ) )
-         || ( is_asset_type( exchange_rate.base, SBD_SYMBOL ) && is_asset_type( exchange_rate.quote, STEEM_SYMBOL ) ),
-         "Price feed must be a STEEM/SBD price" );
+      if(exchange_rate.base.symbol == STEEM_SYMBOL){
+         FC_ASSERT(exchange_rate.quote.symbol == SBD1_SYMBOL || exchange_rate.quote.symbol == SBD2_SYMBOL ||
+                   exchange_rate.quote.symbol == SBD3_SYMBOL || exchange_rate.quote.symbol == SBD4_SYMBOL ||
+                   exchange_rate.quote.symbol == SBD5_SYMBOL );
+
+      }else{
+         FC_ASSERT(exchange_rate.quote.symbol == STEEM_SYMBOL);
+         FC_ASSERT(exchange_rate.base.symbol == SBD1_SYMBOL || exchange_rate.base.symbol == SBD2_SYMBOL ||
+                   exchange_rate.base.symbol == SBD3_SYMBOL || exchange_rate.base.symbol == SBD4_SYMBOL ||
+                   exchange_rate.base.symbol == SBD5_SYMBOL );
+      }
+      FC_ASSERT(exchange_rate.quote.amount > 0 && exchange_rate.base.amount > 0);
       exchange_rate.validate();
    }
 
@@ -198,7 +220,7 @@ namespace steem { namespace protocol {
       FC_ASSERT( fee.amount >= 0, "fee cannot be negative" );
       FC_ASSERT( steem_amount.amount > 0, "steem amount cannot be negative" );
       FC_ASSERT( from != agent && to != agent, "agent must be a third party" );
-      FC_ASSERT( (fee.symbol == STEEM_SYMBOL) || (fee.symbol == SBD_SYMBOL), "fee must be STEEM or SBD" );
+      FC_ASSERT( (fee.symbol == STEEM_SYMBOL) , "fee must be STEEM" );
       FC_ASSERT( steem_amount.symbol == STEEM_SYMBOL, "steem amount must contain STEEM" );
       FC_ASSERT( ratification_deadline < escrow_expiration, "ratification deadline must be before escrow expiration" );
       if ( json_meta.size() > 0 )
@@ -235,10 +257,7 @@ namespace steem { namespace protocol {
       validate_account_name( receiver );
       FC_ASSERT( who == from || who == to || who == agent, "who must be from or to or agent" );
       FC_ASSERT( receiver == from || receiver == to, "receiver must be from or to" );
-      FC_ASSERT( sbd_amount.amount >= 0, "sbd amount cannot be negative" );
-      FC_ASSERT( steem_amount.amount >= 0, "steem amount cannot be negative" );
-      FC_ASSERT( sbd_amount.amount > 0 || steem_amount.amount > 0, "escrow must release a non-zero amount" );
-      FC_ASSERT( sbd_amount.symbol == SBD_SYMBOL, "sbd amount must contain SBD" );
+      FC_ASSERT( steem_amount.amount > 0, "steem amount must be positive" );
       FC_ASSERT( steem_amount.symbol == STEEM_SYMBOL, "steem amount must contain STEEM" );
    }
 

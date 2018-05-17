@@ -19,7 +19,7 @@
 #include <array>
 #include <iostream>
 
-#define INITIAL_TEST_SUPPLY (10000000000ll)
+#define INITIAL_TEST_SUPPLY (100000000000000ll)
 
 extern uint32_t ( STEEM_TESTING_GENESIS_TIMESTAMP );
 

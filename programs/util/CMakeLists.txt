@@ -43,18 +43,6 @@ install( TARGETS
    ARCHIVE DESTINATION lib
 )
 
-add_executable( inflation_model inflation_model.cpp )
-target_link_libraries( inflation_model
-                       PRIVATE steem_chain steem_protocol fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
-
-install( TARGETS
-   inflation_model
-
-   RUNTIME DESTINATION bin
-   LIBRARY DESTINATION lib
-   ARCHIVE DESTINATION lib
-)
-
 #add_executable( schema_test schema_test.cpp )
 #target_link_libraries( schema_test
 #                       PRIVATE steem_chain fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
