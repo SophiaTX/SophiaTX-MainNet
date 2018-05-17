@@ -257,8 +257,8 @@ void old_pack_symbol(vector<char>& v, asset_symbol_type sym)
    }
    else if( sym == SBD1_SYMBOL )
    {
-      v.push_back('S' ); v.push_back('B' ); v.push_back('D' );v.push_back('\0'  );
-      v.push_back('\0'  ); v.push_back('\0'); v.push_back('\0'); v.push_back('\0');
+      v.push_back('S' ); v.push_back('B' ); v.push_back('D' ); v.push_back('1');v.push_back('\0'  );
+      v.push_back('\0'  ); v.push_back('\0'); v.push_back('\0');
       // 03 54 42 44 00 00 00 00
    }
    else if( sym == VESTS_SYMBOL )

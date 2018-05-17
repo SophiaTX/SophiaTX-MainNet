@@ -466,14 +466,13 @@ void database_fixture::proxy( const string& account, const string& proxy )
 void database_fixture::set_price_feed( const price& new_price )
 {
    flat_map< string, vector< char > > props;
-   props[ "sbd_exchange_rate" ] = fc::raw::pack_to_vector( new_price );
+   vector<price> new_prices;
+   new_prices.push_back(new_price);
+   props[ "exchange_rates" ] = fc::raw::pack_to_vector( new_prices );
 
    set_witness_props( props );
 
    BOOST_REQUIRE(
-#ifdef IS_TEST_NET
-      !db->skip_price_feed_limit_check ||
-#endif
       db->get(feed_history_id_type()).current_median_history == new_price
    );
 }

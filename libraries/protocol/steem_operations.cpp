@@ -125,24 +125,20 @@ namespace steem { namespace protocol {
          fc::raw::unpack_from_vector( itr->second, exchange_rates );
          for(const auto &rate: exchange_rates){
             if(rate.base.symbol == STEEM_SYMBOL){
-               FC_ASSERT(rate.quote.symbol == SBD1_SYMBOL_SER || rate.quote.symbol == SBD2_SYMBOL_SER ||
-                         rate.quote.symbol == SBD3_SYMBOL_SER || rate.quote.symbol == SBD4_SYMBOL_SER ||
-                         rate.quote.symbol == SBD5_SYMBOL_SER );
+               FC_ASSERT(rate.quote.symbol == SBD1_SYMBOL || rate.quote.symbol == SBD2_SYMBOL ||
+                         rate.quote.symbol == SBD3_SYMBOL || rate.quote.symbol == SBD4_SYMBOL ||
+                         rate.quote.symbol == SBD5_SYMBOL );
                
             }else{
                FC_ASSERT(rate.quote.symbol == STEEM_SYMBOL);
-               FC_ASSERT(rate.base.symbol == SBD1_SYMBOL_SER || rate.base.symbol == SBD2_SYMBOL_SER ||
-                         rate.base.symbol == SBD3_SYMBOL_SER || rate.base.symbol == SBD4_SYMBOL_SER ||
-                         rate.base.symbol == SBD5_SYMBOL_SER );
+               FC_ASSERT(rate.base.symbol == SBD1_SYMBOL || rate.base.symbol == SBD2_SYMBOL ||
+                         rate.base.symbol == SBD3_SYMBOL || rate.base.symbol == SBD4_SYMBOL ||
+                         rate.base.symbol == SBD5_SYMBOL );
             }
             FC_ASSERT(rate.quote.amount > 0 && rate.base.amount > 0);
 
          }
          //check if all symbols are unique
-         std::vector<asset_symbol_type> symbols;
-         std::transform(exchange_rates.begin(), exchange_rates.end(), symbols.begin(), [](price c) -> asset_symbol_type { return (c.base.symbol == STEEM_SYMBOL)?c.quote.symbol:c.base.symbol; });
-         auto it = std::unique(symbols.begin(), symbols.end());
-         FC_ASSERT(it == symbols.end());
       }
 
       itr = props.find( "url" );
@@ -192,15 +188,15 @@ namespace steem { namespace protocol {
    {
       validate_account_name( publisher );
       if(exchange_rate.base.symbol == STEEM_SYMBOL){
-         FC_ASSERT(exchange_rate.quote.symbol == SBD1_SYMBOL_SER || exchange_rate.quote.symbol == SBD2_SYMBOL_SER ||
-                   exchange_rate.quote.symbol == SBD3_SYMBOL_SER || exchange_rate.quote.symbol == SBD4_SYMBOL_SER ||
-                   exchange_rate.quote.symbol == SBD5_SYMBOL_SER );
+         FC_ASSERT(exchange_rate.quote.symbol == SBD1_SYMBOL || exchange_rate.quote.symbol == SBD2_SYMBOL ||
+                   exchange_rate.quote.symbol == SBD3_SYMBOL || exchange_rate.quote.symbol == SBD4_SYMBOL ||
+                   exchange_rate.quote.symbol == SBD5_SYMBOL );
 
       }else{
          FC_ASSERT(exchange_rate.quote.symbol == STEEM_SYMBOL);
-         FC_ASSERT(exchange_rate.base.symbol == SBD1_SYMBOL_SER || exchange_rate.base.symbol == SBD2_SYMBOL_SER ||
-                   exchange_rate.base.symbol == SBD3_SYMBOL_SER || exchange_rate.base.symbol == SBD4_SYMBOL_SER ||
-                   exchange_rate.base.symbol == SBD5_SYMBOL_SER );
+         FC_ASSERT(exchange_rate.base.symbol == SBD1_SYMBOL || exchange_rate.base.symbol == SBD2_SYMBOL ||
+                   exchange_rate.base.symbol == SBD3_SYMBOL || exchange_rate.base.symbol == SBD4_SYMBOL ||
+                   exchange_rate.base.symbol == SBD5_SYMBOL );
       }
       FC_ASSERT(exchange_rate.quote.amount > 0 && exchange_rate.base.amount > 0);
       exchange_rate.validate();
@@ -261,7 +257,7 @@ namespace steem { namespace protocol {
       validate_account_name( receiver );
       FC_ASSERT( who == from || who == to || who == agent, "who must be from or to or agent" );
       FC_ASSERT( receiver == from || receiver == to, "receiver must be from or to" );
-      FC_ASSERT( steem_amount.amount >= 0, "steem amount cannot be negative" );
+      FC_ASSERT( steem_amount.amount > 0, "steem amount must be positive" );
       FC_ASSERT( steem_amount.symbol == STEEM_SYMBOL, "steem amount must contain STEEM" );
    }
 

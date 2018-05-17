@@ -1565,10 +1565,10 @@ void database::init_genesis( uint64_t init_supply )
                                                 } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD1_SYMBOL;});
-      /*create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD2_SYMBOL;});
+      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD2_SYMBOL;});
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD3_SYMBOL;});
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD4_SYMBOL;});
-      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD5_SYMBOL;});*/
+      create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD5_SYMBOL;});
 
       for( int i = 0; i < 0x10000; i++ )
          create< block_summary_object >( [&]( block_summary_object& ) {});
@@ -1996,8 +1996,9 @@ void database::_apply_transaction(const signed_transaction& trx)
    _current_trx_id = trx.id();
    uint32_t skip = get_node_properties().skip_flags;
 
-   if( !(skip&skip_validate) )   /* issue #505 explains why this skip_flag is disabled */
+   if( !(skip&skip_validate) ) {   /* issue #505 explains why this skip_flag is disabled */
       trx.validate();
+   }
 
    auto& trx_idx = get_index<transaction_index>();
    const chain_id_type& chain_id = get_chain_id();
