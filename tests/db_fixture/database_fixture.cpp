@@ -396,7 +396,6 @@ void database_fixture::fund(
          });
 
 
-         db.update_virtual_supply();
       }, default_skip );
    }
    FC_CAPTURE_AND_RETHROW( (account_name)(amount) )

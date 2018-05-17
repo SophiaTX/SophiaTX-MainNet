@@ -187,7 +187,7 @@ class wallet_api
 
       /**
        *  @param account  - the name of the account to retrieve key for
-       *  @param role     - active | owner | posting | memo
+       *  @param role     - active | owner  | memo
        *  @param password - the password to be used at key generation
        *  @return public key corresponding to generated private key, and private key in WIF format.
        */
@@ -369,7 +369,6 @@ class wallet_api
        * @param json_meta New JSON Metadata to be associated with the account
        * @param owner New public owner key for the account
        * @param active New public active key for the account
-       * @param posting New public posting key for the account
        * @param memo New public memo key for the account
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -384,10 +383,10 @@ class wallet_api
        * This method updates the key of an authority for an exisiting account.
        * Warning: You can create impossible authorities using this method. The method
        * will fail if you create an impossible owner authority, but will allow impossible
-       * active and posting authorities.
+       * active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param key The public key to add to the authority
        * @param weight The weight the key should have in the authority. A weight of 0 indicates the removal of the key.
        * @param broadcast true if you wish to broadcast the transaction.
@@ -398,10 +397,10 @@ class wallet_api
        * This method updates the account of an authority for an exisiting account.
        * Warning: You can create impossible authorities using this method. The method
        * will fail if you create an impossible owner authority, but will allow impossible
-       * active and posting authorities.
+       * active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param auth_account The account to add the the authority
        * @param weight The weight the account should have in the authority. A weight of 0 indicates the removal of the account.
        * @param broadcast true if you wish to broadcast the transaction.
@@ -413,10 +412,10 @@ class wallet_api
        * Warning: You can create impossible authorities using this method as well
        * as implicitly met authorities. The method will fail if you create an implicitly
        * true authority and if you create an impossible owner authoroty, but will allow
-       * impossible active and posting authorities.
+       * impossible active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param threshold The weight threshold required for the authority to be met
        * @param broadcast true if you wish to broadcast the transaction
        */

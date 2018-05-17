@@ -369,9 +369,7 @@ namespace steem { namespace chain {
 
       void retally_witness_votes();
 
-      void update_virtual_supply();
-
-         bool has_hardfork( uint32_t hardfork )const;
+      bool has_hardfork( uint32_t hardfork )const;
 
          /* For testing and debugging only. Given a hardfork
             with id N, applies all hardforks with id <= N */

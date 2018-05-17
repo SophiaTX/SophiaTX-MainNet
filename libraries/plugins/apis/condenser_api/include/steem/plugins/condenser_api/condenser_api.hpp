@@ -138,7 +138,6 @@ struct extended_dynamic_global_properties
       time( o.time ),
       current_witness( o.current_witness ),
 
-      virtual_supply( legacy_asset::from_asset( o.virtual_supply ) ),
       current_supply( legacy_asset::from_asset( o.current_supply ) ),
       total_vesting_shares( legacy_asset::from_asset( o.total_vesting_shares ) ),
       maximum_block_size( o.maximum_block_size ),
@@ -153,7 +152,6 @@ struct extended_dynamic_global_properties
    time_point_sec    time;
    account_name_type current_witness;
 
-   legacy_asset      virtual_supply;
    legacy_asset      current_supply;
    legacy_asset      total_vesting_shares;
 
@@ -469,7 +467,7 @@ FC_REFLECT_DERIVED( steem::plugins::condenser_api::extended_account, (steem::plu
 FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
             (current_witness)
-            (virtual_supply)(current_supply)
+            (current_supply)
             (total_vesting_shares)
             (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
             (average_block_size)(max_virtual_bandwidth) )
