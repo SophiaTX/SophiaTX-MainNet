@@ -94,15 +94,26 @@ asset asset::from_string( const std::string& from )
    {
       std::string s = fc::trim( from );
       auto space_pos = s.find( " " );
+      auto dot_pos = s.find( "." );
 
       FC_ASSERT( space_pos != std::string::npos );
+
+      if(dot_pos != std::string::npos)
+      {
+         FC_ASSERT( SOPHIATX_DECIMALS >= (space_pos - dot_pos - 1));
+      }
 
       asset result;
       std::string str_symbol = s.substr( space_pos + 1 );
 
       auto numpart = s.substr( 0, space_pos );
       auto dvalue = fc::to_double(numpart);
-      result.amount = dvalue * SOPHIATX_SATOSHIS;
+      auto ivalue = static_cast<int64_t>(round(dvalue * SOPHIATX_SATOSHIS));
+
+      FC_ASSERT( ivalue >= 0);
+      FC_ASSERT( STEEM_MAX_SHARE_SUPPLY >= ivalue);
+
+      result.amount = ivalue;
       result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
       return result;
    }
