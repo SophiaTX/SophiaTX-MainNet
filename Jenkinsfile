@@ -1,6 +1,6 @@
 #!groovy
 pipeline {
-  agent any
+  agent { label 'suse' }
   stages {
     stage('Build') {
       steps {
