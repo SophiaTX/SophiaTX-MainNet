@@ -260,6 +260,35 @@ void update_witness_schedule4( database& db )
    update_median_witness_props(db);
 }
 
+void clean_stopped_witnesses(database& db){
+   const auto& widx = db.get_index<witness_index>().indices().get<by_stopped>();
+   auto itr = widx.find( true );
+   vector<const witness_object*> to_remove;
+   for( ;
+        itr != widx.end() && itr->stopped == true ;
+        ++itr )
+   {
+      to_remove.emplace_back(&(*itr));
+   }
+
+   for( const auto& w: to_remove){
+      const auto& woidx = db.get_index<witness_vote_index>().indices().get<by_witness_account>();
+
+      vector <const witness_vote_object*> wo_to_remove;
+
+      for(  auto itr = woidx.find( std::make_tuple(w->owner, "") );
+           itr != woidx.end() &&  itr->witness == w->owner ;
+           ++itr )
+      {
+         wo_to_remove.emplace_back(&(*itr));
+      }
+      for( const auto& wo: wo_to_remove){
+         db.remove(*wo);
+      }
+
+      db.remove(*w);
+   }
+}
 
 /**
  *
@@ -269,6 +298,7 @@ void update_witness_schedule(database& db)
 {
    if( (db.head_block_num() % STEEM_MAX_WITNESSES) == 0 ) //wso.next_shuffle_block_num )
    {
+      clean_stopped_witnesses(db);
       update_witness_schedule4(db);
    }
 }

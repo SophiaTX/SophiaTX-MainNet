@@ -1,11 +1,16 @@
 #!groovy
 pipeline {
-  agent any
+  agent { label 'suse' }
   stages {
     stage('Build') {
       steps {
         sh 'cmake -DBOOST_ROOT=$BOOST_160 -DOPENSSL_ROOT_DIR=$OPENSSL_102'
         sh 'make -j4'
+      }
+    }
+    stage('Tests') {
+      steps {
+        sh './tests/chain_test'
       }
     }
     stage('Clean WS') {

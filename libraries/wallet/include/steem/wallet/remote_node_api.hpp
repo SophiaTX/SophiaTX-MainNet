@@ -29,13 +29,12 @@ struct remote_node_api
    vector< condenser_api::api_operation_object > get_ops_in_block( uint32_t, bool only_virtual = true );
    fc::variant_object get_config();
    condenser_api::extended_dynamic_global_properties get_dynamic_global_properties();
-   legacy_chain_properties get_chain_properties();
-   condenser_api::legacy_price get_current_median_history_price();
-   condenser_api::api_feed_history_object get_feed_history();
+   chain_properties get_chain_properties();
+   condenser_api::legacy_price get_current_median_history_price( asset_symbol_type );
+   condenser_api::api_feed_history_object get_feed_history( asset_symbol_type);
    condenser_api::api_witness_schedule_object get_witness_schedule();
    hardfork_version get_hardfork_version();
    condenser_api::scheduled_hardfork get_next_scheduled_hardfork();
-   condenser_api::api_reward_fund_object get_reward_fund( string );
    vector< vector< account_name_type > > get_key_references( vector< public_key_type > );
    vector< condenser_api::extended_account > get_accounts( vector< account_name_type > );
    vector< account_id_type > get_account_references( account_id_type account_id );
@@ -83,7 +82,6 @@ FC_API( steem::wallet::remote_node_api,
         (get_witness_schedule)
         (get_hardfork_version)
         (get_next_scheduled_hardfork)
-        (get_reward_fund)
         (get_key_references)
         (get_accounts)
         (get_account_references)

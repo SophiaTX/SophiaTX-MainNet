@@ -24,6 +24,7 @@ namespace steem { namespace plugins { namespace condenser_api {
    typedef change_recovery_account_operation      legacy_change_recovery_account_operation;
    typedef shutdown_witness_operation             legacy_shutdown_witness_operation;
    typedef hardfork_operation                     legacy_hardfork_operation;
+   typedef witness_stop_operation                 legacy_witness_stop_operation;
 
    struct legacy_price
    {
@@ -251,7 +252,7 @@ namespace steem { namespace plugins { namespace condenser_api {
       account_name_type       owner;
       string                  url;
       public_key_type         block_signing_key;
-      legacy_chain_properties props;
+      chain_properties        props;
       legacy_asset            fee;
    };
 
@@ -367,6 +368,7 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_account_create_operation,
             legacy_account_update_operation,
             legacy_witness_update_operation,
+            legacy_witness_stop_operation,
             legacy_account_witness_vote_operation,
             legacy_account_witness_proxy_operation,
             legacy_custom_operation,
@@ -457,6 +459,12 @@ namespace steem { namespace plugins { namespace condenser_api {
          return true;
       }
 
+      bool operator()( const witness_stop_operation& op )const
+      {
+         l_op = legacy_witness_stop_operation( op );
+         return true;
+      }
+
       bool operator()( const escrow_transfer_operation& op )const
       {
          l_op = legacy_escrow_transfer_operation( op );
@@ -532,6 +540,11 @@ struct convert_from_legacy_operation_visitor
    operation operator()( const legacy_witness_update_operation& op )const
    {
       return operation( witness_update_operation( op ) );
+   }
+
+   operation operator()( const legacy_witness_stop_operation& op )const
+   {
+      return operation( witness_stop_operation( op ) );
    }
 
    operation operator()( const legacy_escrow_transfer_operation& op )const

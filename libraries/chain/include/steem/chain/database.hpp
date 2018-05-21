@@ -150,7 +150,7 @@ namespace steem { namespace chain {
          const dynamic_global_property_object&  get_dynamic_global_properties()const;
          const economic_model_object&           get_economic_model() const;
          const node_property_object&            get_node_properties()const;
-         const feed_history_object&             get_feed_history()const;
+         const feed_history_object &get_feed_history(asset_symbol_type a) const;
          const witness_schedule_object&         get_witness_schedule_object()const;
          const hardfork_property_object&        get_hardfork_property_object()const;
 
@@ -289,8 +289,9 @@ namespace steem { namespace chain {
           */
          uint32_t get_slot_at_time(fc::time_point_sec when)const;
 
-         asset create_vesting( const account_object& to_account, asset steem, bool to_reward_balance=false );
+         void        vest( const account_name_type& name, const share_type delta);
 
+         void        vest( const account_object& a, const share_type delta);
          void        adjust_balance( const account_object& a, const asset& delta );
          void        adjust_balance( const account_name_type& name, const asset& delta );
          void        adjust_supply( const asset& delta );
@@ -326,7 +327,7 @@ namespace steem { namespace chain {
       void account_recovery_processing();
          void expire_escrow_ratification();
 
-      void update_median_feed();
+      void update_median_feeds();
 
       asset get_producer_reward();
 
@@ -336,7 +337,7 @@ namespace steem { namespace chain {
        * Helper method to return the current sbd value of a given amount of
        * STEEM.  Return 0 SBD if there isn't a current_median_history
        */
-         asset to_sbd( const asset& steem )const;
+      asset to_sbd(const asset &steem, asset_symbol_type to_symbol) const;
          asset to_steem( const asset& sbd )const;
 
          time_point_sec   head_block_time()const;
@@ -370,9 +371,7 @@ namespace steem { namespace chain {
 
       void retally_witness_votes();
 
-      void update_virtual_supply();
-
-         bool has_hardfork( uint32_t hardfork )const;
+      bool has_hardfork( uint32_t hardfork )const;
 
          /* For testing and debugging only. Given a hardfork
             with id N, applies all hardforks with id <= N */

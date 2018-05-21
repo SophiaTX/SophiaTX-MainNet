@@ -138,10 +138,8 @@ struct extended_dynamic_global_properties
       time( o.time ),
       current_witness( o.current_witness ),
 
-      virtual_supply( legacy_asset::from_asset( o.virtual_supply ) ),
       current_supply( legacy_asset::from_asset( o.current_supply ) ),
       total_vesting_shares( legacy_asset::from_asset( o.total_vesting_shares ) ),
-      total_reward_fund ( legacy_asset::from_asset( o.total_reward_fund) ),
       maximum_block_size( o.maximum_block_size ),
       current_aslot( o.current_aslot ),
       recent_slots_filled( o.recent_slots_filled ),
@@ -154,10 +152,8 @@ struct extended_dynamic_global_properties
    time_point_sec    time;
    account_name_type current_witness;
 
-   legacy_asset      virtual_supply;
    legacy_asset      current_supply;
    legacy_asset      total_vesting_shares;
-   legacy_asset      total_reward_fund;
 
    uint32_t          maximum_block_size = 0;
    uint64_t          current_aslot = 0;
@@ -195,8 +191,7 @@ struct api_witness_object
       last_confirmed_block_num( w.last_confirmed_block_num ),
       signing_key( w.signing_key ),
       props( w.props ),
-      sbd_exchange_rate( w.sbd_exchange_rate ),
-      last_sbd_exchange_update( w.last_sbd_exchange_update ),
+      submitted_exchange_rates( w.submitted_exchange_rates ),
       votes( w.votes ),
       virtual_last_update( w.virtual_last_update ),
       virtual_position( w.virtual_position ),
@@ -215,8 +210,8 @@ struct api_witness_object
    uint64_t                last_confirmed_block_num = 0;
    public_key_type         signing_key;
    legacy_chain_properties props;
-   legacy_price            sbd_exchange_rate;
-   time_point_sec          last_sbd_exchange_update;
+   std::map<asset_symbol_type, submitted_exchange_rate> submitted_exchange_rates;
+
    share_type              votes;
    fc::uint128_t           virtual_last_update;
    fc::uint128_t           virtual_position;
@@ -278,33 +273,7 @@ struct api_feed_history_object
    deque< legacy_price >  price_history;
 };
 
-struct api_reward_fund_object
-{
-   api_reward_fund_object() {}
-   api_reward_fund_object( const database_api::api_reward_fund_object& r ) :
-      id( r.id ),
-      name( r.name ),
-      reward_balance( legacy_asset::from_asset( r.reward_balance ) ),
-      recent_claims( r.recent_claims ),
-      last_update( r.last_update ),
-      content_constant( r.content_constant ),
-      percent_curation_rewards( r.percent_curation_rewards ),
-      percent_content_rewards( r.percent_content_rewards ),
-      author_reward_curve( r.author_reward_curve ),
-      curation_reward_curve( r.curation_reward_curve )
-   {}
 
-   reward_fund_id_type     id;
-   reward_fund_name_type   name;
-   legacy_asset            reward_balance;
-   fc::uint128_t           recent_claims = 0;
-   time_point_sec          last_update;
-   uint128_t               content_constant = 0;
-   uint16_t                percent_curation_rewards = 0;
-   uint16_t                percent_content_rewards = 0;
-   protocol::curve_id      author_reward_curve;
-   protocol::curve_id      curation_reward_curve;
-};
 
 struct api_escrow_object
 {
@@ -392,7 +361,6 @@ DEFINE_API_ARGS( get_feed_history,                       vector< variant >,   ap
 DEFINE_API_ARGS( get_witness_schedule,                   vector< variant >,   api_witness_schedule_object )
 DEFINE_API_ARGS( get_hardfork_version,                   vector< variant >,   hardfork_version )
 DEFINE_API_ARGS( get_next_scheduled_hardfork,            vector< variant >,   scheduled_hardfork )
-DEFINE_API_ARGS( get_reward_fund,                        vector< variant >,   api_reward_fund_object )
 DEFINE_API_ARGS( get_key_references,                     vector< variant >,   vector< vector< account_name_type > > )
 DEFINE_API_ARGS( get_accounts,                           vector< variant >,   vector< extended_account > )
 DEFINE_API_ARGS( get_account_references,                 vector< variant >,   vector< account_id_type > )
@@ -442,7 +410,6 @@ public:
       (get_witness_schedule)
       (get_hardfork_version)
       (get_next_scheduled_hardfork)
-      (get_reward_fund)
       (get_key_references)
       (get_accounts)
       (get_account_references)
@@ -500,9 +467,8 @@ FC_REFLECT_DERIVED( steem::plugins::condenser_api::extended_account, (steem::plu
 FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
             (current_witness)
-            (virtual_supply)(current_supply)
+            (current_supply)
             (total_vesting_shares)
-            (total_reward_fund)
             (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
             (average_block_size)(max_virtual_bandwidth) )
 
@@ -517,7 +483,7 @@ FC_REFLECT( steem::plugins::condenser_api::api_witness_object,
              (url)(votes)(virtual_last_update)(virtual_position)(virtual_scheduled_time)(total_missed)
              (last_aslot)(last_confirmed_block_num)(signing_key)
              (props)
-             (sbd_exchange_rate)(last_sbd_exchange_update)
+             (submitted_exchange_rates)
              (running_version)
              (hardfork_version_vote)(hardfork_time_vote)
           )
@@ -544,18 +510,6 @@ FC_REFLECT( steem::plugins::condenser_api::api_feed_history_object,
              (price_history)
           )
 
-FC_REFLECT( steem::plugins::condenser_api::api_reward_fund_object,
-            (id)
-            (name)
-            (reward_balance)
-            (recent_claims)
-            (last_update)
-            (content_constant)
-            (percent_curation_rewards)
-            (percent_content_rewards)
-            (author_reward_curve)
-            (curation_reward_curve)
-         )
 
 FC_REFLECT( steem::plugins::condenser_api::api_escrow_object,
              (id)(escrow_id)(from)(to)(agent)

@@ -21,7 +21,6 @@ class database_api_impl
          (get_dynamic_global_properties)
          (get_witness_schedule)
          (get_hardfork_properties)
-         (get_reward_funds)
          (get_current_price_feed)
          (get_feed_history)
          (list_witnesses)
@@ -116,30 +115,14 @@ DEFINE_API_IMPL( database_api_impl, get_hardfork_properties )
    return _db.get_hardfork_property_object();
 }
 
-DEFINE_API_IMPL( database_api_impl, get_reward_funds )
-{
-   get_reward_funds_return result;
-
-   const auto& rf_idx = _db.get_index< reward_fund_index, by_id >();
-   auto itr = rf_idx.begin();
-
-   while( itr != rf_idx.end() )
-   {
-      result.funds.push_back( *itr );
-      ++itr;
-   }
-
-   return result;
-}
-
 DEFINE_API_IMPL( database_api_impl, get_current_price_feed )
 {
-   return _db.get_feed_history().current_median_history;;
+   return _db.get_feed_history( args.symbol ).current_median_history;;
 }
 
 DEFINE_API_IMPL( database_api_impl, get_feed_history )
 {
-   return _db.get_feed_history();
+   return _db.get_feed_history( args.symbol );
 }
 
 
@@ -693,7 +676,6 @@ DEFINE_READ_APIS( database_api,
    (get_dynamic_global_properties)
    (get_witness_schedule)
    (get_hardfork_properties)
-   (get_reward_funds)
    (get_current_price_feed)
    (get_feed_history)
    (list_witnesses)

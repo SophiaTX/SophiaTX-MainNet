@@ -48,26 +48,30 @@ struct strcmp_equal
    }
 };
 
-template< bool force_canon >
-void copy_legacy_chain_properties( chain_properties& dest, const legacy_chain_properties& src )
-{
-   dest.account_creation_fee = src.account_creation_fee;
-   dest.maximum_block_size = src.maximum_block_size;
+
+
+void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
+   _db.get_account( o.owner );
+   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   auto wit_itr = by_witness_name_idx.find( o.owner );
+   if( wit_itr != by_witness_name_idx.end() )
+   {
+      _db.modify(*wit_itr, [&]( witness_object& w ) {
+         w.stopped = true;
+      });
+   }
 }
 
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
-   _db.get_account( o.owner ); // verify owner exists
+   const account_object& acn = _db.get_account( o.owner ); // verify owner exists
+   FC_ASSERT( acn.vesting_shares.amount >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, "witness requires at least ${a} of vested balance", ("a", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE) );
 
    if( _db.is_producing() )
    {
       FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
    }
 
-   if( _db.is_producing() )
-   {
-      FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
-   }
 
    const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
@@ -76,7 +80,23 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
       _db.modify( *wit_itr, [&]( witness_object& w ) {
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
-         copy_legacy_chain_properties< false >( w.props, o.props );
+         w.props = o.props;
+         w.props.price_feeds.clear();
+         if(o.props.price_feeds.size()){
+            time_point_sec last_sbd_exchange_update = _db.head_block_time();
+            for(auto r:o.props.price_feeds){
+               price new_rate;
+               //ensure that base is always in SPHTX
+               if(r.second.base.symbol == STEEM_SYMBOL)
+                  new_rate = r.second;
+               else {
+                  new_rate.base = r.second.quote;
+                  new_rate.quote = r.second.base;
+               }
+               w.submitted_exchange_rates[r.first].rate = new_rate;
+               w.submitted_exchange_rates[r.first].last_change = last_sbd_exchange_update;
+            }
+         }
       });
    }
    else
@@ -86,7 +106,8 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
          w.created            = _db.head_block_time();
-         copy_legacy_chain_properties< false >( w.props, o.props );
+         w.props = o.props;
+         w.props.price_feeds.clear();
       });
    }
 }
@@ -98,7 +119,6 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    // Capture old properties. This allows only updating the object once.
    chain_properties  props;
    public_key_type   signing_key;
-   price             sbd_exchange_rate;
    time_point_sec    last_sbd_exchange_update;
    string            url;
 
@@ -107,6 +127,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    bool key_changed              = false;
    bool sbd_exchange_changed     = false;
    bool url_changed              = false;
+   std::vector<price> new_rates;
 
    auto itr = o.props.find( "key" );
 
@@ -136,10 +157,23 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
       key_changed = true;
    }
 
-   itr = o.props.find( "sbd_exchange_rate" );
+   itr = o.props.find( "exchange_rates" );
    if( itr != o.props.end() )
    {
-      fc::raw::unpack_from_vector( itr->second, sbd_exchange_rate );
+      std::vector<price> exchange_rates;
+      fc::raw::unpack_from_vector( itr->second, exchange_rates );
+      for(const auto & rate: exchange_rates){
+         price new_rate;
+         //ensure that base is always in SPHTX
+         if(rate.base.symbol == STEEM_SYMBOL)
+            new_rate = rate;
+         else {
+            new_rate.base = rate.quote;
+            new_rate.quote = rate.base;
+         }
+         new_rates.push_back(new_rate);
+
+      }
       last_sbd_exchange_update = _db.head_block_time();
       sbd_exchange_changed = true;
    }
@@ -164,8 +198,10 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
 
       if( sbd_exchange_changed )
       {
-         w.sbd_exchange_rate = sbd_exchange_rate;
-         w.last_sbd_exchange_update = last_sbd_exchange_update;
+         for( auto r: new_rates){
+            w.submitted_exchange_rates[r.quote.symbol].rate = r;
+            w.submitted_exchange_rates[r.quote.symbol].last_change = last_sbd_exchange_update;
+         }
       }
 
       if( url_changed )
@@ -454,8 +490,15 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
    const auto& to_account = o.to.size() ? _db.get_account(o.to) : from_account;
 
    FC_ASSERT( _db.get_balance( from_account, STEEM_SYMBOL) >= o.amount, "Account does not have sufficient STEEM for transfer." );
-   _db.adjust_balance( from_account, -o.amount );
-   _db.create_vesting( to_account, o.amount );
+
+   if( from_account.id == to_account.id )
+      _db.vest( from_account, o.amount.amount );
+   else {
+      _db.adjust_balance(o.from, -o.amount);
+      _db.adjust_balance(o.to, o.amount);
+      _db.vest(to_account, o.amount.amount);
+   }
+
 }
 
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
@@ -494,6 +537,9 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS);
          a.to_withdraw = o.vesting_shares.amount;
          a.withdrawn = 0;
+
+         auto wit = _db.find_witness( o. account );
+         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       });
    }
 }
@@ -506,7 +552,7 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
 
    /// remove all current votes
    std::array<share_type, STEEM_MAX_PROXY_RECURSION_DEPTH+1> delta;
-   delta[0] = -account.vesting_shares.amount;
+   delta[0] = -account.total_balance();
    for( int i = 0; i < STEEM_MAX_PROXY_RECURSION_DEPTH; ++i )
       delta[i+1] = -account.proxied_vsf_votes[i];
    _db.adjust_proxied_witness_votes( account, delta );
@@ -636,14 +682,19 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
 void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
 {
-   FC_ASSERT( is_asset_type( o.exchange_rate.base, SBD_SYMBOL ) && is_asset_type( o.exchange_rate.quote, STEEM_SYMBOL ),
-            "Price feed must be a SBD/STEEM price" );
-
+   price new_rate;
+   //ensure that base is always in SPHTX
+   if(o.exchange_rate.base.symbol == STEEM_SYMBOL)
+      new_rate = o.exchange_rate;
+   else {
+      new_rate.base = o.exchange_rate.quote;
+      new_rate.quote = o.exchange_rate.base;
+   }
    const auto& witness = _db.get_witness( o.publisher );
    _db.modify( witness, [&]( witness_object& w )
    {
-      w.sbd_exchange_rate = o.exchange_rate;
-      w.last_sbd_exchange_update = _db.head_block_time();
+      w.submitted_exchange_rates[new_rate.quote.symbol].last_change = _db.head_block_time();
+      w.submitted_exchange_rates[new_rate.quote.symbol].rate = new_rate;
    });
 }
 
@@ -899,6 +950,73 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
          {
             FC_ASSERT( token <= a->reward_vesting_balance, "Cannot claim that much VESTS. Claim: ${c} Actual: ${a}",
                ("c", token)("a", a->reward_vesting_balance) );   
+
+            asset reward_vesting_steem_to_move = asset( 0, STEEM_SYMBOL );
+            if( token == a->reward_vesting_balance )
+               reward_vesting_steem_to_move = a->reward_vesting_steem;
+            else
+               reward_vesting_steem_to_move = asset( ( ( uint128_t( token.amount.value ) * uint128_t( a->reward_vesting_steem.amount.value ) )
+                  / uint128_t( a->reward_vesting_balance.amount.value ) ).to_uint64(), STEEM_SYMBOL );
+
+            _db.modify( *a, [&]( account_object& a )
+            {
+               a.vesting_shares += token;
+               a.reward_vesting_balance -= token;
+               a.reward_vesting_steem -= reward_vesting_steem_to_move;
+            });
+
+            _db.modify( _db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
+            {
+               gpo.total_vesting_shares += token;
+               gpo.total_vesting_fund_steem += reward_vesting_steem_to_move;
+
+               gpo.pending_rewarded_vesting_shares -= token;
+               gpo.pending_rewarded_vesting_steem -= reward_vesting_steem_to_move;
+            });
+
+            _db.adjust_proxied_witness_votes( *a, token.amount );
+         }
+         else if( token.symbol == STEEM_SYMBOL || token.symbol == SBD_SYMBOL )
+         {
+            FC_ASSERT( is_asset_type( token, STEEM_SYMBOL ) == false || token <= a->reward_steem_balance,
+                       "Cannot claim that much STEEM. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_steem_balance) );
+            FC_ASSERT( is_asset_type( token, SBD_SYMBOL ) == false || token <= a->reward_sbd_balance,
+                       "Cannot claim that much SBD. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
+            _db.adjust_reward_balance( *a, -token );
+            _db.adjust_balance( *a, token );
+         }
+         else
+            FC_ASSERT( false, "Unknown asset symbol" );
+      } // non-SMT token
+   } // for( const auto& token : op.reward_tokens )
+}
+void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_operation& op )
+{
+   const account_object* a = nullptr; // Lazily initialized below because it may turn out unnecessary.
+
+   for( const asset& token : op.reward_tokens )
+   {
+      if( token.amount == 0 )
+         continue;
+
+      if( token.symbol.space() == asset_symbol_type::smt_nai_space )
+      {
+         _db.adjust_reward_balance( op.account, -token );
+         _db.adjust_balance( op.account, token );
+      }
+      else
+      {
+         // Lazy init here.
+         if( a == nullptr )
+         {
+            a = _db.find_account( op.account );
+            FC_ASSERT( a != nullptr, "Could NOT find account ${a}", ("a", op.account) );
+         }
+
+         if( token.symbol == VESTS_SYMBOL)
+         {
+            FC_ASSERT( token <= a->reward_vesting_balance, "Cannot claim that much VESTS. Claim: ${c} Actual: ${a}",
+               ("c", token)("a", a->reward_vesting_balance) );
 
             asset reward_vesting_steem_to_move = asset( 0, STEEM_SYMBOL );
             if( token == a->reward_vesting_balance )

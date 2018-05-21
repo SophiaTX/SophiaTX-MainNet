@@ -172,7 +172,6 @@ namespace steem { namespace protocol {
       account_name_type receiver; ///< the account that should receive funds (might be from, might be to)
 
       uint32_t          escrow_id = 30;
-      asset             sbd_amount = asset( 0, SBD_SYMBOL ); ///< the amount of sbd to release
       asset             steem_amount = asset( 0, STEEM_SYMBOL ); ///< the amount of steem to release
 
       void validate()const;
@@ -223,7 +222,7 @@ namespace steem { namespace protocol {
     * and well functioning network.  Any time @owner is in the active set of witnesses these
     * properties will be used to control the blockchain configuration.
     */
-   struct legacy_chain_properties
+   struct chain_properties
    {
       /**
        *  This fee, paid in STEEM, is converted into VESTING SHARES for the new account. Accounts
@@ -239,11 +238,24 @@ namespace steem { namespace protocol {
        */
       uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
 
+      std::map<asset_symbol_type, price> price_feeds;
+
+
       void validate()const
       {
 
          FC_ASSERT( account_creation_fee.amount >= STEEM_MIN_ACCOUNT_CREATION_FEE);
          FC_ASSERT( maximum_block_size >= STEEM_MIN_BLOCK_SIZE_LIMIT);
+         for (const auto&i : price_feeds){
+            FC_ASSERT(i.first == SBD1_SYMBOL_SER || i.first == SBD2_SYMBOL_SER ||
+                      i.first == SBD3_SYMBOL_SER || i.first == SBD4_SYMBOL_SER || i.first == SBD5_SYMBOL_SER );
+            if(i.second.base.symbol == STEEM_SYMBOL){
+               FC_ASSERT(i.second.quote.symbol == i.first);
+            }else{
+               FC_ASSERT(i.second.base.symbol == i.first && i.second.quote.symbol == STEEM_SYMBOL);
+            }
+            FC_ASSERT(i.second.quote.amount > 0 && i.second.base.amount > 0);
+         }
 
       }
    };
@@ -268,7 +280,7 @@ namespace steem { namespace protocol {
       account_name_type owner;
       string            url;
       public_key_type   block_signing_key;
-      legacy_chain_properties  props;
+      chain_properties  props;
       asset             fee; ///< the fee paid to register a new witness, should be 10x current block production pay
 
       void validate()const;
@@ -295,6 +307,13 @@ namespace steem { namespace protocol {
          else
             a.push_back( authority( 1, STEEM_NULL_ACCOUNT, 1 ) ); // The null account auth is impossible to satisfy
       }
+   };
+
+   struct witness_stop_operation : public base_operation
+   {
+      account_name_type owner;
+      void validate()const {};
+      void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(owner); }
    };
 
    /**
@@ -613,9 +632,10 @@ FC_REFLECT( steem::protocol::set_reset_account_operation, (account)(current_rese
 
 FC_REFLECT( steem::protocol::report_over_production_operation, (reporter)(first_block)(second_block) )
 FC_REFLECT( steem::protocol::feed_publish_operation, (publisher)(exchange_rate) )
-FC_REFLECT( steem::protocol::legacy_chain_properties,
+FC_REFLECT( steem::protocol::chain_properties,
             (account_creation_fee)
             (maximum_block_size)
+            (price_feeds)
           )
 
 FC_REFLECT( steem::protocol::account_create_operation,
@@ -639,6 +659,7 @@ FC_REFLECT( steem::protocol::transfer_operation, (from)(to)(amount)(memo) )
 FC_REFLECT( steem::protocol::transfer_to_vesting_operation, (from)(to)(amount) )
 FC_REFLECT( steem::protocol::withdraw_vesting_operation, (account)(vesting_shares) )
 FC_REFLECT( steem::protocol::witness_update_operation, (owner)(url)(block_signing_key)(props)(fee) )
+FC_REFLECT( steem::protocol::witness_stop_operation, (owner) )
 FC_REFLECT( steem::protocol::witness_set_properties_operation, (owner)(props)(extensions) )
 FC_REFLECT( steem::protocol::account_witness_vote_operation, (account)(witness)(approve) )
 FC_REFLECT( steem::protocol::account_witness_proxy_operation, (account)(proxy) )
@@ -655,7 +676,7 @@ FC_REFLECT( steem::protocol::allowed_vote_assets, (votable_assets) )
 FC_REFLECT( steem::protocol::escrow_transfer_operation, (from)(to)(steem_amount)(escrow_id)(agent)(fee)(json_meta)(ratification_deadline)(escrow_expiration) );
 FC_REFLECT( steem::protocol::escrow_approve_operation, (from)(to)(agent)(who)(escrow_id)(approve) );
 FC_REFLECT( steem::protocol::escrow_dispute_operation, (from)(to)(agent)(who)(escrow_id) );
-FC_REFLECT( steem::protocol::escrow_release_operation, (from)(to)(agent)(who)(receiver)(escrow_id)(sbd_amount)(steem_amount) );
+FC_REFLECT( steem::protocol::escrow_release_operation, (from)(to)(agent)(who)(receiver)(escrow_id)(steem_amount) );
 FC_REFLECT( steem::protocol::placeholder_a_operation, );
 FC_REFLECT( steem::protocol::placeholder_b_operation, );
 FC_REFLECT( steem::protocol::request_account_recovery_operation, (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );

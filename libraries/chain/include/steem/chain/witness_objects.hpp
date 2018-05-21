@@ -16,28 +16,11 @@ namespace steem { namespace chain {
    using steem::protocol::price;
    using steem::protocol::asset;
    using steem::protocol::asset_symbol_type;
+   using steem::protocol::chain_properties;
 
-   /**
-    * Witnesses must vote on how to set certain chain properties to ensure a smooth
-    * and well functioning network.  Any time @owner is in the active set of witnesses these
-    * properties will be used to control the blockchain configuration.
-    */
-   struct chain_properties
-   {
-      /**
-       *  This fee, paid in STEEM, is converted into VESTING SHARES for the new account. Accounts
-       *  without vesting shares cannot earn usage rations and therefore are powerless. This minimum
-       *  fee requires all accounts to have some kind of commitment to the network that includes the
-       *  ability to vote and make transactions.
-       */
-      asset             account_creation_fee =
-         asset( STEEM_MIN_ACCOUNT_CREATION_FEE, STEEM_SYMBOL );
-
-      /**
-       *  This witnesses vote for the maximum_block_size which is used by the network
-       *  to tune rate limiting and capacity
-       */
-      uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
+   struct submitted_exchange_rate{
+      price            rate;
+      time_point_sec   last_change;
    };
 
    /**
@@ -80,8 +63,7 @@ namespace steem { namespace chain {
          public_key_type   signing_key;
 
          chain_properties  props;
-         price             sbd_exchange_rate;
-         time_point_sec    last_sbd_exchange_update;
+         std::map<asset_symbol_type, submitted_exchange_rate> submitted_exchange_rates;
 
 
          /**
@@ -120,7 +102,7 @@ namespace steem { namespace chain {
          fc::uint128       virtual_scheduled_time = fc::uint128::max_value();
          ///@}
 
-         digest_type       last_work;
+         bool              stopped = false;
 
          /**
           * This field represents the Steem blockchain version the witness is running.
@@ -181,8 +163,7 @@ namespace steem { namespace chain {
 
    struct by_vote_name;
    struct by_name;
-   struct by_pow;
-   struct by_work;
+   struct by_stopped;
    struct by_schedule_time;
    /**
     * @ingroup object_index
@@ -191,7 +172,7 @@ namespace steem { namespace chain {
       witness_object,
       indexed_by<
          ordered_unique< tag< by_id >, member< witness_object, witness_id_type, &witness_object::id > >,
-         ordered_non_unique< tag< by_work >, member< witness_object, digest_type, &witness_object::last_work > >,
+         ordered_non_unique< tag< by_stopped >, member< witness_object, bool, &witness_object::stopped > >,
          ordered_unique< tag< by_name >, member< witness_object, account_name_type, &witness_object::owner > >,
          ordered_unique< tag< by_vote_name >,
             composite_key< witness_object,
@@ -246,11 +227,7 @@ namespace steem { namespace chain {
 
 FC_REFLECT_ENUM( steem::chain::witness_object::witness_schedule_type, (top19)(timeshare)(none) )
 
-FC_REFLECT( steem::chain::chain_properties,
-             (account_creation_fee)
-             (maximum_block_size)
-
-          )
+FC_REFLECT( steem::chain::submitted_exchange_rate, (rate)(last_change))
 
 FC_REFLECT( steem::chain::witness_object,
              (id)
@@ -259,8 +236,8 @@ FC_REFLECT( steem::chain::witness_object,
              (url)(votes)(schedule)(virtual_last_update)(virtual_position)(virtual_scheduled_time)(total_missed)
              (last_aslot)(last_confirmed_block_num)(signing_key)
              (props)
-             (sbd_exchange_rate)(last_sbd_exchange_update)
-             (last_work)
+             (submitted_exchange_rates)
+             (stopped)
              (running_version)
              (hardfork_version_vote)(hardfork_time_vote)
           )

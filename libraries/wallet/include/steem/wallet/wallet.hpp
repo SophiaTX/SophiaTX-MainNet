@@ -124,7 +124,7 @@ class wallet_api
        *
        * @returns Price feed history data on the blockchain
        */
-      condenser_api::api_feed_history_object get_feed_history()const;
+      condenser_api::api_feed_history_object get_feed_history( asset_symbol_type symbol)const;
 
       /**
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)
@@ -187,7 +187,7 @@ class wallet_api
 
       /**
        *  @param account  - the name of the account to retrieve key for
-       *  @param role     - active | owner | posting | memo
+       *  @param role     - active | owner  | memo
        *  @param password - the password to be used at key generation
        *  @return public key corresponding to generated private key, and private key in WIF format.
        */
@@ -369,7 +369,6 @@ class wallet_api
        * @param json_meta New JSON Metadata to be associated with the account
        * @param owner New public owner key for the account
        * @param active New public active key for the account
-       * @param posting New public posting key for the account
        * @param memo New public memo key for the account
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -384,10 +383,10 @@ class wallet_api
        * This method updates the key of an authority for an exisiting account.
        * Warning: You can create impossible authorities using this method. The method
        * will fail if you create an impossible owner authority, but will allow impossible
-       * active and posting authorities.
+       * active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param key The public key to add to the authority
        * @param weight The weight the key should have in the authority. A weight of 0 indicates the removal of the key.
        * @param broadcast true if you wish to broadcast the transaction.
@@ -398,10 +397,10 @@ class wallet_api
        * This method updates the account of an authority for an exisiting account.
        * Warning: You can create impossible authorities using this method. The method
        * will fail if you create an impossible owner authority, but will allow impossible
-       * active and posting authorities.
+       * active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param auth_account The account to add the the authority
        * @param weight The weight the account should have in the authority. A weight of 0 indicates the removal of the account.
        * @param broadcast true if you wish to broadcast the transaction.
@@ -413,10 +412,10 @@ class wallet_api
        * Warning: You can create impossible authorities using this method as well
        * as implicitly met authorities. The method will fail if you create an implicitly
        * true authority and if you create an impossible owner authoroty, but will allow
-       * impossible active and posting authorities.
+       * impossible active authorities.
        *
        * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner, active, or posting
+       * @param type The authority type. e.g. owner or active
        * @param threshold The weight threshold required for the authority to be met
        * @param broadcast true if you wish to broadcast the transaction
        */
@@ -480,8 +479,17 @@ class wallet_api
       annotated_signed_transaction update_witness(string witness_name,
                                         string url,
                                         public_key_type block_signing_key,
-                                        const legacy_chain_properties& props,
+                                        const chain_properties& props,
                                         bool broadcast = false);
+
+      /**
+       * Stop being a witness, effectively deleting the witness object owned by the given account.
+       *
+       * @param witness_name The name of the witness account.
+       * @param broadcast true if you wish to broadcast the transaction.
+       */
+      annotated_signed_transaction stop_witness(string witness_name,
+                                               bool broadcast = false);
 
       /** Set the voting proxy for an account.
        *
@@ -519,7 +527,7 @@ class wallet_api
                                           bool broadcast = false);
 
       /**
-       * Transfer funds from one account to another. STEEM and SBD can be transferred.
+       * Transfer funds from one account to another. STEEM can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
@@ -530,7 +538,7 @@ class wallet_api
       annotated_signed_transaction transfer(string from, string to, asset amount, string memo, bool broadcast = false);
 
       /**
-       * Transfer funds from one account to another using escrow. STEEM and SBD can be transferred.
+       * Transfer funds from one account to another using escrow. STEEM can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to

@@ -64,25 +64,18 @@ typedef void_type                      get_hardfork_properties_args;
 typedef api_hardfork_property_object   get_hardfork_properties_return;
 
 
-/* get_reward_funds */
-
-typedef void_type get_reward_funds_args;
-
-struct get_reward_funds_return
-{
-   vector< api_reward_fund_object > funds;
-};
-
 
 /* get_current_price_feed */
-
-typedef void_type get_current_price_feed_args;
-typedef price     get_current_price_feed_return;
+struct get_current_price_feed_args{
+   asset_symbol_type symbol;
+};
+typedef price get_current_price_feed_return;
 
 
 /* get_current_feed_history */
-
-typedef void_type                get_feed_history_args;
+struct get_feed_history_args{
+   asset_symbol_type symbol;
+};
 typedef api_feed_history_object  get_feed_history_return;
 
 
@@ -367,8 +360,12 @@ FC_REFLECT_ENUM( steem::plugins::database_api::sort_order_type,
    (by_account_expiration)
    (by_price) )
 
-FC_REFLECT( steem::plugins::database_api::get_reward_funds_return,
-   (funds) )
+
+FC_REFLECT( steem::plugins::database_api::get_current_price_feed_args,
+   (symbol) )
+
+FC_REFLECT( steem::plugins::database_api::get_feed_history_args,
+   (symbol) )
 
 FC_REFLECT( steem::plugins::database_api::list_witnesses_args,
    (start)(limit)(order) )

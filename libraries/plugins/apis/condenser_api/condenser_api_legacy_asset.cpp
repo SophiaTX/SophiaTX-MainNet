@@ -3,18 +3,6 @@
 
 namespace {
 
-void remove_trailing_zeros(std::string& str) {
-   if (str.find('.') == std::string::npos) {
-      return;
-   }
-
-   int offset = 1;
-   if (str.find_last_not_of('0') == str.find('.')) {
-      offset = 0;
-   }
-   str.erase(str.find_last_not_of('0') + offset, std::string::npos);
-}
-
 int64_t precision( const steem::protocol::asset_symbol_type& symbol )
 {
    /*static int64_t table[] = {
@@ -29,15 +17,9 @@ int64_t precision( const steem::protocol::asset_symbol_type& symbol )
    return SOPHIATX_SATOSHIS;
 }
 
-
 }
 
 namespace steem { namespace plugins { namespace condenser_api {
-
-
-
-
-
 
 string legacy_asset::to_string()const
 {
@@ -63,35 +45,28 @@ legacy_asset legacy_asset::from_string( const string& from )
       auto space_pos = s.find( " " );
       auto dot_pos = s.find( "." );
 
+      if(dot_pos != std::string::npos)
+      {
+         FC_ASSERT( SOPHIATX_DECIMALS >= (space_pos - dot_pos - 1));
+      }
+
       FC_ASSERT( space_pos != std::string::npos );
 
       legacy_asset result;
 
       string str_symbol = s.substr( space_pos + 1 );
 
-      if( dot_pos != std::string::npos )
-      {
-         FC_ASSERT( space_pos > dot_pos );
+      result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
 
-         auto intpart = s.substr( 0, dot_pos );
-         auto fractpart = "1" + s.substr( dot_pos + 1, space_pos - dot_pos - 1 );
-         uint8_t decimals = uint8_t( fractpart.size() - 1 );
+      auto numpart = s.substr( 0, space_pos );
+      auto dvalue = fc::to_double(numpart);
+      auto ivalue = static_cast<int64_t>(round(dvalue * precision( result.symbol )));
 
-         result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
+      FC_ASSERT( ivalue >= 0);
+      FC_ASSERT( STEEM_MAX_SHARE_SUPPLY >= ivalue);
 
-         int64_t prec = precision( result.symbol );
+      result.amount = ivalue;
 
-         result.amount = fc::to_int64( intpart );
-         result.amount.value *= prec;
-         result.amount.value += fc::to_int64( fractpart );
-         result.amount.value -= prec;
-      }
-      else
-      {
-         auto intpart = s.substr( 0, space_pos );
-         result.amount = fc::to_int64( intpart );
-         result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
-      }
       return result;
    }
    FC_CAPTURE_AND_RETHROW( (from) )
