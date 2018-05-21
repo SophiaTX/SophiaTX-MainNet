@@ -815,6 +815,9 @@ void application_create_evaluator::do_apply( const application_create_operation&
 {
    const auto& author = _db.get_account( o.author );
 
+   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+
+   //TODO remove new_application
    const auto& new_application = _db.create< application_object >( [&]( application_object& app )
                                                            {
                                                                 app.name = o.name;
@@ -825,13 +828,16 @@ void application_create_evaluator::do_apply( const application_create_operation&
                                                                 from_string( app.metadata, o.metadata );
 #endif
                                                            });
-
 }
 
 
 void application_update_evaluator::do_apply( const application_update_operation& o )
 {
    const auto& application = _db.get_application( o.name );
+
+   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+
+   FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
    _db.modify( application, [&]( application_object& app )
    {
@@ -856,6 +862,11 @@ void application_update_evaluator::do_apply( const application_update_operation&
 void application_delete_evaluator::do_apply( const application_delete_operation& o )
 {
    const auto& application = _db.get_application( o.name );
+
+   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+
+   FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
+
    _db.remove(application);
 }
 
