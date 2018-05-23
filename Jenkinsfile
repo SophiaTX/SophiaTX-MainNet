@@ -1,4 +1,5 @@
 #!groovy
+archive_name = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
 
 ////////////////////////////////////////
 pipeline {
@@ -25,7 +26,6 @@ pipeline {
           dir('bin') {
               sh 'strip -s *' //strip symbols
               sh 'rm -f test*' //remove test binaries
-              def archive_name = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
               sh 'tar -czf ${archive_name} *' //create tar file
               archiveArtifacts '*.gz'
           }
