@@ -6,7 +6,7 @@ pipeline {
     buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
   }
   environment {
-    ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
+    ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + ".tar.gz"
   }
   agent { label 'suse' }
   stages {
@@ -52,7 +52,7 @@ pipeline {
 ////////////////////////////////////////
 
 def send_positive_slack_notification() {
-  if( "${env.BRANCH_NAME}" == 'feature/build-w-artifacts' ) {
+  if( "${env.BRANCH_NAME}" == 'develop' ) {
    slackSend (color: 'good', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
   }
 }
