@@ -3353,5 +3353,53 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
    }
    FC_LOG_AND_RETHROW()
 }
+
+BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
+{
+   try{
+      BOOST_TEST_MESSAGE("Testing: withdraw_from_promotion_pool");
+
+      ACTORS( (alice) );
+
+      generate_block();
+      generate_block();
+      const auto& new_alice = db->get_account( "alice" );
+
+
+      transfer_from_promotion_pool_operation op;
+      op.transfer_to = "alice";
+      op.amount = asset(1000000, STEEM_SYMBOL);
+
+      signed_transaction tx;
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      tx.sign( init_account_priv_key, db->get_chain_id() );
+
+      db->push_transaction( tx, 0 ); //not enough in the pool
+
+      BOOST_REQUIRE( db->get_economic_model().get_available_promotion_pool(db->head_block_num()) == 0);
+
+      generate_block();
+
+      op.amount = asset(100000, STEEM_SYMBOL);
+      tx.clear();
+      tx.operations.push_back( op );
+      tx.sign( init_account_priv_key, db->get_chain_id() );
+      db->push_transaction( tx, 0 );
+
+      //shall be arount ~0.36
+      BOOST_REQUIRE( new_alice.balance.amount.value > ASSET( "0.100000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "1.000000 SPHTX" ).amount.value );
+
+      private_key_type priv_key = generate_private_key( "alice" );
+
+      tx.clear();
+      tx.operations.push_back( op );
+      tx.sign( priv_key, db->get_chain_id() );
+      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+
+   }
+   FC_LOG_AND_RETHROW()
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 //#endif

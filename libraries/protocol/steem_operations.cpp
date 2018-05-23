@@ -323,5 +323,10 @@ namespace steem { namespace protocol {
    }
 #endif
 
+   void transfer_from_promotion_pool_operation::validate()const
+   {
+      validate_account_name(transfer_to);
+      FC_ASSERT(amount.amount > 0);
+   }
 
 } } // steem::protocol
