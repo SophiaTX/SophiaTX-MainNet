@@ -4,7 +4,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'cmake -DBOOST_ROOT=$BOOST_160 -DOPENSSL_ROOT_DIR=$OPENSSL_102'
+        sh 'cmake -DBOOST_ROOT=$BOOST_160 -DOPENSSL_ROOT_DIR=$OPENSSL_102 -DFULL_STATIC_BUILD=ON'
         sh 'make -j4'
       }
     }
@@ -13,9 +13,15 @@ pipeline {
         sh './tests/chain_test'
       }
     }
+    stage('Archive')
+     steps {
+        echo 'TODO'
+        //sh 'make install'
+     }
     stage('Clean WS') {
       steps {
-        cleanWs()
+        echo 'TODO'
+        //cleanWs()
       }
     }
   }
