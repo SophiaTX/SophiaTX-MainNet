@@ -1,7 +1,5 @@
 #!groovy
 
-BUILD_NAME=
-
 ////////////////////////////////////////
 pipeline {
   agent { label 'suse' }
