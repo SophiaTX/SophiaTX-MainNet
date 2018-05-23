@@ -7,7 +7,7 @@
 #include <steem/chain/database.hpp>
 #include <steem/chain/database_exceptions.hpp>
 #include <steem/chain/steem_objects.hpp>
-
+#include <steem/chain/application_object.hpp>
 
 #include <steem/plugins/witness/witness_objects.hpp>
 
@@ -3350,6 +3350,160 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       db->push_transaction( tx, 0 );
 
       validate_database();
+   }
+   FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE( application_create )
+{
+   try
+   {
+      BOOST_TEST_MESSAGE( "Testing: application_create_apply" );
+
+      ACTORS( (alice) )
+
+      application_create_operation op;
+      op.author = "alice";
+      op.active = authority();
+      op.name = "test_app";
+      op.price_param = static_cast<uint8_t >(application_object::time_based);
+      op.url = "www.sophiatx.com";
+      op.metadata = "Random metadata";
+
+      BOOST_TEST_MESSAGE( "--- Test normal application creation" );
+
+      op.validate();
+
+      signed_transaction tx;
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      db->push_transaction( tx, 0 );
+
+      const application_object& app = db->get_application( "test_app" );
+
+      BOOST_REQUIRE( app.name == "test_app" );
+      BOOST_REQUIRE( app.author == "alice" );
+      BOOST_REQUIRE( app.metadata == "Random metadata" );
+      BOOST_REQUIRE( app.url == "www.sophiatx.com" );
+      BOOST_REQUIRE( app.price_param == application_object::time_based );
+
+      validate_database();
+
+      BOOST_TEST_MESSAGE( "--- Test failure of duplicate application creation" );
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+
+      BOOST_TEST_MESSAGE( "--- Test failure of application creation without authorities" );
+      op.author = "bob";
+      op.name = "test_app2";
+      tx.operations.push_back( op );
+
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+   }
+   FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE( application_update )
+{
+   try
+   {
+      //Creating test app
+      ACTORS( (alice)(bob) )
+      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
+
+      {
+         application_create_operation op;
+         op.author = "alice";
+         op.active = alice_auth.active;
+         op.name = "test_app";
+         op.price_param = static_cast<uint8_t >(application_object::time_based);
+         op.url = "www.sophiatx.com";
+         op.metadata = "Random metadata";
+         op.validate();
+         signed_transaction tx;
+         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.operations.push_back(op);
+         tx.sign(alice_private_key, db->get_chain_id());
+         db->push_transaction(tx, 0);
+      }
+      /////
+
+      BOOST_TEST_MESSAGE( "--- Test normal application update" );
+      application_update_operation op;
+      op.name = "test_app";
+      op.author = "alice";
+      op.price_param = static_cast<uint8_t >(application_object::permanent);
+      op.new_author = "bob";
+      op.metadata = "New metadata";
+      op.url = "www.sophiatx.com/update";
+      op.active = alice_auth.active;
+      op.validate();
+
+      signed_transaction tx;
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(op);
+      tx.sign(alice_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      const application_object& app = db->get_application( "test_app" );
+
+      BOOST_REQUIRE( app.name == "test_app" );
+      BOOST_REQUIRE( app.author == "bob" );
+      BOOST_REQUIRE( app.metadata == "New metadata" );
+      BOOST_REQUIRE( app.url == "www.sophiatx.com/update" );
+      BOOST_REQUIRE( app.price_param == application_object::permanent );
+
+      validate_database();
+
+      BOOST_TEST_MESSAGE( "--- Test failure of updating application without active authority" );
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+
+   }
+   FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE( application_delete )
+{
+   try
+   {
+      //Creating test app
+      ACTORS( (alice) )
+      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      {
+         application_create_operation op;
+         op.author = "alice";
+         op.active = alice_auth.active;
+         op.name = "test_app";
+         op.price_param = static_cast<uint8_t >(application_object::time_based);
+         op.url = "www.sophiatx.com";
+         op.metadata = "Random metadata";
+         op.validate();
+         signed_transaction tx;
+         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.operations.push_back(op);
+         tx.sign(alice_private_key, db->get_chain_id());
+         db->push_transaction(tx, 0);
+      }
+      /////
+
+      BOOST_TEST_MESSAGE( "--- Test normal application delete" );
+      application_delete_operation op;
+      op.name = "test_app";
+      op.author = "alice";
+      op.active = alice_auth.active;
+      op.validate();
+
+      signed_transaction tx;
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(op);
+      tx.sign(alice_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      BOOST_REQUIRE_THROW( db->get_application( "test_app" ), fc::exception );
+
+      validate_database();
+
    }
    FC_LOG_AND_RETHROW()
 }

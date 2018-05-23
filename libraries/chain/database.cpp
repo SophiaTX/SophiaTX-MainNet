@@ -1407,6 +1407,7 @@ void database::initialize_indexes()
    add_core_index< account_recovery_request_index          >(*this);
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
+   add_core_index< application_index                       >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
    add_core_index< account_regular_balance_index           >(*this);
