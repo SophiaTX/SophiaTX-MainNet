@@ -3366,7 +3366,7 @@ BOOST_AUTO_TEST_CASE( application_create )
       op.author = "alice";
       op.active = authority();
       op.name = "test_app";
-      op.price_param = static_cast<uint8_t >(application_object::time_based);
+      op.price_param = static_cast<uint8_t >(time_based);
       op.url = "www.sophiatx.com";
       op.metadata = "Random metadata";
 
@@ -3386,7 +3386,7 @@ BOOST_AUTO_TEST_CASE( application_create )
       BOOST_REQUIRE( app.author == "alice" );
       BOOST_REQUIRE( app.metadata == "Random metadata" );
       BOOST_REQUIRE( app.url == "www.sophiatx.com" );
-      BOOST_REQUIRE( app.price_param == application_object::time_based );
+      BOOST_REQUIRE( app.price_param == time_based );
 
       validate_database();
 
@@ -3417,7 +3417,7 @@ BOOST_AUTO_TEST_CASE( application_update )
          op.author = "alice";
          op.active = alice_auth.active;
          op.name = "test_app";
-         op.price_param = static_cast<uint8_t >(application_object::time_based);
+         op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
          op.metadata = "Random metadata";
          op.validate();
@@ -3433,7 +3433,7 @@ BOOST_AUTO_TEST_CASE( application_update )
       application_update_operation op;
       op.name = "test_app";
       op.author = "alice";
-      op.price_param = static_cast<uint8_t >(application_object::permanent);
+      op.price_param = static_cast<uint8_t >(permanent);
       op.new_author = "bob";
       op.metadata = "New metadata";
       op.url = "www.sophiatx.com/update";
@@ -3452,7 +3452,7 @@ BOOST_AUTO_TEST_CASE( application_update )
       BOOST_REQUIRE( app.author == "bob" );
       BOOST_REQUIRE( app.metadata == "New metadata" );
       BOOST_REQUIRE( app.url == "www.sophiatx.com/update" );
-      BOOST_REQUIRE( app.price_param == application_object::permanent );
+      BOOST_REQUIRE( app.price_param == permanent );
 
       validate_database();
 
@@ -3475,7 +3475,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
          op.author = "alice";
          op.active = alice_auth.active;
          op.name = "test_app";
-         op.price_param = static_cast<uint8_t >(application_object::time_based);
+         op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
          op.metadata = "Random metadata";
          op.validate();

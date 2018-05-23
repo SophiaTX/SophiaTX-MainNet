@@ -295,7 +295,7 @@ struct api_application_object
     account_name_type                               author;
     string                                          url;
     string                                          metadata;
-    application_object::application_price_param     price_param;
+    application_price_param                         price_param;
 };
 
 

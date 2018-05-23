@@ -868,17 +868,16 @@ void application_create_evaluator::do_apply( const application_create_operation&
 
    verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
 
-   //TODO remove new_application
-   const auto& new_application = _db.create< application_object >( [&]( application_object& app )
-                                                           {
-                                                                app.name = o.name;
-                                                                app.author = o.author;
-                                                                app.price_param = static_cast<application_object::application_price_param>(o.price_param);
-                                                                app.url = o.url;
+   _db.create< application_object >( [&]( application_object& app )
+                                   {
+                                        app.name = o.name;
+                                        app.author = o.author;
+                                        app.price_param = static_cast<application_price_param>(o.price_param);
+                                        app.url = o.url;
 #ifndef IS_LOW_MEM
-                                                                from_string( app.metadata, o.metadata );
+                                        from_string( app.metadata, o.metadata );
 #endif
-                                                           });
+                                   });
 }
 
 
@@ -896,7 +895,7 @@ void application_update_evaluator::do_apply( const application_update_operation&
         app.author = *o.new_author;
 
       if(o.price_param)
-        app.price_param = static_cast<application_object::application_price_param>(*o.price_param);
+        app.price_param = static_cast<application_price_param>(*o.price_param);
 
 #ifndef IS_LOW_MEM
         if ( o.metadata.size() > 0 )

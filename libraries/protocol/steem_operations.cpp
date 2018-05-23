@@ -319,8 +319,7 @@ namespace steem { namespace protocol {
       {
          FC_ASSERT( fc::is_utf8(metadata), "JSON Metadata not formatted in UTF8" );
       }
-      //TODO
-      //FC_ASSERT( price_param < static_cast<uint8_t >(steem::chain::application_object::none), "Undefined price param" );
+      FC_ASSERT( price_param < static_cast<uint8_t >(none), "Undefined price param" );
    }
 
    void application_update_operation::validate() const
@@ -341,6 +340,7 @@ namespace steem { namespace protocol {
       {
          FC_ASSERT( fc::is_utf8(metadata), "JSON Metadata not formatted in UTF8" );
       }
+      FC_ASSERT( price_param < static_cast<uint8_t >(none), "Undefined price param" );
    }
 
    void application_delete_operation::validate() const

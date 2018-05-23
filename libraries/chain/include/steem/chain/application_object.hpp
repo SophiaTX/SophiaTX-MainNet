@@ -19,13 +19,6 @@ namespace steem { namespace chain {
             application_object() = delete;
 
         public:
-            enum application_price_param
-            {
-                permanent,
-                time_based,
-                none
-            };
-
             template<typename Constructor, typename Allocator>
             application_object( Constructor&& c, allocator< Allocator > a )
                     : metadata( a )
@@ -59,4 +52,3 @@ namespace steem { namespace chain {
 
 FC_REFLECT( steem::chain::application_object, (id)(name)(author)(url)(metadata)(price_param))
 CHAINBASE_SET_INDEX_TYPE( steem::chain::application_object, steem::chain::application_index )
-FC_REFLECT_ENUM( steem::chain::application_object::application_price_param, (permanent)(time_based)(none) )

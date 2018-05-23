@@ -558,6 +558,12 @@ namespace steem { namespace protocol {
       }
    };
 
+   enum application_price_param
+   {
+      permanent,
+      time_based,
+      none
+   };
    struct application_create_operation : public base_operation {
       account_name_type       author;
       authority               active;
@@ -684,4 +690,5 @@ FC_REFLECT( steem::protocol::recover_account_operation, (account_to_recover)(new
 FC_REFLECT( steem::protocol::application_create_operation, (author)(active)(name)(url)(metadata)(price_param) )
 FC_REFLECT( steem::protocol::application_update_operation, (author)(active)(new_author)(name)(url)(metadata)(price_param) )
 FC_REFLECT( steem::protocol::application_delete_operation, (author)(active)(name) )
+FC_REFLECT_ENUM( steem::protocol::application_price_param, (permanent)(time_based)(none) )
 FC_REFLECT( steem::protocol::change_recovery_account_operation, (account_to_recover)(new_recovery_account)(extensions) );
