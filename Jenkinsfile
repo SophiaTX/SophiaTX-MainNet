@@ -1,10 +1,14 @@
 #!groovy
+
+BUILD_NAME="sophiatx_${env.BUILD_NUMBER}"
+
+////////////////////////////////////////
 pipeline {
   agent { label 'suse' }
   stages {
     stage('Build') {
       steps {
-        sh 'cmake -DBOOST_ROOT=$BOOST_160 -DOPENSSL_ROOT_DIR=$OPENSSL_102 -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install'
+        sh 'cmake -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install'
         sh 'make -j4'
       }
     }
@@ -20,9 +24,8 @@ pipeline {
             dir('bin') {
                 sh 'strip -s *' //strip symbols
                 sh 'rm -f test*' //remove test binaries
-                sh "BUILD_NAME = 'sophiatx_' + env.BUILD_NUMBER"
-                sh 'tar -cf $BUILD_NAME.tar *' //create tar file
-                archiveArtifacts '*.tar'
+                sh 'tar -czf ${BUILD_NAME}.tar.gz *' //create tar file
+                archiveArtifacts '*.gz'
             }
         }
       }
@@ -44,7 +47,7 @@ pipeline {
 }
 
 send_positive_slack_notification() {
-  if( env.BRANCH_NAME == 'develop' ) {
+  if( env.BRANCH_NAME == 'feature/build-w-artifacts' ) {
    slackSend (color: 'good', message: "SUCCEED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
   }
 }
