@@ -13,11 +13,12 @@ pipeline {
         sh './tests/chain_test'
       }
     }
-    stage('Archive')
+    stage('Archive') {
      steps {
         echo 'TODO'
         //sh 'make install'
-     }
+      }
+    }
     stage('Clean WS') {
       steps {
         echo 'TODO'
