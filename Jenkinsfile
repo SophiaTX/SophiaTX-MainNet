@@ -1,6 +1,6 @@
 #!groovy
 
-BUILD_NAME="sophiatx_${env.BUILD_NUMBER}"
+BUILD_NAME=
 
 ////////////////////////////////////////
 pipeline {
@@ -21,12 +21,12 @@ pipeline {
      steps {
         sh 'make install'
         dir('install') {
-            dir('bin') {
-                sh 'strip -s *' //strip symbols
-                sh 'rm -f test*' //remove test binaries
-                sh 'tar -czf ${BUILD_NAME}.tar.gz *' //create tar file
-                archiveArtifacts '*.gz'
-            }
+          dir('bin') {
+              sh 'strip -s *' //strip symbols
+              sh 'rm -f test*' //remove test binaries
+              sh 'tar -czf sophiatx_${env.BUILD_NUMBER}.tar.gz *' //create tar file
+              archiveArtifacts '*.gz'
+          }
         }
       }
     }
@@ -45,9 +45,10 @@ pipeline {
     }
   }
 }
+////////////////////////////////////////
 
-send_positive_slack_notification() {
+def send_positive_slack_notification() {
   if( env.BRANCH_NAME == 'feature/build-w-artifacts' ) {
-   slackSend (color: 'good', message: "SUCCEED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+   slackSend (color: 'good', message: "PASSED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
   }
 }
