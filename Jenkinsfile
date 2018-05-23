@@ -1,10 +1,12 @@
 #!groovy
-def archive_name = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
 
 ////////////////////////////////////////
 pipeline {
   options {
     buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
+  }
+  environment {
+    ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
   }
   agent { label 'suse' }
   stages {
@@ -26,7 +28,7 @@ pipeline {
           dir('bin') {
               sh 'strip -s *' //strip symbols
               sh 'rm -f test*' //remove test binaries
-              sh 'tar -czf ${archive_name} *' //create tar file
+              sh 'tar -czf ${ARCHIVE_NAME} *' //create tar file
               archiveArtifacts '*.gz'
           }
         }
