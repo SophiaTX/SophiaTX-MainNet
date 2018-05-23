@@ -21,12 +21,12 @@ void economic_model_object::init_economics(share_type _init_supply, share_type _
    interest_pool_from_coinbase = coinbase * SOPHIATX_INTEREST_POOL_PERCENTAGE / STEEM_100_PERCENT;
    unallocated_interests = interest_pool_from_coinbase;
    promotion_pool = coinbase * SOPHIATX_PROMOTION_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   promotion_pool_per_day = promotion_pool / (SOPHIATX_COINBASE_YEARS * 365);
+   initial_promotion_pool = promotion_pool;
    init_supply = _init_supply;
    total_supply = _total_supply;
 }
 
-share_type economic_model_object::get_mining_reward(uint32_t block_number){
+share_type economic_model_object::get_mining_reward(uint32_t block_number)const{
    uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number;
    //mining reward consist of coinbase reward, which uniformly distributes mining pool among SOPHIATX_COINBASE_BLOCKS rewards,
    // and fees rewards, where each block is rewarded one 1/(STEEM_BLOCKS_PER_DAY * 7) of the current pool.
@@ -64,7 +64,7 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
    //TODO_SOPHIATX - check invariants here.
 }
 
-share_type economic_model_object::get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
+share_type economic_model_object::get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block)const{
    u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
    u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
 
@@ -94,10 +94,11 @@ void economic_model_object::add_fee(share_type fee) {
    interest_block_fees += to_interests;
 }
 
-share_type economic_model_object::get_available_promotion_pool(uint32_t block_number) {
+share_type economic_model_object::get_available_promotion_pool(uint32_t block_number) const{
    uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number;
-   share_type locked_pool = promotion_pool_per_day * (blocks_to_coinbase_end / STEEM_BLOCKS_PER_DAY);
-   FC_ASSERT(promotion_pool > locked_pool);
+   //share_type locked_pool = promotion_pool_per_day * blocks_to_coinbase_end / STEEM_BLOCKS_PER_DAY;
+   share_type locked_pool = (((initial_promotion_pool * 65536) / SOPHIATX_COINBASE_BLOCKS) * blocks_to_coinbase_end ) / 65536;
+   FC_ASSERT(promotion_pool >= locked_pool);
    return promotion_pool - locked_pool;
 }
 

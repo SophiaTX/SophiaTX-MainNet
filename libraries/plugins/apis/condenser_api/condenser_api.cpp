@@ -69,6 +69,7 @@ namespace detail
             (broadcast_transaction)
             (broadcast_transaction_synchronous)
             (broadcast_block)
+            (get_promotion_pool_balance)
          )
 
 
@@ -671,6 +672,11 @@ namespace detail
       return _network_broadcast_api->broadcast_block( { signed_block( args[0].as< legacy_signed_block >() ) } );
    }
 
+   DEFINE_API_IMPL( condenser_api_impl, get_promotion_pool_balance )
+   {
+      CHECK_ARG_SIZE(0);
+      return legacy_asset::from_asset(_database_api->get_promotion_pool_balance( {}  ));
+   }
 
 
 } // detail
@@ -753,6 +759,7 @@ DEFINE_READ_APIS( condenser_api,
    (verify_account_authority)
  //  (get_account_votes)
    (get_account_history)
+   (get_promotion_pool_balance)
 
 )
 

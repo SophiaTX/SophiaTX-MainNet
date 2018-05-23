@@ -1349,6 +1349,8 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif
    _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
+   _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
+
 
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< smt_setup_evaluator                      >();
