@@ -2,6 +2,9 @@
 
 ////////////////////////////////////////
 pipeline {
+  options {
+    buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
+  }
   agent { label 'suse' }
   stages {
     stage('Build') {
@@ -22,7 +25,8 @@ pipeline {
           dir('bin') {
               sh 'strip -s *' //strip symbols
               sh 'rm -f test*' //remove test binaries
-              sh 'tar -czf sophiatx_${env.BUILD_NUMBER}.tar.gz *' //create tar file
+              def archive_name = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
+              sh 'tar -czf ${archive_name} *' //create tar file
               archiveArtifacts '*.gz'
           }
         }
@@ -46,7 +50,7 @@ pipeline {
 ////////////////////////////////////////
 
 def send_positive_slack_notification() {
-  if( env.BRANCH_NAME == 'feature/build-w-artifacts' ) {
-   slackSend (color: 'good', message: "PASSED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+  if( "${env.BRANCH_NAME}" == 'feature/build-w-artifacts' ) {
+   slackSend (color: 'good', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
   }
 }
