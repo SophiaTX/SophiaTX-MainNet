@@ -16,6 +16,14 @@ pipeline {
     stage('Archive') {
      steps {
         sh 'make install'
+        dir('install') {
+            dir('bin') {
+                sh 'strip -s *' //strip symbols
+                sh 'rm -f test*' //remove test binaries
+                sh 'tar -cf sophiatx.tar *' //create tar file
+                archive '*.tar'
+            }
+        }
       }
     }
     stage('Clean WS') {
