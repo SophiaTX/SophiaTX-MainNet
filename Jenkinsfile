@@ -1,5 +1,5 @@
 #!groovy
-archive_name = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
+def archive_name = "sophiatx_" + "${env.BUILD_NUMBER}" + "tar.gz"
 
 ////////////////////////////////////////
 pipeline {
