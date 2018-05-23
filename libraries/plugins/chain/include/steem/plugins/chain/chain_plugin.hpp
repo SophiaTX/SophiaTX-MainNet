@@ -80,6 +80,10 @@ public:
    // This is to synchronize plugins that have the chain plugin as an optional dependency.
    boost::signals2::signal<void()> on_sync;
 
+   steem::chain::signed_block generate_block( const fc::time_point_sec when, const account_name_type& witness_owner,
+                                                            const fc::ecc::private_key& block_signing_private_key, uint32_t skip );
+   int16_t set_write_lock_hold_time( int16_t new_time );
+
 private:
    std::unique_ptr< detail::chain_plugin_impl > my;
 };
