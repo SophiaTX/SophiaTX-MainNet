@@ -20,7 +20,8 @@ pipeline {
             dir('bin') {
                 sh 'strip -s *' //strip symbols
                 sh 'rm -f test*' //remove test binaries
-                sh 'tar -cf sophiatx.tar *' //create tar file
+                BUILD_NAME = 'sophiatx_' + env.BUILD_NUMBER
+                sh 'tar -cf $BUILD_NAME.tar *' //create tar file
                 archive '*.tar'
             }
         }
@@ -34,7 +35,9 @@ pipeline {
   }
   post {
     success {
-      echo env.BRANCH_NAME
+     if( env.BRANCH_NAME == 'develop' ) {
+      slackSend (color: 'good', message: "SUCCEED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+     }
     }
     failure {
       slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
