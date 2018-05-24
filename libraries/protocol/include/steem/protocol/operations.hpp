@@ -44,6 +44,10 @@ namespace steem { namespace protocol {
 
             reset_account_operation,
             set_reset_account_operation,
+
+            application_create_operation,
+            application_update_operation,
+            application_delete_operation,
 #ifdef STEEM_ENABLE_SMT
             claim_reward_balance2_operation,
 #endif

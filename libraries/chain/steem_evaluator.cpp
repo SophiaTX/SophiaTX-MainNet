@@ -35,6 +35,7 @@ std::string wstring_to_utf8(const std::wstring& str)
 #include <fc/utf8.hpp>
 
 #include <limits>
+#include <steem/chain/application_object.hpp>
 
 namespace steem { namespace chain {
    using fc::uint128_t;
@@ -859,6 +860,64 @@ void set_reset_account_evaluator::do_apply( const set_reset_account_operation& o
        a.reset_account = op.reset_account;
    });
 */
+}
+
+void application_create_evaluator::do_apply( const application_create_operation& o )
+{
+   const auto& author = _db.get_account( o.author );
+
+   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+
+   _db.create< application_object >( [&]( application_object& app )
+                                   {
+                                        app.name = o.name;
+                                        app.author = o.author;
+                                        app.price_param = static_cast<application_price_param>(o.price_param);
+                                        app.url = o.url;
+#ifndef IS_LOW_MEM
+                                        from_string( app.metadata, o.metadata );
+#endif
+                                   });
+}
+
+
+void application_update_evaluator::do_apply( const application_update_operation& o )
+{
+   const auto& application = _db.get_application( o.name );
+
+   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+
+   FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
+
+   _db.modify( application, [&]( application_object& app )
+   {
+      if(o.new_author)
+        app.author = *o.new_author;
+
+      if(o.price_param)
+        app.price_param = static_cast<application_price_param>(*o.price_param);
+
+#ifndef IS_LOW_MEM
+        if ( o.metadata.size() > 0 )
+           from_string( app.metadata, o.metadata );
+
+        if ( o.url.size() > 0 )
+           app.url = o.url;
+#endif
+   });
+
+
+}
+
+void application_delete_evaluator::do_apply( const application_delete_operation& o )
+{
+   const auto& application = _db.get_application( o.name );
+
+   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+
+   FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
+
+   _db.remove(application);
 }
 
 void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promotion_pool_operation& op){

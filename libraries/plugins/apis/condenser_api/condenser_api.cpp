@@ -69,6 +69,7 @@ namespace detail
             (broadcast_transaction)
             (broadcast_transaction_synchronous)
             (broadcast_block)
+            (get_applications)
             (get_promotion_pool_balance)
          )
 
@@ -672,12 +673,32 @@ namespace detail
       return _network_broadcast_api->broadcast_block( { signed_block( args[0].as< legacy_signed_block >() ) } );
    }
 
+   DEFINE_API_IMPL( condenser_api_impl, get_applications )
+   {
+      CHECK_ARG_SIZE( 1 )
+      vector< string > app_names = args[0].as< vector< string > >();
+
+      vector< api_application_object > result;
+      result.reserve( app_names.size() );
+
+      for( auto& name : app_names )
+      {
+         auto itr = _db.find< application_object, by_name >( name );
+
+         if( itr )
+         {
+            result.push_back( api_application_object( database_api::api_application_object( *itr ) ) );
+         }
+      }
+      return result;
+   }
+
+  
    DEFINE_API_IMPL( condenser_api_impl, get_promotion_pool_balance )
    {
       CHECK_ARG_SIZE(0);
       return legacy_asset::from_asset(_database_api->get_promotion_pool_balance( {}  ));
    }
-
 
 } // detail
 
@@ -759,8 +780,8 @@ DEFINE_READ_APIS( condenser_api,
    (verify_account_authority)
  //  (get_account_votes)
    (get_account_history)
+   (get_applications)
    (get_promotion_pool_balance)
-
 )
 
 } } } // steem::plugins::condenser_api
