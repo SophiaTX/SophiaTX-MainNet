@@ -635,7 +635,7 @@ void custom_evaluator::do_apply( const custom_operation& o ){}
 void custom_json_evaluator::do_apply( const custom_json_operation& o )
 {
    database& d = db();
-   std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.id );
+   std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.app_id );
    if( !eval )
       return;
 
@@ -659,7 +659,7 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 {
    database& d = db();
 
-   std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.id );
+   std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.app_id );
    if( !eval )
       return;
 

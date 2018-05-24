@@ -340,7 +340,6 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
    ilog("configured with ${tps} thread pool size", ("tps", thread_pool_size));
    my.reset(new detail::webserver_plugin_impl(thread_pool_size));
 
-   ilog("just befor parsing stuff");
    if( options.count( "webserver-http-endpoint" ) )
    {
       auto http_endpoint = options.at( "webserver-http-endpoint" ).as< string >();
@@ -349,8 +348,6 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
       my->http_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
       ilog( "configured http to listen on ${ep}", ("ep", endpoints[0]) );
    }
-
-   ilog("parsing stuff... ");
 
    if( options.count( "webserver-ws-endpoint" ) )
    {
