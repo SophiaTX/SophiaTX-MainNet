@@ -9,11 +9,7 @@ pipeline {
     ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + ".tar.gz"
   }
   agent { 
-    if( "${env.BRANCH_NAME}" == 'develop' ) {
-      label 'suse' 
-    } else {
-      label any         
-    }
+    label get_label_name()
   }
   stages {
     stage('Build') {
@@ -60,5 +56,13 @@ pipeline {
 def send_positive_slack_notification() {
   if( "${env.BRANCH_NAME}" == 'develop' ) {
    slackSend (color: 'good', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+  }
+}
+
+def get_label_name() {
+  f( "${env.BRANCH_NAME}" == 'develop' ) {
+    return 'suse' 
+  } else {
+    return 'any'         
   }
 }
