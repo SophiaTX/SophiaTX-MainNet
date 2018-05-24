@@ -1,12 +1,7 @@
 #pragma once
 #include <fc/fixed_string.hpp>
 
-//#include <steem/protocol/authority.hpp>
-//#include <steem/protocol/steem_operations.hpp>
-
 #include <steem/chain/steem_object_types.hpp>
-#include <steem/chain/account_object.hpp>
-//#include <steem/chain/shared_authority.hpp>
 
 #include <boost/multi_index/composite_key.hpp>
 
