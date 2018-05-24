@@ -751,7 +751,49 @@ class wallet_api
        */
       map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
 
+      /**
+      *  This method will create new application object. There is a fee associated with account creation
+      *  that is paid by the creator. The current account creation fee can be found with the
+      *  'info' wallet command.
+      *
+      *  @param author The account creating the new application
+      *  @param active_auth The active authority for that account
+      *  @param app_name The unique name for new application
+      *  @param url The url of the new application
+      *  @param meta_data The meta data of new application
+      *  @param price_param The price parameter that specifies billing for the app
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction create_application( string author, authority active_auth, string app_name,
+                                                       string url, string meta_data, uint8_t price_param,
+                                                       bool broadcast );
 
+      /**
+      *  This method will update existing application object.
+      *
+      *  @param author The author of application
+      *  @param active_auth The active authority for that account
+      *  @param app_name The name of app that will be updated
+      *  @param new_author The new author
+      *  @param url Updated url
+      *  @param meta_data Updated meta data
+      *  @param price_param Updated price param
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction update_application( string author, authority active_auth, string app_name,
+                                                       string new_author, string url, string meta_data,
+                                                       uint8_t price_param, bool broadcast );
+
+      /**
+      *  This method will delete specified application object.
+      *
+      *  @param author The author of application that will be deleted
+      *  @param active_auth The active authority for that account
+      *  @param app_name The name of app that will be deleted
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction delete_application( string author, authority active_auth, string app_name,
+                                                       bool broadcast );
 
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
@@ -851,6 +893,9 @@ FC_API( steem::wallet::wallet_api,
         (get_owner_history)
         (get_encrypted_memo)
         (decrypt_memo)
+        (create_application)
+        (update_application)
+        (delete_application)
 
         /// helper api
         (get_prototype_operation)

@@ -358,7 +358,8 @@ FC_REFLECT_ENUM( steem::plugins::database_api::sort_order_type,
    (by_complete_from_id)
    (by_to_complete)
    (by_account_expiration)
-   (by_price) )
+   (by_price)
+   (by_author))
 
 
 FC_REFLECT( steem::plugins::database_api::get_current_price_feed_args,

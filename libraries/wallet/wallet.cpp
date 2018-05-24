@@ -1783,5 +1783,74 @@ annotated_signed_transaction wallet_api::get_transaction( transaction_id_type id
    return my->_remote_api->get_transaction( id );
 }
 
+annotated_signed_transaction
+wallet_api::delete_application(string author, authority active_auth, string app_name, bool broadcast) {
+   try
+   {
+      FC_ASSERT( !is_locked() );
+
+      application_delete_operation op;
+      op.author = author;
+      op.active = active_auth;
+      op.name = app_name;
+
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+   }
+   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(broadcast) )
+}
+
+annotated_signed_transaction
+wallet_api::update_application(string author, authority active_auth, string app_name, string new_author, string url,
+                               string meta_data, uint8_t price_param, bool broadcast) {
+   try
+   {
+      FC_ASSERT( !is_locked() );
+
+      application_update_operation op;
+      op.author = author;
+      op.active = active_auth;
+      op.name = app_name;
+      op.new_author= new_author;
+      op.url = url;
+      op.metadata = meta_data;
+      op.price_param = price_param;
+
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+   }
+   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(new_author)(url)(meta_data)(price_param)(broadcast) )
+}
+
+annotated_signed_transaction
+wallet_api::create_application(string author, authority active_auth, string app_name, string url, string meta_data,
+                               uint8_t price_param, bool broadcast) {
+   try
+   {
+      FC_ASSERT( !is_locked() );
+
+      application_create_operation op;
+      op.author = author;
+      op.active = active_auth;
+      op.name = app_name;
+      op.url = url;
+      op.metadata = meta_data;
+      op.price_param = price_param;
+
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+   }
+   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(url)(meta_data)(price_param)(broadcast) )
+}
+
 } } // steem::wallet
 

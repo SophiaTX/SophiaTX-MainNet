@@ -307,6 +307,27 @@ struct api_escrow_object
    bool              agent_approved = false;
 };
 
+struct api_application_object
+{
+   api_application_object( const database_api::api_application_object& a ) :
+         id( a.id ),
+         name( a.name ),
+         author( a.author ),
+         url( a.url ),
+         metadata( a.metadata ),
+         price_param( a.price_param )
+   {}
+
+   api_application_object() {}
+
+   application_id_type                             id;
+   string                                          name;
+   account_name_type                               author;
+   string                                          url;
+   string                                          metadata;
+   application_price_param                         price_param;
+};
+
 struct state
 {
    string                                             current_route;
@@ -385,6 +406,7 @@ DEFINE_API_ARGS( get_account_history,                    vector< variant >,   ge
 DEFINE_API_ARGS( broadcast_transaction,                  vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   network_broadcast_api::broadcast_transaction_synchronous_return )
 DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   json_rpc::void_type )
+DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
 
 
 #undef DEFINE_API_ARGS
@@ -434,6 +456,7 @@ public:
       (broadcast_transaction)
       (broadcast_transaction_synchronous)
       (broadcast_block)
+      (get_applications)
    )
 
    private:
@@ -523,4 +546,13 @@ FC_REFLECT( steem::plugins::condenser_api::scheduled_hardfork,
 
 FC_REFLECT( steem::plugins::condenser_api::get_version_return,
             (blockchain_version)(steem_revision)(fc_revision) )
+
+FC_REFLECT( steem::plugins::condenser_api::api_application_object,
+            (id)
+            (name)
+            (author)
+            (url)
+            (metadata)
+            (price_param)
+)
 
