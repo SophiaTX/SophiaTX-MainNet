@@ -30,7 +30,7 @@ public:
    uint128_t interest_coinbase_accumulator = 0;
    uint128_t interest_fees_accumulator = 0;
    share_type promotion_pool;
-   share_type promotion_pool_per_day;
+   share_type initial_promotion_pool;
    share_type init_supply;
    share_type total_supply;
    share_type unallocated_interests;
@@ -38,11 +38,11 @@ public:
 
    void init_economics(share_type init_supply, share_type total_supply);
    void record_block(uint32_t block, share_type current_supply);
-   share_type get_mining_reward(uint32_t block_number);
+   share_type get_mining_reward(uint32_t block_number) const;
    share_type withdraw_mining_reward(uint32_t block_number, uint32_t nominator, uint32_t denominator);
-   share_type get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block);
+   share_type get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block) const;
    share_type withdraw_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block);
-   share_type get_available_promotion_pool(uint32_t block_number);
+   share_type get_available_promotion_pool(uint32_t block_number) const;
    share_type withdraw_from_promotion_pool(share_type amount, uint32_t block_number);
    void add_fee(share_type fee);
 
@@ -69,7 +69,7 @@ FC_REFLECT(steem::chain::economic_model_object,
            (interest_coinbase_accumulator)
            (interest_fees_accumulator)
            (promotion_pool)
-           (promotion_pool_per_day)
+           (initial_promotion_pool)
            (init_supply)
            (total_supply)
            (unallocated_interests)

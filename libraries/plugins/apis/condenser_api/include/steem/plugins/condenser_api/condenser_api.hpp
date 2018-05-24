@@ -407,7 +407,7 @@ DEFINE_API_ARGS( broadcast_transaction,                  vector< variant >,   js
 DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   network_broadcast_api::broadcast_transaction_synchronous_return )
 DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
-
+DEFINE_API_ARGS( get_promotion_pool_balance,             vector< variant >,   legacy_asset)
 
 #undef DEFINE_API_ARGS
 
@@ -457,6 +457,7 @@ public:
       (broadcast_transaction_synchronous)
       (broadcast_block)
       (get_applications)
+      (get_promotion_pool_balance)
    )
 
    private:

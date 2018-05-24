@@ -70,6 +70,7 @@ namespace detail
             (broadcast_transaction_synchronous)
             (broadcast_block)
             (get_applications)
+            (get_promotion_pool_balance)
          )
 
 
@@ -689,8 +690,14 @@ namespace detail
             result.push_back( api_application_object( database_api::api_application_object( *itr ) ) );
          }
       }
-
       return result;
+   }
+
+  
+   DEFINE_API_IMPL( condenser_api_impl, get_promotion_pool_balance )
+   {
+      CHECK_ARG_SIZE(0);
+      return legacy_asset::from_asset(_database_api->get_promotion_pool_balance( {}  ));
    }
 
 } // detail
@@ -774,7 +781,7 @@ DEFINE_READ_APIS( condenser_api,
  //  (get_account_votes)
    (get_account_history)
    (get_applications)
-
+   (get_promotion_pool_balance)
 )
 
 } } } // steem::plugins::condenser_api

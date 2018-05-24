@@ -329,6 +329,10 @@ struct list_applications_return
     vector< api_application_object > applications;
 };
 
+  
+typedef void_type get_promotion_pool_balance_args;
+typedef asset get_promotion_pool_balance_return;
+
 #ifdef STEEM_ENABLE_SMT
 typedef void_type get_smt_next_identifier_args;
 

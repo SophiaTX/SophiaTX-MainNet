@@ -125,7 +125,6 @@ namespace steem { namespace protocol {
       account_name_type to;
       account_name_type agent;
       account_name_type who; // Either to or agent
-
       uint32_t          escrow_id = 30;
       bool              approve = true;
 
@@ -551,11 +550,6 @@ namespace steem { namespace protocol {
             a.insert( account );
       }
 
-      void get_required_posting_authorities( flat_set<account_name_type>& a )const
-      {
-         if( !current_reset_account.size() )
-            a.insert( account );
-      }
    };
 
    enum application_price_param
@@ -629,6 +623,21 @@ namespace steem { namespace protocol {
    };
 
 
+   /**
+    * Recover funds from the promotion pool. Only initminer can do that.
+    */
+    struct transfer_from_promotion_pool_operation : public base_operation
+    {
+       account_name_type transfer_to;
+       asset             amount;
+       extensions_type   extensions;             ///< Extensions. Not currently used.
+
+       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert( STEEM_INIT_MINER_NAME ); }
+
+       void validate() const;
+    };
+
+
 } } // steem::protocol
 
 
@@ -692,3 +701,4 @@ FC_REFLECT( steem::protocol::application_update_operation, (author)(active)(new_
 FC_REFLECT( steem::protocol::application_delete_operation, (author)(active)(name) )
 FC_REFLECT_ENUM( steem::protocol::application_price_param, (permanent)(time_based)(none) )
 FC_REFLECT( steem::protocol::change_recovery_account_operation, (account_to_recover)(new_recovery_account)(extensions) );
+FC_REFLECT( steem::protocol::transfer_from_promotion_pool_operation, (transfer_to)(amount)(extensions))

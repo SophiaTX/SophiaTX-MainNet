@@ -44,6 +44,7 @@ class database_api_impl
          (verify_account_authority)
          (verify_signatures)
          (list_applications)
+         (get_promotion_pool_balance)
 #ifdef STEEM_ENABLE_SMT
          (get_smt_next_identifier)
 #endif
@@ -655,6 +656,11 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
    return result;
 }
 
+DEFINE_API_IMPL( database_api_impl, get_promotion_pool_balance )
+{
+   return asset(_db.get_economic_model().get_available_promotion_pool(_db.head_block_num()), STEEM_SYMBOL);
+}
+
 #ifdef STEEM_ENABLE_SMT
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
@@ -699,6 +705,7 @@ DEFINE_READ_APIS( database_api,
    (verify_account_authority)
    (verify_signatures)
    (list_applications)
+   (get_promotion_pool_balance)
 #ifdef STEEM_ENABLE_SMT
    (get_smt_next_identifier)
 #endif

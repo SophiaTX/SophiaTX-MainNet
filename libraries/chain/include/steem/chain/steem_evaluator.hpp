@@ -40,6 +40,7 @@ STEEM_DEFINE_EVALUATOR( application_update )
 STEEM_DEFINE_EVALUATOR( application_delete )
 
 STEEM_DEFINE_EVALUATOR( witness_set_properties )
+STEEM_DEFINE_EVALUATOR( transfer_from_promotion_pool )
 #ifdef STEEM_ENABLE_SMT
 STEEM_DEFINE_EVALUATOR( smt_setup )
 STEEM_DEFINE_EVALUATOR( smt_cap_reveal )

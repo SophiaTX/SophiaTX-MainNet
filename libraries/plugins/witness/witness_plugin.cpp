@@ -51,6 +51,7 @@ namespace detail {
    public:
       witness_plugin_impl( boost::asio::io_service& io ) :
          _timer(io),
+         _chain_plugin( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >() ),
          _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ) {}
 
       void pre_transaction( const steem::protocol::signed_transaction& trx );
@@ -70,6 +71,7 @@ namespace detail {
       boost::asio::deadline_timer                                          _timer;
 
       chain::database&     _db;
+      plugins::chain::chain_plugin& _chain_plugin;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   applied_block_connection;
       boost::signals2::connection   on_pre_apply_transaction_connection;
@@ -384,7 +386,7 @@ namespace detail {
          return block_production_condition::lag;
       }
 
-      auto block = db.generate_block(
+      auto block = _chain_plugin.generate_block(
          scheduled_time,
          scheduled_witness,
          private_key_itr->second,
@@ -448,6 +450,9 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
    add_plugin_index< reserve_ratio_index     >( my->_db );
 
    appbase::app().get_plugin< steem::plugins::p2p::p2p_plugin >().set_block_production( true );
+
+   if( my->_witnesses.size() && my->_private_keys.size() )
+      my->_chain_plugin.set_write_lock_hold_time( -1 );
 } FC_LOG_AND_RETHROW() }
 
 void witness_plugin::plugin_startup()

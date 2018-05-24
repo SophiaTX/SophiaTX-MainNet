@@ -920,6 +920,23 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
    _db.remove(application);
 }
 
+void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promotion_pool_operation& op){
+   const auto& econ = _db.get_economic_model();
+   const auto& acnt = _db.get_account( op.transfer_to );
+   share_type withdrawn;
+
+   FC_ASSERT(op.amount.amount >0 && op.amount.symbol == STEEM_SYMBOL);
+   _db.modify( econ, [&](economic_model_object& eo){
+        withdrawn = eo.withdraw_from_promotion_pool(op.amount.amount, _db.head_block_num());
+   });
+   _db.adjust_balance(acnt, asset(withdrawn, STEEM_SYMBOL));
+   _db.adjust_supply(asset(withdrawn, STEEM_SYMBOL));
+
+   promotion_pool_withdraw_operation wop;
+   wop.to_account = op.transfer_to;
+   wop.withdrawn =  asset(withdrawn, STEEM_SYMBOL);
+   _db.push_virtual_operation(wop);
+}
 
 #ifdef STEEM_ENABLE_SMT
 void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_operation& op )

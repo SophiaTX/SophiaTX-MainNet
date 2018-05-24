@@ -24,13 +24,6 @@ digest_type transaction::digest()const
    return enc.result();
 }
 
-digest_type transaction::sig_digest( const chain_id_type& chain_id )const
-{
-   digest_type::encoder enc;
-   fc::raw::pack( enc, chain_id );
-   fc::raw::pack( enc, *this );
-   return enc.result();
-}
 
 void transaction::validate() const
 {
@@ -45,6 +38,14 @@ steem::protocol::transaction_id_type steem::protocol::transaction::id() const
    transaction_id_type result;
    memcpy(result._hash, h._hash, std::min(sizeof(result), sizeof(h)));
    return result;
+}
+
+digest_type transaction::sig_digest( const chain_id_type& chain_id )const
+{
+   digest_type::encoder enc;
+   fc::raw::pack( enc, chain_id );
+   fc::raw::pack( enc, *this );
+   return enc.result();
 }
 
 const signature_type& steem::protocol::signed_transaction::sign(const private_key_type& key, const chain_id_type& chain_id)
