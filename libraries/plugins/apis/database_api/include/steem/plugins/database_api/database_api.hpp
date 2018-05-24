@@ -54,7 +54,6 @@ class database_api
          *
          */
          (list_accounts)
-
          /**
          * @brief Find accounts by primary key (account name)
          */
@@ -67,6 +66,12 @@ class database_api
          (find_change_recovery_account_requests)
          (list_escrows)
          (find_escrows)
+
+         //////////////////
+         // Applications //
+         //////////////////
+
+         (list_applications)
 
          ////////////////////////////
          // Authority / validation //
