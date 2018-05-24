@@ -20,7 +20,7 @@ add_library( steem_chain
         util/impacted.cpp
 
              ${HEADERS}
-        include/steem/chain/application_object.hpp)
+       )
 
 target_link_libraries( steem_chain steem_protocol fc chainbase steem_schema ${PATCH_MERGE_LIB} )
 target_include_directories( steem_chain
