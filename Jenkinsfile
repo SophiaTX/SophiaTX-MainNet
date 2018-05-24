@@ -8,7 +8,13 @@ pipeline {
   environment {
     ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + ".tar.gz"
   }
-  agent { label 'suse' }
+  agent { 
+    if( "${env.BRANCH_NAME}" == 'develop' ) {
+      label 'suse' 
+    } else {
+      label any         
+    }
+  }
   stages {
     stage('Build') {
       steps {
