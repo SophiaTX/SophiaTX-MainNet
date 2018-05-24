@@ -60,9 +60,9 @@ def send_positive_slack_notification() {
 }
 
 def get_label_name() {
-  f( "${env.BRANCH_NAME}" == 'develop' ) {
+  if( "${env.BRANCH_NAME}" == 'develop' ) {
     return 'suse' 
   } else {
-    return 'any'         
+    return 'linux'         
   }
 }
