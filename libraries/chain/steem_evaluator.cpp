@@ -638,15 +638,32 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 {
    database& d = db();
 
-   for(const auto&r: o.recipients)
-      d.create<custom_content_object>([&](custom_content_object& c){
-         c.binary=false;
-         c.json = o.json;
-         c.app_id = o.app_id;
-         c.sender = o.sender;
-         c.recipient = r;
-         c.all_recipients = o.recipients;
+   //TODO: move this to plugin
+   const auto& send_idx = d.get_index< custom_content_index >().indices().get< by_sender >();
+   auto send_itr = send_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
+   uint64_t sender_sequence = 1;
+   if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
+      sender_sequence = send_itr->sender_sequence + 1;
+
+   for(const auto&r: o.recipients) {
+      uint64_t receiver_sequence = 1;
+      const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
+      auto recv_itr = recv_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
+      if( recv_itr != recv_idx.end() && recv_itr->sender == o.sender && recv_itr->app_id == o.app_id )
+         receiver_sequence = recv_itr->recipient_sequence + 1;
+
+      d.create<custom_content_object>([ & ](custom_content_object &c) {
+           c.binary = false;
+           c.json = o.json;
+           c.app_id = o.app_id;
+           c.sender = o.sender;
+           c.recipient = r;
+           c.all_recipients = o.recipients;
+           c.sender_sequence = sender_sequence;
+           c.recipient_sequence = receiver_sequence;
+           c.recieved = d.head_block_time();
       });
+   }
 
    std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.app_id );
    if( !eval )
@@ -672,15 +689,32 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 {
    database& d = db();
 
-   for(const auto&r: o.recipients)
-      d.create<custom_content_object>([&](custom_content_object& c){
-           c.binary=true;
+   //TODO: move this to plugin
+   const auto& send_idx = d.get_index< custom_content_index >().indices().get< by_sender >();
+   auto send_itr = send_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
+   uint64_t sender_sequence = 1;
+   if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
+      sender_sequence = send_itr->sender_sequence + 1;
+
+   for(const auto&r: o.recipients) {
+      uint64_t receiver_sequence = 1;
+      const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
+      auto recv_itr = recv_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
+      if( recv_itr != recv_idx.end() && recv_itr->sender == o.sender && recv_itr->app_id == o.app_id )
+         receiver_sequence = recv_itr->recipient_sequence + 1;
+
+      d.create<custom_content_object>([ & ](custom_content_object &c) {
+           c.binary = true;
            c.data = o.data;
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;
            c.all_recipients = o.recipients;
+           c.sender_sequence = sender_sequence;
+           c.recipient_sequence = receiver_sequence;
+           c.recieved = d.head_block_time();
       });
+   }
 
    std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.app_id );
    if( !eval )

@@ -7,6 +7,7 @@
 #include <steem/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
 #include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 #include <steem/plugins/witness_api/witness_api_plugin.hpp>
+#include <steem/plugins/custom_api/custom_api_plugin.hpp>
 
 #include <steem/utilities/git_revision.hpp>
 
@@ -71,6 +72,7 @@ namespace detail
             (broadcast_block)
             (get_applications)
             (get_promotion_pool_balance)
+            (get_received)
          )
 
 
@@ -83,6 +85,7 @@ namespace detail
          std::shared_ptr< account_by_key::account_by_key_api > _account_by_key_api;
          std::shared_ptr< network_broadcast_api::network_broadcast_api > _network_broadcast_api;
          std::shared_ptr< witness::witness_api > _witness_api;
+         std::shared_ptr< custom::custom_api > _custom_api;
    };
 
    DEFINE_API_IMPL( condenser_api_impl, get_version )
@@ -283,7 +286,6 @@ namespace detail
       {
          auto reserve_ratio = _witness_api->get_reserve_ratio( {} );
          gpo.average_block_size = reserve_ratio.average_block_size;
-         gpo.max_virtual_bandwidth = reserve_ratio.max_virtual_bandwidth;
       }
 
       return gpo;
@@ -649,6 +651,14 @@ namespace detail
       return result;
    }
 
+   DEFINE_API_IMPL( condenser_api_impl, get_received )
+   {
+      CHECK_ARG_SIZE( 5 )
+      FC_ASSERT( _custom_api, "custom_api_plugin not enabled." );
+
+      return _custom_api->get_received( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[0].as< uint32_t >() } ).history;
+   }
+
    DEFINE_API_IMPL( condenser_api_impl, broadcast_transaction )
    {
       CHECK_ARG_SIZE( 1 )
@@ -735,6 +745,10 @@ void condenser_api::api_startup()
    auto witness = appbase::app().find_plugin< witness::witness_api_plugin >();
    if( witness != nullptr )
       my->_witness_api = witness->api;
+
+   auto custom = appbase::app().find_plugin< custom::custom_api_plugin>();
+   if( custom != nullptr )
+      my->_custom_api = custom->api;
 }
 
 DEFINE_LOCKLESS_APIS( condenser_api,
@@ -782,6 +796,7 @@ DEFINE_READ_APIS( condenser_api,
    (get_account_history)
    (get_applications)
    (get_promotion_pool_balance)
+   (get_received)
 )
 
 } } } // steem::plugins::condenser_api

@@ -823,6 +823,7 @@ class wallet_api
        * @param from Sender
        * @param to List of receivers
        * @param json Data formatted in JSON
+       * @param broadcast true if you wish to broadcast the transaction
        * @return
        */
       annotated_signed_transaction send_custom_json(uint32_t app_id, string from, vector<string> to, string json, bool broadcast);
@@ -833,10 +834,21 @@ class wallet_api
        * @param from Sender
        * @param to List of receivers
        * @param data Data formatted in base58.
+       *  @param broadcast true if you wish to broadcast the transaction
        * @return
        */
       annotated_signed_transaction send_custom_data(uint32_t app_id, string from, vector<string> to, string data, bool broadcast);
 
+      /**
+       * Get all recevied custom jsons and data.
+       * @param app_id Application ID
+       * @param account_name Name of the relevant (sender/recipient) account
+       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
+       * @param start Either timestamp in ISO format or index
+       * @param count Number of items to retrieve
+       * @return
+       */
+      map< uint64_t, condenser_api::api_received_object >  get_received(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
 };
 
@@ -928,6 +940,7 @@ FC_API( steem::wallet::wallet_api,
 
         (send_custom_json)
         (send_custom_data)
+        (get_received)
       )
 
 FC_REFLECT( steem::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )

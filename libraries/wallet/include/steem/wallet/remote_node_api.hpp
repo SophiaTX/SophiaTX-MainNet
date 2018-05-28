@@ -63,6 +63,7 @@ struct remote_node_api
    network_broadcast_api::broadcast_transaction_synchronous_return broadcast_transaction_synchronous( signed_transaction );
    void broadcast_block( signed_block );
    flat_set< uint32_t > get_market_history_buckets();
+   map< uint64_t, condenser_api::api_received_object > get_received(uint32_t, string, string, string, uint32_t);
 
    vector<condenser_api::api_application_object> get_applications(vector<string>);
 };
@@ -110,4 +111,5 @@ FC_API( steem::wallet::remote_node_api,
         (broadcast_transaction_synchronous)
         (broadcast_block)
         (get_applications)
+        (get_received)
       )
