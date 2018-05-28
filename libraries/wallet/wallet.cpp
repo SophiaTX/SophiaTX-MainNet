@@ -1852,5 +1852,41 @@ wallet_api::create_application(string author, authority active_auth, string app_
    FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(url)(meta_data)(price_param)(broadcast) )
 }
 
+annotated_signed_transaction wallet_api::send_custom_json(uint32_t app_id, string from, vector<string> to, string json, bool broadcast){
+   try{
+      FC_ASSERT( !is_locked() );
+      custom_json_operation op;
+      op.app_id = app_id;
+      op.sender = from;
+      for(const auto& r: to)
+         op.recipients.insert(r);
+      op.json = json;
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+
+   }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(json)(broadcast))
+}
+
+annotated_signed_transaction wallet_api::send_custom_data(uint32_t app_id, string from, vector<string> to, string data, bool broadcast){
+   try{
+      FC_ASSERT( !is_locked() );
+      custom_binary_operation op;
+      op.app_id = app_id;
+      op.sender = from;
+      for(const auto& r: to)
+         op.recipients.insert(r);
+      op.data = fc::from_base58(data);
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+
+   }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data)(broadcast))
+}
+
 } } // steem::wallet
 

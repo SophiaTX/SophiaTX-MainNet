@@ -171,20 +171,20 @@ namespace steem { namespace protocol {
    void custom_operation::validate() const {
       /// required auth accounts are the ones whose bandwidth is consumed
       validate_account_name(sender);
-      for(const auto r: receiver)
+      for(const auto r: recipients)
          validate_account_name(r);
    }
 
    void custom_json_operation::validate() const {
       /// required auth accounts are the ones whose bandwidth is consumed
       validate_account_name(sender);
-      for(const auto r: receiver)
+      for(const auto r: recipients)
          validate_account_name(r);
    }
 
    void custom_binary_operation::validate() const {
       validate_account_name(sender);
-      for(const auto r: receiver)
+      for(const auto r: recipients)
          validate_account_name(r);
    }
 

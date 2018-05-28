@@ -817,6 +817,27 @@ class wallet_api
        */
       string decrypt_memo( string memo );
 
+      /**
+       * Send custom JSON data
+       * @param app_id Application ID
+       * @param from Sender
+       * @param to List of receivers
+       * @param json Data formatted in JSON
+       * @return
+       */
+      annotated_signed_transaction send_custom_json(uint32_t app_id, string from, vector<string> to, string json, bool broadcast);
+
+      /**
+       * Send custom data data
+       * @param app_id Application ID
+       * @param from Sender
+       * @param to List of receivers
+       * @param data Data formatted in base58.
+       * @return
+       */
+      annotated_signed_transaction send_custom_data(uint32_t app_id, string from, vector<string> to, string data, bool broadcast);
+
+
 };
 
 struct plain_keys {
@@ -904,6 +925,9 @@ FC_API( steem::wallet::wallet_api,
 
         (get_active_witnesses)
         (get_transaction)
+
+        (send_custom_json)
+        (send_custom_data)
       )
 
 FC_REFLECT( steem::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )

@@ -25,6 +25,7 @@ public:
 
    id_type id;
 
+   uint32_t app_id;
    account_name_type sender;
    account_name_type recipient;
    flat_set<account_name_type> all_recipients;
@@ -37,16 +38,23 @@ public:
 class by_id;
 class by_sender;
 class by_recipient;
+class by_recipient_app_id;
 
 typedef multi_index_container<
       custom_content_object,
       indexed_by<
             ordered_unique< tag< by_id >,
                   member< custom_content_object, custom_content_object::id_type, &custom_content_object::id > >,
-            ordered_unique< tag< by_sender >,
+            ordered_non_unique< tag< by_sender >,
                   member< custom_content_object, account_name_type, &custom_content_object::sender > >,
-            ordered_unique< tag< by_recipient >,
-                  member< custom_content_object, account_name_type, &custom_content_object::recipient > >
+            ordered_non_unique< tag< by_recipient >,
+                  member< custom_content_object, account_name_type, &custom_content_object::recipient > >,
+            ordered_non_unique< tag< by_recipient_app_id >,
+                  composite_key< custom_content_object,
+                     member< custom_content_object, account_name_type, &custom_content_object::recipient >,
+                     member< custom_content_object, uint32_t, &custom_content_object::app_id >
+                  >
+            >
       >,
       allocator< custom_content_object >
 > custom_content_index;
@@ -56,6 +64,6 @@ typedef multi_index_container<
 
 
 FC_REFLECT(steem::chain::custom_content_object,
-           (id)(sender)(recipient)(binary)(data)(json)
+           (id)(app_id)(sender)(recipient)(binary)(data)(json)
 )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::custom_content_object, steem::chain::custom_content_index )
