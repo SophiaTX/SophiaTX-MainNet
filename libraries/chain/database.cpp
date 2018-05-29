@@ -13,6 +13,7 @@
 #include <steem/chain/smt_objects.hpp>
 #include <steem/chain/steem_evaluator.hpp>
 #include <steem/chain/steem_objects.hpp>
+#include <steem/chain/custom_content_object.hpp>
 #include <steem/chain/transaction_object.hpp>
 #include <steem/chain/shared_db_merkle.hpp>
 #include <steem/chain/operation_notification.hpp>
@@ -1410,6 +1411,7 @@ void database::initialize_indexes()
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
    add_core_index< application_index                       >(*this);
+   add_core_index< custom_content_index                    >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
    add_core_index< account_regular_balance_index           >(*this);

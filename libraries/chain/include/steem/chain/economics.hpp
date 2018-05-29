@@ -61,7 +61,7 @@ typedef multi_index_container<
 }}//namespace
 
 
-FC_REFLECT(steem::chain::economic_model_object,
+FC_REFLECT(steem::chain::economic_model_object, (id)
            (mining_pool_from_coinbase)
            (mining_pool_from_fees)
            (interest_pool_from_coinbase)

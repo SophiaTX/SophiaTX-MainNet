@@ -12,6 +12,8 @@ target_link_libraries( steem_plugins appbase fc
 
    account_history_api_plugin
 
+   custom_api_plugin
+
    witness_api_plugin
 
    network_broadcast_api_plugin

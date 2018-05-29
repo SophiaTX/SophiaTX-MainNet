@@ -10,6 +10,8 @@
 
 #include <steem/plugins/account_history_api/account_history_api_plugin.hpp>
 
+#include <steem/plugins/custom_api/custom_api_plugin.hpp>
+
 #include <steem/plugins/witness_api/witness_api_plugin.hpp>
 
 #include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
@@ -51,6 +53,8 @@ void register_plugins()
    appbase::app().register_plugin< steem::plugins::witness::witness_plugin >();
    
    appbase::app().register_plugin< steem::plugins::account_history::account_history_api_plugin >();
+   
+   appbase::app().register_plugin< steem::plugins::custom::custom_api_plugin >();
    
    appbase::app().register_plugin< steem::plugins::witness::witness_api_plugin >();
    

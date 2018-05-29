@@ -201,5 +201,8 @@ vector<condenser_api::api_application_object> remote_node_api::get_applications(
    FC_ASSERT( false );
 }
 
+map< uint64_t, condenser_api::api_received_object >  remote_node_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+   FC_ASSERT( false);
+};
 
 } }

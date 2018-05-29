@@ -349,12 +349,13 @@ namespace steem { namespace protocol {
     */
    struct custom_operation : public base_operation
    {
-      flat_set< account_name_type > required_auths;
-      uint32_t                      id = 0;
+      account_name_type             sender;
+      flat_set<account_name_type>   recipients;
+      uint64_t                      app_id = 0;
       vector< char >                data;
 
       void validate()const;
-      void get_required_active_authorities( flat_set<account_name_type>& a )const{ for( const auto& i : required_auths ) a.insert(i); }
+      void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(sender); }
    };
 
 
@@ -363,24 +364,25 @@ namespace steem { namespace protocol {
     **/
    struct custom_json_operation : public base_operation
    {
-      flat_set< account_name_type > required_auths;
-      uint32_t                        id; ///< must be less than 32 characters long
+      account_name_type             sender;
+      flat_set<account_name_type>   recipients;
+      uint64_t                      app_id; ///< must be less than 32 characters long
       string                        json; ///< must be proper utf8 / JSON string.
 
       void validate()const;
-      void get_required_active_authorities( flat_set<account_name_type>& a )const{ for( const auto& i : required_auths ) a.insert(i); }
+      void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(sender); }
    };
 
 
    struct custom_binary_operation : public base_operation
    {
-      flat_set< account_name_type > required_auths;
-
-      uint32_t                        id; ///< must be less than 32 characters long
+      account_name_type             sender;
+      flat_set<account_name_type>   recipients;
+      uint64_t                      app_id; ///< must be less than 32 characters long
       vector< char >                data;
 
       void validate()const;
-      void get_required_active_authorities( flat_set<account_name_type>& a )const{ for( const auto& i : required_auths ) a.insert(i); }
+      void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(sender); }
    };
 
 
@@ -678,9 +680,9 @@ FC_REFLECT( steem::protocol::witness_stop_operation, (owner) )
 FC_REFLECT( steem::protocol::witness_set_properties_operation, (owner)(props)(extensions) )
 FC_REFLECT( steem::protocol::account_witness_vote_operation, (account)(witness)(approve) )
 FC_REFLECT( steem::protocol::account_witness_proxy_operation, (account)(proxy) )
-FC_REFLECT( steem::protocol::custom_operation, (required_auths)(id)(data) )
-FC_REFLECT( steem::protocol::custom_json_operation, (required_auths)(id)(json) )
-FC_REFLECT( steem::protocol::custom_binary_operation, (required_auths)(id)(data) )
+FC_REFLECT( steem::protocol::custom_operation, (sender)(recipients)(app_id)(data) )
+FC_REFLECT( steem::protocol::custom_json_operation, (sender)(recipients)(app_id)(json) )
+FC_REFLECT( steem::protocol::custom_binary_operation, (sender)(recipients)(app_id)(data) )
 
 #ifdef STEEM_ENABLE_SMT
 FC_REFLECT( steem::protocol::votable_asset_info_v1, (max_accepted_payout)(allow_curation_rewards) )

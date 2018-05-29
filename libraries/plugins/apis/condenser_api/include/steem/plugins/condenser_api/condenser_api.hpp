@@ -6,6 +6,7 @@
 #include <steem/plugins/account_by_key_api/account_by_key_api.hpp>
 #include <steem/plugins/network_broadcast_api/network_broadcast_api.hpp>
 #include <steem/plugins/witness_api/witness_api.hpp>
+#include <steem/plugins/custom_api/custom_api.hpp>
 
 #include <steem/plugins/condenser_api/condenser_api_legacy_objects.hpp>
 
@@ -45,6 +46,9 @@ struct api_operation_object
    fc::time_point_sec   timestamp;
    legacy_operation     op;
 };
+
+typedef steem::plugins::custom::received_object api_received_object;
+
 
 struct api_account_object
 {
@@ -114,12 +118,6 @@ struct extended_account : public api_account_object
    extended_account( const database_api::api_account_object& a ) :
       api_account_object( a ) {}
 
-   share_type                                               average_bandwidth;
-   share_type                                               lifetime_bandwidth;
-   time_point_sec                                           last_bandwidth_update;
-   share_type                                               average_market_bandwidth;
-   share_type                                               lifetime_market_bandwidth;
-   time_point_sec                                           last_market_bandwidth_update;
 
    legacy_asset                                             vesting_balance;  /// convert vesting_shares to vesting steem
    map< uint64_t, api_operation_object >   transfer_history; /// transfer to/from vesting
@@ -163,7 +161,6 @@ struct extended_dynamic_global_properties
    uint32_t          last_irreversible_block_num = 0;
 
    int32_t           average_block_size = 0;
-   uint128_t         max_virtual_bandwidth = 0;
 };
 
 struct legacy_chain_properties
@@ -362,6 +359,7 @@ struct get_version_return
 };
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
+typedef map< uint64_t, api_received_object >      get_received_documents_return_type;
 
 
 #define DEFINE_API_ARGS( api_name, arg_type, return_type )  \
@@ -408,7 +406,7 @@ DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   ne
 DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
 DEFINE_API_ARGS( get_promotion_pool_balance,             vector< variant >,   legacy_asset)
-
+DEFINE_API_ARGS( get_received_documents,                           vector< variant >,   get_received_documents_return_type )
 #undef DEFINE_API_ARGS
 
 class condenser_api
@@ -453,6 +451,7 @@ public:
       (verify_authority)
       (verify_account_authority)
       (get_account_history)
+      (get_received_documents)
       (broadcast_transaction)
       (broadcast_transaction_synchronous)
       (broadcast_block)
@@ -485,7 +484,6 @@ FC_REFLECT( steem::plugins::condenser_api::api_account_object,
           )
 
 FC_REFLECT_DERIVED( steem::plugins::condenser_api::extended_account, (steem::plugins::condenser_api::api_account_object),
-            (average_bandwidth)(lifetime_bandwidth)(last_bandwidth_update)(average_market_bandwidth)(lifetime_market_bandwidth)(last_market_bandwidth_update)
             (vesting_balance)(transfer_history)(other_history)(witness_votes) )
 
 FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
@@ -494,7 +492,7 @@ FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
             (current_supply)
             (total_vesting_shares)
             (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
-            (average_block_size)(max_virtual_bandwidth) )
+            (average_block_size) )
 
 FC_REFLECT( steem::plugins::condenser_api::legacy_chain_properties,
             (account_creation_fee)(maximum_block_size)
