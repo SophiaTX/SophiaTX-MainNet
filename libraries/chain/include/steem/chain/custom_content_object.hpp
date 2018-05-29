@@ -34,7 +34,7 @@ public:
 
    uint64_t sender_sequence = 0;
    uint64_t recipient_sequence = 0;
-   time_point_sec recieved;
+   time_point_sec received;
 
    bool binary;
    vector<char> data;
@@ -72,7 +72,7 @@ typedef multi_index_container<
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::sender>,
                      member< custom_content_object, uint32_t, &custom_content_object::app_id>,
-                     member< custom_content_object, time_point_sec, &custom_content_object::recieved>
+                     member< custom_content_object, time_point_sec, &custom_content_object::received>
                >,
                composite_key_compare< std::less< account_name_type >, std::greater<uint32_t>, std::greater< time_point_sec > >
             >,
@@ -80,7 +80,7 @@ typedef multi_index_container<
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::recipient>,
                      member< custom_content_object, uint32_t, &custom_content_object::app_id>,
-                     member< custom_content_object, time_point_sec, &custom_content_object::recieved>
+                     member< custom_content_object, time_point_sec, &custom_content_object::received>
                >,
                composite_key_compare< std::less< account_name_type >, std::greater<uint32_t>, std::greater< time_point_sec > >
             >
@@ -93,6 +93,6 @@ typedef multi_index_container<
 
 
 FC_REFLECT(steem::chain::custom_content_object,
-           (id)(app_id)(sender)(recipient)(binary)(data)(json)(recieved)(sender_sequence)(recipient_sequence)
+           (id)(app_id)(sender)(recipient)(binary)(data)(json)(received)(sender_sequence)(recipient_sequence)
 )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::custom_content_object, steem::chain::custom_content_index )

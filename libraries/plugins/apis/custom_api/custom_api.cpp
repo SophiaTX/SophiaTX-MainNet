@@ -28,8 +28,8 @@ DEFINE_API_IMPL( custom_api_impl, get_received )
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, std::max( int64_t(0), int64_t(itr->sender_sequence) - args.count ) ) );
 
-      get_received_return result;
-      while( itr != end )
+      get_received_return result; result.history.clear();
+      while( itr != end && result.history.size() < args.count )
       {
          result.history[ itr->sender_sequence ] = *itr;
          ++itr;
@@ -43,8 +43,8 @@ DEFINE_API_IMPL( custom_api_impl, get_received )
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, std::max( int64_t(0), int64_t(itr->recipient_sequence) - args.count ) ) );
 
-      get_received_return result;
-      while( itr != end )
+      get_received_return result; result.history.clear();
+      while( itr != end && result.history.size() < args.count)
       {
          result.history[ itr->recipient_sequence ] = *itr;
          ++itr;
@@ -55,9 +55,11 @@ DEFINE_API_IMPL( custom_api_impl, get_received )
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
       const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender_time >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
+      auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::min() ) );
 
-      get_received_return result;
-      while( itr != idx.end() && itr->sender == args.account_name && itr->app_id == args.app_id && result.history.size() < args.count)
+
+      get_received_return result; result.history.clear();
+      while( itr != end && result.history.size() < args.count)
       {
          result.history[ itr->sender_sequence ] = *itr;
          ++itr;
@@ -69,9 +71,10 @@ DEFINE_API_IMPL( custom_api_impl, get_received )
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
       const auto& idx = _db.get_index< chain::custom_content_index, chain::by_recipient_time >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
+      auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::min() ) );
 
-      get_received_return result;
-      while( itr != idx.end() && itr->recipient == args.account_name && itr->app_id == args.app_id && result.history.size() < args.count)
+      get_received_return result; result.history.clear();
+      while( itr != end && result.history.size() < args.count)
       {
          result.history[ itr->recipient_sequence ] = *itr;
          ++itr;

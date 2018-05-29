@@ -22,7 +22,8 @@ struct received_object
    received_object( const steem::chain::custom_content_object& obj ) :
          sender( obj.sender ),
          app_id( obj.app_id ),
-         binary( obj.binary )
+         binary( obj.binary ),
+         received( obj.received)
    {
       if(binary)
          data = fc::to_base58(obj.data);
@@ -38,6 +39,7 @@ struct received_object
    string            data;
    bool              binary;
    time_point_sec    received;
+
 };
 
 
@@ -78,7 +80,7 @@ private:
 
 
 FC_REFLECT( steem::plugins::custom::received_object,
-            (sender)(recipients)(app_id)(data)(received) )
+            (sender)(recipients)(app_id)(data)(received)(binary) )
 
 FC_REFLECT( steem::plugins::custom::get_received_args,
             (app_id)(account_name)(search_type)(start)(count) )

@@ -648,8 +648,8 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
    for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
       const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
-      auto recv_itr = recv_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
-      if( recv_itr != recv_idx.end() && recv_itr->sender == o.sender && recv_itr->app_id == o.app_id )
+      auto recv_itr = recv_idx.lower_bound( boost::make_tuple( r, o.app_id, uint64_t(-1) ) );
+      if( recv_itr != recv_idx.end() && recv_itr->recipient == r && recv_itr->app_id == o.app_id )
          receiver_sequence = recv_itr->recipient_sequence + 1;
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
@@ -661,7 +661,7 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
            c.all_recipients = o.recipients;
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
-           c.recieved = d.head_block_time();
+           c.received = d.head_block_time();
       });
    }
 
@@ -699,8 +699,8 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
    for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
       const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
-      auto recv_itr = recv_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
-      if( recv_itr != recv_idx.end() && recv_itr->sender == o.sender && recv_itr->app_id == o.app_id )
+      auto recv_itr = recv_idx.lower_bound( boost::make_tuple( r, o.app_id, uint64_t(-1) ) );
+      if( recv_itr != recv_idx.end() && recv_itr->recipient == r && recv_itr->app_id == o.app_id )
          receiver_sequence = recv_itr->recipient_sequence + 1;
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
@@ -712,7 +712,7 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
            c.all_recipients = o.recipients;
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
-           c.recieved = d.head_block_time();
+           c.received = d.head_block_time();
       });
    }
 
