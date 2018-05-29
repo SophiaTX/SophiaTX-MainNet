@@ -177,6 +177,8 @@ namespace steem { namespace protocol {
 
    void custom_json_operation::validate() const {
       /// required auth accounts are the ones whose bandwidth is consumed
+      FC_ASSERT( fc::is_utf8(json), "JSON Metadata not formatted in UTF8" );
+      FC_ASSERT( fc::json::is_valid(json), "JSON Metadata not valid JSON" );
       validate_account_name(sender);
       for(const auto r: recipients)
          validate_account_name(r);
