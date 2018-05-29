@@ -359,7 +359,7 @@ struct get_version_return
 };
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
-typedef map< uint64_t, api_received_object >      get_received_return_type;
+typedef map< uint64_t, api_received_object >      get_received_documents_return_type;
 
 
 #define DEFINE_API_ARGS( api_name, arg_type, return_type )  \
@@ -406,7 +406,7 @@ DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   ne
 DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
 DEFINE_API_ARGS( get_promotion_pool_balance,             vector< variant >,   legacy_asset)
-DEFINE_API_ARGS( get_received,                           vector< variant >,   get_received_return_type )
+DEFINE_API_ARGS( get_received_documents,                           vector< variant >,   get_received_documents_return_type )
 #undef DEFINE_API_ARGS
 
 class condenser_api
@@ -451,7 +451,7 @@ public:
       (verify_authority)
       (verify_account_authority)
       (get_account_history)
-      (get_received)
+      (get_received_documents)
       (broadcast_transaction)
       (broadcast_transaction_synchronous)
       (broadcast_block)

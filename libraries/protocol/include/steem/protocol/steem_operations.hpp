@@ -351,7 +351,7 @@ namespace steem { namespace protocol {
    {
       account_name_type             sender;
       flat_set<account_name_type>   recipients;
-      uint32_t                      app_id = 0;
+      uint64_t                      app_id = 0;
       vector< char >                data;
 
       void validate()const;
@@ -366,7 +366,7 @@ namespace steem { namespace protocol {
    {
       account_name_type             sender;
       flat_set<account_name_type>   recipients;
-      uint32_t                      app_id; ///< must be less than 32 characters long
+      uint64_t                      app_id; ///< must be less than 32 characters long
       string                        json; ///< must be proper utf8 / JSON string.
 
       void validate()const;
@@ -378,7 +378,7 @@ namespace steem { namespace protocol {
    {
       account_name_type             sender;
       flat_set<account_name_type>   recipients;
-      uint32_t                      app_id; ///< must be less than 32 characters long
+      uint64_t                      app_id; ///< must be less than 32 characters long
       vector< char >                data;
 
       void validate()const;

@@ -826,7 +826,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        * @return
        */
-      annotated_signed_transaction send_custom_json(uint32_t app_id, string from, vector<string> to, string json, bool broadcast);
+      annotated_signed_transaction send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json, bool broadcast);
 
       /**
        * Send custom data data
@@ -837,7 +837,7 @@ class wallet_api
        *  @param broadcast true if you wish to broadcast the transaction
        * @return
        */
-      annotated_signed_transaction send_custom_data(uint32_t app_id, string from, vector<string> to, string data, bool broadcast);
+      annotated_signed_transaction send_custom_binary_document(uint32_t app_id, string from, vector<string> to, string data, bool broadcast);
 
       /**
        * Get all recevied custom jsons and data.
@@ -848,7 +848,7 @@ class wallet_api
        * @param count Number of items to retrieve
        * @return
        */
-      map< uint64_t, condenser_api::api_received_object >  get_received(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
 };
 
@@ -938,9 +938,9 @@ FC_API( steem::wallet::wallet_api,
         (get_active_witnesses)
         (get_transaction)
 
-        (send_custom_json)
-        (send_custom_data)
-        (get_received)
+        (send_custom_json_document)
+        (send_custom_binary_document)
+        (get_received_documents)
       )
 
 FC_REFLECT( steem::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )

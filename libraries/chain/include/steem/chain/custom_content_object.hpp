@@ -27,7 +27,7 @@ public:
 
    id_type id;
 
-   uint32_t app_id;
+   uint64_t app_id;
    account_name_type sender;
    account_name_type recipient;
    flat_set<account_name_type> all_recipients;
@@ -55,34 +55,34 @@ typedef multi_index_container<
             ordered_non_unique< tag< by_sender >,
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::sender>,
-                     member< custom_content_object, uint32_t, &custom_content_object::app_id>,
+                     member< custom_content_object, uint64_t, &custom_content_object::app_id>,
                      member< custom_content_object, uint64_t, &custom_content_object::sender_sequence>
                >,
-               composite_key_compare< std::less< account_name_type >, std::greater<uint32_t>, std::greater< uint64_t > >
+               composite_key_compare< std::less< account_name_type >, std::greater<uint64_t>, std::greater< uint64_t > >
             >,
             ordered_non_unique< tag< by_recipient >,
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::recipient>,
-                     member< custom_content_object, uint32_t, &custom_content_object::app_id>,
+                     member< custom_content_object, uint64_t, &custom_content_object::app_id>,
                      member< custom_content_object, uint64_t, &custom_content_object::recipient_sequence>
                >,
-               composite_key_compare< std::less< account_name_type >, std::greater<uint32_t>, std::greater< uint64_t > >
+               composite_key_compare< std::less< account_name_type >, std::greater<uint64_t>, std::greater< uint64_t > >
             >,
             ordered_non_unique< tag< by_sender_time >,
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::sender>,
-                     member< custom_content_object, uint32_t, &custom_content_object::app_id>,
+                     member< custom_content_object, uint64_t, &custom_content_object::app_id>,
                      member< custom_content_object, time_point_sec, &custom_content_object::received>
                >,
-               composite_key_compare< std::less< account_name_type >, std::greater<uint32_t>, std::greater< time_point_sec > >
+               composite_key_compare< std::less< account_name_type >, std::greater<uint64_t>, std::greater< time_point_sec > >
             >,
             ordered_non_unique< tag< by_recipient_time >,
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::recipient>,
-                     member< custom_content_object, uint32_t, &custom_content_object::app_id>,
+                     member< custom_content_object, uint64_t, &custom_content_object::app_id>,
                      member< custom_content_object, time_point_sec, &custom_content_object::received>
                >,
-               composite_key_compare< std::less< account_name_type >, std::greater<uint32_t>, std::greater< time_point_sec > >
+               composite_key_compare< std::less< account_name_type >, std::greater<uint64_t>, std::greater< time_point_sec > >
             >
       >,
       allocator< custom_content_object >

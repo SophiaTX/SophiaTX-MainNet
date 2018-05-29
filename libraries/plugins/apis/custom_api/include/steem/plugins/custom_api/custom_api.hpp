@@ -35,7 +35,7 @@ struct received_object
 
    string            sender;
    vector<string>    recipients;
-   uint32_t          app_id;
+   uint64_t          app_id;
    string            data;
    bool              binary;
    time_point_sec    received;
@@ -43,7 +43,7 @@ struct received_object
 };
 
 
-struct get_received_args
+struct get_received_documents_args
 {
    uint32_t app_id;
    string   account_name;
@@ -52,11 +52,11 @@ struct get_received_args
    uint32_t count;
 };
 
-typedef get_received_args get_received_json_args;
-typedef get_received_args get_received_data_args;
+typedef get_received_documents_args get_received_documents_json_args;
+typedef get_received_documents_args get_received_documents_data_args;
 
 
-struct get_received_return
+struct get_received_documents_return
 {
    std::map< uint64_t, received_object > history;
 };
@@ -69,7 +69,7 @@ public:
    ~custom_api();
 
    DECLARE_API(
-         (get_received)
+         (get_received_documents)
    )
 
 private:
@@ -82,8 +82,8 @@ private:
 FC_REFLECT( steem::plugins::custom::received_object,
             (sender)(recipients)(app_id)(data)(received)(binary) )
 
-FC_REFLECT( steem::plugins::custom::get_received_args,
+FC_REFLECT( steem::plugins::custom::get_received_documents_args,
             (app_id)(account_name)(search_type)(start)(count) )
 
-FC_REFLECT( steem::plugins::custom::get_received_return,
+FC_REFLECT( steem::plugins::custom::get_received_documents_return,
             (history) )

@@ -1852,7 +1852,7 @@ wallet_api::create_application(string author, authority active_auth, string app_
    FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(url)(meta_data)(price_param)(broadcast) )
 }
 
-annotated_signed_transaction wallet_api::send_custom_json(uint32_t app_id, string from, vector<string> to, string json, bool broadcast){
+annotated_signed_transaction wallet_api::send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json, bool broadcast){
    try{
       FC_ASSERT( !is_locked() );
       custom_json_operation op;
@@ -1870,7 +1870,7 @@ annotated_signed_transaction wallet_api::send_custom_json(uint32_t app_id, strin
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(json)(broadcast))
 }
 
-annotated_signed_transaction wallet_api::send_custom_data(uint32_t app_id, string from, vector<string> to, string data, bool broadcast){
+annotated_signed_transaction wallet_api::send_custom_binary_document(uint32_t app_id, string from, vector<string> to, string data, bool broadcast){
    try{
       FC_ASSERT( !is_locked() );
       custom_binary_operation op;
@@ -1888,9 +1888,9 @@ annotated_signed_transaction wallet_api::send_custom_data(uint32_t app_id, strin
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data)(broadcast))
 }
 
-map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
-      return my->_remote_api->get_received(app_id, account_name, search_type, start, count);
+      return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 };
 
