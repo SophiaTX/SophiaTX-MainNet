@@ -40,6 +40,9 @@ namespace steem { namespace plugins { namespace condenser_api {
    typedef fill_vesting_withdraw_operation        legacy_fill_vesting_withdraw_operation;
    typedef producer_reward_operation              legacy_producer_reward_operation;
    typedef promotion_pool_withdraw_operation      legacy_promotion_pool_withdraw_operation;
+   typedef application_create_operation           legacy_application_create_operation;
+   typedef application_update_operation           legacy_application_update_operation;
+   typedef application_delete_operation           legacy_application_delete_operation;
 
 
 
@@ -76,7 +79,10 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_hardfork_operation,
             legacy_producer_reward_operation,
             legacy_promotion_pool_withdraw_operation,
-            legacy_transfer_from_promotion_pool_operation
+            legacy_transfer_from_promotion_pool_operation,
+            legacy_application_create_operation,
+            legacy_application_update_operation,
+            legacy_application_delete_operation
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor
@@ -191,6 +197,25 @@ namespace steem { namespace plugins { namespace condenser_api {
          return true;
       }
 
+      bool operator()( const application_create_operation& op) const
+      {
+         l_op = legacy_application_create_operation(op);
+         return true;
+      }
+
+      bool operator()( const application_update_operation& op) const
+      {
+         l_op = legacy_application_update_operation(op);
+         return true;
+      }
+
+      bool operator()( const application_delete_operation& op) const
+      {
+         l_op = legacy_application_delete_operation(op);
+         return true;
+      }
+
+
       // Should only be SMT ops
       template< typename T >
       bool operator()( const T& )const { return false; }
@@ -270,6 +295,21 @@ struct convert_from_legacy_operation_visitor
    operation operator()( const legacy_transfer_from_promotion_pool_operation& op)const
    {
       return operation( transfer_from_promotion_pool_operation(op));
+   }
+
+   operation operator()( const legacy_application_create_operation& op)const
+   {
+      return operation( application_create_operation(op));
+   }
+
+   operation operator()( const legacy_application_update_operation& op)const
+   {
+      return operation( application_update_operation(op));
+   }
+
+   operation operator()( const legacy_application_delete_operation& op)const
+   {
+      return operation( application_delete_operation(op));
    }
    template< typename T >
    operation operator()( const T& t )const
