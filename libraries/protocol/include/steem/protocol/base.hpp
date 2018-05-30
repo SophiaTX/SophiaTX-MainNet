@@ -1,6 +1,5 @@
 #pragma once
 #include <steem/protocol/asset.hpp>
-
 #include <steem/protocol/types.hpp>
 #include <steem/protocol/authority.hpp>
 #include <steem/protocol/version.hpp>
@@ -16,11 +15,12 @@ namespace steem { namespace protocol {
       void get_required_posting_authorities( flat_set<account_name_type>& )const {}
       void get_required_owner_authorities( flat_set<account_name_type>& )const {}
 
-      bool has_special_fee()const{return false;};
-      asset get_operation_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
       bool is_virtual()const { return false; }
       void validate()const {}
+      asset fee;
+      account_name_type get_fee_payer()const { return STEEM_INIT_MINER_NAME; };
    };
 
    struct virtual_operation : public base_operation
@@ -45,5 +45,6 @@ namespace steem { namespace protocol {
 
 } } // steem::protocol
 
+FC_REFLECT( steem::protocol::base_operation, (fee))
 FC_REFLECT_TYPENAME( steem::protocol::block_header_extensions )
 FC_REFLECT_TYPENAME( steem::protocol::future_extensions )

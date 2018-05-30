@@ -473,7 +473,7 @@ void database::pay_fee( const account_object& account, asset fee )
    });
 }
 
-asset database::get_operation_fee( const operation& op, asset_symbol_type symbol )const
+asset database::get_required_operation_fee( const operation& op )const
 {
 #pragma message("SPHTX_TODO: make proper op valuation")
    return asset(100000, STEEM_SYMBOL);
