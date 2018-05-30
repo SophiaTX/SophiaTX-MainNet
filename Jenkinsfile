@@ -34,7 +34,7 @@ pipeline {
               archiveArtifacts '*.gz'
           }
            dir('lib') {
-              sh 'tar -czf libalexandria *alex*' //create tar file
+              sh 'tar -czf libalexandria.tar.gz *alex*' //create tar file
               archiveArtifacts '*.gz'
            }
         }
