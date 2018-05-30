@@ -473,6 +473,12 @@ void database::pay_fee( const account_object& account, asset fee )
    });
 }
 
+asset database::get_operation_fee( const operation& op, asset_symbol_type symbol )const
+{
+#pragma message("SPHTX_TODO: make proper op valuation")
+   return asset(100000, STEEM_SYMBOL);
+}
+
 uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();

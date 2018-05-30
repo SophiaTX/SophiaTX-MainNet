@@ -1,4 +1,5 @@
 #pragma once
+#include <steem/protocol/asset.hpp>
 
 #include <steem/protocol/types.hpp>
 #include <steem/protocol/authority.hpp>
@@ -14,6 +15,9 @@ namespace steem { namespace protocol {
       void get_required_active_authorities( flat_set<account_name_type>& )const {}
       void get_required_posting_authorities( flat_set<account_name_type>& )const {}
       void get_required_owner_authorities( flat_set<account_name_type>& )const {}
+
+      bool has_special_fee()const{return false;};
+      asset get_operation_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
       bool is_virtual()const { return false; }
       void validate()const {}

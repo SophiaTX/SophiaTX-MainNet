@@ -25,6 +25,7 @@ namespace steem { namespace protocol {
 
    struct account_update_operation : public base_operation
    {
+      asset                         fee;
       account_name_type             account;
       optional< authority >         owner;
       optional< authority >         active;
@@ -44,11 +45,13 @@ namespace steem { namespace protocol {
 
    struct placeholder_a_operation : public base_operation
    {
+      asset             fee;
       void validate()const;
    };
 
    struct placeholder_b_operation : public base_operation
    {
+      asset             fee;
       void validate()const;
    };
 
@@ -60,6 +63,7 @@ namespace steem { namespace protocol {
     */
    struct transfer_operation : public base_operation
    {
+      asset             fee;
       account_name_type from;
       /// Account to transfer asset to
       account_name_type to;
@@ -96,13 +100,14 @@ namespace steem { namespace protocol {
     */
    struct escrow_transfer_operation : public base_operation
    {
+      asset             fee;
       account_name_type from;
       account_name_type to;
       account_name_type agent;
       uint32_t          escrow_id = 30;
 
       asset             steem_amount = asset( 0, STEEM_SYMBOL );
-      asset             fee;
+      asset             escrow_fee;
 
       time_point_sec    ratification_deadline;
       time_point_sec    escrow_expiration;
@@ -121,6 +126,7 @@ namespace steem { namespace protocol {
     */
    struct escrow_approve_operation : public base_operation
    {
+      asset             fee;
       account_name_type from;
       account_name_type to;
       account_name_type agent;
@@ -140,6 +146,7 @@ namespace steem { namespace protocol {
     */
    struct escrow_dispute_operation : public base_operation
    {
+      asset             fee;
       account_name_type from;
       account_name_type to;
       account_name_type agent;
@@ -164,6 +171,7 @@ namespace steem { namespace protocol {
     */
    struct escrow_release_operation : public base_operation
    {
+      asset             fee;
       account_name_type from;
       account_name_type to; ///< the original 'to'
       account_name_type agent;
@@ -186,10 +194,12 @@ namespace steem { namespace protocol {
     */
    struct transfer_to_vesting_operation : public base_operation
    {
+      asset             fee;
       account_name_type from;
       account_name_type to; ///< if null, then same as from
       asset             amount; ///< must be STEEM
 
+      bool has_special_fee()const{return true;};
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(from); }
    };
@@ -208,8 +218,11 @@ namespace steem { namespace protocol {
     */
    struct withdraw_vesting_operation : public base_operation
    {
+      asset             fee;
       account_name_type account;
       asset             vesting_shares;
+
+      bool has_special_fee()const{return true;};
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(account); }
@@ -261,9 +274,6 @@ namespace steem { namespace protocol {
 
 
    /**
-    *  Users who wish to become a witness must pay a fee acceptable to
-    *  the current witnesses to apply for the position and allow voting
-    *  to begin.
     *
     *  If the owner isn't a witness they will become a witness.  Witnesses
     *  are charged a fee equal to 1 weeks worth of witness pay which in
@@ -271,8 +281,8 @@ namespace steem { namespace protocol {
     *  only applied if the owner is not already a witness.
     *
     *  If the block_signing_key is null then the witness is removed from
-    *  contention.  The network will pick the top 21 witnesses for
-    *  producing blocks.
+    *  contention (effectively an witness_stop_operaton).  The network will pick
+    *  the top 21 witnesses for producing blocks.
     */
    struct witness_update_operation : public base_operation
    {
@@ -280,7 +290,7 @@ namespace steem { namespace protocol {
       string            url;
       public_key_type   block_signing_key;
       chain_properties  props;
-      asset             fee; ///< the fee paid to register a new witness, should be 10x current block production pay
+      asset             fee;
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(owner); }
@@ -288,6 +298,7 @@ namespace steem { namespace protocol {
 
    struct witness_set_properties_operation : public base_operation
    {
+      asset             fee;
       account_name_type                   owner;
       flat_map< string, vector< char > >  props;
       extensions_type                     extensions;
@@ -310,6 +321,7 @@ namespace steem { namespace protocol {
 
    struct witness_stop_operation : public base_operation
    {
+      asset             fee;
       account_name_type owner;
       void validate()const {};
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(owner); }
@@ -322,6 +334,7 @@ namespace steem { namespace protocol {
     */
    struct account_witness_vote_operation : public base_operation
    {
+      asset             fee;
       account_name_type account;
       account_name_type witness;
       bool              approve = true;
@@ -333,6 +346,7 @@ namespace steem { namespace protocol {
 
    struct account_witness_proxy_operation : public base_operation
    {
+      asset             fee;
       account_name_type account;
       account_name_type proxy;
 
@@ -349,6 +363,7 @@ namespace steem { namespace protocol {
     */
    struct custom_operation : public base_operation
    {
+      asset             fee;
       account_name_type             sender;
       flat_set<account_name_type>   recipients;
       uint64_t                      app_id = 0;
@@ -364,6 +379,7 @@ namespace steem { namespace protocol {
     **/
    struct custom_json_operation : public base_operation
    {
+      asset                         fee;
       account_name_type             sender;
       flat_set<account_name_type>   recipients;
       uint64_t                      app_id; ///< must be less than 32 characters long
@@ -376,6 +392,7 @@ namespace steem { namespace protocol {
 
    struct custom_binary_operation : public base_operation
    {
+      asset                         fee;
       account_name_type             sender;
       flat_set<account_name_type>   recipients;
       uint64_t                      app_id; ///< must be less than 32 characters long
@@ -392,8 +409,11 @@ namespace steem { namespace protocol {
     */
    struct feed_publish_operation : public base_operation
    {
+      asset             fee;
       account_name_type publisher;
       price             exchange_rate;
+
+      bool has_special_fee()const{return true;};
 
       void  validate()const;
       void  get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(publisher); }
@@ -415,6 +435,7 @@ namespace steem { namespace protocol {
     */
    struct report_over_production_operation : public base_operation
    {
+      asset                fee;
       account_name_type    reporter;
       signed_block_header  first_block;
       signed_block_header  second_block;
@@ -452,6 +473,8 @@ namespace steem { namespace protocol {
     */
    struct request_account_recovery_operation : public base_operation
    {
+      asset             fee;
+
       account_name_type recovery_account;       ///< The recovery account is listed as the recovery account on the account to recover.
 
       account_name_type account_to_recover;     ///< The account to recover. This is likely due to a compromised owner authority.
@@ -506,6 +529,8 @@ namespace steem { namespace protocol {
     */
    struct recover_account_operation : public base_operation
    {
+      asset             fee;
+
       account_name_type account_to_recover;        ///< The account to be recovered
 
       authority         new_owner_authority;       ///< The new owner authority as specified in the request account recovery operation.
@@ -529,6 +554,8 @@ namespace steem { namespace protocol {
     *  new_owner_authority after 60 days of inactivity.
     */
    struct reset_account_operation : public base_operation {
+      asset             fee;
+
       account_name_type reset_account;
       account_name_type account_to_reset;
       authority         new_owner_authority;
@@ -542,6 +569,8 @@ namespace steem { namespace protocol {
     * to execute the 'reset_account_operation' after 60 days.
     */
    struct set_reset_account_operation : public base_operation {
+      asset             fee;
+
       account_name_type account;
       account_name_type current_reset_account;
       account_name_type reset_account;
@@ -561,6 +590,8 @@ namespace steem { namespace protocol {
       none
    };
    struct application_create_operation : public base_operation {
+      asset             fee;
+
       account_name_type       author;
       authority               active;
       string                  name;
@@ -573,6 +604,8 @@ namespace steem { namespace protocol {
    };
 
    struct application_update_operation : public base_operation {
+      asset                         fee;
+
       account_name_type             author;
       authority                     active;
       optional<account_name_type>   new_author;
@@ -586,6 +619,8 @@ namespace steem { namespace protocol {
    };
 
    struct application_delete_operation : public base_operation {
+      asset                         fee;
+
       account_name_type             author;
       authority                     active;
       string                        name;
@@ -616,6 +651,8 @@ namespace steem { namespace protocol {
     */
    struct change_recovery_account_operation : public base_operation
    {
+      asset             fee;
+
       account_name_type account_to_recover;     ///< The account that would be recovered in case of compromise
       account_name_type new_recovery_account;   ///< The account that creates the recover request
       extensions_type   extensions;             ///< Extensions. Not currently used.
@@ -630,6 +667,8 @@ namespace steem { namespace protocol {
     */
     struct transfer_from_promotion_pool_operation : public base_operation
     {
+       asset             fee;
+
        account_name_type transfer_to;
        asset             amount;
        extensions_type   extensions;             ///< Extensions. Not currently used.
@@ -643,20 +682,19 @@ namespace steem { namespace protocol {
 } } // steem::protocol
 
 
-FC_REFLECT( steem::protocol::reset_account_operation, (reset_account)(account_to_reset)(new_owner_authority) )
-FC_REFLECT( steem::protocol::set_reset_account_operation, (account)(current_reset_account)(reset_account) )
+FC_REFLECT( steem::protocol::reset_account_operation, (fee)(reset_account)(account_to_reset)(new_owner_authority) )
+FC_REFLECT( steem::protocol::set_reset_account_operation, (fee) (account)(current_reset_account)(reset_account) )
 
 
-FC_REFLECT( steem::protocol::report_over_production_operation, (reporter)(first_block)(second_block) )
-FC_REFLECT( steem::protocol::feed_publish_operation, (publisher)(exchange_rate) )
+FC_REFLECT( steem::protocol::report_over_production_operation, (fee) (reporter)(first_block)(second_block) )
+FC_REFLECT( steem::protocol::feed_publish_operation, (fee) (publisher)(exchange_rate) )
 FC_REFLECT( steem::protocol::chain_properties,
             (account_creation_fee)
             (maximum_block_size)
             (price_feeds)
           )
 
-FC_REFLECT( steem::protocol::account_create_operation,
-            (fee)
+FC_REFLECT( steem::protocol::account_create_operation, (fee)
             (creator)
             (new_account_name)
             (owner)
@@ -665,24 +703,24 @@ FC_REFLECT( steem::protocol::account_create_operation,
             (json_metadata) )
 
 
-FC_REFLECT( steem::protocol::account_update_operation,
+FC_REFLECT( steem::protocol::account_update_operation, (fee)
             (account)
             (owner)
             (active)
             (memo_key)
             (json_metadata) )
 
-FC_REFLECT( steem::protocol::transfer_operation, (from)(to)(amount)(memo) )
-FC_REFLECT( steem::protocol::transfer_to_vesting_operation, (from)(to)(amount) )
-FC_REFLECT( steem::protocol::withdraw_vesting_operation, (account)(vesting_shares) )
-FC_REFLECT( steem::protocol::witness_update_operation, (owner)(url)(block_signing_key)(props)(fee) )
-FC_REFLECT( steem::protocol::witness_stop_operation, (owner) )
-FC_REFLECT( steem::protocol::witness_set_properties_operation, (owner)(props)(extensions) )
-FC_REFLECT( steem::protocol::account_witness_vote_operation, (account)(witness)(approve) )
-FC_REFLECT( steem::protocol::account_witness_proxy_operation, (account)(proxy) )
-FC_REFLECT( steem::protocol::custom_operation, (sender)(recipients)(app_id)(data) )
-FC_REFLECT( steem::protocol::custom_json_operation, (sender)(recipients)(app_id)(json) )
-FC_REFLECT( steem::protocol::custom_binary_operation, (sender)(recipients)(app_id)(data) )
+FC_REFLECT( steem::protocol::transfer_operation, (fee) (from)(to)(amount)(memo) )
+FC_REFLECT( steem::protocol::transfer_to_vesting_operation, (fee) (from)(to)(amount) )
+FC_REFLECT( steem::protocol::withdraw_vesting_operation, (fee) (account)(vesting_shares) )
+FC_REFLECT( steem::protocol::witness_update_operation, (fee) (owner)(url)(block_signing_key)(props) )
+FC_REFLECT( steem::protocol::witness_stop_operation, (fee) (owner) )
+FC_REFLECT( steem::protocol::witness_set_properties_operation, (fee) (owner)(props)(extensions) )
+FC_REFLECT( steem::protocol::account_witness_vote_operation, (fee) (account)(witness)(approve) )
+FC_REFLECT( steem::protocol::account_witness_proxy_operation, (fee) (account)(proxy) )
+FC_REFLECT( steem::protocol::custom_operation, (fee) (sender)(recipients)(app_id)(data) )
+FC_REFLECT( steem::protocol::custom_json_operation, (fee) (sender)(recipients)(app_id)(json) )
+FC_REFLECT( steem::protocol::custom_binary_operation, (fee) (sender)(recipients)(app_id)(data) )
 
 #ifdef STEEM_ENABLE_SMT
 FC_REFLECT( steem::protocol::votable_asset_info_v1, (max_accepted_payout)(allow_curation_rewards) )
@@ -690,17 +728,17 @@ FC_REFLECT( steem::protocol::allowed_vote_assets, (votable_assets) )
 #endif
 
 
-FC_REFLECT( steem::protocol::escrow_transfer_operation, (from)(to)(steem_amount)(escrow_id)(agent)(fee)(json_meta)(ratification_deadline)(escrow_expiration) );
-FC_REFLECT( steem::protocol::escrow_approve_operation, (from)(to)(agent)(who)(escrow_id)(approve) );
-FC_REFLECT( steem::protocol::escrow_dispute_operation, (from)(to)(agent)(who)(escrow_id) );
-FC_REFLECT( steem::protocol::escrow_release_operation, (from)(to)(agent)(who)(receiver)(escrow_id)(steem_amount) );
-FC_REFLECT( steem::protocol::placeholder_a_operation, );
-FC_REFLECT( steem::protocol::placeholder_b_operation, );
-FC_REFLECT( steem::protocol::request_account_recovery_operation, (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );
-FC_REFLECT( steem::protocol::recover_account_operation, (account_to_recover)(new_owner_authority)(recent_owner_authority)(extensions) );
-FC_REFLECT( steem::protocol::application_create_operation, (author)(active)(name)(url)(metadata)(price_param) )
-FC_REFLECT( steem::protocol::application_update_operation, (author)(active)(new_author)(name)(url)(metadata)(price_param) )
-FC_REFLECT( steem::protocol::application_delete_operation, (author)(active)(name) )
+FC_REFLECT( steem::protocol::escrow_transfer_operation, (fee)(from)(to)(steem_amount)(escrow_id)(agent)(escrow_fee)(json_meta)(ratification_deadline)(escrow_expiration) );
+FC_REFLECT( steem::protocol::escrow_approve_operation, (fee) (from)(to)(agent)(who)(escrow_id)(approve) );
+FC_REFLECT( steem::protocol::escrow_dispute_operation, (fee) (from)(to)(agent)(who)(escrow_id) );
+FC_REFLECT( steem::protocol::escrow_release_operation, (fee) (from)(to)(agent)(who)(receiver)(escrow_id)(steem_amount) );
+FC_REFLECT( steem::protocol::placeholder_a_operation, (fee) );
+FC_REFLECT( steem::protocol::placeholder_b_operation, (fee) );
+FC_REFLECT( steem::protocol::request_account_recovery_operation, (fee) (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );
+FC_REFLECT( steem::protocol::recover_account_operation, (fee) (account_to_recover)(new_owner_authority)(recent_owner_authority)(extensions) );
+FC_REFLECT( steem::protocol::application_create_operation, (fee) (author)(active)(name)(url)(metadata)(price_param) )
+FC_REFLECT( steem::protocol::application_update_operation, (fee) (author)(active)(new_author)(name)(url)(metadata)(price_param) )
+FC_REFLECT( steem::protocol::application_delete_operation, (fee) (author)(active)(name) )
 FC_REFLECT_ENUM( steem::protocol::application_price_param, (permanent)(time_based)(none) )
-FC_REFLECT( steem::protocol::change_recovery_account_operation, (account_to_recover)(new_recovery_account)(extensions) );
-FC_REFLECT( steem::protocol::transfer_from_promotion_pool_operation, (transfer_to)(amount)(extensions))
+FC_REFLECT( steem::protocol::change_recovery_account_operation, (fee) (account_to_recover)(new_recovery_account)(extensions) );
+FC_REFLECT( steem::protocol::transfer_from_promotion_pool_operation, (fee) (transfer_to)(amount)(extensions))

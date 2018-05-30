@@ -504,7 +504,7 @@ public:
 
          account_create_op.creator = creator_account_name;
          account_create_op.new_account_name = account_name;
-         account_create_op.fee = _remote_api->get_chain_properties().account_creation_fee;
+//         account_create_op.fee = _remote_api->get_chain_properties().account_creation_fee;
          account_create_op.owner = authority(1, owner_pubkey, 1);
          account_create_op.active = authority(1, active_pubkey, 1);
          account_create_op.memo_key = memo_pubkey;
@@ -1085,7 +1085,7 @@ annotated_signed_transaction wallet_api::create_account_with_keys( string creato
    op.active = authority( 1, active, 1 );
    op.memo_key = memo;
    op.json_metadata = json_meta;
-   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL );
+  // op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL );
 
    signed_transaction tx;
    tx.operations.push_back(op);
@@ -1590,7 +1590,7 @@ annotated_signed_transaction wallet_api::escrow_transfer(
    op.agent = agent;
    op.escrow_id = escrow_id;
    op.steem_amount = steem_amount;
-   op.fee = fee;
+   op.escrow_fee = fee;
    op.ratification_deadline = ratification_deadline;
    op.escrow_expiration = escrow_expiration;
    op.json_meta = json_meta;

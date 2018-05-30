@@ -73,7 +73,6 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
       FC_ASSERT( o.props.maximum_block_size <= STEEM_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
    }
 
-
    const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
    if( wit_itr != by_witness_name_idx.end() )
@@ -81,8 +80,11 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
       _db.modify( *wit_itr, [&]( witness_object& w ) {
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
+         if(o.block_signing_key == public_key_type())
+              w.stopped = true;
          w.props = o.props;
          w.props.price_feeds.clear();
+
          if(o.props.price_feeds.size()){
             time_point_sec last_sbd_exchange_update = _db.head_block_time();
             for(auto r:o.props.price_feeds){
@@ -230,14 +232,13 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    const auto& props = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
-
+   //FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
-   FC_ASSERT( o.fee >= asset( wso.median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ), "Insufficient Fee: ${f} required, ${p} provided.",
+   /*FC_ASSERT( o.fee >= asset( wso.median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ), "Insufficient Fee: ${f} required, ${p} provided.",
               ("f", wso.median_props.account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ) )
                     ("p", o.fee) );
-
+*/
    verify_authority_accounts_exist( _db, o.owner, o.new_account_name, authority::owner );
    verify_authority_accounts_exist( _db, o.active, o.new_account_name, authority::active );
 
@@ -264,8 +265,8 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       auth.last_owner_update = fc::time_point_sec::min();
    });
 
-   if( o.fee.amount > 0 )
-      _db.pay_fee( creator, o.fee );
+//   if( o.fee.amount > 0 )
+//      _db.pay_fee( creator, o.fee );
 }
 
 
@@ -324,8 +325,8 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
       FC_ASSERT( o.escrow_expiration > _db.head_block_time(), "The escrow expiration must be after head block time." );
 
       asset steem_spent = o.steem_amount;
-      if( o.fee.symbol == STEEM_SYMBOL )
-         steem_spent += o.fee;
+      if( o.escrow_fee.symbol == STEEM_SYMBOL )
+         steem_spent += o.escrow_fee;
 
 
       FC_ASSERT( from_account.balance >= steem_spent, "Account cannot cover STEEM costs of escrow. Required: ${r} Available: ${a}", ("r",steem_spent)("a",from_account.balance) );
@@ -341,7 +342,7 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
          esc.ratification_deadline  = o.ratification_deadline;
          esc.escrow_expiration      = o.escrow_expiration;
          esc.steem_balance          = o.steem_amount;
-         esc.pending_fee            = o.fee;
+         esc.pending_fee            = o.escrow_fee;
       });
    }
    FC_CAPTURE_AND_RETHROW( (o) )
