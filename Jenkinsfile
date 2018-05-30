@@ -6,7 +6,7 @@ pipeline {
     buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
   }
   environment {
-    ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    ARCHIVE_NAME = "sophiatx_" + "${env.BRANCH_NAME}" + "${env.BUILD_NUMBER}" + ".tar.gz"
   }
   agent { 
     label get_label_name()
@@ -33,6 +33,10 @@ pipeline {
               sh 'tar -czf ${ARCHIVE_NAME} *' //create tar file
               archiveArtifacts '*.gz'
           }
+           dir('lib') {
+              sh 'tar -czf libalexandria *alexandria*' //create tar file
+              archiveArtifacts '*.gz'
+           }
         }
       }
     }
