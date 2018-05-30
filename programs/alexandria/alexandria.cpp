@@ -80,7 +80,6 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
          compact_signature sig;
          fc::from_variant( v, sig);
 
-         stx.signatures.clear();
          stx.signatures.push_back(sig);
 
          strcpy(signed_tx, fc::json::to_string(stx).c_str());

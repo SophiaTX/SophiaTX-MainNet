@@ -30,7 +30,7 @@ pipeline {
           dir('bin') {
               sh 'strip -s *' //strip symbols
               sh 'rm -f test*' //remove test binaries
-              sh 'tar -czf "${ARCHIVE_NAME}"" *' //create tar file
+              sh 'tar -czf ${ARCHIVE_NAME} *' //create tar file
               archiveArtifacts '*.gz'
           }
            dir('lib') {
