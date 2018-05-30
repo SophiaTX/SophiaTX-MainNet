@@ -16,8 +16,6 @@ using namespace std;
 using namespace steem::utilities;
 using namespace steem::protocol;
 
-typedef uint16_t transaction_handle_type;
-
 struct memo_data {
 
    static optional<memo_data> from_string( string str ) {

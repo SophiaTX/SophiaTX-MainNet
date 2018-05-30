@@ -1,0 +1,39 @@
+add_library( alexandria SHARED alexandria.cpp alexandria.hpp )
+if( UNIX AND NOT APPLE )
+    set(rt_library rt )
+endif()
+
+set_target_properties(alexandria PROPERTIES PUBLIC_HEADER alexandria.hpp)
+
+find_package( Gperftools QUIET )
+if( GPERFTOOLS_FOUND )
+    message( STATUS "Found gperftools; compiling alexandria with TCMalloc")
+    list( APPEND PLATFORM_SPECIFIC_LIBS tcmalloc )
+endif()
+
+
+target_link_libraries( alexandria PRIVATE
+        "-static-libstdc++ -static-libgcc -lreadline"
+        steem_protocol steem_utilities fc
+        ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+
+
+if( CLANG_TIDY_EXE )
+    set_target_properties(
+            alexandria PROPERTIES
+            CXX_CLANG_TIDY "${DO_CLANG_TIDY}"
+    )
+endif( CLANG_TIDY_EXE )
+
+#TODO
+#if(MSVC)
+#    set_source_files_properties( main.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+#endif(MSVC)
+
+install( TARGETS
+        alexandria
+        RUNTIME DESTINATION lib
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        PUBLIC_HEADER DESTINATION lib
+        )
