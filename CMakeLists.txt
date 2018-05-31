@@ -206,9 +206,6 @@ else( WIN32 ) # Apple AND Linux
     #if(NOT READLINE_INCLUDE_DIR OR NOT READLINE_LIBRARIES)
     #  MESSAGE(FATAL_ERROR "Could not find lib readline.")
     #endif()
-    if(BUILD_PIC)
-        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-    endif(BUILD_PIC)
 
     if( APPLE )
         # Apple Specific Options Here
@@ -229,6 +226,10 @@ else( WIN32 ) # Apple AND Linux
           set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
         endif ( FULL_STATIC_BUILD )
     endif( APPLE )
+
+    if(BUILD_PIC)
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    endif(BUILD_PIC)
 
     if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
         set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin-memcmp" )
