@@ -802,7 +802,7 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
       vest("alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
       private_key_type signing_key = generate_private_key( "new_key" );
@@ -3172,8 +3172,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
+      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE  );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3277,7 +3277,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
       vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       private_key_type signing_key = generate_private_key( "old_key" );
 

@@ -487,9 +487,14 @@ asset database::process_operation_fee( const operation& op )
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          FC_ASSERT(bop.fee >= req_fee);
          const auto& fee_payer = db->get_account(bop.get_fee_payer());
-         asset to_pay = db->to_steem(bop.fee);
+         asset to_pay;
+         if(bop.fee.symbol==STEEM_SYMBOL){
+            to_pay = bop.fee;
+         }else{
+            to_pay = db->to_steem(bop.fee);
+         }
          FC_ASSERT(to_pay.symbol == STEEM_SYMBOL && to_pay.amount >= 0);
-         db->pay_fee(fee_payer, db->to_steem(bop.fee));
+         db->pay_fee(fee_payer, to_pay);
          return to_pay;
       };
    };
