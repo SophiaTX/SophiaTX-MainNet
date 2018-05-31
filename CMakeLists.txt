@@ -9,6 +9,14 @@ set( GUI_CLIENT_EXECUTABLE_NAME Steem )
 set( CUSTOM_URL_SCHEME "gcs" )
 set( INSTALLER_APP_ID "68ad7005-8eee-49c9-95ce-9eed97e5b347" )
 
+OPTION( BUILD_PIC "Build with -fPIC flag (ON OR OFF)" ON)
+if(BUILD_PIC)
+    MESSAGE(STATUS "Building with -fPIC flag")
+else(BUILD_PIC)
+    MESSAGE(STATUS "Skipping libalexandria build, enable with -DBUILD_PIC flag")
+endif(BUILD_PIC)
+
+
 # http://stackoverflow.com/a/18369825
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
@@ -198,15 +206,18 @@ else( WIN32 ) # Apple AND Linux
     #if(NOT READLINE_INCLUDE_DIR OR NOT READLINE_LIBRARIES)
     #  MESSAGE(FATAL_ERROR "Could not find lib readline.")
     #endif()
+    if(BUILD_PIC)
+        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+    endif(BUILD_PIC)
 
     if( APPLE )
         # Apple Specific Options Here
         message( STATUS "Configuring Steem on OS X" )
-        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fPIC -std=c++11 -stdlib=libc++ -Wall -Wno-conversion -Wno-deprecated-declarations" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -stdlib=libc++ -Wall -Wno-conversion -Wno-deprecated-declarations" )
     else( APPLE )
         # Linux Specific Options Here
         message( STATUS "Configuring Steem on Linux" )
-        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fPIC -std=c++11 -Wall" )
+        set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -Wall" )
         set( rt_library rt )
         set( pthread_library pthread)
         if ( NOT DEFINED crypto_library )
