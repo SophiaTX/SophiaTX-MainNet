@@ -15,12 +15,14 @@ namespace steem { namespace protocol {
       void get_required_posting_authorities( flat_set<account_name_type>& )const {}
       void get_required_owner_authorities( flat_set<account_name_type>& )const {}
 
-      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
+      virtual bool has_special_fee()const{return false;};
+      virtual asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
-      bool is_virtual()const { return false; }
+      virtual bool is_virtual()const { return false; }
       void validate()const {}
       asset fee;
-      account_name_type get_fee_payer()const { return STEEM_INIT_MINER_NAME; };
+      virtual account_name_type get_fee_payer()const { return STEEM_INIT_MINER_NAME; };
+      virtual ~base_operation(){}
    };
 
    struct virtual_operation : public base_operation

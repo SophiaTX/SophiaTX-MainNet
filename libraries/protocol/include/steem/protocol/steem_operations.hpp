@@ -17,9 +17,10 @@ namespace steem { namespace protocol {
       public_key_type   memo_key;
       string            json_metadata;
 
-      account_name_type get_fee_payer()const { return creator;};
-      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);}; //<the account creation fee is set by witnesses...
+      account_name_type get_fee_payer()const { return creator;} ;
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);} ; //<the account creation fee is set by witnesses...
 
+      bool has_special_fee()const {return true;};
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(creator); }
    };

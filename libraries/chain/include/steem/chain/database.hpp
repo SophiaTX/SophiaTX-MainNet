@@ -413,7 +413,7 @@ namespace steem { namespace chain {
          void on_reindex_done_connect(on_reindex_done_t functor)
             { _on_reindex_done.connect(functor); }
 
-         asset get_required_operation_fee( const operation& op)const;
+         asset process_operation_fee( const operation& op);
 
    protected:
          //Mark pop_undo() as protected -- we do not want outside calling pop_undo(); it should call pop_block() instead
