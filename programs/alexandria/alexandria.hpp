@@ -3,7 +3,7 @@
 
 extern "C" {
 
-   static bool generate_key_pair(char* private_key);
+   static bool generate_private_key(char* private_key);
 
    static bool get_transaction_digest(const char* transaction, char* digest);
 

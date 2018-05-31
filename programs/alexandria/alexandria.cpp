@@ -21,7 +21,7 @@ using namespace steem::protocol;
 using namespace fc::ecc;
 using namespace std;
 
-bool generate_key_pair(char *private_key) {
+bool generate_private_key(char *private_key) {
    try {
       char seed[16];
       fc::rand_bytes(seed, sizeof(seed));
