@@ -13,7 +13,6 @@ endif()
 
 
 target_link_libraries( alexandria PRIVATE
-        "-static-libstdc++ -static-libgcc"
         steem_protocol steem_utilities fc
         ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 
@@ -25,10 +24,8 @@ if( CLANG_TIDY_EXE )
     )
 endif( CLANG_TIDY_EXE )
 
-#TODO
-#if(MSVC)
-#    set_source_files_properties( main.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
-#endif(MSVC)
+
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 install( TARGETS
         alexandria
