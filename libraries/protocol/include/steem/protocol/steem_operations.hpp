@@ -41,6 +41,18 @@ namespace steem { namespace protocol {
    };
 
 
+   struct account_delete_operation : public base_operation
+   {
+      account_name_type  account;
+      authority          owner;
+
+      void validate()const;
+
+      void get_required_owner_authorities( flat_set<account_name_type>& a )const
+      { a.insert( account ); }
+
+   };
+
 
    struct placeholder_a_operation : public base_operation
    {
@@ -672,6 +684,7 @@ FC_REFLECT( steem::protocol::account_update_operation,
             (memo_key)
             (json_metadata) )
 
+FC_REFLECT( steem::protocol::account_delete_operation, (account)(owner) )
 FC_REFLECT( steem::protocol::transfer_operation, (from)(to)(amount)(memo) )
 FC_REFLECT( steem::protocol::transfer_to_vesting_operation, (from)(to)(amount) )
 FC_REFLECT( steem::protocol::withdraw_vesting_operation, (account)(vesting_shares) )

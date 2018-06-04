@@ -1334,6 +1334,7 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();
    _my->_evaluator_registry.register_evaluator< account_create_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< account_update_evaluator                 >();
+   _my->_evaluator_registry.register_evaluator< account_delete_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< witness_update_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
    _my->_evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();

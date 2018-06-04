@@ -348,6 +348,58 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
    FC_LOG_AND_RETHROW()
 }
 
+BOOST_AUTO_TEST_CASE( account_delete_apply )
+{
+   try
+   {
+      BOOST_TEST_MESSAGE( "Testing: account_delete_apply" );
+
+      ACTORS( (alice)(bob) )
+      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
+
+      BOOST_TEST_MESSAGE( "--- Test normal delete" );
+
+      account_delete_operation op;
+      op.account = "alice";
+      op.owner = authority( 1, alice_private_key.get_public_key(), 1 );
+
+      signed_transaction tx;
+      tx.operations.push_back( op );
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      db->push_transaction( tx, 0 );
+
+      validate_database();
+
+      BOOST_REQUIRE_THROW( db->get_account( "alice" ), fc::exception );
+      auto acct_auth_itr = db->find< account_authority_object, by_account >( "alice" );
+      BOOST_REQUIRE( acct_auth_itr == nullptr );
+
+      BOOST_TEST_MESSAGE( "--- Test failure when deleting account without owner authorities");
+      tx.operations.clear();
+      tx.signatures.clear();
+      op.account = "bob";
+      op.owner = authority( 1, alice_private_key.get_public_key(), 1 );
+      tx.operations.push_back( op );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      validate_database();
+
+
+      BOOST_TEST_MESSAGE( "--- Test failure when account does not exist" );
+      tx.clear();
+      op = account_delete_operation();
+      op.account = "alice";
+      op.owner = authority( 1, alice_private_key.get_public_key(), 1 );
+      tx.operations.push_back( op );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      validate_database();
+   }
+   FC_LOG_AND_RETHROW()
+}
+
 
 BOOST_AUTO_TEST_CASE( transfer_validate )
 {
