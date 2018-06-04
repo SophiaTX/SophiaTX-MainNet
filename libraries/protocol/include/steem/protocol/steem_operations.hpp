@@ -315,6 +315,9 @@ namespace steem { namespace protocol {
 
       account_name_type get_fee_payer()const { return owner;};
 
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
+
+
       void validate()const;
       void get_required_authorities( vector< authority >& a )const
       {
@@ -352,6 +355,7 @@ namespace steem { namespace protocol {
       bool              approve = true;
 
       account_name_type get_fee_payer()const { return account;};
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
       void validate() const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(account); }
@@ -364,12 +368,31 @@ namespace steem { namespace protocol {
       account_name_type proxy;
 
       account_name_type get_fee_payer()const { return account;};
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(account); }
    };
 
+namespace{
+asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
+   asset base = asset(100000, STEEM_SYMBOL);
+   if(in_symbol == SBD1_SYMBOL )//USD
+      base = asset(100000, SBD1_SYMBOL);
+   if(in_symbol == SBD2_SYMBOL )//EUR
+      base = asset(80000, SBD2_SYMBOL);
+   if(in_symbol == SBD3_SYMBOL ) //CHF
+      base = asset(100000, SBD3_SYMBOL);
+   if(in_symbol == SBD4_SYMBOL ) //CNY
+      base = asset(640000, SBD4_SYMBOL);
+   if(in_symbol == SBD5_SYMBOL ) //CNY
+      base = asset(75000, SBD5_SYMBOL);
 
+   //pay base fee + for every 1kB exceeding first 512 bytes
+   uint32_t size_multi = (payload_size + 511)/1024;
+   return base * (1 + size_multi);
+};
+}
    /**
     * @brief provides a generic way to add higher level protocols on top of witness consensus
     * @ingroup operations
@@ -384,6 +407,7 @@ namespace steem { namespace protocol {
       vector< char >                data;
 
       account_name_type get_fee_payer()const { return sender;};
+      asset get_required_fee(asset_symbol_type in_symbol) const{ return get_custom_fee(data.size(), in_symbol);}
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(sender); }
@@ -401,6 +425,8 @@ namespace steem { namespace protocol {
       string                        json; ///< must be proper utf8 / JSON string.
 
       account_name_type get_fee_payer()const { return sender;};
+      asset get_required_fee(asset_symbol_type in_symbol) const{ return get_custom_fee(json.size(), in_symbol);}
+
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(sender); }
@@ -415,6 +441,8 @@ namespace steem { namespace protocol {
       vector< char >                data;
 
       account_name_type get_fee_payer()const { return sender;};
+      asset get_required_fee(asset_symbol_type in_symbol)const { return get_custom_fee(data.size(), in_symbol);}
+
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(sender); }

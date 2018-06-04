@@ -55,7 +55,7 @@
 #define STEEM_UPVOTE_LOCKOUT_HF7              (fc::minutes(1))
 #define STEEM_UPVOTE_LOCKOUT_HF17             (fc::hours(12))
 
-#define STEEM_MIN_ACCOUNT_CREATION_FEE           1
+#define STEEM_MIN_ACCOUNT_CREATION_FEE           100000
 
 #define STEEM_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
 #define STEEM_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
@@ -135,7 +135,6 @@
 
 #define STEEM_MAX_RESERVE_RATIO               (20000)
 
-#define STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER 30
 #define STEEM_CREATE_ACCOUNT_DELEGATION_RATIO    5
 #define STEEM_CREATE_ACCOUNT_DELEGATION_TIME     fc::days(30)
 

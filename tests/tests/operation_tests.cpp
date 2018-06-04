@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       //BOOST_REQUIRE( ( init_starting_balance - ASSET( "0.100000 SPHTX" ) ).amount.value == init.balance.amount.value );
       validate_database();
 
-      /*BOOST_TEST_MESSAGE( "--- Test failure when creator cannot cover fee" );
+      BOOST_TEST_MESSAGE( "--- Test failure when creator cannot cover fee" );
       tx.signatures.clear();
       tx.operations.clear();
       op.fee = asset( db->get_account( STEEM_INIT_MINER_NAME ).balance.amount + 1, STEEM_SYMBOL );
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
-      validate_database();*/
+      validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure covering witness fee" );
       generate_block();
@@ -1470,20 +1470,21 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
    FC_LOG_AND_RETHROW()
 }
 
-/*BOOST_AUTO_TEST_CASE( feed_publish_apply )
+BOOST_AUTO_TEST_CASE( feed_publish_apply )
 {
    try
    {
       BOOST_TEST_MESSAGE( "Testing: feed_publish_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", 10000000 );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
+      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       witness_create( "alice", alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
 
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
       feed_publish_operation op;
       op.publisher = "alice";
-      op.exchange_rate = price( ASSET( "1.000000 SBD" ), ASSET( "1000.000000 SPHTX" ) ); // 1000 STEEM : 1 SBD
+      op.exchange_rate = price( asset(1000000, STEEM_SYMBOL), asset(1000000, SBD1_SYMBOL )); // 1000 STEEM : 1 SBD
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
@@ -1494,8 +1495,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
 
       witness_object& alice_witness = const_cast< witness_object& >( db->get_witness( "alice" ) );
 
-      BOOST_REQUIRE( alice_witness.sbd_exchange_rate == op.exchange_rate );
-      BOOST_REQUIRE( alice_witness.last_sbd_exchange_update == db->head_block_time() );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].rate == op.exchange_rate );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].last_change == db->head_block_time() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure publishing to non-existent witness" );
@@ -1508,21 +1509,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
-      BOOST_TEST_MESSAGE( "--- Test failure publishing with SBD base symbol" );
 
-      tx.operations.clear();
-      tx.signatures.clear();
-      op.exchange_rate = price( ASSET( "1.000000 SBD" ), ASSET( "1.000000 SPHTX" ) );
-      tx.sign( alice_private_key, db->get_chain_id() );
-
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::assert_exception );
-      validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test updating price feed" );
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.exchange_rate = price( ASSET(" 1.000000 SBD" ), ASSET( "1500000.000 SPHTX" ) );
+      op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, STEEM_SYMBOL ));
       op.publisher = "alice";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -1530,12 +1523,12 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       db->push_transaction( tx, 0 );
 
       alice_witness = const_cast< witness_object& >( db->get_witness( "alice" ) );
-      // BOOST_REQUIRE( std::abs( alice_witness.sbd_exchange_rate.to_real() - op.exchange_rate.to_real() ) < 0.0000005 );
-      BOOST_REQUIRE( alice_witness.last_sbd_exchange_update == db->head_block_time() );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].rate == op.exchange_rate );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].last_change == db->head_block_time() );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
-}*/
+}
 
 
 BOOST_AUTO_TEST_CASE( account_recovery )

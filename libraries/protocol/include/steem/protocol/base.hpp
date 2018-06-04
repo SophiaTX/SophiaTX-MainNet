@@ -16,7 +16,19 @@ namespace steem { namespace protocol {
       void get_required_owner_authorities( flat_set<account_name_type>& )const {}
 
       virtual bool has_special_fee()const{return false;};
-      virtual asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
+      virtual asset get_required_fee(asset_symbol_type in_symbol)const{
+         if(in_symbol == SBD1_SYMBOL )//USD
+            return asset(100000, SBD1_SYMBOL);
+         if(in_symbol == SBD2_SYMBOL )//EUR
+            return asset(80000, SBD2_SYMBOL);
+         if(in_symbol == SBD3_SYMBOL ) //CHF
+            return asset(100000, SBD3_SYMBOL);
+         if(in_symbol == SBD4_SYMBOL ) //CNY
+            return asset(640000, SBD4_SYMBOL);
+         if(in_symbol == SBD5_SYMBOL ) //CNY
+            return asset(75000, SBD5_SYMBOL);
+         return asset(100000, STEEM_SYMBOL);
+      };
 
       virtual bool is_virtual()const { return false; }
       void validate()const {}

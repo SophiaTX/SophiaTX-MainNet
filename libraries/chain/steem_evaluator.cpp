@@ -232,13 +232,14 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    const auto& props = _db.get_dynamic_global_properties();
 
-   //FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
+   FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
-   /*FC_ASSERT( o.fee >= asset( wso.median_props.account_creation_fee.amount * STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ), "Insufficient Fee: ${f} required, ${p} provided.",
-              ("f", wso.median_props.account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL ) )
-                    ("p", o.fee) );
-*/
+   asset required_fee = asset( wso.median_props.account_creation_fee.amount, STEEM_SYMBOL );
+   FC_ASSERT( o.fee >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
+              ("f", required_fee ) ("p", o.fee) );
+
+   asset excess_fee = o.fee - required_fee;
    verify_authority_accounts_exist( _db, o.owner, o.new_account_name, authority::owner );
    verify_authority_accounts_exist( _db, o.active, o.new_account_name, authority::active );
 
@@ -257,6 +258,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       #endif
    });
 
+
    _db.create< account_authority_object >( [&]( account_authority_object& auth )
    {
       auth.account = o.new_account_name;
@@ -265,8 +267,13 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       auth.last_owner_update = fc::time_point_sec::min();
    });
 
-//   if( o.fee.amount > 0 )
-//      _db.pay_fee( creator, o.fee );
+   if( required_fee.amount > 0 )
+      _db.pay_fee( creator, required_fee );
+
+   if( excess_fee.amount > 0 ){
+      _db.adjust_balance(new_account, excess_fee);
+      _db.adjust_balance(creator, -excess_fee);
+   }
 }
 
 
