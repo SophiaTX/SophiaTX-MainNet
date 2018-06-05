@@ -1,7 +1,7 @@
 file(GLOB HEADERS "include/steem/protocol/*.hpp")
 
 if( MSVC )
-   set( hardfork_hpp_file "${CMAKE_CURRENT_SOURCE_DIR}/include/steem/protocol/hardfork.hpp" )
+   set( hardfork_hpp_file "${CMAKE_CURRENT_BINARY_DIR}/include/steem/protocol/hardfork.hpp" )
    add_custom_target( build_hardfork_hpp
       COMMAND cat-parts "${CMAKE_CURRENT_SOURCE_DIR}/hardfork.d" ${hardfork_hpp_file} )
    add_dependencies( build_hardfork_hpp cat-parts )

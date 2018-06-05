@@ -16,6 +16,9 @@ else(BUILD_PIC)
     MESSAGE(STATUS "Skipping libalexandria build, enable with -DBUILD_PIC flag")
 endif(BUILD_PIC)
 
+if(WIN32)
+  cmake_policy(SET CMP0054 OLD)
+endif(WIN32)
 
 # http://stackoverflow.com/a/18369825
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
