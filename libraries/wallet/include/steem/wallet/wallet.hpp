@@ -437,7 +437,14 @@ class wallet_api
        */
       annotated_signed_transaction update_account_memo_key( string account_name, public_key_type key, bool broadcast );
 
-
+     /**
+      * This method deletes an existing account.
+      *
+      * @param account_name The name of the account you wish to delete
+      * @param owner_auth The owner authority for this account
+      * @param broadcast true if you wish to broadcast the transaction.
+      */
+      annotated_signed_transaction delete_account( string account_name, authority owner_auth, bool broadcast );
 
       /**
        *  This method is used to convert a JSON transaction to its transaction ID.
@@ -906,6 +913,7 @@ FC_API( steem::wallet::wallet_api,
         (update_account_auth_threshold)
         (update_account_meta)
         (update_account_memo_key)
+        (delete_account)
         (update_witness)
         (set_voting_proxy)
         (vote_for_witness)
