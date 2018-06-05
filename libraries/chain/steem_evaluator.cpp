@@ -322,6 +322,12 @@ void account_delete_evaluator::do_apply(const account_delete_operation& o)
       auto account_auth_itr = _db.find< account_authority_object, by_account >( o.account );
 
       verify_authority_accounts_exist( _db, o.owner, o.account, authority::owner );
+       
+      const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+      auto wit_itr = by_witness_name_idx.find( o.account );
+      
+      FC_ASSERT(wit_itr == by_witness_name_idx.end() , "Cannot delete account as long as there is active witness associated to it");
+      FC_ASSERT(account.balance.amount == 0 && account.vesting_shares.amount == 0, "Cannot delete account with remaining balance" );
 
       _db.remove(account);
 
