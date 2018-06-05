@@ -327,6 +327,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       t.from = STEEM_INIT_MINER_NAME;
       t.to = "alice";
       t.amount = asset(500,STEEM_SYMBOL);
+      t.fee = asset(100000, STEEM_SYMBOL);
       trx.operations.push_back(t);
       trx.set_expiration( db1.head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1.get_chain_id() );
@@ -419,6 +420,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       transfer_operation op;
       op.from = "alice";
       op.to = "bob";
+      op.fee = asset(100000, STEEM_SYMBOL);
       op.amount = asset(1000,STEEM_SYMBOL);
       signed_transaction tx;
       tx.operations.push_back( op );
@@ -477,12 +479,13 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
 { try {
    generate_block();
    ACTOR(bob);
-   share_type amount = 1000;
+   share_type amount = 1000000;
 
    transfer_operation t;
    t.from = STEEM_INIT_MINER_NAME;
    t.to = "bob";
-   t.amount = asset(amount,STEEM_SYMBOL);
+   t.fee = ASSET( "0.100000 SPHTX" );
+   t.amount = asset(amount*2,STEEM_SYMBOL);
    trx.operations.push_back(t);
    trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
    trx.validate();

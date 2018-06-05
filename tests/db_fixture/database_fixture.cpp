@@ -416,6 +416,7 @@ void database_fixture::transfer(
       op.from = from;
       op.to = to;
       op.amount = amount;
+      op.fee = asset(100000, STEEM_SYMBOL);
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );

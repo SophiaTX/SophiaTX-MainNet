@@ -36,6 +36,7 @@ namespace steem { namespace protocol {
 
       void validate()const;
       account_name_type get_fee_payer()const { return account;};
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);} ;
 
       void get_required_owner_authorities( flat_set<account_name_type>& a )const
       { if( owner ) a.insert( account ); }
@@ -301,6 +302,7 @@ namespace steem { namespace protocol {
       public_key_type   block_signing_key;
       chain_properties  props;
 
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
       account_name_type get_fee_payer()const { return owner;};
 
       void validate()const;
