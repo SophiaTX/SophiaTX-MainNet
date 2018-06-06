@@ -526,6 +526,24 @@ public:
 
    annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
    {
+      //set fees first
+      class op_visitor{
+      public:
+         op_visitor(){};
+         typedef void result_type;
+         result_type operator()( base_operation& bop){
+            if(bop.has_special_fee())
+               return;
+            asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+            bop.fee = req_fee;
+         };
+      };
+      op_visitor op_v;
+
+      for(operation& o: tx.operations){
+         o.visit(op_v);
+      }
+
       flat_set< account_name_type >   req_active_approvals;
       flat_set< account_name_type >   req_owner_approvals;
       vector< authority >  other_auths;
