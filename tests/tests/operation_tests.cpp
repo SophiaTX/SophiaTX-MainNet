@@ -348,6 +348,59 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
    FC_LOG_AND_RETHROW()
 }
 
+BOOST_AUTO_TEST_CASE( account_delete_apply )
+{
+   try
+   {
+      BOOST_TEST_MESSAGE( "Testing: account_delete_apply" );
+
+      ACTORS( (alice)(bob) )
+      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
+
+      BOOST_TEST_MESSAGE( "--- Test normal delete" );
+
+      account_delete_operation op;
+      op.account = "alice";
+      authority a(1, public_key_type(), 1);
+
+      signed_transaction tx;
+      tx.operations.push_back( op );
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      db->push_transaction( tx, 0 );
+
+      validate_database();
+
+      const auto& new_alice = db->get_account( "alice" );
+      const auto& new_alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      BOOST_REQUIRE( new_alice_auth.owner == a );
+      BOOST_REQUIRE( new_alice_auth.active == a );
+      BOOST_REQUIRE( new_alice.memo_key == public_key_type() );
+
+
+      BOOST_TEST_MESSAGE( "--- Test failure when deleting account without owner authorities");
+      tx.operations.clear();
+      tx.signatures.clear();
+      op.account = "bob";
+      tx.operations.push_back( op );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      validate_database();
+
+
+      BOOST_TEST_MESSAGE( "--- Test failure when account does not exist" );
+      tx.clear();
+      op = account_delete_operation();
+      op.account = "alice2";
+      tx.operations.push_back( op );
+      tx.sign( alice_private_key, db->get_chain_id() );
+      BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      validate_database();
+   }
+   FC_LOG_AND_RETHROW()
+}
+
 
 BOOST_AUTO_TEST_CASE( transfer_validate )
 {

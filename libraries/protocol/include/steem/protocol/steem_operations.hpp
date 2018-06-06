@@ -46,6 +46,19 @@ namespace steem { namespace protocol {
    };
 
 
+   struct account_delete_operation : public base_operation
+   {
+      account_name_type  account;
+
+      void validate()const;
+      account_name_type get_fee_payer()const { return account;};
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);} ;
+
+      void get_required_owner_authorities( flat_set<account_name_type>& a )const
+      { a.insert( account ); }
+
+   };
+
 
    struct placeholder_a_operation : public base_operation
    {
@@ -781,6 +794,7 @@ FC_REFLECT_DERIVED( steem::protocol::account_update_operation, (steem::protocol:
             (memo_key)
             (json_metadata) )
 
+FC_REFLECT_DERIVED( steem::protocol::account_delete_operation, (steem::protocol::base_operation), (account) )
 FC_REFLECT_DERIVED( steem::protocol::transfer_operation, (steem::protocol::base_operation), (from)(to)(amount)(memo) )
 FC_REFLECT_DERIVED( steem::protocol::transfer_to_vesting_operation, (steem::protocol::base_operation), (from)(to)(amount) )
 FC_REFLECT_DERIVED( steem::protocol::withdraw_vesting_operation, (steem::protocol::base_operation), (account)(vesting_shares) )
@@ -792,7 +806,6 @@ FC_REFLECT_DERIVED( steem::protocol::account_witness_proxy_operation, (steem::pr
 FC_REFLECT_DERIVED( steem::protocol::custom_operation, (steem::protocol::base_operation), (sender)(recipients)(app_id)(data) )
 FC_REFLECT_DERIVED( steem::protocol::custom_json_operation, (steem::protocol::base_operation), (sender)(recipients)(app_id)(json) )
 FC_REFLECT_DERIVED( steem::protocol::custom_binary_operation, (steem::protocol::base_operation), (sender)(recipients)(app_id)(data) )
-
 #ifdef STEEM_ENABLE_SMT
 FC_REFLECT( steem::protocol::votable_asset_info_v1, (max_accepted_payout)(allow_curation_rewards) )
 FC_REFLECT( steem::protocol::allowed_vote_assets, (votable_assets) )

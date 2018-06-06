@@ -1867,6 +1867,20 @@ map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_do
    try{
       return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
+}
+
+annotated_signed_transaction wallet_api::delete_account(string account_name, authority owner_auth, bool broadcast) {
+   try{
+      FC_ASSERT( !is_locked() );
+      account_delete_operation op;
+      op.account = account_name;
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+
+   }FC_CAPTURE_AND_RETHROW( (account_name)(owner_auth)(broadcast))
 };
 
 } } // steem::wallet

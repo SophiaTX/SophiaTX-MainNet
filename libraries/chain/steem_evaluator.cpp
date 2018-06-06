@@ -320,6 +320,43 @@ void account_update_evaluator::do_apply( const account_update_operation& o )
 
 }
 
+void account_delete_evaluator::do_apply(const account_delete_operation& o)
+{
+   try
+   {
+      FC_ASSERT( o.account != STEEM_TEMP_ACCOUNT, "Cannot update temp account." );
+
+      const auto& account = _db.get_account( o.account );
+      const auto& account_auth = _db.get< account_authority_object, by_account >( o.account );
+
+      authority a(1, public_key_type(), 1);
+
+#ifndef IS_TEST_NET
+         FC_ASSERT( _db.head_block_time() - account_auth.last_owner_update > STEEM_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
+#endif
+      _db.update_owner_authority( account, a );
+
+      _db.modify( account, [&]( account_object& acc )
+      {
+
+           acc.memo_key = public_key_type();
+           acc.last_account_update = _db.head_block_time();
+
+#ifndef IS_LOW_MEM
+           from_string( acc.json_metadata, "{\"deleted_account\"}" );
+#endif
+      });
+
+      _db.modify( account_auth, [&]( account_authority_object& auth)
+      {
+           auth.active  = a;
+      });
+
+
+   }
+   FC_CAPTURE_AND_RETHROW( (o) )
+}
+
 void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
 {
    try

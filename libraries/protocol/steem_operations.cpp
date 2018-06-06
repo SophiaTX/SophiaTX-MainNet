@@ -38,6 +38,11 @@ namespace steem { namespace protocol {
       }
    }
 
+   void account_delete_operation::validate() const
+   {
+      validate_account_name( account );
+   }
+
    void placeholder_a_operation::validate()const
    {
       FC_ASSERT( false, "This is not a valid op" );
