@@ -3175,7 +3175,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
-      
+
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.710000 SPHTX" ));
       STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
    }
