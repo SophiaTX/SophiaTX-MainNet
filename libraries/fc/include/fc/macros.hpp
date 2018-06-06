@@ -14,7 +14,15 @@
    _GET_NTH_ARG("ignored", ##__VA_ARGS__, \
    _fe_4, _fe_3, _fe_2, _fe_1, _fe_0)(x, ##__VA_ARGS__)
 
+#ifdef _MSC_VER
+#define __attribute__(A) /* do nothing */
+#endif // _MSC_VER
+
+#ifdef _MSC_VER
+#define DO_PRAGMA(x) __pragma (#x)
+#else
 #define DO_PRAGMA(x) _Pragma (#x)
+#endif
 
 #ifdef __GNUC__
 
