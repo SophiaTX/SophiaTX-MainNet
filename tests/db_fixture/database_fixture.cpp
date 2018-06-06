@@ -70,9 +70,12 @@ clean_database_fixture::clean_database_fixture()
    db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
+
    vest( "initminer", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
-   // Fill up the rest of the required miners
+   validate_database();
+
+    // Fill up the rest of the required miners
    for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
    {
       account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
@@ -82,6 +85,7 @@ clean_database_fixture::clean_database_fixture()
    }
 
    validate_database();
+
    } catch ( const fc::exception& e )
    {
       edump( (e.to_detail_string()) );
@@ -412,6 +416,7 @@ void database_fixture::transfer(
       op.from = from;
       op.to = to;
       op.amount = amount;
+      op.fee = asset(100000, STEEM_SYMBOL);
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );

@@ -86,6 +86,11 @@ namespace steem { namespace protocol {
          FC_ASSERT( a.symbol == b.symbol );
          return asset( a.amount * b.amount, a.symbol );
       }
+
+      friend asset operator * (const asset& a, const share_type& b)
+      {
+         return asset(a.amount * b, a.symbol);
+      }
    };
 
    /** Represents quotation of the relative value of asset against another asset.

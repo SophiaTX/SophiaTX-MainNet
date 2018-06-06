@@ -4,6 +4,7 @@
 #include <steem/chain/witness_schedule.hpp>
 
 #include <steem/protocol/config.hpp>
+#include <steem/chain/account_object.hpp>
 
 namespace steem { namespace chain {
 
@@ -282,7 +283,12 @@ void clean_stopped_witnesses(database& db){
       {
          wo_to_remove.emplace_back(&(*itr));
       }
+
       for( const auto& wo: wo_to_remove){
+         db.modify(db.get_account(wo->account),[](account_object& ao){
+            ao.witnesses_voted_for--;
+         });
+
          db.remove(*wo);
       }
 
