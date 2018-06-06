@@ -473,6 +473,46 @@ void database::pay_fee( const account_object& account, asset fee )
    });
 }
 
+asset database::process_operation_fee( const operation& op )
+{
+   class op_visitor{
+      public:
+      database* db;
+      op_visitor(database* _db){db = _db;}; 
+      typedef asset result_type;
+      result_type operator()(const base_operation& bop){
+         if(bop.has_special_fee())
+            return asset(0, STEEM_SYMBOL);
+         asset req_fee = bop.get_required_fee(bop.fee.symbol);
+         FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
+         FC_ASSERT(bop.fee >= req_fee);
+         const auto& fee_payer = db->get_account(bop.get_fee_payer());
+         asset to_pay;
+         if(bop.fee.symbol==STEEM_SYMBOL){
+            to_pay = bop.fee;
+         }else{
+            to_pay = db->to_steem(bop.fee);
+         }
+         FC_ASSERT(to_pay.symbol == STEEM_SYMBOL && to_pay.amount >= 0);
+         db->pay_fee(fee_payer, to_pay);
+         return to_pay;
+      };
+   };
+   op_visitor op_v(this);
+   asset paid_fee = op.visit(op_v);
+   return paid_fee;
+}
+/*
+asset databse::get_proposed_operation_fee( const operation& op )const
+
+account_name_type database::get_operation_fee_payer( const operation& op )const
+{
+  auto op_visitor = [](base_operation& bop)->account_name_type{
+     return bop.get_fee_payer();
+  }
+  return op.visit(op_visitor)
+}
+*/
 uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
@@ -2086,6 +2126,7 @@ void database::apply_operation(const operation& op)
 {
    operation_notification note(op);
    notify_pre_apply_operation( note );
+   asset paid_fee = process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }

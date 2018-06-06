@@ -362,7 +362,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
 
       account_delete_operation op;
       op.account = "alice";
-      op.owner = authority( 1, alice_private_key.get_public_key(), 1 );
+      authority a(1, public_key_type(), 1);
 
       signed_transaction tx;
       tx.operations.push_back( op );
@@ -372,15 +372,17 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
 
       validate_database();
 
-      BOOST_REQUIRE_THROW( db->get_account( "alice" ), fc::exception );
-      auto acct_auth_itr = db->find< account_authority_object, by_account >( "alice" );
-      BOOST_REQUIRE( acct_auth_itr == nullptr );
+      const auto& new_alice = db->get_account( "alice" );
+      const auto& new_alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      BOOST_REQUIRE( new_alice_auth.owner == a );
+      BOOST_REQUIRE( new_alice_auth.active == a );
+      BOOST_REQUIRE( new_alice.memo_key == public_key_type() );
+
 
       BOOST_TEST_MESSAGE( "--- Test failure when deleting account without owner authorities");
       tx.operations.clear();
       tx.signatures.clear();
       op.account = "bob";
-      op.owner = authority( 1, alice_private_key.get_public_key(), 1 );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -390,8 +392,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when account does not exist" );
       tx.clear();
       op = account_delete_operation();
-      op.account = "alice";
-      op.owner = authority( 1, alice_private_key.get_public_key(), 1 );
+      op.account = "alice2";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -424,6 +425,7 @@ BOOST_AUTO_TEST_CASE( transfer_authorities )
       transfer_operation op;
       op.from = "alice";
       op.to = "bob";
+      op.fee = asset(100000, STEEM_SYMBOL);
       op.amount = ASSET( "2.500 SPHTX" );
 
       signed_transaction tx;
@@ -483,7 +485,8 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       transfer_operation transfer_op;
       transfer_op.from = "corp";
       transfer_op.to = "sam";
-      transfer_op.amount = ASSET( "1.000 SPHTX" );
+      transfer_op.fee = ASSET( "0.100000 SPHTX" );
+      transfer_op.amount = ASSET( "1.000000 SPHTX" );
 
       tx.operations.push_back( transfer_op );
 
@@ -516,9 +519,9 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       BOOST_TEST_MESSAGE( "Testing: transfer_apply" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000000 );
+      fund( "alice", 10200000 );
 
-      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "10.000000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( alice.balance.amount.value == ASSET( "10.200000 SPHTX" ).amount.value );
       BOOST_REQUIRE( bob.balance.amount.value == ASSET(" 0.000000 SPHTX" ).amount.value );
 
       signed_transaction tx;
@@ -526,6 +529,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
 
       op.from = "alice";
       op.to = "bob";
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.amount = ASSET( "5.000000 SPHTX" );
 
       BOOST_TEST_MESSAGE( "--- Test normal transaction" );
@@ -534,7 +538,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( alice.balance.amount.value >= ASSET( "5.000000 SPHTX" ).amount.value && alice.balance.amount.value < ASSET( "5.010000 SPHTX" ).amount.value);
+      BOOST_REQUIRE( alice.balance.amount.value >= ASSET( "5.100000 SPHTX" ).amount.value && alice.balance.amount.value < ASSET( "5.110000 SPHTX" ).amount.value);
       BOOST_REQUIRE( bob.balance.amount.value == ASSET( "5.000000 SPHTX" ).amount.value );
       validate_database();
 
@@ -544,7 +548,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       const auto& new_alice = db->get_account( "alice" );
       const auto& new_bob = db->get_account( "bob" );
 
-      BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "5.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "5.010000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "5.100000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "5.110000 SPHTX" ).amount.value );
       BOOST_REQUIRE( new_bob.balance.amount.value == ASSET( "5.000000 SPHTX" ).amount.value );
       validate_database();
 
@@ -854,7 +858,7 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
       vest("alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
       private_key_type signing_key = generate_private_key( "new_key" );
@@ -1522,20 +1526,21 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
    FC_LOG_AND_RETHROW()
 }
 
-/*BOOST_AUTO_TEST_CASE( feed_publish_apply )
+BOOST_AUTO_TEST_CASE( feed_publish_apply )
 {
    try
    {
       BOOST_TEST_MESSAGE( "Testing: feed_publish_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", 10000000 );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
+      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       witness_create( "alice", alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
 
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
       feed_publish_operation op;
       op.publisher = "alice";
-      op.exchange_rate = price( ASSET( "1.000000 SBD" ), ASSET( "1000.000000 SPHTX" ) ); // 1000 STEEM : 1 SBD
+      op.exchange_rate = price( asset(1000000, STEEM_SYMBOL), asset(1000000, SBD1_SYMBOL )); // 1000 STEEM : 1 SBD
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
@@ -1546,8 +1551,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
 
       witness_object& alice_witness = const_cast< witness_object& >( db->get_witness( "alice" ) );
 
-      BOOST_REQUIRE( alice_witness.sbd_exchange_rate == op.exchange_rate );
-      BOOST_REQUIRE( alice_witness.last_sbd_exchange_update == db->head_block_time() );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].rate == op.exchange_rate );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].last_change == db->head_block_time() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure publishing to non-existent witness" );
@@ -1560,21 +1565,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
-      BOOST_TEST_MESSAGE( "--- Test failure publishing with SBD base symbol" );
 
-      tx.operations.clear();
-      tx.signatures.clear();
-      op.exchange_rate = price( ASSET( "1.000000 SBD" ), ASSET( "1.000000 SPHTX" ) );
-      tx.sign( alice_private_key, db->get_chain_id() );
-
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::assert_exception );
-      validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test updating price feed" );
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.exchange_rate = price( ASSET(" 1.000000 SBD" ), ASSET( "1500000.000 SPHTX" ) );
+      op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, STEEM_SYMBOL ));
       op.publisher = "alice";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -1582,12 +1579,12 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       db->push_transaction( tx, 0 );
 
       alice_witness = const_cast< witness_object& >( db->get_witness( "alice" ) );
-      // BOOST_REQUIRE( std::abs( alice_witness.sbd_exchange_rate.to_real() - op.exchange_rate.to_real() ) < 0.0000005 );
-      BOOST_REQUIRE( alice_witness.last_sbd_exchange_update == db->head_block_time() );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].rate == op.exchange_rate );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].last_change == db->head_block_time() );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
-}*/
+}
 
 
 BOOST_AUTO_TEST_CASE( account_recovery )
@@ -1950,7 +1947,8 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
       op.steem_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
-      op.fee = ASSET( "0.100 SPHTX" );
+      op.fee = ASSET( "0.100000 SPHTX" );
+      op.escrow_fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
       op.ratification_deadline = db->head_block_time() + 100;
       op.escrow_expiration = db->head_block_time() + 200;
@@ -1961,11 +1959,11 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
 
       BOOST_TEST_MESSAGE( "--- failure when fee symbol != SBD and fee symbol != STEEM" );
       op.steem_amount.symbol = STEEM_SYMBOL;
-      op.fee.symbol = VESTS_SYMBOL;
+      op.escrow_fee.symbol = VESTS_SYMBOL;
       STEEM_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when sbd == 0 " );
-      op.fee.symbol = STEEM_SYMBOL;
+      op.escrow_fee.symbol = STEEM_SYMBOL;
       op.steem_amount.amount = 0;
       STEEM_REQUIRE_THROW( op.validate(), fc::exception );
 
@@ -1975,11 +1973,11 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
 
       BOOST_TEST_MESSAGE( "--- failure when fee < 0" );
       op.steem_amount.amount = 1000;
-      op.fee.amount = -100;
+      op.escrow_fee.amount = -100;
       STEEM_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when ratification deadline == escrow expiration" );
-      op.fee.amount = 100;
+      op.escrow_fee.amount = 100;
       op.ratification_deadline = op.escrow_expiration;
       STEEM_REQUIRE_THROW( op.validate(), fc::exception );
 
@@ -2006,7 +2004,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_authorities )
       op.steem_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
-      op.fee = ASSET( "0.100000 SPHTX" );
+      op.escrow_fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
       op.ratification_deadline = db->head_block_time() + 100;
       op.escrow_expiration = db->head_block_time() + 200;
@@ -2041,6 +2039,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       op.steem_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
+      op.escrow_fee = ASSET( "0.100000 SPHTX" );
       op.fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
       op.ratification_deadline = db->head_block_time() + 100;
@@ -2083,7 +2082,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
-      auto alice_steem_balance = alice.balance - op.steem_amount - op.fee;
+      auto alice_steem_balance = alice.balance - op.steem_amount - op.escrow_fee;
       auto bob_steem_balance = bob.balance;
       auto sam_steem_balance = sam.balance;
 
@@ -2098,11 +2097,11 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       BOOST_REQUIRE( escrow.ratification_deadline == op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == op.escrow_expiration );
       BOOST_REQUIRE( escrow.steem_balance == op.steem_amount );
-      BOOST_REQUIRE( escrow.pending_fee == op.fee );
+      BOOST_REQUIRE( escrow.pending_fee == op.escrow_fee );
       BOOST_REQUIRE( !escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
       BOOST_REQUIRE( !escrow.disputed );
-      BOOST_REQUIRE( alice.balance == alice_steem_balance );
+      BOOST_REQUIRE( alice.balance.amount == alice_steem_balance.amount - 100000 );
       BOOST_REQUIRE( bob.balance == bob_steem_balance );
       BOOST_REQUIRE( sam.balance == sam_steem_balance );
 
@@ -2183,13 +2182,17 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
    {
       BOOST_TEST_MESSAGE( "Testing: escrow_approve_apply" );
       ACTORS( (alice)(bob)(sam)(dave) )
-      fund( "alice", 10000000 );
+      fund( "alice", 10100000 );
+      fund( "bob", 1000000 );
+      fund( "sam", 1000000 );
+
 
       escrow_transfer_operation et_op;
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
       et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
       et_op.json_meta = "";
       et_op.ratification_deadline = db->head_block_time() + 100;
@@ -2207,6 +2210,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       BOOST_TEST_MESSAGE( "---failure when to does not match escrow" );
       escrow_approve_operation op;
       op.from = "alice";
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.to = "dave";
       op.agent = "sam";
       op.who = "dave";
@@ -2316,7 +2320,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
 
       STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "10.000000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "10.010000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.900000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.910000 SPHTX" ) );
       validate_database();
 
 
@@ -2341,7 +2345,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
 
       STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "10.000000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "10.010000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.800000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.810000 SPHTX" ) );
       validate_database();
 
 
@@ -2365,7 +2369,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
 
       STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "10.000000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "10.010000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.710000 SPHTX" ) );
       validate_database();
 
 
@@ -2406,7 +2410,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
          BOOST_REQUIRE( !escrow.disputed );
       }
 
-      BOOST_REQUIRE( db->get_account( "sam" ).balance == et_op.fee );
+      BOOST_REQUIRE( db->get_account( "sam" ).balance.amount == et_op.escrow_fee.amount + 700000);
       validate_database();
 
 
@@ -2426,7 +2430,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
          BOOST_REQUIRE( !escrow.disputed );
       }
 
-      BOOST_REQUIRE( db->get_account( "sam" ).balance == et_op.fee );
+      BOOST_REQUIRE( db->get_account( "sam" ).balance.amount == et_op.escrow_fee.amount + 700000 );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -2495,12 +2499,17 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       ACTORS( (alice)(bob)(sam)(dave) )
       fund( "alice", 10000000 );
+      fund( "bob", 200000 );
+      fund( "sam", 100000 );
+
+
 
       escrow_transfer_operation et_op;
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
       et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
       et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
       et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
@@ -2510,6 +2519,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       ea_b_op.to = "bob";
       ea_b_op.agent = "sam";
       ea_b_op.who = "bob";
+      ea_b_op.fee = ASSET( "0.100000 SPHTX" );
       ea_b_op.approve = true;
 
       signed_transaction tx;
@@ -2527,6 +2537,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       op.to = "bob";
       op.agent = "sam";
       op.who = "bob";
+      op.fee = ASSET( "0.100000 SPHTX" );
 
       tx.operations.clear();
       tx.signatures.clear();
@@ -2540,7 +2551,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
-      BOOST_REQUIRE( escrow.pending_fee == et_op.fee );
+      BOOST_REQUIRE( escrow.pending_fee == et_op.escrow_fee );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
       BOOST_REQUIRE( !escrow.disputed );
@@ -2552,6 +2563,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       ea_s_op.to = "bob";
       ea_s_op.agent = "sam";
       ea_s_op.who = "sam";
+      ea_s_op.fee = ASSET("0.100000 SPHTX");
       ea_s_op.approve = true;
 
       tx.operations.clear();
@@ -2765,12 +2777,15 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       ACTORS( (alice)(bob)(sam)(dave) )
       fund( "alice", 10000000 );
+      fund( "bob", 1000000);
+      fund( "sam", 1000000);
 
       escrow_transfer_operation et_op;
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
       et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
       et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
       et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
@@ -2789,6 +2804,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.to = et_op.to;
       op.agent = et_op.agent;
       op.who = et_op.from;
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.receiver = et_op.to;
       op.steem_amount = ASSET( "0.100000 SPHTX" );
 
@@ -2798,12 +2814,14 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       escrow_approve_operation ea_b_op;
+      ea_b_op.fee = ASSET( "0.100000 SPHTX" );
       ea_b_op.from = "alice";
       ea_b_op.to = "bob";
       ea_b_op.agent = "sam";
       ea_b_op.who = "bob";
 
       escrow_approve_operation ea_s_op;
+      ea_s_op.fee = ASSET( "0.100000 SPHTX" );
       ea_s_op.from = "alice";
       ea_s_op.to = "bob";
       ea_s_op.agent = "sam";
@@ -2907,8 +2925,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).steem_balance == ASSET( "0.900000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "9.000000 SPHTX" ) );
-
+      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.900000 SPHTX" ) );
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed escrow to 'from'" );
       op.receiver = et_op.from;
@@ -2947,7 +2964,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).steem_balance == ASSET( "0.800000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.100000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.900000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- failure when releasing more sbd than available" );
@@ -2974,6 +2991,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       ed_op.to = "bob";
       ed_op.agent = "sam";
       ed_op.who = "alice";
+      ed_op.fee = ASSET( "0.100000 SPHTX" );
 
       tx.clear();
       tx.operations.push_back( ed_op );
@@ -3025,7 +3043,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.200000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "1.000000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.700000 SPHTX" ) );
 
 
@@ -3037,7 +3055,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "9.100000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.800000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.600000 SPHTX" ) );
 
 
@@ -3070,9 +3088,8 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.200000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.210000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.900000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.910000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.500000 SPHTX" ) );
-
 
       BOOST_TEST_MESSAGE( "--- success deleting escrow when balances are both zero" );
       tx.clear();
@@ -3081,7 +3098,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.710000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.410000 SPHTX" ) );
       STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
 
 
@@ -3149,7 +3166,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.300000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.310000 SPHTX" ));
+      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.910000 SPHTX" ));
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.900000 SPHTX" ) );
 
 
@@ -3160,7 +3177,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.710000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.300000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.310000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.800000 SPHTX" ) );
 
 
@@ -3188,7 +3205,8 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.400000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.410000 SPHTX" ) );
+
+      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.910000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.700000 SPHTX" ) );
 
 
@@ -3199,7 +3217,8 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.800000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.810000 SPHTX" ));
+
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.200000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.210000 SPHTX" ));
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.600000 SPHTX" ) );
 
 
@@ -3210,7 +3229,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.410000 SPHTX" ));
+      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.710000 SPHTX" ));
       STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
    }
    FC_LOG_AND_RETHROW()
@@ -3224,8 +3243,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
+      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE  );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3329,7 +3348,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
       vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       private_key_type signing_key = generate_private_key( "old_key" );
 
@@ -3413,11 +3432,13 @@ BOOST_AUTO_TEST_CASE( application_create )
       BOOST_TEST_MESSAGE( "Testing: application_create_apply" );
 
       ACTORS( (alice) )
+      fund("alice", 1000000);
 
       application_create_operation op;
       op.author = "alice";
       op.active = authority();
       op.name = "test_app";
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.price_param = static_cast<uint8_t >(time_based);
       op.url = "www.sophiatx.com";
       op.metadata = "Random metadata";
@@ -3461,6 +3482,8 @@ BOOST_AUTO_TEST_CASE( application_update )
    {
       //Creating test app
       ACTORS( (alice)(bob) )
+      fund("alice", 1000000);
+
       const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
       const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
 
@@ -3472,6 +3495,7 @@ BOOST_AUTO_TEST_CASE( application_update )
          op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
          op.metadata = "Random metadata";
+         op.fee = ASSET( "0.100000 SPHTX" );
          op.validate();
          signed_transaction tx;
          tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
@@ -3485,6 +3509,7 @@ BOOST_AUTO_TEST_CASE( application_update )
       application_update_operation op;
       op.name = "test_app";
       op.author = "alice";
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.price_param = static_cast<uint8_t >(permanent);
       op.new_author = "bob";
       op.metadata = "New metadata";
@@ -3520,10 +3545,13 @@ BOOST_AUTO_TEST_CASE( application_delete )
    {
       //Creating test app
       ACTORS( (alice) )
+      fund("alice", 1000000);
+
       const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
       {
          application_create_operation op;
          op.author = "alice";
+         op.fee = ASSET( "0.100000 SPHTX" );
          op.active = alice_auth.active;
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
@@ -3540,6 +3568,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
 
       BOOST_TEST_MESSAGE( "--- Test normal application delete" );
       application_delete_operation op;
+      op.fee = ASSET( "0.100000 SPHTX" );
       op.name = "test_app";
       op.author = "alice";
       op.active = alice_auth.active;
