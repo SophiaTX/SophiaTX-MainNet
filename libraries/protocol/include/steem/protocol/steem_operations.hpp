@@ -6,7 +6,9 @@
 
 #include <fc/crypto/equihash.hpp>
 
+
 namespace steem { namespace protocol {
+
 
    struct account_create_operation : public base_operation
    {
@@ -274,7 +276,7 @@ namespace steem { namespace protocol {
        */
       uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
 
-      std::map<asset_symbol_type, price> price_feeds;
+      flat_map<asset_symbol_type, price> price_feeds;
 
 
       void validate()const
