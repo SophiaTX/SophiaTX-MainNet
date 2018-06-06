@@ -6,20 +6,8 @@
 #include <steem/wallet/wallet.hpp>
 #include <steem/wallet/api_documentation.hpp>
 #include <steem/wallet/reflect_util.hpp>
-#include <steem/wallet/remote_node_api.hpp>
 
 
-#include <algorithm>
-#include <cctype>
-#include <iomanip>
-#include <iostream>
-#include <iterator>
-#include <sstream>
-#include <string>
-#include <list>
-
-#include <boost/version.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
 #include <boost/range/adaptor/map.hpp>
@@ -27,34 +15,21 @@
 #include <boost/range/algorithm/unique.hpp>
 #include <boost/range/algorithm/sort.hpp>
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/member.hpp>
 #include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/tag.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
-#include <boost/multi_index/hashed_index.hpp>
 
 #include <fc/container/deque.hpp>
 #include <fc/git_revision.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/io/json.hpp>
 #include <fc/io/stdio.hpp>
-#include <fc/macros.hpp>
 #include <fc/network/http/websocket.hpp>
 #include <fc/rpc/cli.hpp>
 #include <fc/rpc/websocket_api.hpp>
 #include <fc/crypto/aes.hpp>
-#include <fc/crypto/hex.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/smart_ref_impl.hpp>
-
-#ifndef WIN32
-# include <sys/types.h>
-# include <sys/stat.h>
-#endif
 
 #define BRAIN_KEY_WORD_COUNT 16
 

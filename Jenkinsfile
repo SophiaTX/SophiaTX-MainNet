@@ -6,7 +6,7 @@ pipeline {
     buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
   }
   environment {
-    ARCHIVE_NAME = "sophiatx_" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
   }
   agent { 
     label get_label_name()
