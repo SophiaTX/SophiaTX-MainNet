@@ -40,6 +40,20 @@ namespace steem { namespace chain {
          uint32_t          last_interests_in_block = 0;
          uint128_t         last_interests_coinbase_accumulator;
          uint128_t         last_interests_fees_accumulator;
+         share_type        holdings_considered_for_interests = 0;
+         share_type        update_considered_holding(share_type inserted, uint32_t block_no){
+            uint32_t my_turn = id._id % SOPHIATX_INTEREST_BLOCKS;
+            uint32_t block = block_no % SOPHIATX_INTEREST_BLOCKS;
+            int64_t to_my_turn;
+            if ( my_turn >= block ){
+               to_my_turn = my_turn - block;
+            }else{
+               to_my_turn = my_turn + SOPHIATX_INTEREST_BLOCKS - block;
+            }
+            share_type to_add = (inserted * to_my_turn) / (int64_t)SOPHIATX_INTEREST_BLOCKS;
+
+
+         };
 
          time_point_sec    created;
          bool              mined = true;

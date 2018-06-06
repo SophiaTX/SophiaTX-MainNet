@@ -2,6 +2,7 @@
 #include <steem/protocol/config.hpp>
 #include <steem/protocol/types.hpp>
 #include <steem/chain/steem_object_types.hpp>
+#include <steem/chain/database.hpp>
 
 
 
@@ -10,7 +11,7 @@ namespace steem { namespace chain {
 
 using namespace steem::protocol;
 
-//technically, anything in economic_model_object pool does not exists yet; any transfers (by withdraw and add methods) must affect current_supply
+//technically, anything in economic_model_object pools do not exists yet; any transfers (by withdraw and add methods) must affect current_supply
 class economic_model_object: public object< economic_model_object_type, economic_model_object> {
 public:
    template< typename Constructor, typename Allocator >
@@ -48,7 +49,6 @@ public:
 
 };
 
-
 typedef multi_index_container<
       economic_model_object,
       indexed_by<
@@ -59,6 +59,9 @@ typedef multi_index_container<
 > economic_model_index;
 
 }}//namespace
+
+
+
 
 
 FC_REFLECT(steem::chain::economic_model_object, (id)

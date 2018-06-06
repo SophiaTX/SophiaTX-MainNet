@@ -160,7 +160,6 @@ struct api_witness_object
       last_confirmed_block_num( w.last_confirmed_block_num ),
       signing_key( w.signing_key ),
       props( w.props ),
-      submitted_exchange_rates( w.submitted_exchange_rates ),
       votes( w.votes ),
       virtual_last_update( w.virtual_last_update ),
       virtual_position( w.virtual_position ),
@@ -168,7 +167,10 @@ struct api_witness_object
       running_version( w.running_version ),
       hardfork_version_vote( w.hardfork_version_vote ),
       hardfork_time_vote( w.hardfork_time_vote )
-   {}
+   {
+      for(const auto&item : w.submitted_exchange_rates)
+         submitted_exchange_rates.insert(item);
+   }
 
    api_witness_object() {}
 
@@ -181,7 +183,7 @@ struct api_witness_object
    uint64_t          last_confirmed_block_num = 0;
    public_key_type   signing_key;
    chain_properties  props;
-   std::map<asset_symbol_type, submitted_exchange_rate> submitted_exchange_rates;
+   flat_map<asset_symbol_type, submitted_exchange_rate> submitted_exchange_rates;
    share_type        votes;
    fc::uint128       virtual_last_update;
    fc::uint128       virtual_position;

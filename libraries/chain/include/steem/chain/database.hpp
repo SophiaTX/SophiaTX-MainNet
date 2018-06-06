@@ -321,6 +321,7 @@ namespace steem { namespace chain {
          void clear_witness_votes( const account_object& a );
          void process_vesting_withdrawals();
 
+         void process_interests();
 
       void process_funds();
 
