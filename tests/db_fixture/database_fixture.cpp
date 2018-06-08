@@ -103,7 +103,7 @@ clean_database_fixture::~clean_database_fixture()
    if( data_dir )
       db->wipe( data_dir->path(), data_dir->path(), true );
    return;
-} FC_CAPTURE_AND_LOG( () )
+} FC_CAPTURE_AND_LOG( (data_dir->path()) )
    exit(1);
 }
 
@@ -203,7 +203,7 @@ live_database_fixture::~live_database_fixture()
       db->close();
       return;
    }
-   FC_CAPTURE_AND_LOG( () )
+   FC_CAPTURE_AND_LOG( (data_dir->path()) )
    exit(1);
 }
 
