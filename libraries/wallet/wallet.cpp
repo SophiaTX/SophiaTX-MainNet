@@ -479,7 +479,7 @@ public:
 
          account_create_op.creator = creator_account_name;
          account_create_op.new_account_name = account_name;
-         account_create_op.fee = _remote_api->get_chain_properties().account_creation_fee;
+//         account_create_op.fee = _remote_api->get_chain_properties().account_creation_fee;
          account_create_op.owner = authority(1, owner_pubkey, 1);
          account_create_op.active = authority(1, active_pubkey, 1);
          account_create_op.memo_key = memo_pubkey;
@@ -526,6 +526,24 @@ public:
 
    annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
    {
+      //set fees first
+      class op_visitor{
+      public:
+         op_visitor(){};
+         typedef void result_type;
+         result_type operator()( base_operation& bop){
+            if(bop.has_special_fee())
+               return;
+            asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+            bop.fee = req_fee;
+         };
+      };
+      op_visitor op_v;
+
+      for(operation& o: tx.operations){
+         o.visit(op_v);
+      }
+
       flat_set< account_name_type >   req_active_approvals;
       flat_set< account_name_type >   req_owner_approvals;
       vector< authority >  other_auths;
@@ -1060,7 +1078,7 @@ annotated_signed_transaction wallet_api::create_account_with_keys( string creato
    op.active = authority( 1, active, 1 );
    op.memo_key = memo;
    op.json_metadata = json_meta;
-   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( STEEM_CREATE_ACCOUNT_WITH_STEEM_MODIFIER, STEEM_SYMBOL );
+   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, STEEM_SYMBOL );
 
    signed_transaction tx;
    tx.operations.push_back(op);
@@ -1565,7 +1583,7 @@ annotated_signed_transaction wallet_api::escrow_transfer(
    op.agent = agent;
    op.escrow_id = escrow_id;
    op.steem_amount = steem_amount;
-   op.fee = fee;
+   op.escrow_fee = fee;
    op.ratification_deadline = ratification_deadline;
    op.escrow_expiration = escrow_expiration;
    op.json_meta = json_meta;
@@ -1867,6 +1885,20 @@ map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_do
    try{
       return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
+}
+
+annotated_signed_transaction wallet_api::delete_account(string account_name, authority owner_auth, bool broadcast) {
+   try{
+      FC_ASSERT( !is_locked() );
+      account_delete_operation op;
+      op.account = account_name;
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+
+   }FC_CAPTURE_AND_RETHROW( (account_name)(owner_auth)(broadcast))
 };
 
 } } // steem::wallet

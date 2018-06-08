@@ -6,8 +6,11 @@
 #include <steem/chain/steem_object_types.hpp>
 
 #include <boost/multi_index/composite_key.hpp>
+#include <boost/interprocess/managed_mapped_file.hpp>
+
 
 namespace steem { namespace chain {
+namespace bip = boost::interprocess;
 
    using steem::protocol::digest_type;
    using steem::protocol::public_key_type;
@@ -23,7 +26,57 @@ namespace steem { namespace chain {
       time_point_sec   last_change;
    };
 
+
+struct shared_chain_properties
+{
    /**
+    *  This fee, paid in STEEM, is converted into VESTING SHARES for the new account. Accounts
+    *  without vesting shares cannot earn usage rations and therefore are powerless. This minimum
+    *  fee requires all accounts to have some kind of commitment to the network that includes the
+    *  ability to vote and make transactions.
+    */
+   asset account_creation_fee = asset( STEEM_MIN_ACCOUNT_CREATION_FEE, STEEM_SYMBOL );
+
+   /**
+    *  This witnesses vote for the maximum_block_size which is used by the network
+    *  to tune rate limiting and capacity
+    */
+   uint32_t          maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT * 2;
+
+   typedef bip::allocator< shared_chain_properties, bip::managed_mapped_file::segment_manager >                  allocator_type;
+
+   typedef bip::allocator< std::pair< asset_symbol_type, price >, bip::managed_mapped_file::segment_manager >     price_feed_allocator_type;
+
+   typedef bip::flat_map< asset_symbol_type, price, std::less< asset_symbol_type >, price_feed_allocator_type > price_feeds_map;
+
+
+   price_feeds_map price_feeds;
+
+   template< typename Allocator >
+   shared_chain_properties( const Allocator& alloc ) :
+         price_feeds( price_feed_allocator_type( alloc.get_segment_manager() ) ) {}
+
+   shared_chain_properties& operator=( const chain_properties& a ){
+      price_feeds.clear();
+      maximum_block_size = a.maximum_block_size;
+      account_creation_fee = a.account_creation_fee;
+      for( const auto& item : a.price_feeds )
+         price_feeds.insert( item );
+      return *this;
+   };
+
+   operator chain_properties()const{
+      chain_properties result;
+      result.maximum_block_size=maximum_block_size;
+      result.account_creation_fee = account_creation_fee;
+      for( const auto& item: price_feeds)
+         result.price_feeds.insert(item);
+      return result;
+
+   }
+};
+
+/**
     *  All witnesses with at least 1% net positive approval and
     *  at least 2 weeks old are able to participate in block
     *  production.
@@ -42,7 +95,7 @@ namespace steem { namespace chain {
 
          template< typename Constructor, typename Allocator >
          witness_object( Constructor&& c, allocator< Allocator > a )
-            :url( a )
+            :url( a ), props( a ), submitted_exchange_rates( submitted_exchange_rates_allocator_type( a.get_segment_manager() ) )
          {
             c( *this );
          }
@@ -62,8 +115,15 @@ namespace steem { namespace chain {
           */
          public_key_type   signing_key;
 
-         chain_properties  props;
-         std::map<asset_symbol_type, submitted_exchange_rate> submitted_exchange_rates;
+         shared_chain_properties  props;
+
+         typedef bip::allocator< witness_object, bip::managed_mapped_file::segment_manager >                                allocator_type;
+
+         typedef bip::allocator< std::pair< asset_symbol_type, submitted_exchange_rate >, bip::managed_mapped_file::segment_manager >     submitted_exchange_rates_allocator_type;
+
+         typedef bip::flat_map< asset_symbol_type, submitted_exchange_rate, std::less< asset_symbol_type >, submitted_exchange_rates_allocator_type > submitted_exchange_rates_map;
+
+         submitted_exchange_rates_map submitted_exchange_rates;
 
 
          /**
@@ -255,3 +315,9 @@ FC_REFLECT( steem::chain::witness_schedule_object,
              (hardfork_required_witnesses)
           )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::witness_schedule_object, steem::chain::witness_schedule_index )
+
+FC_REFLECT( steem::chain::shared_chain_properties,
+            (account_creation_fee)
+                  (maximum_block_size)
+                  (price_feeds)
+)

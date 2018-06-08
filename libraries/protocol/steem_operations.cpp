@@ -10,7 +10,6 @@ namespace steem { namespace protocol {
    void account_create_operation::validate() const
    {
       validate_account_name( new_account_name );
-      FC_ASSERT( is_asset_type( fee, STEEM_SYMBOL ), "Account creation fee must be STEEM" );
       owner.validate();
       active.validate();
 
@@ -19,7 +18,6 @@ namespace steem { namespace protocol {
          FC_ASSERT( fc::is_utf8(json_metadata), "JSON Metadata not formatted in UTF8" );
          FC_ASSERT( fc::json::is_valid(json_metadata), "JSON Metadata not valid JSON" );
       }
-      FC_ASSERT( fee >= asset( 0, STEEM_SYMBOL ), "Account creation fee cannot be negative" );
    }
 
 
@@ -38,6 +36,11 @@ namespace steem { namespace protocol {
          FC_ASSERT( fc::is_utf8(json_metadata), "JSON Metadata not formatted in UTF8" );
          FC_ASSERT( fc::json::is_valid(json_metadata), "JSON Metadata not valid JSON" );
       }
+   }
+
+   void account_delete_operation::validate() const
+   {
+      validate_account_name( account );
    }
 
    void placeholder_a_operation::validate()const
@@ -82,7 +85,6 @@ namespace steem { namespace protocol {
 
       FC_ASSERT( url.size() > 0, "URL size must be greater than 0" );
       FC_ASSERT( fc::is_utf8( url ), "URL is not valid UTF8" );
-      FC_ASSERT( fee >= asset( 0, STEEM_SYMBOL ), "Fee cannot be negative" );
       props.validate();
    }
 
@@ -223,10 +225,10 @@ namespace steem { namespace protocol {
       validate_account_name( from );
       validate_account_name( to );
       validate_account_name( agent );
-      FC_ASSERT( fee.amount >= 0, "fee cannot be negative" );
+      FC_ASSERT( escrow_fee.amount >= 0, "fee cannot be negative" );
       FC_ASSERT( steem_amount.amount > 0, "steem amount cannot be negative" );
       FC_ASSERT( from != agent && to != agent, "agent must be a third party" );
-      FC_ASSERT( (fee.symbol == STEEM_SYMBOL) , "fee must be STEEM" );
+      FC_ASSERT( (escrow_fee.symbol == STEEM_SYMBOL) , "fee must be STEEM" );
       FC_ASSERT( steem_amount.symbol == STEEM_SYMBOL, "steem amount must contain STEEM" );
       FC_ASSERT( ratification_deadline < escrow_expiration, "ratification deadline must be before escrow expiration" );
       if ( json_meta.size() > 0 )

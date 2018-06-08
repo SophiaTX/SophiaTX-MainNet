@@ -473,6 +473,46 @@ void database::pay_fee( const account_object& account, asset fee )
    });
 }
 
+asset database::process_operation_fee( const operation& op )
+{
+   class op_visitor{
+      public:
+      database* db;
+      op_visitor(database* _db){db = _db;}; 
+      typedef asset result_type;
+      result_type operator()(const base_operation& bop){
+         if(bop.has_special_fee())
+            return asset(0, STEEM_SYMBOL);
+         asset req_fee = bop.get_required_fee(bop.fee.symbol);
+         FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
+         FC_ASSERT(bop.fee >= req_fee);
+         const auto& fee_payer = db->get_account(bop.get_fee_payer());
+         asset to_pay;
+         if(bop.fee.symbol==STEEM_SYMBOL){
+            to_pay = bop.fee;
+         }else{
+            to_pay = db->to_steem(bop.fee);
+         }
+         FC_ASSERT(to_pay.symbol == STEEM_SYMBOL && to_pay.amount >= 0);
+         db->pay_fee(fee_payer, to_pay);
+         return to_pay;
+      };
+   };
+   op_visitor op_v(this);
+   asset paid_fee = op.visit(op_v);
+   return paid_fee;
+}
+/*
+asset databse::get_proposed_operation_fee( const operation& op )const
+
+account_name_type database::get_operation_fee_payer( const operation& op )const
+{
+  auto op_visitor = [](base_operation& bop)->account_name_type{
+     return bop.get_fee_payer();
+  }
+  return op.visit(op_visitor)
+}
+*/
 uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
@@ -1334,6 +1374,7 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();
    _my->_evaluator_registry.register_evaluator< account_create_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< account_update_evaluator                 >();
+   _my->_evaluator_registry.register_evaluator< account_delete_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< witness_update_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
    _my->_evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();
@@ -1874,6 +1915,7 @@ void database::_apply_block( const signed_block& next_block )
    create_block_summary(next_block);
    clear_expired_transactions();
    update_witness_schedule(*this);
+   process_interests();
 
    update_median_feeds();
 
@@ -1949,6 +1991,13 @@ struct process_header_visitor
       FC_ASSERT( false, "Unknown extension in block header" );
    }
 };
+
+void database::process_interests()
+{
+   uint32_t block_no = head_block_num() - 1; //process_interests is called after the current block is accepted
+   elog("block_no = ${b}", ("b", block_no));
+   uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
+}
 
 void database::process_header_extensions( const signed_block& next_block )
 {
@@ -2085,6 +2134,7 @@ void database::apply_operation(const operation& op)
 {
    operation_notification note(op);
    notify_pre_apply_operation( note );
+   asset paid_fee = process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }
@@ -2326,6 +2376,7 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
+   elog("current block is ${b}", ("b", head_block_num()));
    const auto& economics = get_economic_model();
    const auto& gpo = get_dynamic_global_properties();
    share_type interests;

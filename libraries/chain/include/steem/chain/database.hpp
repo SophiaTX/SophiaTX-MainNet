@@ -321,6 +321,7 @@ namespace steem { namespace chain {
          void clear_witness_votes( const account_object& a );
          void process_vesting_withdrawals();
 
+         void process_interests();
 
       void process_funds();
 
@@ -413,6 +414,8 @@ namespace steem { namespace chain {
          void on_reindex_done_connect(on_reindex_done_t functor)
             { _on_reindex_done.connect(functor); }
 
+         asset process_operation_fee( const operation& op);
+
    protected:
          //Mark pop_undo() as protected -- we do not want outside calling pop_undo(); it should call pop_block() instead
          //void pop_undo() { object_database::pop_undo(); }
@@ -427,7 +430,6 @@ namespace steem { namespace chain {
          void _apply_transaction( const signed_transaction& trx );
          void apply_operation( const operation& op );
 
-
          ///Steps involved in applying a new block
          ///@{
 
@@ -441,7 +443,7 @@ namespace steem { namespace chain {
          void update_last_irreversible_block();
          void clear_expired_transactions();
 
-      void process_header_extensions( const signed_block& next_block );
+         void process_header_extensions( const signed_block& next_block );
 
          void init_hardforks();
          void process_hardforks();

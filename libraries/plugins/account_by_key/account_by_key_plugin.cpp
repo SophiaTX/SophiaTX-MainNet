@@ -22,6 +22,7 @@ class account_by_key_plugin_impl
       void clear_cache();
       void cache_auths( const account_authority_object& a );
       void update_key_lookup( const account_authority_object& a );
+      void delete_cached_key(const account_name_type& a);
 
       flat_set< public_key_type >   cached_keys;
       database&                     _db;
@@ -60,6 +61,13 @@ struct pre_operation_visitor
       if( acct_itr ) _plugin.cache_auths( *acct_itr );
    }
 
+   void operator()( const account_delete_operation& op )const
+   {
+      _plugin.clear_cache();
+      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
+      if( acct_itr ) _plugin.cache_auths( *acct_itr );
+   }
+
 };
 
 struct pow2_work_get_account_visitor
@@ -90,7 +98,6 @@ struct post_operation_visitor
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
-
    void operator()( const account_update_operation& op )const
    {
       auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
@@ -103,6 +110,11 @@ struct post_operation_visitor
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
+   void operator()( const account_delete_operation& op )const
+   {
+      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
+      if( acct_itr == nullptr) _plugin.delete_cached_key( op.account );
+   }
 };
 
 void account_by_key_plugin_impl::clear_cache()
@@ -154,10 +166,15 @@ void account_by_key_plugin_impl::update_key_lookup( const account_authority_obje
       }
    }
 
+   delete_cached_key(a.account);
+}
+
+void account_by_key_plugin_impl::delete_cached_key(const account_name_type& a)
+{
    // Loop over the keys that were in authority but are no longer and remove them from the lookup
    for( const auto& key : cached_keys )
    {
-      auto lookup_itr = _db.find< key_lookup_object, by_key >( std::make_tuple( key, a.account ) );
+      auto lookup_itr = _db.find< key_lookup_object, by_key >( std::make_tuple( key, a ) );
 
       if( lookup_itr != nullptr )
       {
