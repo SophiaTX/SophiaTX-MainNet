@@ -25,6 +25,9 @@ namespace fc { namespace ip {
   bool operator!=( const address& a, const address& b ) {
     return uint32_t(a) != uint32_t(b);
   }
+  bool operator<(const address& a, const address& b) {
+	  return uint32_t(a) < uint32_t(b);
+  }
 
   address& address::operator=( const fc::string& s ) 
   {
