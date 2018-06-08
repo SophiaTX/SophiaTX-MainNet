@@ -51,8 +51,8 @@ namespace steem { namespace chain {
                to_my_turn = my_turn + SOPHIATX_INTEREST_BLOCKS - block;
             }
             share_type to_add = (inserted * to_my_turn) / (int64_t)SOPHIATX_INTEREST_BLOCKS;
-
-
+            holdings_considered_for_interests += to_add;
+            return to_add;
          };
 
          time_point_sec    created;

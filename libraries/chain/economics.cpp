@@ -58,30 +58,19 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
    unallocated_interests -= next_block_interests.lo;
    FC_ASSERT((unallocated_interests)>= util::to256(uint64_t(0)));
    uint128_t supply_share = multiplier / uint128_t(current_supply.value);
-   interest_coinbase_accumulator += supply_share * next_block_interests;
-   interest_fees_accumulator += supply_share * uint128_t(interest_block_fees.value);
    interest_block_fees = 0;
    //TODO_SOPHIATX - check invariants here.
 }
 
-share_type economic_model_object::get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block)const{
-   u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
-   u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
-
-   FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
-   return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
-}
-
-share_type economic_model_object::withdraw_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block){
-
-   u256 coinbase_reward = util::to256(interest_coinbase_accumulator - last_supply_acumulator) * u256(holding.value) / util::to256(multiplier);
-   u256 fees_reward = util::to256(interest_fees_accumulator - last_fees_acumulator) * u256(holding.value) / util::to256(multiplier);
-
-   interest_pool_from_coinbase -= coinbase_reward;
+#define SOPHIATX_TOTAL_INTERESTS ((uint64_t(STEEM_TOTAL_SUPPLY) - uint64_t(STEEM_INIT_SUPPLY)) * uint64_t(SOPHIATX_INTEREST_POOL_PERCENTAGE) / uint64_t(STEEM_100_PERCENT))
+share_type economic_model_object::withdraw_interests(share_type holding, uint32_t period, share_type supply){
+   FC_ASSERT(holding >=0 && interest_pool_from_coinbase>=0 && interest_pool_from_fees>=0 && supply >=holding );
+   share_type total_coinbase_for_period = share_type(std::min( uint64_t(interest_pool_from_coinbase.value), ( SOPHIATX_TOTAL_INTERESTS * SOPHIATX_INTEREST_BLOCKS / SOPHIATX_COINBASE_BLOCKS )));
+   share_type coinbase_reward = (uint128_t(holding.value) * uint128_t(total_coinbase_for_period.value) / uint128_t(supply.value)).to_uint64();
+   share_type fees_reward = (uint128_t(interest_pool_from_fees.value * SOPHIATX_INTEREST_BLOCKS / SOPHIATX_INTEREST_FEES_TIME )  * uint128_t(holding.value) / uint128_t(supply.value)).to_uint64() ;
    interest_pool_from_fees -= fees_reward;
-
-   FC_ASSERT(( coinbase_reward+fees_reward) < u256(total_supply.value) );
-   return ( coinbase_reward+fees_reward).convert_to<uint64_t>();
+   interest_pool_from_coinbase -= coinbase_reward;
+   return ( fees_reward + coinbase_reward);
 }
 
 void economic_model_object::add_fee(share_type fee) {

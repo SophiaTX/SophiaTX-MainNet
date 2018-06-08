@@ -407,6 +407,11 @@ const account_object* database::find_account( const account_name_type& name )con
    return find< account_object, by_name >( name );
 }
 
+const account_object*  database::find_account( const account_id_type& id)const
+{
+   return find< account_object, by_id >( id );
+}
+
 const escrow_object& database::get_escrow( const account_name_type& name, uint32_t escrow_id )const
 { try {
    return get< escrow_object, by_from_id >( boost::make_tuple( name, escrow_id ) );
@@ -502,17 +507,7 @@ asset database::process_operation_fee( const operation& op )
    asset paid_fee = op.visit(op_v);
    return paid_fee;
 }
-/*
-asset databse::get_proposed_operation_fee( const operation& op )const
 
-account_name_type database::get_operation_fee_payer( const operation& op )const
-{
-  auto op_visitor = [](base_operation& bop)->account_name_type{
-     return bop.get_fee_payer();
-  }
-  return op.visit(op_visitor)
-}
-*/
 uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
@@ -1992,11 +1987,35 @@ struct process_header_visitor
    }
 };
 
-void database::process_interests()
-{
-   uint32_t block_no = head_block_num() - 1; //process_interests is called after the current block is accepted
-   elog("block_no = ${b}", ("b", block_no));
-   uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
+void database::process_interests() {
+   try {
+      uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
+      elog("block_no = ${b}", ("b", block_no));
+      uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
+      const auto &gpo = get_dynamic_global_properties();
+      const auto &econ = get_economic_model();
+      share_type supply = gpo.current_supply.amount;
+      share_type supply_increase = 0;
+      uint64_t id = batch;
+      while( const account_object *a = find_account(id)) {
+         share_type interest;
+         modify(econ, [ & ](economic_model_object &eo) {
+              interest = eo.withdraw_interests(a->holdings_considered_for_interests,
+                                               std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), block_no), supply);
+         });
+
+         supply_increase += interest;
+         modify(*a, [ & ](account_object &ao) {
+              ao.balance.amount += interest;
+              ao.holdings_considered_for_interests = ao.total_balance();
+         });
+         push_virtual_operation(interest_operation(a->name, asset(interest, STEEM_SYMBOL)));
+         id += SOPHIATX_INTEREST_BLOCKS;
+      }
+
+
+      adjust_supply(asset(supply_increase, STEEM_SYMBOL));
+   }FC_CAPTURE_AND_RETHROW()
 }
 
 void database::process_header_extensions( const signed_block& next_block )
@@ -2382,23 +2401,13 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
    share_type interests;
 
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
-   modify(economics, [&](economic_model_object& e){
-      interests = e.withdraw_interests(a.balance.amount + a.vesting_shares.amount, a.last_interests_coinbase_accumulator, a.last_interests_fees_accumulator, a.last_interests_in_block, head_block_num());
-   });
 
-   if(interests > 0){
-      modify(gpo, [&](dynamic_global_property_object& d){
-           d.current_supply.amount += interests;
-      });
-      push_virtual_operation(interest_operation(a.name, asset(interests, STEEM_SYMBOL)));
-   }
 
    modify( a, [&]( account_object& acnt )
    {
         acnt.balance.amount += delta.amount + interests;
-        acnt.last_interests_in_block = head_block_num();
-        acnt.last_interests_coinbase_accumulator = economics.interest_coinbase_accumulator;
-        acnt.last_interests_fees_accumulator = economics.interest_fees_accumulator;
+
+        acnt.update_considered_holding(delta.amount, head_block_num());
         if( check_balance )
         {
            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient STEEM funds" );
