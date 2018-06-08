@@ -1,6 +1,12 @@
 
 #include <steem/utilities/benchmark_dumper.hpp>
 
+#ifdef _MSC_VER
+#include <windows.h>
+#include <stdio.h>
+#include <psapi.h>
+#endif
+
 namespace steem { namespace utilities {
 
 #define PROC_STATUS_LINE_LENGTH 1028
@@ -38,6 +44,29 @@ uint64_t read_u64_value_from(FILE* input, const char* key, unsigned key_length, 
    return 0;
 }
 
+#ifdef _MSC_VER
+bool benchmark_dumper::read_mem(unsigned long pid, uint64_t* current_virtual, uint64_t* peak_virtual)
+{
+	HANDLE hProcess;
+	PROCESS_MEMORY_COUNTERS pmc;
+
+	hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+		PROCESS_VM_READ,
+		FALSE, pid);
+
+	if (NULL == hProcess)
+		return false;
+
+	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
+	{
+		*peak_virtual = pmc.PeakWorkingSetSize;
+		*current_virtual = pmc.WorkingSetSize;
+	}
+	CloseHandle(hProcess);
+
+	return true;
+}
+#else
 bool benchmark_dumper::read_mem(pid_t pid, uint64_t* current_virtual, uint64_t* peak_virtual)
 {
    const char* procPath = "/proc/self/status";
@@ -59,5 +88,6 @@ bool benchmark_dumper::read_mem(pid_t pid, uint64_t* current_virtual, uint64_t* 
    fclose(input);
    return true;
 }
+#endif
 
 } }

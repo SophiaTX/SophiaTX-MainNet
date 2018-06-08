@@ -16,6 +16,9 @@ else(BUILD_PIC)
     MESSAGE(STATUS "Skipping libalexandria build, enable with -DBUILD_PIC flag")
 endif(BUILD_PIC)
 
+if(WIN32)
+  cmake_policy(SET CMP0054 OLD)
+endif(WIN32)
 
 # http://stackoverflow.com/a/18369825
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -165,7 +168,8 @@ if( WIN32 )
    set(CRYPTO_LIB)
 
    if( MSVC )
-      add_compile_options(/wd4503 /wd4267 /wd4244)
+      # Activate C++ exception handling, assume extern C calls don't throw (EHsc)
+      add_compile_options(/wd4503 /wd4267 /wd4244 /EHsc)
       #looks like this flag can have different default on some machines.
       SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
       SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
@@ -187,7 +191,9 @@ if( WIN32 )
 
       SET(TCL_LIBS "${TCL_LIBS}${TCL_LIB_PATH}/${TCL_LIB_NAME}g${TCL_LIB_EXT}")
       SET(TCL_LIBRARY ${TCL_LIBS})
-
+      # Needed to disable MSVC autolinking feature (#pragma comment)
+      ADD_DEFINITIONS("-DBOOST_ALL_NO_LIB")
+      
    elseif( MINGW )
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive -msse4.2 -Wa,-mbig-obj")
       SET(CMAKE_CXX_FLAGS_RELEASE "-O3")

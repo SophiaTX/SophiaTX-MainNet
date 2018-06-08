@@ -18,7 +18,6 @@
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
-#include <websocketpp/logger/syslog.hpp>
 
 #include <thread>
 #include <memory>

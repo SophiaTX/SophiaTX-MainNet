@@ -21,10 +21,15 @@ set(sources
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/git_revision.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp" @ONLY)
 list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
 
+if(MSVC)
+	find_library (PSAPI Psapi)
+	list( APPEND PLATFORM_SPECIFIC_LIBS PSAPI )
+endif()
+
 add_library( steem_utilities
              ${sources}
              ${HEADERS} )
-target_link_libraries( steem_utilities fc )
+target_link_libraries( steem_utilities fc ${PLATFORM_SPECIFIC_LIBS})
 target_include_directories( steem_utilities
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 if (USE_PCH)

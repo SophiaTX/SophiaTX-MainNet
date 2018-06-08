@@ -8,7 +8,13 @@ namespace chainbase {
    struct environment_check {
       environment_check() {
          memset( &compiler_version, 0, sizeof( compiler_version ) );
+
+#ifdef _MSC_VER
+#define STRING(x) #x
+		 memcpy(&compiler_version, STRING(_MSC_VER), std::min<size_t>(strlen(STRING(_MSC_VER)), 256));
+#else
          memcpy( &compiler_version, __VERSION__, std::min<size_t>( strlen(__VERSION__), 256 ) );
+#endif
 #ifndef NDEBUG
          debug = true;
 #endif
