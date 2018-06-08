@@ -18,10 +18,6 @@ set(sources
    logging_config.cpp
    ${HEADERS})
 
-if(WIN32)
-  list(REMOVE_ITEM sources benchmark_dumper.cpp) # depends on sys/time which is only aviable on unix
-endif()   
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/git_revision.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp" @ONLY)
 list(APPEND sources "${CMAKE_CURRENT_BINARY_DIR}/git_revision.cpp")
 

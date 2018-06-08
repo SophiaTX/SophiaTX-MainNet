@@ -45,9 +45,6 @@ class database_api_impl
          (verify_signatures)
          (list_applications)
          (get_promotion_pool_balance)
-#ifdef STEEM_ENABLE_SMT
-         (get_smt_next_identifier)
-#endif
       )
 
       template< typename ResultType >
@@ -706,9 +703,6 @@ DEFINE_READ_APIS( database_api,
    (verify_signatures)
    (list_applications)
    (get_promotion_pool_balance)
-#ifdef STEEM_ENABLE_SMT
-   (get_smt_next_identifier)
-#endif
 )
 
 } } } // steem::plugins::database_api

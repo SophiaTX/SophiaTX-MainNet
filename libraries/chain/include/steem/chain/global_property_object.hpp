@@ -99,8 +99,6 @@ FC_REFLECT( steem::chain::dynamic_global_property_object,
              (recent_slots_filled)
              (participation_count)
              (last_irreversible_block_num)
-#ifdef STEEM_ENABLE_SMT
-             (smt_creation_fee)
-#endif
-          )
+)
+
 CHAINBASE_SET_INDEX_TYPE( steem::chain::dynamic_global_property_object, steem::chain::dynamic_global_property_index )
