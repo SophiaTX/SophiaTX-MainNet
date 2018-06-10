@@ -19,7 +19,6 @@ void economic_model_object::init_economics(share_type _init_supply, share_type _
    share_type coinbase = _total_supply - _init_supply;
    mining_pool_from_coinbase = coinbase * SOPHIATX_MINING_POOL_PERCENTAGE / STEEM_100_PERCENT;
    interest_pool_from_coinbase = coinbase * SOPHIATX_INTEREST_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   unallocated_interests = interest_pool_from_coinbase;
    promotion_pool = coinbase * SOPHIATX_PROMOTION_POOL_PERCENTAGE / STEEM_100_PERCENT;
    initial_promotion_pool = promotion_pool;
    init_supply = _init_supply;
@@ -54,23 +53,31 @@ share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, 
 }
 
 void economic_model_object::record_block(uint32_t generated_block, share_type current_supply){
-   uint128_t next_block_interests = get_next_block_interests(generated_block, unallocated_interests).value;
-   unallocated_interests -= next_block_interests.lo;
-   FC_ASSERT((unallocated_interests)>= util::to256(uint64_t(0)));
-   uint128_t supply_share = multiplier / uint128_t(current_supply.value);
-   interest_block_fees = 0;
+   if(generated_block>=SOPHIATX_INTEREST_BLOCKS)
+      accumulated_supply -= historic_supply[generated_block%SOPHIATX_INTEREST_BLOCKS];
+   historic_supply[generated_block%SOPHIATX_INTEREST_BLOCKS] = current_supply;
+   accumulated_supply+=current_supply;
    //TODO_SOPHIATX - check invariants here.
 }
 
 #define SOPHIATX_TOTAL_INTERESTS ((uint64_t(STEEM_TOTAL_SUPPLY) - uint64_t(STEEM_INIT_SUPPLY)) * uint64_t(SOPHIATX_INTEREST_POOL_PERCENTAGE) / uint64_t(STEEM_100_PERCENT))
-share_type economic_model_object::withdraw_interests(share_type holding, uint32_t period, share_type supply){
-   FC_ASSERT(holding >=0 && interest_pool_from_coinbase>=0 && interest_pool_from_fees>=0 && supply >=holding );
-   share_type total_coinbase_for_period = share_type(std::min( uint64_t(interest_pool_from_coinbase.value), ( SOPHIATX_TOTAL_INTERESTS * SOPHIATX_INTEREST_BLOCKS / SOPHIATX_COINBASE_BLOCKS )));
-   share_type coinbase_reward = (uint128_t(holding.value) * uint128_t(total_coinbase_for_period.value) / uint128_t(supply.value)).to_uint64();
-   share_type fees_reward = (uint128_t(interest_pool_from_fees.value * SOPHIATX_INTEREST_BLOCKS / SOPHIATX_INTEREST_FEES_TIME )  * uint128_t(holding.value) / uint128_t(supply.value)).to_uint64() ;
-   interest_pool_from_fees -= fees_reward;
-   interest_pool_from_coinbase -= coinbase_reward;
-   return ( fees_reward + coinbase_reward);
+share_type economic_model_object::withdraw_interests(share_type holding, uint32_t period) {
+   try {
+      FC_ASSERT(holding >= 0 && interest_pool_from_coinbase >= 0 && interest_pool_from_fees >= 0 && accumulated_supply >= holding);
+      if(holding == 0)
+         return 0;
+      share_type total_coinbase_for_period = share_type(std::min(uint64_t(interest_pool_from_coinbase.value),
+                                                                 (SOPHIATX_TOTAL_INTERESTS * SOPHIATX_INTEREST_BLOCKS /
+                                                                  SOPHIATX_COINBASE_BLOCKS)));
+      share_type coinbase_reward = (uint128_t(holding.value) * uint128_t(total_coinbase_for_period.value) /
+                                    uint128_t(accumulated_supply.value)).to_uint64();
+      share_type fees_reward = (
+            uint128_t(interest_pool_from_fees.value * SOPHIATX_INTEREST_BLOCKS / SOPHIATX_INTEREST_FEES_TIME) *
+            uint128_t(holding.value) / uint128_t(accumulated_supply.value)).to_uint64();
+      interest_pool_from_fees -= fees_reward;
+      interest_pool_from_coinbase -= coinbase_reward;
+      return (fees_reward + coinbase_reward);
+   } FC_CAPTURE_AND_RETHROW((holding)(period)(*this))
 }
 
 void economic_model_object::add_fee(share_type fee) {
@@ -80,7 +87,6 @@ void economic_model_object::add_fee(share_type fee) {
    promotion_pool += to_promotion_pool;
    share_type to_interests = fee - to_mining_pool - to_promotion_pool;
    interest_pool_from_fees += to_interests;
-   interest_block_fees += to_interests;
 }
 
 share_type economic_model_object::get_available_promotion_pool(uint32_t block_number) const{

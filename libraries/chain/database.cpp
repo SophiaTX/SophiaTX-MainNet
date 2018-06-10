@@ -1581,6 +1581,7 @@ void database::init_genesis( uint64_t init_supply )
             a.name = STEEM_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
             a.memo_key = init_public_key;
             a.balance  = asset( i ? 0 : init_supply, STEEM_SYMBOL );
+            a.holdings_considered_for_interests = a.balance.amount * 2;
          } );
 
          create< account_authority_object >( [&]( account_authority_object& auth )
@@ -1990,7 +1991,6 @@ struct process_header_visitor
 void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
-      elog("block_no = ${b}", ("b", block_no));
       uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
       const auto &gpo = get_dynamic_global_properties();
       const auto &econ = get_economic_model();
@@ -2001,18 +2001,17 @@ void database::process_interests() {
          share_type interest;
          modify(econ, [ & ](economic_model_object &eo) {
               interest = eo.withdraw_interests(a->holdings_considered_for_interests,
-                                               std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), block_no), supply);
+                                               std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), block_no));
          });
 
          supply_increase += interest;
          modify(*a, [ & ](account_object &ao) {
               ao.balance.amount += interest;
-              ao.holdings_considered_for_interests = ao.total_balance();
+              ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
          });
          push_virtual_operation(interest_operation(a->name, asset(interest, STEEM_SYMBOL)));
          id += SOPHIATX_INTEREST_BLOCKS;
       }
-
 
       adjust_supply(asset(supply_increase, STEEM_SYMBOL));
    }FC_CAPTURE_AND_RETHROW()
@@ -2395,17 +2394,15 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   elog("current block is ${b}", ("b", head_block_num()));
    const auto& economics = get_economic_model();
    const auto& gpo = get_dynamic_global_properties();
-   share_type interests;
 
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
 
 
    modify( a, [&]( account_object& acnt )
    {
-        acnt.balance.amount += delta.amount + interests;
+        acnt.balance.amount += delta.amount;
 
         acnt.update_considered_holding(delta.amount, head_block_num());
         if( check_balance )

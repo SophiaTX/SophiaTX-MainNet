@@ -37,9 +37,7 @@ namespace steem { namespace chain {
 
          time_point_sec    last_account_update;
 
-         uint32_t          last_interests_in_block = 0;
-         uint128_t         last_interests_coinbase_accumulator;
-         uint128_t         last_interests_fees_accumulator;
+
          share_type        holdings_considered_for_interests = 0;
          share_type        update_considered_holding(share_type inserted, uint32_t block_no){
             uint32_t my_turn = id._id % SOPHIATX_INTEREST_BLOCKS;
@@ -50,7 +48,7 @@ namespace steem { namespace chain {
             }else{
                to_my_turn = my_turn + SOPHIATX_INTEREST_BLOCKS - block;
             }
-            share_type to_add = (inserted * to_my_turn) / (int64_t)SOPHIATX_INTEREST_BLOCKS;
+            share_type to_add = (inserted * to_my_turn);
             holdings_considered_for_interests += to_add;
             return to_add;
          };
@@ -292,7 +290,7 @@ FC_REFLECT( steem::chain::account_object,
              (created)(mined)
              (vesting_shares)(vesting_withdraw_rate)(next_vesting_withdrawal)(withdrawn)(to_withdraw)
              (recovery_account)(last_account_recovery)(reset_account)
-             (balance)(last_interests_in_block)(last_interests_coinbase_accumulator)(last_interests_fees_accumulator)
+             (balance)(holdings_considered_for_interests)
              (proxied_vsf_votes)(witnesses_voted_for)
           )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::account_object, steem::chain::account_index )
