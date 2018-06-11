@@ -154,9 +154,9 @@ IF( WIN32 )
   set(BOOST_ALL_DYN_LINK OFF) # force dynamic linking for all libraries
 ENDIF(WIN32)
 
+
 FIND_PACKAGE(Boost 1.60 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
-message("BLA")
-message(${Boost_LIBRARIES})
+
 
 if( WIN32 )
 
