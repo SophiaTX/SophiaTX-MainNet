@@ -9,7 +9,7 @@ pipeline {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
   }
   agent { 
-    label 'suse'
+    label get_label_name()
   }
   stages {
     stage('Build') {
