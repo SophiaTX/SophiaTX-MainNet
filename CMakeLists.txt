@@ -120,6 +120,14 @@ if( STEEM_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
 endif()
 MESSAGE( STATUS "STEEM_STATIC_BUILD: ${STEEM_STATIC_BUILD}" )
 
+OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
+if(PRIVATE_NET)
+    MESSAGE(STATUS "Building as private net")
+    ADD_DEFINITIONS("-DPRIVATE_NET")
+else(PRIVATE_NET)
+    MESSAGE(STATUS "Building as public net")
+endif(PRIVATE_NET)
+
 SET( STEEM_LINT_LEVEL "OFF" CACHE STRING "Lint level during steem build (FULL, HIGH, LOW, OFF)" )
 find_program(
    CLANG_TIDY_EXE
