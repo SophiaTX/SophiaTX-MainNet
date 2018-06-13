@@ -1262,12 +1262,13 @@ void database::process_funds()
    });
 
 
-   push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, STEEM_SYMBOL) ) );
-   adjust_balance(cwit.owner, asset(witness_reward, STEEM_SYMBOL));
+   push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, VESTS_SYMBOL) ) );
+   create_vesting(cwit.owner, asset(witness_reward, VESTS_SYMBOL));
 
    modify( props, [&]( dynamic_global_property_object& p )
    {
         p.current_supply           += asset( witness_reward, STEEM_SYMBOL );
+        p.total_vesting_shares     += asset( witness_reward, VESTS_SYMBOL );
    });
 
 }
@@ -2152,7 +2153,7 @@ void database::apply_operation(const operation& op)
 {
    operation_notification note(op);
    notify_pre_apply_operation( note );
-   asset paid_fee = process_operation_fee(op);
+   process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }
@@ -2392,13 +2393,24 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 }
 #endif
 
+void database::create_vesting( const account_object& a, const asset& delta){
+   FC_ASSERT(delta.symbol == VESTS_SYMBOL, "invalid symbol");
+   FC_ASSERT(delta.amount >= 0, "cannot remove vests");
+
+   modify( a, [&]( account_object& acnt )
+   {
+        acnt.vesting_shares.amount += delta.amount;
+
+        acnt.update_considered_holding(delta.amount, head_block_num());
+        adjust_proxied_witness_votes(a, delta.amount);
+
+   } );
+}
+
+
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   const auto& economics = get_economic_model();
-   const auto& gpo = get_dynamic_global_properties();
-
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
-
 
    modify( a, [&]( account_object& acnt )
    {
@@ -2447,6 +2459,10 @@ void database::adjust_balance( const account_name_type& name, const asset& delta
    modify_balance( a, delta, true );
 }
 
+void database::create_vesting( const account_name_type& name, const asset& delta){
+   const auto& a = get_account( name );
+   create_vesting( a, delta);
+}
 
 void database::adjust_supply( const asset& delta )
 {
