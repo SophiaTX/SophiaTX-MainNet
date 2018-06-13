@@ -1609,6 +1609,7 @@ void database::init_genesis( uint64_t init_supply )
          p.participation_count = 128;
          p.current_supply = asset( init_supply, STEEM_SYMBOL );
          p.maximum_block_size = STEEM_MAX_BLOCK_SIZE;
+         p.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
       } );
 
       create< economic_model_object >( [&]( economic_model_object& e )
@@ -2235,6 +2236,14 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.head_block_id = b.id();
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
+#ifndef PRIVATE_NET
+      if( head_block_num() % STEEM_BLOCKS_PER_DAY && head_block_num() <= STEEM_BLOCKS_PER_DAY * SOPHIATX_WITNESS_VESTING_INCREASE_DAYS){
+         uint64_t total_increase = SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE;
+         uint64_t increase_per_day = total_increase / SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
+         share_type next_requirement = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + ( head_block_num() / STEEM_BLOCKS_PER_DAY ) * increase_per_day;
+         dgp.witness_required_vesting = asset(next_requirement, VESTS_SYMBOL);
+      }
+#endif
    } );
 
    if( !(get_node_properties().skip_flags & skip_undo_history_check) )

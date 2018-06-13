@@ -37,11 +37,11 @@ namespace steem { namespace chain {
          time_point_sec    time;
          account_name_type current_witness;
 
-      asset       current_supply             = asset( 0, STEEM_SYMBOL );
+         asset       current_supply             = asset( 0, STEEM_SYMBOL );
          asset       total_vesting_shares       = asset( 0, VESTS_SYMBOL );
          asset       total_reward_fund    = asset( 0, STEEM_SYMBOL );
 
-
+         asset       witness_required_vesting  = asset( SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, STEEM_SYMBOL );
 
 
          /**
