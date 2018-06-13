@@ -141,6 +141,7 @@ namespace steem { namespace chain {
 
          const account_object&  get_account(  const account_name_type& name )const;
          const account_object*  find_account( const account_name_type& name )const;
+         const account_object*  find_account( const account_id_type& id)const;
 
          const escrow_object&   get_escrow(  const account_name_type& name, uint32_t escrow_id )const;
          const escrow_object*   find_escrow( const account_name_type& name, uint32_t escrow_id )const;

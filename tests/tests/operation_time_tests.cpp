@@ -251,6 +251,30 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
    FC_LOG_AND_RETHROW();
 }
 
+BOOST_AUTO_TEST_CASE( interests )
+{
+   try{
+      ACTORS( (alice)(bob) )
+      generate_block();
+      fund("alice", 100000000);
+      fund("bob",  1000000000);
+
+      generate_blocks( SOPHIATX_INTEREST_BLOCKS );
+      generate_blocks( SOPHIATX_INTEREST_BLOCKS );
+      uint64_t expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (SOPHIATX_COINBASE_BLOCKS / 10000) / 7;
+
+
+
+      auto interest_op = get_last_operations( 1, "bob" )[0].get< interest_operation >();
+      BOOST_REQUIRE( interest_op.owner == "bob" );
+      BOOST_REQUIRE( interest_op.interest.amount.value == expected_interest );
+      //DUMP(db->get_account( "alice" ).balance.amount);
+      BOOST_REQUIRE( db->get_account( "alice" ).balance.amount.value >= 100000000 + expected_interest/10  && db->get_account( "alice" ).balance.amount.value <= 100000000 + 2*expected_interest/10);
+      validate_database();
+
+   }FC_LOG_AND_RETHROW()
+}
+
 BOOST_AUTO_TEST_CASE( sbd_interest )
 {
    //TODO_SOPHIA rework
