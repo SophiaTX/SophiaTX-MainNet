@@ -1021,6 +1021,32 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
    _db.remove(application);
 }
 
+void application_buy_evaluator::do_apply( const application_buy_operation& o )
+{
+   const auto& application = _db.get_application( o.app_name );
+
+   verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
+
+   _db.create< application_buy_object >( [&]( application_buy_object& app_buy )
+                                   {
+                                        app_buy.buyer = o.buyer;
+                                        app_buy.app_name = o.app_name;
+                                        app_buy.created = _db.head_block_time();
+                                   });
+}
+
+void application_cancel_buy_evaluator::do_apply( const application_cancel_buy_operation& o )
+{
+   const auto& application = _db.get_application( o.app_name );
+   const auto& app_buying = _db.get_application_buying( o.buyer, o.app_name );
+
+   verify_authority_accounts_exist( _db, o.active, o.app_owner, authority::active );
+
+   FC_ASSERT(application.author == o.app_owner, "Provided app author is not this applcation author" );
+
+   _db.remove(app_buying);
+}
+
 void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promotion_pool_operation& op){
    const auto& econ = _db.get_economic_model();
    const auto& acnt = _db.get_account( op.transfer_to );

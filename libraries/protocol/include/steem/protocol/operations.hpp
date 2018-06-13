@@ -49,6 +49,8 @@ namespace steem { namespace protocol {
             application_create_operation,
             application_update_operation,
             application_delete_operation,
+            application_buy_operation,
+            application_cancel_buy_operation,
 #ifdef STEEM_ENABLE_SMT
             claim_reward_balance2_operation,
 #endif

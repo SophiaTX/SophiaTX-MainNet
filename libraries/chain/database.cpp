@@ -428,6 +428,12 @@ const application_object &database::get_application(const string &name) const
       return get< application_object, by_name >( name );
    } FC_CAPTURE_AND_RETHROW( (name) )
 }
+const application_buy_object &database::get_application_buying(const account_name_type &buyer, const std::string &app_name) const
+{
+    try {
+       return get< application_buy_object, by_buyer_app >( boost::make_tuple(buyer, app_name) );
+    } FC_CAPTURE_AND_RETHROW( (buyer)(app_name) )
+}
 
 const dynamic_global_property_object&database::get_dynamic_global_properties() const
 { try {
@@ -2152,7 +2158,7 @@ void database::apply_operation(const operation& op)
 {
    operation_notification note(op);
    notify_pre_apply_operation( note );
-   asset paid_fee = process_operation_fee(op);
+   process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }
