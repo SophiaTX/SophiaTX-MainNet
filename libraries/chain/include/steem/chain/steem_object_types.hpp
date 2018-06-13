@@ -187,12 +187,6 @@ FC_REFLECT_ENUM( steem::chain::object_type,
                  (economic_model_object_type)
                  (custom_content_object_type)
                  (application_object_type)
-
-#ifdef STEEM_ENABLE_SMT
-                 (smt_token_object_type)
-                 (account_regular_balance_object_type)
-                 (account_rewards_balance_object_type)
-#endif
                )
 
 FC_REFLECT_TYPENAME( steem::chain::shared_string )

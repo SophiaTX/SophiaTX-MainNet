@@ -14,9 +14,15 @@ file(GLOB HEADERS "include/steem/plugins/*.hpp")
 # This way it will be properly regenerated.
 #
 
+if(WIN32)
+   set( PYTHON_EXE "python")
+else()
+   set( PYTHON_EXE "python3")
+endif()
+
 execute_process(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.plugins
+   ${PYTHON_EXE} -m steem_manifest.plugins
    ${CMAKE_CURRENT_SOURCE_DIR}/../plugins
    -o ${CMAKE_CURRENT_BINARY_DIR}/template_context/plugins.json
    --print-dependencies
@@ -31,7 +37,7 @@ message( STATUS "PLUGINS_DEPS: ${PLUGINS_DEPS}" )
 
 add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.plugins
+   ${PYTHON_EXE} -m steem_manifest.plugins
    ${CMAKE_CURRENT_SOURCE_DIR}/../plugins
    -o ${CMAKE_CURRENT_BINARY_DIR}/template_context/plugins.json
    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/template_context/plugins.json
@@ -46,7 +52,7 @@ add_custom_command(
 
 execute_process(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.build
+   ${PYTHON_EXE} -m steem_manifest.build
    -j ${CMAKE_CURRENT_BINARY_DIR}/template_context
    -t ${CMAKE_CURRENT_SOURCE_DIR}/templates
    -o ${CMAKE_CURRENT_BINARY_DIR}/gensrc
@@ -62,7 +68,7 @@ message( STATUS "MANIFEST_DEPS: ${MANIFEST_DEPS}" )
 
 execute_process(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.build
+   ${PYTHON_EXE} -m steem_manifest.build
    -j ${CMAKE_CURRENT_BINARY_DIR}/template_context
    -t ${CMAKE_CURRENT_SOURCE_DIR}/templates
    -o ${CMAKE_CURRENT_BINARY_DIR}/gensrc
@@ -78,7 +84,7 @@ message( STATUS "MANIFEST_OUTPUTS: ${MANIFEST_OUTPUTS}" )
 
 add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.build
+   ${PYTHON_EXE} -m steem_manifest.build
    -j ${CMAKE_CURRENT_BINARY_DIR}/template_context
    -t ${CMAKE_CURRENT_SOURCE_DIR}/templates
    -o ${CMAKE_CURRENT_BINARY_DIR}/gensrc
@@ -94,14 +100,14 @@ add_custom_command(
 
 execute_process(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.plugins
+   ${PYTHON_EXE} -m steem_manifest.plugins
    ${CMAKE_CURRENT_SOURCE_DIR}/../plugins
    -o ${CMAKE_CURRENT_BINARY_DIR}/template_context/plugins.json
 )
 
 execute_process(
    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}
-   python3 -m steem_manifest.build
+   ${PYTHON_EXE} -m steem_manifest.build
    -j ${CMAKE_CURRENT_BINARY_DIR}/template_context
    -t ${CMAKE_CURRENT_SOURCE_DIR}/templates
    -o ${CMAKE_CURRENT_BINARY_DIR}/gensrc

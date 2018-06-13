@@ -1,4 +1,9 @@
 #pragma once
+
+#if defined(_MSC_VER) && _MSC_FULL_VER >= 190023918
+#define _ENABLE_ATOMIC_ALIGNMENT_FIX
+#endif
+
 #include <appbase/application.hpp>
 #include <steem/chain/database.hpp>
 

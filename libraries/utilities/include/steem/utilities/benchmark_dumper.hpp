@@ -6,7 +6,9 @@
 #include <fc/exception/exception.hpp>
 #include <fc/io/json.hpp>
 
-#include <sys/time.h>
+#ifdef _MSC_VER
+#include <windows.h>
+#endif // _MSC_VER
 
 namespace steem { namespace utilities {
 
@@ -95,7 +97,12 @@ public:
       _file_name = file_name;
       _init_sys_time = _last_sys_time = fc::time_point::now();
       _init_cpu_time = _last_cpu_time = clock();
-      _pid = getpid();
+#ifdef _MSC_VER
+	  _pid = GetCurrentProcessId();
+#else
+	  _pid = getpid();
+#endif // _MSC_VER
+
       get_database_objects_sizeofs(_all_data.database_object_sizeofs);
    }
 
@@ -165,8 +172,11 @@ public:
    }
 
 private:
+#ifdef _MSC_VER
+   bool read_mem(unsigned long pid, uint64_t* current_virtual, uint64_t* peak_virtual);
+#else
    bool read_mem(pid_t pid, uint64_t* current_virtual, uint64_t* peak_virtual);
-
+#endif
 private:
    const char*    _file_name = nullptr;
    fc::time_point _init_sys_time;
@@ -174,7 +184,11 @@ private:
    clock_t        _init_cpu_time = 0;
    clock_t        _last_cpu_time = 0;
    uint64_t       _total_blocks = 0;
+#ifdef _MSC_VER
+   unsigned long  _pid = 0;
+#else
    pid_t          _pid = 0;
+#endif
    TAllData       _all_data;
 };
 

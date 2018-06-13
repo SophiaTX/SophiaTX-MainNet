@@ -941,8 +941,8 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_REQUIRE( alice_witness.last_aslot == 0 );
       BOOST_REQUIRE( alice_witness.last_confirmed_block_num == 0 );
       BOOST_REQUIRE( alice_witness.votes.value == 0 );
-      BOOST_REQUIRE( alice_witness.virtual_last_update == 0 );
-      BOOST_REQUIRE( alice_witness.virtual_position == 0 );
+      BOOST_REQUIRE( alice_witness.virtual_last_update == static_cast<fc::uint128_t>(0) );
+      BOOST_REQUIRE( alice_witness.virtual_position == static_cast<fc::uint128_t>(0));
       BOOST_REQUIRE( alice_witness.virtual_scheduled_time == fc::uint128_t::max_value() );
       BOOST_REQUIRE( alice.balance.amount.value == ASSET( "0.000000 SPHTX" ).amount.value); // No fee
       validate_database();
@@ -967,8 +967,8 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_REQUIRE( alice_witness.last_aslot == 0 );
       BOOST_REQUIRE( alice_witness.last_confirmed_block_num == 0 );
       BOOST_REQUIRE( alice_witness.votes.value == 0 );
-      BOOST_REQUIRE( alice_witness.virtual_last_update == 0 );
-      BOOST_REQUIRE( alice_witness.virtual_position == 0 );
+      BOOST_REQUIRE( alice_witness.virtual_last_update == static_cast<fc::uint128_t>(0));
+      BOOST_REQUIRE( alice_witness.virtual_position == static_cast<fc::uint128_t>(0));
       BOOST_REQUIRE( alice_witness.virtual_scheduled_time == fc::uint128_t::max_value() );
       BOOST_REQUIRE( alice.balance.amount.value == ASSET( "0.000000 SPHTX" ).amount.value ); // No fee
       validate_database();

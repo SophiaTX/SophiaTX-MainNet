@@ -42,7 +42,7 @@ CHAINBASE_SET_INDEX_TYPE( book, book_index )
 BOOST_AUTO_TEST_CASE( open_and_create ) {
    boost::filesystem::path temp = boost::filesystem::unique_path();
    try {
-      std::cerr << temp.native() << " \n";
+      std::cerr << temp.string() << " \n";
 
       chainbase::database db;
       BOOST_CHECK_THROW( db.open( temp ), std::runtime_error ); /// temp does not exist

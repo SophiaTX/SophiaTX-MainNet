@@ -105,7 +105,6 @@ FC_API( steem::wallet::remote_node_api,
         (get_potential_signatures)
         (verify_authority)
         (verify_account_authority)
-        //(get_account_votes)
         (get_account_history)
         (broadcast_transaction)
         (broadcast_transaction_synchronous)

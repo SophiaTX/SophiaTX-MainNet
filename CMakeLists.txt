@@ -16,6 +16,9 @@ else(BUILD_PIC)
     MESSAGE(STATUS "Skipping libalexandria build, enable with -DBUILD_PIC flag")
 endif(BUILD_PIC)
 
+if(WIN32)
+  cmake_policy(SET CMP0054 OLD)
+endif(WIN32)
 
 # http://stackoverflow.com/a/18369825
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -117,6 +120,14 @@ if( STEEM_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
 endif()
 MESSAGE( STATUS "STEEM_STATIC_BUILD: ${STEEM_STATIC_BUILD}" )
 
+OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
+if(PRIVATE_NET)
+    MESSAGE(STATUS "Building as private net")
+    ADD_DEFINITIONS("-DPRIVATE_NET")
+else(PRIVATE_NET)
+    MESSAGE(STATUS "Building as public net")
+endif(PRIVATE_NET)
+
 SET( STEEM_LINT_LEVEL "OFF" CACHE STRING "Lint level during steem build (FULL, HIGH, LOW, OFF)" )
 find_program(
    CLANG_TIDY_EXE
@@ -151,7 +162,9 @@ IF( WIN32 )
   set(BOOST_ALL_DYN_LINK OFF) # force dynamic linking for all libraries
 ENDIF(WIN32)
 
-FIND_PACKAGE(Boost 1.58 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+
+FIND_PACKAGE(Boost 1.60 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+
 
 if( WIN32 )
 
@@ -165,7 +178,8 @@ if( WIN32 )
    set(CRYPTO_LIB)
 
    if( MSVC )
-      add_compile_options(/wd4503 /wd4267 /wd4244)
+      # Activate C++ exception handling, assume extern C calls don't throw (EHsc)
+      add_compile_options(/wd4503 /wd4267 /wd4244 /EHsc)
       #looks like this flag can have different default on some machines.
       SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
       SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
@@ -187,7 +201,9 @@ if( WIN32 )
 
       SET(TCL_LIBS "${TCL_LIBS}${TCL_LIB_PATH}/${TCL_LIB_NAME}g${TCL_LIB_EXT}")
       SET(TCL_LIBRARY ${TCL_LIBS})
-
+      # Needed to disable MSVC autolinking feature (#pragma comment)
+      ADD_DEFINITIONS("-DBOOST_ALL_NO_LIB")
+      
    elseif( MINGW )
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive -msse4.2 -Wa,-mbig-obj")
       SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
