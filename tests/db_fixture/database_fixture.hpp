@@ -262,6 +262,7 @@ struct database_fixture {
 
    vector< operation > get_last_operations( uint32_t ops );
 
+   vector< operation > get_last_operations( uint32_t ops, string account_name );
    void validate_database( void );
 };
 

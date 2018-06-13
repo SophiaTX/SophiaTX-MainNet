@@ -3,11 +3,13 @@
 #include <steem/protocol/types.hpp>
 #include <steem/chain/steem_object_types.hpp>
 #include <steem/chain/database.hpp>
+#include <boost/interprocess/managed_mapped_file.hpp>
 
 
 
 
 namespace steem { namespace chain {
+namespace bip = boost::interprocess;
 
 using namespace steem::protocol;
 
@@ -15,12 +17,12 @@ using namespace steem::protocol;
 class economic_model_object: public object< economic_model_object_type, economic_model_object> {
 public:
    template< typename Constructor, typename Allocator >
-   economic_model_object( Constructor&& c, allocator< Allocator > a )
+   economic_model_object( Constructor&& c, allocator< Allocator > a ) : historic_supply( historic_supply_allocator_type( a.get_segment_manager() ) )
    {
       c( *this );
    }
 
-   economic_model_object(){}
+   economic_model_object() =delete;
 
    id_type           id;
 
@@ -28,24 +30,28 @@ public:
    share_type mining_pool_from_fees;
    share_type interest_pool_from_coinbase;
    share_type interest_pool_from_fees;
-   uint128_t interest_coinbase_accumulator = 0;
-   uint128_t interest_fees_accumulator = 0;
    share_type promotion_pool;
    share_type initial_promotion_pool;
    share_type init_supply;
    share_type total_supply;
-   share_type unallocated_interests;
-   share_type interest_block_fees = 0;
+
+   typedef bip::allocator< economic_model_object, bip::managed_mapped_file::segment_manager >  allocator_type;
+   typedef bip::allocator< std::pair< uint32_t, share_type >, bip::managed_mapped_file::segment_manager > historic_supply_allocator_type;
+   typedef bip::flat_map< uint32_t, share_type, std::less< uint32_t >, historic_supply_allocator_type > historic_supply_map;
+
+   historic_supply_map historic_supply;
+   share_type accumulated_supply;
 
    void init_economics(share_type init_supply, share_type total_supply);
    void record_block(uint32_t block, share_type current_supply);
    share_type get_mining_reward(uint32_t block_number) const;
    share_type withdraw_mining_reward(uint32_t block_number, uint32_t nominator, uint32_t denominator);
-   share_type get_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block) const;
-   share_type withdraw_interests(share_type holding, uint128_t last_supply_acumulator, uint128_t last_fees_acumulator, uint32_t last_interest, uint32_t current_block);
+   share_type withdraw_interests(share_type holding, uint32_t period);
    share_type get_available_promotion_pool(uint32_t block_number) const;
    share_type withdraw_from_promotion_pool(share_type amount, uint32_t block_number);
    void add_fee(share_type fee);
+
+
 
 };
 
@@ -69,13 +75,11 @@ FC_REFLECT(steem::chain::economic_model_object, (id)
            (mining_pool_from_fees)
            (interest_pool_from_coinbase)
            (interest_pool_from_fees)
-           (interest_coinbase_accumulator)
-           (interest_fees_accumulator)
            (promotion_pool)
            (initial_promotion_pool)
            (init_supply)
            (total_supply)
-           (unallocated_interests)
-           (interest_block_fees)
+      (historic_supply)
+      (accumulated_supply)
 )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::economic_model_object, steem::chain::economic_model_index )
