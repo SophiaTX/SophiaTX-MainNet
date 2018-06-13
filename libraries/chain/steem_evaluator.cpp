@@ -965,7 +965,7 @@ void set_reset_account_evaluator::do_apply( const set_reset_account_operation& o
 
 void application_create_evaluator::do_apply( const application_create_operation& o )
 {
-   const auto& author = _db.get_account( o.author );
+   _db.get_account( o.author );
 
    verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
 
@@ -1023,7 +1023,7 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
 
 void application_buy_evaluator::do_apply( const application_buy_operation& o )
 {
-   const auto& application = _db.get_application( o.app_name );
+   _db.get_application( o.app_name );
 
    verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
 

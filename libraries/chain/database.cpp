@@ -2000,7 +2000,6 @@ void database::process_interests() {
       uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
       const auto &gpo = get_dynamic_global_properties();
       const auto &econ = get_economic_model();
-      share_type supply = gpo.current_supply.amount;
       share_type supply_increase = 0;
       uint64_t id = batch;
       while( const account_object *a = find_account(id)) {
@@ -2400,11 +2399,7 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   const auto& economics = get_economic_model();
-   const auto& gpo = get_dynamic_global_properties();
-
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
-
 
    modify( a, [&]( account_object& acnt )
    {

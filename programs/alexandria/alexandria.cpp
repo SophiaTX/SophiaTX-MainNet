@@ -54,7 +54,7 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
    if(digest && private_key)
    {
       try {
-         fc::sha256 dig(digest, strlen(digest));
+         fc::sha256 dig(string(digest, strlen(digest)));
          string private_k_str(private_key);
          auto priv_key = *steem::utilities::wif_to_key(private_k_str);
          auto sig = priv_key.sign_compact( dig);
