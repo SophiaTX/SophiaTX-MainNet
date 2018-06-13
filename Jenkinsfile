@@ -36,11 +36,6 @@ pipeline {
         }
       }
     }
-    stage('Warnings') {
-      steps {
-        warnings canComputeNew: false, canResolveRelativePaths: false, categoriesPattern: '', consoleParsers: [[parserName: 'GNU Make + GNU C Compiler (gcc)']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: 'How', messagesPattern: '', unHealthy: ''
-      }
-    }
     stage('Clean WS') {
       steps {
         cleanWs()
