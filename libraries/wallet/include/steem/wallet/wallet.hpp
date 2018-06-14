@@ -805,10 +805,10 @@ class wallet_api
       *
       *  @param buyer The buyer of application
       *  @param active_auth The active authority for that account
-      *  @param app_name The name of app that buyer will buy
+      *  @param app_id The id of app that buyer will buy
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction buy_application( string buyer, authority active_auth, string app_name,
+      annotated_signed_transaction buy_application( string buyer, authority active_auth, int64_t app_id,
                                                        bool broadcast );
 
       /**
@@ -817,16 +817,16 @@ class wallet_api
       *  @param app_owner The owner of bought application
       *  @param buyer The buyer of application
       *  @param active_auth The active authority for application owner
-      *  @param app_name The name of bought app
+      *  @param app_id The id of bought app
       *  @param broadcast true if you wish to broadcast the transaction
       */
       annotated_signed_transaction cancel_application_buying( string app_owner, string buyer, authority active_auth,
-                                                           string app_name, bool broadcast );
+                                                           int64_t app_id, bool broadcast );
 
       /**
        * Get all app buyings by app_name or buyer
-       * @param name Application name or buyers name
-       * @param search_type One of "by_buyer", "by_app_name"
+       * @param name Application id or buyers name
+       * @param search_type One of "by_buyer", "by_app_id"
        * @param count Number of items to retrieve
        * @return
        */

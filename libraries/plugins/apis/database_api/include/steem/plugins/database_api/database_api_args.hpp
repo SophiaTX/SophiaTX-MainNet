@@ -36,7 +36,8 @@ enum sort_order_type
    by_account_expiration,
    by_price,
    by_author,
-   by_buyer_app
+   by_buyer_app,
+   by_app_id
 };
 
 /* get_config */
@@ -376,7 +377,8 @@ FC_REFLECT_ENUM( steem::plugins::database_api::sort_order_type,
    (by_account_expiration)
    (by_price)
    (by_author)
-   (by_buyer_app))
+   (by_buyer_app)
+   (by_app_id))
 
 
 FC_REFLECT( steem::plugins::database_api::get_current_price_feed_args,

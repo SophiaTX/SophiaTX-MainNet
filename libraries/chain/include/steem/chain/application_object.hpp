@@ -42,7 +42,7 @@ namespace steem { namespace chain {
 
             id_type                 id;
             account_name_type       buyer;
-            string                  app_name;
+            application_id_type     app_id;
             time_point_sec          created;
         };
 
@@ -61,17 +61,18 @@ namespace steem { namespace chain {
 
 
         struct by_buyer_app;
+        struct by_app_id;
 
         typedef multi_index_container<
                 application_buying_object,
                 indexed_by<
                 ordered_unique< tag< by_id >, member< application_buying_object, application_buying_id_type, &application_buying_object::id > >,
-                ordered_non_unique< tag< by_name >,  member<application_buying_object, string, &application_buying_object::app_name > >,
+                ordered_non_unique< tag< by_app_id >,  member<application_buying_object, application_id_type, &application_buying_object::app_id > >,
                 ordered_non_unique< tag< by_author >, member<application_buying_object, account_name_type, &application_buying_object::buyer > >,
                 ordered_unique< tag< by_buyer_app >,
                    composite_key< application_buying_object,
                       member< application_buying_object, account_name_type,  &application_buying_object::buyer >,
-                      member< application_buying_object, string, &application_buying_object::app_name >
+                      member< application_buying_object, application_id_type, &application_buying_object::app_id >
                    >
                 >
         >,
@@ -83,5 +84,5 @@ namespace steem { namespace chain {
 FC_REFLECT( steem::chain::application_object, (id)(name)(author)(url)(metadata)(price_param))
 CHAINBASE_SET_INDEX_TYPE( steem::chain::application_object, steem::chain::application_index )
 
-FC_REFLECT( steem::chain::application_buying_object, (id)(buyer)(app_name)(created))
+FC_REFLECT( steem::chain::application_buying_object, (id)(buyer)(app_id)(created))
 CHAINBASE_SET_INDEX_TYPE( steem::chain::application_buying_object, steem::chain::application_buying_index )

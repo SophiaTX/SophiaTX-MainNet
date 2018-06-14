@@ -113,7 +113,7 @@ typedef oid< reward_fund_object                     > reward_fund_id_type;
 typedef oid< economic_model_object                  > economic_model_id_type;
 typedef oid< custom_content_object                  > custom_content_id_type;
 typedef oid< application_object                     > application_id_type;
-typedef oid< application_buying_object                 > application_buying_id_type;
+typedef oid< application_buying_object              > application_buying_id_type;
 
 #ifdef STEEM_ENABLE_SMT
 typedef oid< smt_token_object                       > smt_token_id_type;

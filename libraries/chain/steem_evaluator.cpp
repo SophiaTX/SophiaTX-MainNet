@@ -1020,15 +1020,24 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
 
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
+   const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_app_id >();
+   auto itr = app_buy_idx.lower_bound( application.id );
+   while( itr != app_buy_idx.end() && itr->app_id == application.id )
+   {
+      const auto& current = *itr;
+      ++itr;
+      _db.remove(current);
+   }
+
    _db.remove(application);
 }
 
 void buy_application_evaluator::do_apply( const buy_application_operation& o )
 {
-   _db.get_application( o.app_name );
+   _db.get_application_by_id( o.app_id );
 
    const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_buyer_app >();
-   auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_name) );
+   auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_id) );
    FC_ASSERT(request == app_buy_idx.end(), "This buying already exisit" );
 
    verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
@@ -1036,15 +1045,15 @@ void buy_application_evaluator::do_apply( const buy_application_operation& o )
    _db.create< application_buying_object >( [&]( application_buying_object& app_buy )
                                    {
                                         app_buy.buyer = o.buyer;
-                                        app_buy.app_name = o.app_name;
+                                        app_buy.app_id = o.app_id;
                                         app_buy.created = _db.head_block_time();
                                    });
 }
 
 void cancel_application_buying_evaluator::do_apply( const cancel_application_buying_operation& o )
 {
-   const auto& application = _db.get_application( o.app_name );
-   const auto& app_buying = _db.get_application_buying( o.buyer, o.app_name );
+   const auto& application = _db.get_application_by_id( o.app_id );
+   const auto& app_buying = _db.get_application_buying( o.buyer, o.app_id );
 
    verify_authority_accounts_exist( _db, o.active, o.app_owner, authority::active );
 

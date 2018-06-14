@@ -3618,10 +3618,12 @@ BOOST_AUTO_TEST_CASE( application_buy )
       }
       /////
 
+      const auto& app = db->get_application( "test_app" );
+
       BOOST_TEST_MESSAGE( "--- Test normal application buy" );
       buy_application_operation op;
       op.fee = ASSET( "0.100000 SPHTX" );
-      op.app_name = "test_app";
+      op.app_id = app.id._id;
       op.buyer = "bob";
       op.active = bob_auth.active;
       op.validate();
@@ -3632,9 +3634,9 @@ BOOST_AUTO_TEST_CASE( application_buy )
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
 
-      const auto& app_buy = db->get_application_buying( "bob", "test_app" );
+      const auto& app_buy = db->get_application_buying( "bob", app.id._id );
 
-      BOOST_REQUIRE( app_buy.app_name == "test_app" );
+      BOOST_REQUIRE( app_buy.app_id == app.id );
       BOOST_REQUIRE( app_buy.buyer == "bob" );
       validate_database();
 
@@ -3653,7 +3655,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       BOOST_TEST_MESSAGE( "--- Test canceling application buy" );
       cancel_application_buying_operation op_cancel;
       op_cancel.fee = ASSET( "0.100000 SPHTX" );
-      op_cancel.app_name = "test_app";
+      op_cancel.app_id = app.id._id;
       op_cancel.buyer = "bob";
       op_cancel.app_owner = "alice";
       op_cancel.active = alice_auth.active;
@@ -3665,7 +3667,84 @@ BOOST_AUTO_TEST_CASE( application_buy )
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
 
-      BOOST_REQUIRE_THROW( db->get_application_buying( "bob", "test_app" ), fc::exception );
+      BOOST_REQUIRE_THROW( db->get_application_buying( "bob", app.id._id ), fc::exception );
+
+      validate_database();
+
+   }
+   FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE( deleting_bought_application )
+{
+   try
+   {
+      //Creating test app
+      ACTORS( (alice)(bob) )
+      fund("bob", 1000000);
+      fund("alice", 1000000);
+
+      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
+
+      {
+         application_create_operation op;
+         op.author = "alice";
+         op.fee = ASSET( "0.100000 SPHTX" );
+         op.active = alice_auth.active;
+         op.name = "test_app";
+         op.price_param = static_cast<uint8_t >(time_based);
+         op.url = "www.sophiatx.com";
+         op.metadata = "Random metadata";
+         op.validate();
+         signed_transaction tx;
+         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.operations.push_back(op);
+         tx.sign(alice_private_key, db->get_chain_id());
+         db->push_transaction(tx, 0);
+      }
+      /////
+
+      const auto& app = db->get_application( "test_app" );
+
+      BOOST_TEST_MESSAGE( "--- Test normal application buy" );
+      buy_application_operation op;
+      op.fee = ASSET( "0.100000 SPHTX" );
+      op.app_id = app.id._id;
+      op.buyer = "bob";
+      op.active = bob_auth.active;
+      op.validate();
+
+      signed_transaction tx;
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(op);
+      tx.sign(bob_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      const auto& app_buy = db->get_application_buying( "bob", app.id._id );
+
+      BOOST_REQUIRE( app_buy.app_id == app.id );
+      BOOST_REQUIRE( app_buy.buyer == "bob" );
+      validate_database();
+
+      BOOST_TEST_MESSAGE( "--- Test normal application delete" );
+      application_delete_operation op_d;
+      op_d.fee = ASSET( "0.100000 SPHTX" );
+      op_d.name = "test_app";
+      op_d.author = "alice";
+      op_d.active = alice_auth.active;
+      op_d.validate();
+
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(op_d);
+      tx.sign(alice_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      BOOST_REQUIRE_THROW( db->get_application( "test_app" ), fc::exception );
+
+      BOOST_TEST_MESSAGE( "--- Test application buy object deleting" );
+      BOOST_REQUIRE_THROW( db->get_application_buying( "bob", app.id._id ), fc::exception );
 
       validate_database();
 

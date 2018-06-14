@@ -428,11 +428,19 @@ const application_object &database::get_application(const string &name) const
       return get< application_object, by_name >( name );
    } FC_CAPTURE_AND_RETHROW( (name) )
 }
-const application_buying_object &database::get_application_buying(const account_name_type &buyer, const std::string &app_name) const
+
+const application_object &database::get_application_by_id(  const application_id_type id )const
 {
     try {
-       return get< application_buying_object, by_buyer_app >( boost::make_tuple(buyer, app_name) );
-    } FC_CAPTURE_AND_RETHROW( (buyer)(app_name) )
+       return get< application_object, by_id >( id );
+    } FC_CAPTURE_AND_RETHROW( (id) )
+}
+
+const application_buying_object &database::get_application_buying(const account_name_type &buyer, const application_id_type app_id) const
+{
+    try {
+       return get< application_buying_object, by_buyer_app >( boost::make_tuple(buyer, app_id) );
+    } FC_CAPTURE_AND_RETHROW( (buyer)(app_id) )
 }
 
 const dynamic_global_property_object&database::get_dynamic_global_properties() const
@@ -2003,7 +2011,6 @@ void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
       uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
-      const auto &gpo = get_dynamic_global_properties();
       const auto &econ = get_economic_model();
       share_type supply_increase = 0;
       uint64_t id = batch;

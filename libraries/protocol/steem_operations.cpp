@@ -393,18 +393,12 @@ namespace steem { namespace protocol {
    void buy_application_operation::validate() const
    {
       validate_account_name( buyer );
-      FC_ASSERT( app_name.size() <= STEEM_MAX_PERMLINK_LENGTH, "Name is too long" );
-      FC_ASSERT( app_name.size() > 0, "Name size must be greater than 0" );
-      FC_ASSERT( fc::is_utf8( app_name ), "Name is not valid UTF8" );
    }
 
    void cancel_application_buying_operation::validate() const
    {
        validate_account_name( app_owner );
        validate_account_name( buyer );
-       FC_ASSERT( app_name.size() <= STEEM_MAX_PERMLINK_LENGTH, "Name is too long" );
-       FC_ASSERT( app_name.size() > 0, "Name size must be greater than 0" );
-       FC_ASSERT( fc::is_utf8( app_name ), "Name is not valid UTF8" );
    }
 
 } } // steem::protocol

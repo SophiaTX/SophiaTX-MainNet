@@ -709,7 +709,7 @@ namespace detail
       CHECK_ARG_SIZE( 3 )
       FC_ASSERT( _database_api, "database_api_plugin not enabled." );
 
-      return _database_api->get_application_buyings({ args[0].as<string>(), args[1].as< uint32_t >(), args[2].as< string >()}).application_buyings;
+      return _database_api->get_application_buyings({ args[0], args[1].as< uint32_t >(), args[2].as< string >()}).application_buyings;
    }
 
   

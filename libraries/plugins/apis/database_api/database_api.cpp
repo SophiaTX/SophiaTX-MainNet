@@ -563,9 +563,9 @@ DEFINE_API_IMPL( database_api_impl, get_application_buyings )
                result.application_buyings,
                args.limit,
                [&]( const application_buying_object& a ){ return api_application_buying_object( a ); } );
-   } else if(args.search_type == "by_app_name") {
-       iterate_results< chain::application_buying_index, chain::by_name >(
-               args.start.as<string>(),
+   } else if(args.search_type == "by_app_id") {
+       iterate_results< chain::application_buying_index, chain::by_app_id >(
+               args.start.as<application_id_type>(),
                result.application_buyings,
                args.limit,
                [&]( const application_buying_object& a ){ return api_application_buying_object( a ); } );

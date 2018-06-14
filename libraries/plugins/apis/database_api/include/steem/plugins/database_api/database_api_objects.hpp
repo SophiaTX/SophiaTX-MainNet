@@ -304,7 +304,7 @@ struct api_application_buying_object
 {
     api_application_buying_object( const application_buying_object& a ) :
         id( a.id ),
-        app_name( a.app_name ),
+        app_id( a.app_id._id ),
         buyer( a.buyer ),
         created( a.created )
     {}
@@ -312,7 +312,7 @@ struct api_application_buying_object
     api_application_buying_object() {}
 
     application_buying_id_type id;
-    string                  app_name;
+    int64_t                 app_id;
     account_name_type       buyer;
     time_point_sec          created;
 };
@@ -405,7 +405,7 @@ FC_REFLECT( steem::plugins::database_api::api_application_object,
 
 FC_REFLECT( steem::plugins::database_api::api_application_buying_object,
             (id)
-            (app_name)
+            (app_id)
             (buyer)
             (created)
          )

@@ -1796,7 +1796,7 @@ wallet_api::delete_application(string author, authority active_auth, string app_
     FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(broadcast) )
 }
 
-annotated_signed_transaction wallet_api::buy_application(string buyer, authority active_auth, string app_name, bool broadcast)
+annotated_signed_transaction wallet_api::buy_application(string buyer, authority active_auth, int64_t app_id, bool broadcast)
 {
     try
     {
@@ -1805,7 +1805,7 @@ annotated_signed_transaction wallet_api::buy_application(string buyer, authority
        buy_application_operation op;
        op.buyer = buyer;
        op.active = active_auth;
-       op.app_name = app_name;
+       op.app_id = app_id;
 
        signed_transaction tx;
        tx.operations.push_back(op);
@@ -1813,10 +1813,10 @@ annotated_signed_transaction wallet_api::buy_application(string buyer, authority
 
        return my->sign_transaction( tx, broadcast );
     }
-    FC_CAPTURE_AND_RETHROW( (buyer)(active_auth)(app_name)(broadcast) )
+    FC_CAPTURE_AND_RETHROW( (buyer)(active_auth)(app_id)(broadcast) )
 }
 
-annotated_signed_transaction wallet_api::cancel_application_buying(string app_owner, string buyer, authority active_auth, string app_name, bool broadcast)
+annotated_signed_transaction wallet_api::cancel_application_buying(string app_owner, string buyer, authority active_auth, int64_t app_id, bool broadcast)
 {
     try
     {
@@ -1826,7 +1826,7 @@ annotated_signed_transaction wallet_api::cancel_application_buying(string app_ow
        op.app_owner = app_owner;
        op.buyer = buyer;
        op.active = active_auth;
-       op.app_name = app_name;
+       op.app_id = app_id;
 
        signed_transaction tx;
        tx.operations.push_back(op);
@@ -1834,7 +1834,7 @@ annotated_signed_transaction wallet_api::cancel_application_buying(string app_ow
 
        return my->sign_transaction( tx, broadcast );
     }
-    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(active_auth)(app_name)(broadcast) )
+    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(active_auth)(app_id)(broadcast) )
 }
 
 vector<condenser_api::api_application_buying_object> wallet_api::get_application_buyings(string name, string search_type, uint32_t count)
