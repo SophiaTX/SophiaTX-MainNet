@@ -72,6 +72,7 @@ class database_api
          //////////////////
 
          (list_applications)
+         (list_application_buys)
 
          ////////////////////////////
          // Authority / validation //

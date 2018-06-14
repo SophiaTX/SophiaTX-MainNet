@@ -1793,7 +1793,48 @@ wallet_api::delete_application(string author, authority active_auth, string app_
 
       return my->sign_transaction( tx, broadcast );
    }
-   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(broadcast) )
+    FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(broadcast) )
+}
+
+annotated_signed_transaction wallet_api::buy_application(string buyer, authority active_auth, string app_name, bool broadcast)
+{
+    try
+    {
+       FC_ASSERT( !is_locked() );
+
+       application_buy_operation op;
+       op.buyer = buyer;
+       op.active = active_auth;
+       op.app_name = app_name;
+
+       signed_transaction tx;
+       tx.operations.push_back(op);
+       tx.validate();
+
+       return my->sign_transaction( tx, broadcast );
+    }
+    FC_CAPTURE_AND_RETHROW( (buyer)(active_auth)(app_name)(broadcast) )
+}
+
+annotated_signed_transaction wallet_api::cancel_buy_application(string app_owner, string buyer, authority active_auth, string app_name, bool broadcast)
+{
+    try
+    {
+       FC_ASSERT( !is_locked() );
+
+       application_cancel_buy_operation op;
+       op.app_owner = app_owner;
+       op.buyer = buyer;
+       op.active = active_auth;
+       op.app_name = app_name;
+
+       signed_transaction tx;
+       tx.operations.push_back(op);
+       tx.validate();
+
+       return my->sign_transaction( tx, broadcast );
+    }
+    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(active_auth)(app_name)(broadcast) )
 }
 
 annotated_signed_transaction
@@ -1899,7 +1940,7 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, aut
       return my->sign_transaction( tx, broadcast );
 
    }FC_CAPTURE_AND_RETHROW( (account_name)(owner_auth)(broadcast))
-};
+}
 
 } } // steem::wallet
 

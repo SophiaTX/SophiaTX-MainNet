@@ -800,6 +800,29 @@ class wallet_api
       annotated_signed_transaction delete_application( string author, authority active_auth, string app_name,
                                                        bool broadcast );
 
+      /**
+      *  This method will create application buy object
+      *
+      *  @param buyer The buyer of application
+      *  @param active_auth The active authority for that account
+      *  @param app_name The name of app that buyer will buy
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction buy_application( string buyer, authority active_auth, string app_name,
+                                                       bool broadcast );
+
+      /**
+      *  This method will cancel application buy object
+      *
+      *  @param app_owner The owner of bought application
+      *  @param buyer The buyer of application
+      *  @param active_auth The active authority for application owner
+      *  @param app_name The name of bought app
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction cancel_buy_application( string app_owner, string buyer, authority active_auth,
+                                                           string app_name, bool broadcast );
+
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
@@ -935,6 +958,8 @@ FC_API( steem::wallet::wallet_api,
         (create_application)
         (update_application)
         (delete_application)
+        (buy_application)
+        (cancel_buy_application)
 
         /// helper api
         (get_prototype_operation)

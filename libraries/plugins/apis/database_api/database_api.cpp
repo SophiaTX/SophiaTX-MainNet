@@ -44,6 +44,7 @@ class database_api_impl
          (verify_account_authority)
          (verify_signatures)
          (list_applications)
+         (list_application_buys)
          (get_promotion_pool_balance)
       )
 
@@ -549,6 +550,40 @@ DEFINE_API_IMPL( database_api_impl, list_applications )
    return result;
 }
 
+DEFINE_API_IMPL( database_api_impl, list_application_buys )
+{
+   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+
+   list_application_buys_return result;
+   result.application_buys.reserve( args.limit );
+
+   switch( args.order )
+   {
+      case( by_name ):
+      {
+         iterate_results< chain::application_buy_index, chain::by_name >(
+                 args.start.as<string>(),
+                 result.application_buys,
+                 args.limit,
+                 [&]( const application_buy_object& a ){ return api_application_buy_object( a ); } );
+         break;
+      }
+      case( by_author ):
+      {
+         iterate_results< chain::application_buy_index, chain::by_author >(
+                 args.start.as< protocol::account_name_type >(),
+                 result.application_buys,
+                 args.limit,
+                 [&]( const application_buy_object& a ){ return api_application_buy_object( a ); } );
+         break;
+      }
+      default:
+         FC_ASSERT( false, "Unknown or unsupported sort order" );
+   }
+
+   return result;
+}
+
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
 // Authority / Validation                                           //
@@ -702,6 +737,7 @@ DEFINE_READ_APIS( database_api,
    (verify_account_authority)
    (verify_signatures)
    (list_applications)
+   (list_application_buys)
    (get_promotion_pool_balance)
 )
 

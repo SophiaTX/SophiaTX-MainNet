@@ -23,9 +23,7 @@ using namespace std;
 
 bool generate_private_key(char *private_key) {
    try {
-      char seed[16];
-      fc::rand_bytes(seed, sizeof(seed));
-      private_key_type priv_key = fc::ecc::private_key::regenerate( fc::sha256::hash(seed) );
+      private_key_type priv_key = fc::ecc::private_key::generate();
       strcpy(private_key, key_to_wif(priv_key).c_str());
       return true;
    } catch (const fc::exception& e) {
