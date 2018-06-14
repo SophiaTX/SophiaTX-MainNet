@@ -66,7 +66,8 @@ void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    const account_object& acn = _db.get_account( o.owner ); // verify owner exists
-   FC_ASSERT( acn.vesting_shares.amount >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, "witness requires at least ${a} of vested balance", ("a", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE) );
+   const auto& gpo = _db.get_dynamic_global_properties();
+   FC_ASSERT( acn.vesting_shares >= gpo.witness_required_vesting , "witness requires at least ${a} of vested balance", ("a", gpo.witness_required_vesting) );
 
    if( _db.is_producing() )
    {
@@ -550,6 +551,7 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 {
    const auto& account = _db.get_account( o.account );
+   const auto& gpo = _db.get_dynamic_global_properties();
 
    FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient Steem Power for withdraw." );
    FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient Steem Power for withdraw." );
@@ -585,7 +587,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.withdrawn = 0;
 
          auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
