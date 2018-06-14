@@ -820,8 +820,17 @@ class wallet_api
       *  @param app_name The name of bought app
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction cancel_buy_application( string app_owner, string buyer, authority active_auth,
+      annotated_signed_transaction cancel_application_buying( string app_owner, string buyer, authority active_auth,
                                                            string app_name, bool broadcast );
+
+      /**
+       * Get all app buyings by app_name or buyer
+       * @param name Application name or buyers name
+       * @param search_type One of "by_buyer", "by_app_name"
+       * @param count Number of items to retrieve
+       * @return
+       */
+      vector< condenser_api::api_application_buying_object >  get_application_buyings(string name, string search_type, uint32_t count);
 
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
@@ -959,7 +968,8 @@ FC_API( steem::wallet::wallet_api,
         (update_application)
         (delete_application)
         (buy_application)
-        (cancel_buy_application)
+        (cancel_application_buying)
+        (get_application_buyings)
 
         /// helper api
         (get_prototype_operation)

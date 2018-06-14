@@ -29,13 +29,13 @@ namespace steem { namespace chain {
             application_price_param price_param = none;
         };
 
-        class application_buy_object : public object< application_buy_object_type, application_buy_object >
+        class application_buying_object : public object< application_buying_object_type, application_buying_object >
         {
-            application_buy_object() = delete;
+            application_buying_object() = delete;
 
         public:
             template<typename Constructor, typename Allocator>
-            application_buy_object( Constructor&& c, allocator< Allocator > a )
+            application_buying_object( Constructor&& c, allocator< Allocator > a )
             {
                 c(*this);
             };
@@ -61,26 +61,27 @@ namespace steem { namespace chain {
 
 
         struct by_buyer_app;
+
         typedef multi_index_container<
-                application_buy_object,
+                application_buying_object,
                 indexed_by<
-                ordered_unique< tag< by_id >, member< application_buy_object, application_buy_id_type, &application_buy_object::id > >,
-                ordered_non_unique< tag< by_name >,  member<application_buy_object, string, &application_buy_object::app_name > >,
-                ordered_non_unique< tag< by_author >, member<application_buy_object, account_name_type, &application_buy_object::buyer > >,
+                ordered_unique< tag< by_id >, member< application_buying_object, application_buying_id_type, &application_buying_object::id > >,
+                ordered_non_unique< tag< by_name >,  member<application_buying_object, string, &application_buying_object::app_name > >,
+                ordered_non_unique< tag< by_author >, member<application_buying_object, account_name_type, &application_buying_object::buyer > >,
                 ordered_unique< tag< by_buyer_app >,
-                   composite_key< application_buy_object,
-                      member< application_buy_object, account_name_type,  &application_buy_object::buyer >,
-                      member< application_buy_object, string, &application_buy_object::app_name >
+                   composite_key< application_buying_object,
+                      member< application_buying_object, account_name_type,  &application_buying_object::buyer >,
+                      member< application_buying_object, string, &application_buying_object::app_name >
                    >
                 >
         >,
-        allocator< application_buy_object >
-        > application_buy_index;
+        allocator< application_buying_object >
+        > application_buying_index;
 
     } }
 
 FC_REFLECT( steem::chain::application_object, (id)(name)(author)(url)(metadata)(price_param))
 CHAINBASE_SET_INDEX_TYPE( steem::chain::application_object, steem::chain::application_index )
 
-FC_REFLECT( steem::chain::application_buy_object, (id)(buyer)(app_name)(created))
-CHAINBASE_SET_INDEX_TYPE( steem::chain::application_buy_object, steem::chain::application_buy_index )
+FC_REFLECT( steem::chain::application_buying_object, (id)(buyer)(app_name)(created))
+CHAINBASE_SET_INDEX_TYPE( steem::chain::application_buying_object, steem::chain::application_buying_index )

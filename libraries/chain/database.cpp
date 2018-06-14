@@ -428,10 +428,10 @@ const application_object &database::get_application(const string &name) const
       return get< application_object, by_name >( name );
    } FC_CAPTURE_AND_RETHROW( (name) )
 }
-const application_buy_object &database::get_application_buying(const account_name_type &buyer, const std::string &app_name) const
+const application_buying_object &database::get_application_buying(const account_name_type &buyer, const std::string &app_name) const
 {
     try {
-       return get< application_buy_object, by_buyer_app >( boost::make_tuple(buyer, app_name) );
+       return get< application_buying_object, by_buyer_app >( boost::make_tuple(buyer, app_name) );
     } FC_CAPTURE_AND_RETHROW( (buyer)(app_name) )
 }
 
@@ -1399,6 +1399,8 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_create_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
+   _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif
@@ -1453,6 +1455,7 @@ void database::initialize_indexes()
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
    add_core_index< application_index                       >(*this);
+   add_core_index< application_buying_index                   >(*this);
    add_core_index< custom_content_index                    >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);

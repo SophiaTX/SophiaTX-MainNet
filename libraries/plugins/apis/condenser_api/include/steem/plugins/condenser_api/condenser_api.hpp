@@ -327,6 +327,8 @@ struct api_application_object
    application_price_param                         price_param;
 };
 
+typedef steem::plugins::database_api::api_application_buying_object api_application_buying_object;
+
 struct state
 {
    string                                             current_route;
@@ -362,6 +364,7 @@ struct get_version_return
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
 typedef map< uint64_t, api_received_object >      get_received_documents_return_type;
+typedef vector< api_application_buying_object > get_application_buyings_return_type;
 
 
 #define DEFINE_API_ARGS( api_name, arg_type, return_type )  \
@@ -408,7 +411,9 @@ DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   ne
 DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
 DEFINE_API_ARGS( get_promotion_pool_balance,             vector< variant >,   legacy_asset)
-DEFINE_API_ARGS( get_received_documents,                           vector< variant >,   get_received_documents_return_type )
+DEFINE_API_ARGS( get_received_documents,                 vector< variant >,   get_received_documents_return_type )
+DEFINE_API_ARGS( get_application_buyings,                vector< variant >,   get_application_buyings_return_type )
+
 #undef DEFINE_API_ARGS
 
 class condenser_api
@@ -459,6 +464,7 @@ public:
       (broadcast_block)
       (get_applications)
       (get_promotion_pool_balance)
+      (get_application_buyings)
    )
 
    private:
@@ -556,4 +562,3 @@ FC_REFLECT( steem::plugins::condenser_api::api_application_object,
             (metadata)
             (price_param)
 )
-

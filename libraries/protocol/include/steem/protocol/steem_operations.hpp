@@ -708,7 +708,7 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
       void validate()const;
    };
 
-   struct application_buy_operation : public base_operation {
+   struct buy_application_operation : public base_operation {
 
       account_name_type             buyer;
       authority                     active;
@@ -720,7 +720,7 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
       void validate()const;
    };
 
-   struct application_cancel_buy_operation : public base_operation {
+   struct cancel_application_buying_operation : public base_operation {
 
       account_name_type             app_owner;
       account_name_type             buyer;
@@ -850,7 +850,7 @@ FC_REFLECT_DERIVED( steem::protocol::application_create_operation, (steem::proto
 FC_REFLECT_DERIVED( steem::protocol::application_update_operation, (steem::protocol::base_operation), (author)(active)(new_author)(name)(url)(metadata)(price_param) )
 FC_REFLECT_DERIVED( steem::protocol::application_delete_operation, (steem::protocol::base_operation), (author)(active)(name) )
 FC_REFLECT_ENUM( steem::protocol::application_price_param, (permanent)(time_based)(none) )
-FC_REFLECT_DERIVED( steem::protocol::application_buy_operation, (steem::protocol::base_operation), (buyer)(active)(app_name) )
-FC_REFLECT_DERIVED( steem::protocol::application_cancel_buy_operation, (steem::protocol::base_operation), (app_owner)(buyer)(active)(app_name) )
+FC_REFLECT_DERIVED( steem::protocol::buy_application_operation, (steem::protocol::base_operation), (buyer)(active)(app_name) )
+FC_REFLECT_DERIVED( steem::protocol::cancel_application_buying_operation, (steem::protocol::base_operation), (app_owner)(buyer)(active)(app_name) )
 FC_REFLECT_DERIVED( steem::protocol::change_recovery_account_operation, (steem::protocol::base_operation), (account_to_recover)(new_recovery_account)(extensions) );
 FC_REFLECT_DERIVED( steem::protocol::transfer_from_promotion_pool_operation, (steem::protocol::base_operation), (transfer_to)(amount)(extensions))

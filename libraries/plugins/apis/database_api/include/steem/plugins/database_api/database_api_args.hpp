@@ -330,16 +330,16 @@ struct list_applications_return
     vector< api_application_object > applications;
 };
 
-struct list_application_buys_args
+struct get_application_buyings_args
 {
     fc::variant       start;
     uint32_t          limit;
-    sort_order_type   order;
+    string            search_type;
 };
 
-struct list_application_buys_return
+struct get_application_buyings_return
 {
-    vector< api_application_buy_object > application_buys;
+    vector< api_application_buying_object > application_buyings;
 };
   
 typedef void_type get_promotion_pool_balance_args;
@@ -491,11 +491,11 @@ FC_REFLECT( steem::plugins::database_api::list_applications_args,
 FC_REFLECT( steem::plugins::database_api::list_applications_return,
             (applications) )
 
-FC_REFLECT( steem::plugins::database_api::list_application_buys_args,
-            (start)(limit)(order) )
+FC_REFLECT( steem::plugins::database_api::get_application_buyings_args,
+            (start)(limit)(search_type) )
 
-FC_REFLECT( steem::plugins::database_api::list_application_buys_return,
-            (application_buys) )
+FC_REFLECT( steem::plugins::database_api::get_application_buyings_return,
+            (application_buyings) )
 
 #ifdef STEEM_ENABLE_SMT
 FC_REFLECT( steem::plugins::database_api::get_smt_next_identifier_return,

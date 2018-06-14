@@ -1802,7 +1802,7 @@ annotated_signed_transaction wallet_api::buy_application(string buyer, authority
     {
        FC_ASSERT( !is_locked() );
 
-       application_buy_operation op;
+       buy_application_operation op;
        op.buyer = buyer;
        op.active = active_auth;
        op.app_name = app_name;
@@ -1816,13 +1816,13 @@ annotated_signed_transaction wallet_api::buy_application(string buyer, authority
     FC_CAPTURE_AND_RETHROW( (buyer)(active_auth)(app_name)(broadcast) )
 }
 
-annotated_signed_transaction wallet_api::cancel_buy_application(string app_owner, string buyer, authority active_auth, string app_name, bool broadcast)
+annotated_signed_transaction wallet_api::cancel_application_buying(string app_owner, string buyer, authority active_auth, string app_name, bool broadcast)
 {
     try
     {
        FC_ASSERT( !is_locked() );
 
-       application_cancel_buy_operation op;
+       cancel_application_buying_operation op;
        op.app_owner = app_owner;
        op.buyer = buyer;
        op.active = active_auth;
@@ -1835,6 +1835,13 @@ annotated_signed_transaction wallet_api::cancel_buy_application(string app_owner
        return my->sign_transaction( tx, broadcast );
     }
     FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(active_auth)(app_name)(broadcast) )
+}
+
+vector<condenser_api::api_application_buying_object> wallet_api::get_application_buyings(string name, string search_type, uint32_t count)
+{
+    try{
+       return my->_remote_api->get_application_buyings(name, count, search_type);
+    }FC_CAPTURE_AND_RETHROW((name)(search_type)(count))
 }
 
 annotated_signed_transaction

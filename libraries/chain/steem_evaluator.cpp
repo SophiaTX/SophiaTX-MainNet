@@ -1021,13 +1021,17 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
    _db.remove(application);
 }
 
-void application_buy_evaluator::do_apply( const application_buy_operation& o )
+void buy_application_evaluator::do_apply( const buy_application_operation& o )
 {
    _db.get_application( o.app_name );
 
+   const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_buyer_app >();
+   auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_name) );
+   FC_ASSERT(request == app_buy_idx.end(), "This buying already exisit" );
+
    verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
 
-   _db.create< application_buy_object >( [&]( application_buy_object& app_buy )
+   _db.create< application_buying_object >( [&]( application_buying_object& app_buy )
                                    {
                                         app_buy.buyer = o.buyer;
                                         app_buy.app_name = o.app_name;
@@ -1035,7 +1039,7 @@ void application_buy_evaluator::do_apply( const application_buy_operation& o )
                                    });
 }
 
-void application_cancel_buy_evaluator::do_apply( const application_cancel_buy_operation& o )
+void cancel_application_buying_evaluator::do_apply( const cancel_application_buying_operation& o )
 {
    const auto& application = _db.get_application( o.app_name );
    const auto& app_buying = _db.get_application_buying( o.buyer, o.app_name );

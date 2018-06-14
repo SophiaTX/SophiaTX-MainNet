@@ -44,7 +44,7 @@ class database_api_impl
          (verify_account_authority)
          (verify_signatures)
          (list_applications)
-         (list_application_buys)
+         (get_application_buyings)
          (get_promotion_pool_balance)
       )
 
@@ -550,37 +550,28 @@ DEFINE_API_IMPL( database_api_impl, list_applications )
    return result;
 }
 
-DEFINE_API_IMPL( database_api_impl, list_application_buys )
+DEFINE_API_IMPL( database_api_impl, get_application_buyings )
 {
    FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
 
-   list_application_buys_return result;
-   result.application_buys.reserve( args.limit );
+   get_application_buyings_return result;
+   result.application_buyings.reserve( args.limit );
 
-   switch( args.order )
-   {
-      case( by_name ):
-      {
-         iterate_results< chain::application_buy_index, chain::by_name >(
-                 args.start.as<string>(),
-                 result.application_buys,
-                 args.limit,
-                 [&]( const application_buy_object& a ){ return api_application_buy_object( a ); } );
-         break;
-      }
-      case( by_author ):
-      {
-         iterate_results< chain::application_buy_index, chain::by_author >(
-                 args.start.as< protocol::account_name_type >(),
-                 result.application_buys,
-                 args.limit,
-                 [&]( const application_buy_object& a ){ return api_application_buy_object( a ); } );
-         break;
-      }
-      default:
-         FC_ASSERT( false, "Unknown or unsupported sort order" );
+   if(args.search_type == "by_buyer") {
+       iterate_results< chain::application_buying_index, chain::by_author >(
+               args.start.as<account_name_type>(),
+               result.application_buyings,
+               args.limit,
+               [&]( const application_buying_object& a ){ return api_application_buying_object( a ); } );
+   } else if(args.search_type == "by_app_name") {
+       iterate_results< chain::application_buying_index, chain::by_name >(
+               args.start.as<string>(),
+               result.application_buyings,
+               args.limit,
+               [&]( const application_buying_object& a ){ return api_application_buying_object( a ); } );
+   } else {
+      FC_ASSERT( false, "Unknown search type argument" );
    }
-
    return result;
 }
 
@@ -737,7 +728,7 @@ DEFINE_READ_APIS( database_api,
    (verify_account_authority)
    (verify_signatures)
    (list_applications)
-   (list_application_buys)
+   (get_application_buyings)
    (get_promotion_pool_balance)
 )
 
