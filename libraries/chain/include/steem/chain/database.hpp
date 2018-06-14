@@ -294,6 +294,9 @@ namespace steem { namespace chain {
          void        vest( const account_name_type& name, const share_type delta);
 
          void        vest( const account_object& a, const share_type delta);
+         void        create_vesting( const account_object& a, const asset& delta);
+         void        create_vesting( const account_name_type& name, const asset& delta);
+
          void        adjust_balance( const account_object& a, const asset& delta );
          void        adjust_balance( const account_name_type& name, const asset& delta );
          void        adjust_supply( const asset& delta );

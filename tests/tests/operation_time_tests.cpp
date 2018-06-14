@@ -275,88 +275,87 @@ BOOST_AUTO_TEST_CASE( interests )
    }FC_LOG_AND_RETHROW()
 }
 
-BOOST_AUTO_TEST_CASE( sbd_interest )
+
+BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 {
-   //TODO_SOPHIA rework
-   /*try
-   {
+   try{
+      BOOST_TEST_MESSAGE( "Testing: witness_increase_vesting" );
       ACTORS( (alice)(bob) )
-      generate_block();
-      vest( "alice", ASSET( "10.000 TESTS" ) );
-      vest( "bob", ASSET( "10.000 TESTS" ) );
+      fund( "alice", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( "alice", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      private_key_type signing_key = generate_private_key( "new_key" );
 
-      set_price_feed( price( ASSET( "1.000 TBD" ), ASSET( "1.000 TESTS" ) ) );
+      BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness" );
+      witness_update_operation op;
+      op.owner = "alice";
+      op.url = "foo.bar";
+      op.block_signing_key = signing_key.get_public_key();
+      op.props.account_creation_fee = ASSET("1.000000 SPHTX");
+      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
 
-      BOOST_TEST_MESSAGE( "Testing interest over smallest interest period" );
-
-      convert_operation op;
       signed_transaction tx;
-
-      fund( "alice", ASSET( "31.903 TBD" ) );
-
-      auto start_time = db->get_account( "alice" ).sbd_seconds_last_update;
-      auto alice_sbd = db->get_account( "alice" ).sbd_balance;
-
-      generate_blocks( db->head_block_time() + fc::seconds( STEEM_SBD_INTEREST_COMPOUND_INTERVAL_SEC ), true );
-
-      transfer_operation transfer;
-      transfer.to = "bob";
-      transfer.from = "alice";
-      transfer.amount = ASSET( "1.000 TBD" );
-      tx.operations.clear();
-      tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
-      tx.operations.push_back( transfer );
+      tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
+
       db->push_transaction( tx, 0 );
 
-      auto gpo = db->get_dynamic_global_properties();
-      auto interest_op = get_last_operations( 1 )[0].get< interest_operation >();
+      const witness_object& alice_witness = db->get_witness( "alice" );
 
-      BOOST_REQUIRE( gpo.sbd_interest_rate > 0 );
-      BOOST_REQUIRE( static_cast<uint64_t>(db->get_account( "alice" ).sbd_balance.amount.value) == alice_sbd.amount.value - ASSET( "1.000 TBD" ).amount.value + ( ( ( ( uint128_t( alice_sbd.amount.value ) * ( db->head_block_time() - start_time ).to_seconds() ) / STEEM_SECONDS_PER_YEAR ) * gpo.sbd_interest_rate ) / STEEM_100_PERCENT ).to_uint64() );
-      BOOST_REQUIRE( interest_op.owner == "alice" );
-      BOOST_REQUIRE( interest_op.interest.amount.value == db->get_account( "alice" ).sbd_balance.amount.value - ( alice_sbd.amount.value - ASSET( "1.000 TBD" ).amount.value ) );
-      validate_database();
+      BOOST_REQUIRE( alice_witness.owner == "alice" );
 
-      BOOST_TEST_MESSAGE( "Testing interest under interest period" );
+      generate_block();
 
-      start_time = db->get_account( "alice" ).sbd_seconds_last_update;
-      alice_sbd = db->get_account( "alice" ).sbd_balance;
+      withdraw_vesting_operation wop;
+      wop.account = "alice";
+      wop.vesting_shares = ASSET("1000.000000 SPHTX");
 
-      generate_blocks( db->head_block_time() + fc::seconds( STEEM_SBD_INTEREST_COMPOUND_INTERVAL_SEC / 2 ), true );
-
-      tx.operations.clear();
-      tx.signatures.clear();
-      tx.operations.push_back( transfer );
+      tx.clear();
       tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+
+      tx.operations.push_back( wop );
       tx.sign( alice_private_key, db->get_chain_id() );
+
+      STEEM_REQUIRE_THROW(db->push_transaction( tx, 0 ), fc::exception);
+
+
+
+      generate_blocks( STEEM_BLOCKS_PER_DAY * 1);
+
+      fund( "bob", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( "bob", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+
+
+      BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness shall fail due to insufficient funds" );
+      op.owner = "bob";
+      op.url = "foo.bar";
+      op.block_signing_key = signing_key.get_public_key();
+      op.props.account_creation_fee = ASSET("1.000000 SPHTX");
+      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
+
+      tx.clear();
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      tx.sign( bob_private_key, db->get_chain_id() );
+
+      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+
+      vest( "bob", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+
+      tx.clear();
+      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      tx.sign( bob_private_key, db->get_chain_id() );
+
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).sbd_balance.amount.value == alice_sbd.amount.value - ASSET( "1.000 TBD" ).amount.value );
-      validate_database();
+      const witness_object& bob_witness = db->get_witness( "bob" );
 
-      auto alice_coindays = uint128_t( alice_sbd.amount.value ) * ( db->head_block_time() - start_time ).to_seconds();
-      alice_sbd = db->get_account( "alice" ).sbd_balance;
-      start_time = db->get_account( "alice" ).sbd_seconds_last_update;
+      BOOST_REQUIRE( bob_witness.owner == "bob" );
 
-      BOOST_TEST_MESSAGE( "Testing longer interest period" );
 
-      generate_blocks( db->head_block_time() + fc::seconds( ( STEEM_SBD_INTEREST_COMPOUND_INTERVAL_SEC * 7 ) / 3 ), true );
-
-      tx.operations.clear();
-      tx.signatures.clear();
-      tx.operations.push_back( transfer );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
-      db->push_transaction( tx, 0 );
-
-      BOOST_REQUIRE( static_cast<uint64_t>(db->get_account( "alice" ).sbd_balance.amount.value) == alice_sbd.amount.value - ASSET( "1.000 TBD" ).amount.value + ( ( ( ( uint128_t( alice_sbd.amount.value ) * ( db->head_block_time() - start_time ).to_seconds() + alice_coindays ) / STEEM_SECONDS_PER_YEAR ) * gpo.sbd_interest_rate ) / STEEM_100_PERCENT ).to_uint64() );
-      validate_database();
-   }
-   FC_LOG_AND_RETHROW();*/
+   }FC_LOG_AND_RETHROW()
 }
-
 
 BOOST_AUTO_TEST_CASE( clear_null_account )
 {
