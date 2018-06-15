@@ -81,7 +81,7 @@ namespace steem { namespace wallet {
 
    api_documentation::api_documentation()
    {
-      fc::api<wallet_api> tmp;
+      fc::api<alexandria_api> tmp;
       detail::help_visitor visitor;
       tmp->visit(visitor);
       std::copy(visitor.method_descriptions.begin(), visitor.method_descriptions.end(),

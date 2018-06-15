@@ -78,12 +78,8 @@ int main( int argc, char** argv )
          ("rpc-tls-certificate,c", bpo::value<string>()->implicit_value("server.pem"), "PEM certificate for wallet websocket TLS RPC")
          ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for wallet HTTP RPC to listen on")
          ("daemon,d", "Run the wallet in daemon mode" )
-         ("rpc-http-allowip", bpo::value<vector<string>>()->multitoken(), "Allows only specified IPs to connect to the HTTP endpoint" )
-         ("wallet-file,w", bpo::value<string>()->implicit_value("wallet.json"), "wallet to load")
-#ifdef IS_TEST_NET
-         ("chain-id", bpo::value< std::string >()->implicit_value( STEEM_CHAIN_ID_NAME ), "chain ID to connect to")
-#endif
-         ;
+         ("rpc-http-allowip", bpo::value<vector<string>>()->multitoken(), "Allows only specified IPs to connect to the HTTP endpoint" );
+
       vector<string> allowed_ips;
 
       bpo::variables_map options;
@@ -101,11 +97,6 @@ int main( int argc, char** argv )
       }
 
       steem::protocol::chain_id_type _steem_chain_id;
-
-#ifdef IS_TEST_NET
-      if( options.count("chain-id") )
-            _steem_chain_id = generate_chain_id( options["chain-id"].as< std::string >() );
-#endif
 
       fc::path data_dir;
       fc::logging_config cfg;
@@ -129,62 +120,30 @@ int main( int argc, char** argv )
       cfg.loggers.back().level = fc::log_level::debug;
       cfg.loggers.back().appenders = {"rpc"};
 
-
-      //
-      // TODO:  We read wallet_data twice, once in main() to grab the
-      //    socket info, again in wallet_api when we do
-      //    load_wallet_file().  Seems like this could be better
-      //    designed.
-      //
-      wallet_data wdata;
-
-      fc::path wallet_file( options.count("wallet-file") ? options.at("wallet-file").as<string>() : "wallet.json");
-      if( fc::exists( wallet_file ) )
-      {
-         wdata = fc::json::from_file( wallet_file ).as<wallet_data>();
-      }
-      else
-      {
-         std::cout << "Starting a new wallet\n";
-      }
-
+      string ws_server;
       // but allow CLI to override
       if( options.count("server-rpc-endpoint") )
-         wdata.ws_server = options.at("server-rpc-endpoint").as<std::string>();
+         ws_server = options.at("server-rpc-endpoint").as<std::string>();
 
       fc::http::websocket_client client( options["cert-authority"].as<std::string>() );
-      idump((wdata.ws_server));
-      auto con  = client.connect( wdata.ws_server );
+      auto con  = client.connect( ws_server );
       auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
 
       auto remote_api = apic->get_remote_api< steem::wallet::remote_node_api >( 0, "condenser_api" );
 
-      auto wapiptr = std::make_shared<wallet_api>( wdata, _steem_chain_id, remote_api );
-      wapiptr->set_wallet_filename( wallet_file.generic_string() );
-      wapiptr->load_wallet_file();
+      auto alex_apiptr = std::make_shared<alexandria_api>( ws_server, _steem_chain_id, remote_api );
 
-      fc::api<wallet_api> wapi(wapiptr);
+      fc::api<alexandria_api> alex_api(alex_apiptr);
 
-      auto wallet_cli = std::make_shared<fc::rpc::cli>();
-      for( auto& name_formatter : wapiptr->get_result_formatters() )
-         wallet_cli->format_result( name_formatter.first, name_formatter.second );
+      auto alexandria_deamon = std::make_shared<fc::rpc::cli>();
+      for( auto& name_formatter : alex_apiptr->get_result_formatters() )
+         alexandria_deamon->format_result( name_formatter.first, name_formatter.second );
 
       boost::signals2::scoped_connection closed_connection(con->closed.connect([=]{
          cerr << "Server has disconnected us.\n";
-         wallet_cli->stop();
+         alexandria_deamon->stop();
       }));
       (void)(closed_connection);
-
-      if( wapiptr->is_new() )
-      {
-         std::cout << "Please use the set_password method to initialize a new wallet before continuing\n";
-         wallet_cli->set_prompt( "new >>> " );
-      } else
-         wallet_cli->set_prompt( "locked >>> " );
-
-      boost::signals2::scoped_connection locked_connection(wapiptr->lock_changed.connect([&](bool locked) {
-         wallet_cli->set_prompt(  locked ? "locked >>> " : "unlocked >>> " );
-      }));
 
       auto _websocket_server = std::make_shared<fc::http::websocket_server>();
       if( options.count("rpc-endpoint") )
@@ -193,7 +152,7 @@ int main( int argc, char** argv )
             std::cout << "here... \n";
             wlog("." );
             auto wsc = std::make_shared<fc::rpc::websocket_api_connection>(*c);
-            wsc->register_api(wapi);
+            wsc->register_api(alex_api);
             c->set_session_data( wsc );
          });
          ilog( "Listening for incoming RPC requests on ${p}", ("p", options.at("rpc-endpoint").as<string>() ));
@@ -210,7 +169,7 @@ int main( int argc, char** argv )
       {
          _websocket_tls_server->on_connection([&]( const fc::http::websocket_connection_ptr& c ){
             auto wsc = std::make_shared<fc::rpc::websocket_api_connection>(*c);
-            wsc->register_api(wapi);
+            wsc->register_api(alex_api);
             c->set_session_data( wsc );
          });
          ilog( "Listening for incoming TLS RPC requests on ${p}", ("p", options.at("rpc-tls-endpoint").as<string>() ));
@@ -242,16 +201,16 @@ int main( int argc, char** argv )
                }
                std::shared_ptr< fc::rpc::http_api_connection > conn =
                   std::make_shared< fc::rpc::http_api_connection>();
-               conn->register_api( wapi );
+               conn->register_api( alex_api );
                conn->on_request( req, resp );
             } );
       }
 
       if( !options.count( "daemon" ) )
       {
-         wallet_cli->register_api( wapi );
-         wallet_cli->start();
-         wallet_cli->wait();
+         alexandria_deamon->register_api( alex_api );
+         alexandria_deamon->start();
+         alexandria_deamon->wait();
       }
       else
       {
@@ -264,8 +223,6 @@ int main( int argc, char** argv )
         exit_promise->wait();
       }
 
-      wapi->save_wallet_file(wallet_file.generic_string());
-      locked_connection.disconnect();
       closed_connection.disconnect();
    }
    catch ( const fc::exception& e )

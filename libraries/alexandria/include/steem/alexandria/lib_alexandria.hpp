@@ -52,15 +52,6 @@ struct brain_key_info
    string               wif_priv_key;
 };
 
-struct wallet_data
-{
-   vector<char>              cipher_keys; /** encrypted keys */
-
-   string                    ws_server = "ws://localhost:8090";
-   string                    ws_user;
-   string                    ws_password;
-};
-
 enum authority_type
 {
    owner,
@@ -68,21 +59,14 @@ enum authority_type
 };
 
 namespace detail {
-class wallet_api_impl;
+class alexandria_api_impl;
 }
 
-/**
- * This wallet assumes it is connected to the database server with a high-bandwidth, low-latency connection and
- * performs minimal caching. This API could be provided locally to be used by a web interface.
- */
-class wallet_api
+class alexandria_api
 {
    public:
-      wallet_api( const wallet_data& initial_data, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi );
-      virtual ~wallet_api();
-
-      bool copy_wallet_file( string destination_filename );
-
+      alexandria_api( const string& _ws_server, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi );
+      virtual ~alexandria_api();
 
       /** Returns a list of all commands supported by the wallet API.
        *
@@ -134,11 +118,6 @@ class wallet_api
        */
       condenser_api::state get_state( string url );
 
-      /**
-       *  Gets the account information for all accounts for which this wallet has a private key
-       */
-      vector< condenser_api::api_account_object > list_my_accounts();
-
       /** Lists all accounts registered in the blockchain.
        * This returns a list of all account names and their account ids, sorted by account name.
        *
@@ -168,122 +147,16 @@ class wallet_api
        */
       condenser_api::api_account_object get_account( string account_name ) const;
 
-      /** Returns the current wallet filename.
-       *
-       * This is the filename that will be used when automatically saving the wallet.
-       *
-       * @see set_wallet_filename()
-       * @return the wallet filename
-       */
-      string                            get_wallet_filename() const;
-
-      /**
-       * Get the WIF private key corresponding to a public key.  The
-       * private key must already be in the wallet.
-       */
-      string                            get_private_key( public_key_type pubkey )const;
-
-      /**
-       *  @param account  - the name of the account to retrieve key for
-       *  @param role     - active | owner  | memo
-       *  @param password - the password to be used at key generation
-       *  @return public key corresponding to generated private key, and private key in WIF format.
-       */
-      pair<public_key_type,string>  get_private_key_from_password( string account, string role, string password )const;
-
-
       /**
        * Returns transaction by ID.
        */
       annotated_signed_transaction get_transaction( transaction_id_type trx_id )const;
-
-      /** Checks whether the wallet has just been created and has not yet had a password set.
-       *
-       * Calling \c set_password will transition the wallet to the locked state.
-       * @return true if the wallet is new
-       * @ingroup Wallet Management
-       */
-      bool    is_new()const;
-
-      /** Checks whether the wallet is locked (is unable to use its private keys).
-       *
-       * This state can be changed by calling \c lock() or \c unlock().
-       * @return true if the wallet is locked
-       * @ingroup Wallet Management
-       */
-      bool    is_locked()const;
-
-      /** Locks the wallet immediately.
-       * @ingroup Wallet Management
-       */
-      void    lock();
-
-      /** Unlocks the wallet.
-       *
-       * The wallet remain unlocked until the \c lock is called
-       * or the program exits.
-       * @param password the password previously set with \c set_password()
-       * @ingroup Wallet Management
-       */
-      void    unlock(string password);
-
-      /** Sets a new password on the wallet.
-       *
-       * The wallet must be either 'new' or 'unlocked' to
-       * execute this command.
-       * @ingroup Wallet Management
-       */
-      void    set_password(string password);
-
-      /** Dumps all private keys owned by the wallet.
-       *
-       * The keys are printed in WIF format.  You can import these keys into another wallet
-       * using \c import_key()
-       * @returns a map containing the private keys, indexed by their public key
-       */
-      map<public_key_type, string> list_keys();
 
       /** Returns detailed help on a single API command.
        * @param method the name of the API command you want help with
        * @returns a multi-line string suitable for displaying on a terminal
        */
       string  gethelp(const string& method)const;
-
-      /** Loads a specified Graphene wallet.
-       *
-       * The current wallet is closed before the new wallet is loaded.
-       *
-       * @warning This does not change the filename that will be used for future
-       * wallet writes, so this may cause you to overwrite your original
-       * wallet unless you also call \c set_wallet_filename()
-       *
-       * @param wallet_filename the filename of the wallet JSON file to load.
-       *                        If \c wallet_filename is empty, it reloads the
-       *                        existing wallet file
-       * @returns true if the specified wallet is loaded
-       */
-      bool    load_wallet_file(string wallet_filename = "");
-
-      /** Saves the current wallet to the given filename.
-       *
-       * @warning This does not change the wallet filename that will be used for future
-       * writes, so think of this function as 'Save a Copy As...' instead of
-       * 'Save As...'.  Use \c set_wallet_filename() to make the filename
-       * persist.
-       * @param wallet_filename the filename of the new wallet JSON file to create
-       *                        or overwrite.  If \c wallet_filename is empty,
-       *                        save to the current filename.
-       */
-      void    save_wallet_file(string wallet_filename = "");
-
-      /** Sets the wallet filename used for future writes.
-       *
-       * This does not trigger a save, it only changes the default filename
-       * that will be used the next time a save is triggered.
-       *
-       * @param wallet_filename the new filename to use for future saves
-       */
-      void    set_wallet_filename(string wallet_filename);
 
       /** Suggests a safe brain key to use for creating your account.
        * \c create_account_with_brain_key() requires you to specify a 'brain key',
@@ -304,14 +177,6 @@ class wallet_api
        *          in it
        */
       string serialize_transaction(signed_transaction tx) const;
-
-      /** Imports a WIF Private Key into the wallet to be used to sign transactions by an account.
-       *
-       * example: import_key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
-       *
-       * @param wif_key the WIF Private Key to import
-       */
-      bool import_key( string wif_key );
 
       /** Transforms a brain key to reduce the chance of errors when re-entering the key from memory.
        *
@@ -355,81 +220,18 @@ class wallet_api
        * @param memo New public memo key for the account
        * @param broadcast true if you wish to broadcast the transaction
        */
-      annotated_signed_transaction update_account( string accountname,
+      operation update_account( string accountname,
                                          string json_meta,
                                          public_key_type owner,
                                          public_key_type active,
-                                         public_key_type memo,
-                                         bool broadcast )const;
-
-      /**
-       * This method updates the key of an authority for an exisiting account.
-       * Warning: You can create impossible authorities using this method. The method
-       * will fail if you create an impossible owner authority, but will allow impossible
-       * active authorities.
-       *
-       * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner or active
-       * @param key The public key to add to the authority
-       * @param weight The weight the key should have in the authority. A weight of 0 indicates the removal of the key.
-       * @param broadcast true if you wish to broadcast the transaction.
-       */
-      annotated_signed_transaction update_account_auth_key( string account_name, authority_type type, public_key_type key, weight_type weight, bool broadcast );
-
-      /**
-       * This method updates the account of an authority for an exisiting account.
-       * Warning: You can create impossible authorities using this method. The method
-       * will fail if you create an impossible owner authority, but will allow impossible
-       * active authorities.
-       *
-       * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner or active
-       * @param auth_account The account to add the the authority
-       * @param weight The weight the account should have in the authority. A weight of 0 indicates the removal of the account.
-       * @param broadcast true if you wish to broadcast the transaction.
-       */
-      annotated_signed_transaction update_account_auth_account( string account_name, authority_type type, string auth_account, weight_type weight, bool broadcast );
-
-      /**
-       * This method updates the weight threshold of an authority for an account.
-       * Warning: You can create impossible authorities using this method as well
-       * as implicitly met authorities. The method will fail if you create an implicitly
-       * true authority and if you create an impossible owner authoroty, but will allow
-       * impossible active authorities.
-       *
-       * @param account_name The name of the account whose authority you wish to update
-       * @param type The authority type. e.g. owner or active
-       * @param threshold The weight threshold required for the authority to be met
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction update_account_auth_threshold( string account_name, authority_type type, uint32_t threshold, bool broadcast );
-
-      /**
-       * This method updates the account JSON metadata
-       *
-       * @param account_name The name of the account you wish to update
-       * @param json_meta The new JSON metadata for the account. This overrides existing metadata
-       * @param broadcast ture if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction update_account_meta( string account_name, string json_meta, bool broadcast );
-
-      /**
-       * This method updates the memo key of an account
-       *
-       * @param account_name The name of the account you wish to update
-       * @param key The new memo public key
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction update_account_memo_key( string account_name, public_key_type key, bool broadcast );
+                                         public_key_type memo )const;
 
      /**
       * This method deletes an existing account.
       *
       * @param account_name The name of the account you wish to delete
-      * @param owner_auth The owner authority for this account
-      * @param broadcast true if you wish to broadcast the transaction.
       */
-      annotated_signed_transaction delete_account( string account_name, authority owner_auth, bool broadcast );
+      operation delete_account( string account_name);
 
       /**
        *  This method is used to convert a JSON transaction to its transaction ID.
@@ -466,11 +268,10 @@ class wallet_api
        * @param props The chain properties the witness is voting on.
        * @param broadcast true if you wish to broadcast the transaction.
        */
-      annotated_signed_transaction update_witness(string witness_name,
-                                        string url,
-                                        public_key_type block_signing_key,
-                                        const chain_properties& props,
-                                        bool broadcast = false);
+      operation update_witness(string witness_name,
+                                string url,
+                                public_key_type block_signing_key,
+                                const chain_properties& props);
 
       /**
        * Stop being a witness, effectively deleting the witness object owned by the given account.
@@ -732,16 +533,6 @@ class wallet_api
       vector< database_api::api_owner_authority_history_object > get_owner_history( string account )const;
 
       /**
-       *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
-       *  returns operations in the range [from-limit, from]
-       *
-       *  @param account - account whose history will be returned
-       *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
-       *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
-       */
-      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
-
-      /**
       *  This method will create new application object. There is a fee associated with account creation
       *  that is paid by the creator. The current account creation fee can be found with the
       *  'info' wallet command.
@@ -752,11 +543,9 @@ class wallet_api
       *  @param url The url of the new application
       *  @param meta_data The meta data of new application
       *  @param price_param The price parameter that specifies billing for the app
-      *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction create_application( string author, authority active_auth, string app_name,
-                                                       string url, string meta_data, uint8_t price_param,
-                                                       bool broadcast );
+      operation create_application( string author, authority active_auth, string app_name,
+                                                       string url, string meta_data, uint8_t price_param);
 
       /**
       *  This method will update existing application object.
@@ -768,11 +557,10 @@ class wallet_api
       *  @param url Updated url
       *  @param meta_data Updated meta data
       *  @param price_param Updated price param
-      *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction update_application( string author, authority active_auth, string app_name,
+      operation update_application( string author, authority active_auth, string app_name,
                                                        string new_author, string url, string meta_data,
-                                                       uint8_t price_param, bool broadcast );
+                                                       uint8_t price_param);
 
       /**
       *  This method will delete specified application object.
@@ -780,10 +568,8 @@ class wallet_api
       *  @param author The author of application that will be deleted
       *  @param active_auth The active authority for that account
       *  @param app_name The name of app that will be deleted
-      *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction delete_application( string author, authority active_auth, string app_name,
-                                                       bool broadcast );
+      operation delete_application( string author, authority active_auth, string app_name);
 
       /**
       *  This method will create application buy object
@@ -791,10 +577,8 @@ class wallet_api
       *  @param buyer The buyer of application
       *  @param active_auth The active authority for that account
       *  @param app_id The id of app that buyer will buy
-      *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction buy_application( string buyer, authority active_auth, int64_t app_id,
-                                                       bool broadcast );
+      operation buy_application( string buyer, authority active_auth, int64_t app_id);
 
       /**
       *  This method will cancel application buy object
@@ -803,10 +587,9 @@ class wallet_api
       *  @param buyer The buyer of application
       *  @param active_auth The active authority for application owner
       *  @param app_id The id of bought app
-      *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction cancel_application_buying( string app_owner, string buyer, authority active_auth,
-                                                           int64_t app_id, bool broadcast );
+      operation cancel_application_buying( string app_owner, string buyer, authority active_auth,
+                                                           int64_t app_id);
 
       /**
        * Get all app buyings by app_name or buyer
@@ -820,24 +603,7 @@ class wallet_api
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
-      fc::signal<void(bool)> lock_changed;
-      std::shared_ptr<detail::wallet_api_impl> my;
-      void encrypt_keys();
-
-      /**
-       * Checks memos against private keys on account and imported in wallet
-       */
-      void check_memo( const string& memo, const condenser_api::api_account_object& account )const;
-
-      /**
-       *  Returns the encrypted memo if memo starts with '#' otherwise returns memo
-       */
-      string get_encrypted_memo( string from, string to, string memo );
-
-      /**
-       * Returns the decrypted memo if possible given wallet's known private keys
-       */
-      string decrypt_memo( string memo );
+      std::shared_ptr<detail::alexandria_api_impl> my;
 
       /**
        * Send custom JSON data
@@ -845,10 +611,9 @@ class wallet_api
        * @param from Sender
        * @param to List of receivers
        * @param json Data formatted in JSON
-       * @param broadcast true if you wish to broadcast the transaction
        * @return
        */
-      annotated_signed_transaction send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json, bool broadcast);
+      operation send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json);
 
       /**
        * Send custom data data
@@ -856,10 +621,9 @@ class wallet_api
        * @param from Sender
        * @param to List of receivers
        * @param data Data formatted in base58.
-       *  @param broadcast true if you wish to broadcast the transaction
        * @return
        */
-      annotated_signed_transaction send_custom_binary_document(uint32_t app_id, string from, vector<string> to, string data, bool broadcast);
+      operation send_custom_binary_document(uint32_t app_id, string from, vector<string> to, string data);
 
       /**
        * Get all recevied custom jsons and data.
@@ -887,73 +651,50 @@ struct plain_keys {
 
 } }
 
-FC_REFLECT( steem::wallet::wallet_data,
-            (cipher_keys)
-            (ws_server)
-            (ws_user)
-            (ws_password)
-          )
-
 FC_REFLECT( steem::wallet::brain_key_info, (brain_priv_key)(wif_priv_key) (pub_key))
 
 FC_REFLECT( steem::wallet::plain_keys, (checksum)(keys) )
 
 FC_REFLECT_ENUM( steem::wallet::authority_type, (owner)(active) )
 
-FC_API( steem::wallet::wallet_api,
+FC_API( steem::wallet::alexandria_api,
         /// wallet api
         (help)(gethelp)
-        (about)(is_new)(is_locked)(lock)(unlock)(set_password)
-        (load_wallet_file)(save_wallet_file)
+        (about)
 
         /// key api
-        (import_key)
         (suggest_brain_key)
-        (list_keys)
-        (get_private_key)
-        (get_private_key_from_password)
         (normalize_brain_key)
 
         /// query api
         (info)
-        (list_my_accounts)
-        (list_accounts)
         (list_witnesses)
         (get_witness)
         (get_account)
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
-        (get_account_history)
         (get_state)
 
         /// transaction api
         (create_account)
         (update_account)
-        (update_account_auth_key)
-        (update_account_auth_account)
-        (update_account_auth_threshold)
-        (update_account_meta)
-        (update_account_memo_key)
         (delete_account)
         (update_witness)
-        (set_voting_proxy)
-        (vote_for_witness)
-        (transfer)
-        (escrow_transfer)
-        (escrow_approve)
-        (escrow_dispute)
-        (escrow_release)
-        (transfer_to_vesting)
-        (withdraw_vesting)
-        (publish_feed)
-        (set_transaction_expiration)
-        (request_account_recovery)
-        (recover_account)
-        (change_recovery_account)
-        (get_owner_history)
-        (get_encrypted_memo)
-        (decrypt_memo)
+//        (set_voting_proxy)
+//        (vote_for_witness)
+//        (transfer)
+//        (escrow_transfer)
+//        (escrow_approve)
+//        (escrow_dispute)
+//        (escrow_release)
+//        (transfer_to_vesting)
+//        (withdraw_vesting)
+//        (publish_feed)
+//        (set_transaction_expiration)
+//        (request_account_recovery)
+//        (recover_account)
+//        (change_recovery_account)
         (create_application)
         (update_application)
         (delete_application)
