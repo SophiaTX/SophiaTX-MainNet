@@ -21,10 +21,12 @@ using namespace steem::protocol;
 using namespace fc::ecc;
 using namespace std;
 
-bool generate_private_key(char *private_key) {
+bool generate_private_key(char *private_key, char *public_key) {
    try {
       private_key_type priv_key = fc::ecc::private_key::generate();
+      public_key_type pub_key = priv_key.get_public_key();
       strcpy(private_key, key_to_wif(priv_key).c_str());
+      strcpy(public_key, string( pub_key ).c_str());
       return true;
    } catch (const fc::exception& e) {
       return false;

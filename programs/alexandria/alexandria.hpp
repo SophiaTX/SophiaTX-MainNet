@@ -5,10 +5,11 @@ extern "C" {
 
    /**
     * Generates private_key in WIF format based on random seed.
-    * @param private_key - return parameter of size 52
+    * @param private_key - return parameter of size 51
+    * @param public_key - return paramter of size 53
     * @return - true if operation is successful
     */
-   bool generate_private_key(char* private_key);
+   bool generate_private_key(char* private_key, char* public_key);
 
    /**
     * Creates digest of JSON formatted transaction

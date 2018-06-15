@@ -966,6 +966,7 @@ FC_API( steem::wallet::wallet_api,
         (serialize_transaction)
         (broadcast_transaction)
         (create_transaction)
+        (get_digest)
 
         (get_active_witnesses)
         (get_transaction)

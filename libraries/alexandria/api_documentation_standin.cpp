@@ -23,8 +23,8 @@
  */
 #include <iomanip>
 #include <boost/algorithm/string/join.hpp>
-#include <steem/wallet/wallet.hpp>
-#include <steem/wallet/api_documentation.hpp>
+#include <steem/alexandria/lib_alexandria.hpp>
+#include <steem/alexandria//api_documentation.hpp>
 
 namespace steem { namespace wallet {
    namespace detail {
