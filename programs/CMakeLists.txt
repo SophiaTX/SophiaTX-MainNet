@@ -4,6 +4,7 @@ add_subdirectory( steemd )
 add_subdirectory( js_operation_serializer )
 add_subdirectory( size_checker )
 add_subdirectory( util )
+add_subdirectory( alexandria_deamon )
 
 if(BUILD_PIC)
     add_subdirectory( alexandria )
