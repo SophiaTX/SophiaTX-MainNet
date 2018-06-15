@@ -491,7 +491,9 @@ asset database::process_operation_fee( const operation& op )
          asset req_fee = bop.get_required_fee(bop.fee.symbol);
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          FC_ASSERT(bop.fee >= req_fee);
-         const auto& fee_payer = db->get_account(bop.get_fee_payer());
+         auto sponsor = db->get_sponsor(bop.get_fee_payer());
+         const auto& fee_payer = db->get_account(sponsor? *sponsor : bop.get_fee_payer());
+
          asset to_pay;
          if(bop.fee.symbol==STEEM_SYMBOL){
             to_pay = bop.fee;
@@ -506,6 +508,13 @@ asset database::process_operation_fee( const operation& op )
    op_visitor op_v(this);
    asset paid_fee = op.visit(op_v);
    return paid_fee;
+}
+
+optional<account_name_type> database::get_sponsor(const account_name_type& who) const{
+   const account_fee_sponsor_object* s = find< account_fee_sponsor_object, by_sponsored >( who );
+   if(s)
+      return s->sponsor;
+   return optional<account_name_type>();
 }
 
 uint32_t database::witness_participation_rate()const
@@ -1448,6 +1457,7 @@ void database::initialize_indexes()
    add_core_index< escrow_index                            >(*this);
    add_core_index< application_index                       >(*this);
    add_core_index< custom_content_index                    >(*this);
+   add_core_index< account_fee_sponsor_index               >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
    add_core_index< account_regular_balance_index           >(*this);

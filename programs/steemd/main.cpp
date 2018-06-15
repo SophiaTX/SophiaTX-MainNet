@@ -25,6 +25,8 @@
 #include <csignal>
 #include <vector>
 
+#include <fc/crypto/rand.hpp>
+
 namespace bpo = boost::program_options;
 using steem::protocol::version;
 using std::string;
@@ -110,6 +112,7 @@ int main( int argc, char** argv )
       appbase::app().startup();
       appbase::app().exec();
       std::cout << "exited cleanly\n";
+
       return 0;
    }
    catch ( const boost::exception& e )

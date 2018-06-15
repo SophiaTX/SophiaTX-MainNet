@@ -1039,6 +1039,23 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
    _db.push_virtual_operation(wop);
 }
 
+void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
+{
+   const auto& sponsor_obj = _db.get_account(op.sponsor);
+   const auto& sponsored_obj = _db.get_account(op.sponsored);
+   optional< account_name_type > existing_sponsor = _db.get_sponsor(op.sponsored);
+   if(op.is_sponsoring){
+      FC_ASSERT(!existing_sponsor, "This account is already sponsored");
+      _db.create<account_fee_sponsor_object>([&](account_fee_sponsor_object& o){
+         o.sponsor = op.sponsor;
+         o.sponsored = op.sponsored;
+      });
+   }else{
+      FC_ASSERT( *existing_sponsor == op.sponsor, "You are not sponsoring this account" );
+      _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
+   }
+}
+
 #ifdef STEEM_ENABLE_SMT
 void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_operation& op )
 {

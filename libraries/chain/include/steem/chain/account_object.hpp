@@ -162,6 +162,21 @@ namespace steem { namespace chain {
          time_point_sec    effective_on;
    };
 
+   class account_fee_sponsor_object : public object<account_fee_sponsor_object_type, account_fee_sponsor_object>
+   {
+   public:
+      template< typename Constructor, typename Allocator >
+      account_fee_sponsor_object( Constructor&& c, allocator< Allocator > a )
+      {
+         c( *this );
+      }
+
+      id_type        id;
+
+      account_name_type sponsor;
+      account_name_type sponsored;
+   };
+
    struct by_name;
    struct by_proxy;
    struct by_next_vesting_withdrawal;
@@ -283,7 +298,33 @@ namespace steem { namespace chain {
       >,
       allocator< change_recovery_account_request_object >
    > change_recovery_account_request_index;
+
+   struct by_sponsor;
+   struct by_sponsored;
+
+   typedef multi_index_container <
+      account_fee_sponsor_object,
+      indexed_by <
+         ordered_unique< tag<by_id>,
+            member< account_fee_sponsor_object, account_fee_sponsor_id_type, &account_fee_sponsor_object::id >
+         >,
+         ordered_unique< tag<by_sponsored>,
+            member< account_fee_sponsor_object, account_name_type, &account_fee_sponsor_object::sponsored >
+         >,
+         ordered_unique< tag<by_sponsor>,
+            composite_key< account_fee_sponsor_object,
+               member< account_fee_sponsor_object, account_name_type, &account_fee_sponsor_object::sponsor >,
+               member< account_fee_sponsor_object, account_name_type, &account_fee_sponsor_object::sponsored >
+            >,
+            composite_key_compare< std::less< account_name_type >, std::less< account_name_type > >
+         >
+      >,
+      allocator<account_fee_sponsor_object>
+   > account_fee_sponsor_index;
+
 } }
+
+
 
 FC_REFLECT( steem::chain::account_object,
              (id)(name)(memo_key)(json_metadata)(proxy)(last_account_update)
@@ -314,3 +355,7 @@ FC_REFLECT( steem::chain::change_recovery_account_request_object,
              (id)(account_to_recover)(recovery_account)(effective_on)
           )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::change_recovery_account_request_object, steem::chain::change_recovery_account_request_index )
+
+FC_REFLECT( steem::chain::account_fee_sponsor_object, (id)(sponsor)(sponsored))
+
+CHAINBASE_SET_INDEX_TYPE( steem::chain::account_fee_sponsor_object, steem::chain::account_fee_sponsor_index )

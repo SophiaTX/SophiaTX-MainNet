@@ -764,6 +764,25 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
        void validate() const;
     };
 
+    /**
+     * Allow sponsoring someone elses fees
+     */
+     struct sponsor_fees_operation : public base_operation
+     {
+        account_name_type sponsor;
+        account_name_type sponsored;
+        bool              is_sponsoring;
+        extensions_type   extensions;             ///< Extensions. Not currently used.
+
+
+        account_name_type get_fee_payer()const { return sponsor;};
+        asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
+
+        void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert( sponsor ); }
+
+        void validate() const;
+     };
+
 
 } } // steem::protocol
 
@@ -828,3 +847,4 @@ FC_REFLECT_DERIVED( steem::protocol::application_delete_operation, (steem::proto
 FC_REFLECT_ENUM( steem::protocol::application_price_param, (permanent)(time_based)(none) )
 FC_REFLECT_DERIVED( steem::protocol::change_recovery_account_operation, (steem::protocol::base_operation), (account_to_recover)(new_recovery_account)(extensions) );
 FC_REFLECT_DERIVED( steem::protocol::transfer_from_promotion_pool_operation, (steem::protocol::base_operation), (transfer_to)(amount)(extensions))
+FC_REFLECT_DERIVED( steem::protocol::sponsor_fees_operation, (steem::protocol::base_operation), (sponsor)(sponsored)(is_sponsoring) )

@@ -73,7 +73,8 @@ namespace steem { namespace protocol {
             hardfork_operation,
             producer_reward_operation,
             promotion_pool_withdraw_operation,
-            transfer_from_promotion_pool_operation
+            transfer_from_promotion_pool_operation,
+            sponsor_fees_operation
          > operation;
 
    /*void operation_get_required_authorities( const operation& op,

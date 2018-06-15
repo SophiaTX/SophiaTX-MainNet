@@ -34,6 +34,7 @@ namespace steem { namespace chain {
          uint64_t             virtual_op = 0;
          time_point_sec       timestamp;
          buffer_type          serialized_op;
+         account_name_type    fee_payer;
    };
 
    struct by_location;
