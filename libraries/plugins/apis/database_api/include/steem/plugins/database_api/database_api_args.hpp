@@ -35,7 +35,9 @@ enum sort_order_type
    by_to_complete,
    by_account_expiration,
    by_price,
-   by_author
+   by_author,
+   by_buyer_app,
+   by_app_id
 };
 
 /* get_config */
@@ -329,6 +331,17 @@ struct list_applications_return
     vector< api_application_object > applications;
 };
 
+struct get_application_buyings_args
+{
+    fc::variant       start;
+    uint32_t          limit;
+    string            search_type;
+};
+
+struct get_application_buyings_return
+{
+    vector< api_application_buying_object > application_buyings;
+};
   
 typedef void_type get_promotion_pool_balance_args;
 typedef asset get_promotion_pool_balance_return;
@@ -363,7 +376,9 @@ FC_REFLECT_ENUM( steem::plugins::database_api::sort_order_type,
    (by_to_complete)
    (by_account_expiration)
    (by_price)
-   (by_author))
+   (by_author)
+   (by_buyer_app)
+   (by_app_id))
 
 
 FC_REFLECT( steem::plugins::database_api::get_current_price_feed_args,
@@ -477,6 +492,12 @@ FC_REFLECT( steem::plugins::database_api::list_applications_args,
 
 FC_REFLECT( steem::plugins::database_api::list_applications_return,
             (applications) )
+
+FC_REFLECT( steem::plugins::database_api::get_application_buyings_args,
+            (start)(limit)(search_type) )
+
+FC_REFLECT( steem::plugins::database_api::get_application_buyings_return,
+            (application_buyings) )
 
 #ifdef STEEM_ENABLE_SMT
 FC_REFLECT( steem::plugins::database_api::get_smt_next_identifier_return,

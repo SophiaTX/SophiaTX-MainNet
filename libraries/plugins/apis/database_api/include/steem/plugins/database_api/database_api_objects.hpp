@@ -300,6 +300,23 @@ struct api_application_object
     application_price_param                         price_param;
 };
 
+struct api_application_buying_object
+{
+    api_application_buying_object( const application_buying_object& a ) :
+        id( a.id ),
+        app_id( a.app_id._id ),
+        buyer( a.buyer ),
+        created( a.created )
+    {}
+
+    api_application_buying_object() {}
+
+    application_buying_id_type id;
+    int64_t                 app_id;
+    account_name_type       buyer;
+    time_point_sec          created;
+};
+
 
 } } } // steem::plugins::database_api
 
@@ -384,4 +401,11 @@ FC_REFLECT( steem::plugins::database_api::api_application_object,
             (url)
             (metadata)
             (price_param)
+         )
+
+FC_REFLECT( steem::plugins::database_api::api_application_buying_object,
+            (id)
+            (app_id)
+            (buyer)
+            (created)
          )

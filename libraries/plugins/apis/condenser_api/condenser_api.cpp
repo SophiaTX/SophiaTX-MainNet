@@ -73,6 +73,7 @@ namespace detail
             (get_applications)
             (get_promotion_pool_balance)
             (get_received_documents)
+            (get_application_buyings)
          )
 
 
@@ -703,6 +704,14 @@ namespace detail
       return result;
    }
 
+   DEFINE_API_IMPL( condenser_api_impl, get_application_buyings )
+   {
+      CHECK_ARG_SIZE( 3 )
+      FC_ASSERT( _database_api, "database_api_plugin not enabled." );
+
+      return _database_api->get_application_buyings({ args[0], args[1].as< uint32_t >(), args[2].as< string >()}).application_buyings;
+   }
+
   
    DEFINE_API_IMPL( condenser_api_impl, get_promotion_pool_balance )
    {
@@ -797,6 +806,7 @@ DEFINE_READ_APIS( condenser_api,
    (get_applications)
    (get_promotion_pool_balance)
    (get_received_documents)
+   (get_application_buyings)
 )
 
 } } } // steem::plugins::condenser_api

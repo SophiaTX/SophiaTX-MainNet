@@ -390,4 +390,15 @@ namespace steem { namespace protocol {
       FC_ASSERT(amount.amount > 0);
    }
 
+   void buy_application_operation::validate() const
+   {
+      validate_account_name( buyer );
+   }
+
+   void cancel_application_buying_operation::validate() const
+   {
+       validate_account_name( app_owner );
+       validate_account_name( buyer );
+   }
+
 } } // steem::protocol

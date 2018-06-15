@@ -429,6 +429,20 @@ const application_object &database::get_application(const string &name) const
    } FC_CAPTURE_AND_RETHROW( (name) )
 }
 
+const application_object &database::get_application_by_id(  const application_id_type id )const
+{
+    try {
+       return get< application_object, by_id >( id );
+    } FC_CAPTURE_AND_RETHROW( (id) )
+}
+
+const application_buying_object &database::get_application_buying(const account_name_type &buyer, const application_id_type app_id) const
+{
+    try {
+       return get< application_buying_object, by_buyer_app >( boost::make_tuple(buyer, app_id) );
+    } FC_CAPTURE_AND_RETHROW( (buyer)(app_id) )
+}
+
 const dynamic_global_property_object&database::get_dynamic_global_properties() const
 { try {
       return get< dynamic_global_property_object >();
@@ -1394,6 +1408,8 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_create_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
+   _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif
@@ -1448,6 +1464,7 @@ void database::initialize_indexes()
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
    add_core_index< application_index                       >(*this);
+   add_core_index< application_buying_index                   >(*this);
    add_core_index< custom_content_index                    >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
@@ -1994,9 +2011,7 @@ void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
       uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
-      const auto &gpo = get_dynamic_global_properties();
       const auto &econ = get_economic_model();
-      share_type supply = gpo.current_supply.amount;
       share_type supply_increase = 0;
       uint64_t id = batch;
       while( const account_object *a = find_account(id)) {
