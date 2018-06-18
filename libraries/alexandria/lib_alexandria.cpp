@@ -279,18 +279,14 @@ public:
       return accounts.front();
    }
 
-   signed_transaction set_voting_proxy(string account_to_modify, string proxy, bool broadcast /* = false */)
+   operation set_voting_proxy(string account_to_modify, string proxy)
    { try {
       account_witness_proxy_operation op;
       op.account = account_to_modify;
       op.proxy = proxy;
 
-      signed_transaction tx;
-      tx.operations.push_back( op );
-      tx.validate();
-
-      return sign_transaction( tx, broadcast );
-   } FC_CAPTURE_AND_RETHROW( (account_to_modify)(proxy)(broadcast) ) }
+      return op;
+   } FC_CAPTURE_AND_RETHROW( (account_to_modify)(proxy) ) }
 
    optional< condenser_api::api_witness_object > get_witness( string owner_account )
    {
@@ -626,8 +622,8 @@ optional< condenser_api::api_witness_object > alexandria_api::get_witness(string
    return my->get_witness(owner_account);
 }
 
-annotated_signed_transaction alexandria_api::set_voting_proxy(string account_to_modify, string voting_account, bool broadcast /* = false */)
-{ return my->set_voting_proxy(account_to_modify, voting_account, broadcast); }
+operation alexandria_api::set_voting_proxy(string account_to_modify, string voting_account)
+{ return my->set_voting_proxy(account_to_modify, voting_account); }
 
 annotated_signed_transaction alexandria_api::sign_transaction(signed_transaction tx, bool broadcast /* = false */)
 { try {
@@ -817,7 +813,7 @@ annotated_signed_transaction alexandria_api::stop_witness( string witness_accoun
    return my->sign_transaction( tx, broadcast );
 }
 
-annotated_signed_transaction alexandria_api::vote_for_witness(string voting_account, string witness_to_vote_for, bool approve, bool broadcast )
+operation alexandria_api::vote_for_witness(string voting_account, string witness_to_vote_for, bool approve )
 { try {
 
     account_witness_vote_operation op;
@@ -825,12 +821,8 @@ annotated_signed_transaction alexandria_api::vote_for_witness(string voting_acco
     op.witness = witness_to_vote_for;
     op.approve = approve;
 
-    signed_transaction tx;
-    tx.operations.push_back( op );
-    tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-} FC_CAPTURE_AND_RETHROW( (voting_account)(witness_to_vote_for)(approve)(broadcast) ) }
+   return op;
+} FC_CAPTURE_AND_RETHROW( (voting_account)(witness_to_vote_for)(approve)) }
 
 
 
@@ -961,33 +953,24 @@ annotated_signed_transaction alexandria_api::escrow_release(
 }
 
 
-annotated_signed_transaction alexandria_api::transfer_to_vesting(string from, string to, asset amount, bool broadcast )
+operation alexandria_api::transfer_to_vesting(string from, string to, asset amount)
 {
-
     transfer_to_vesting_operation op;
     op.from = from;
     op.to = (to == from ? "" : to);
     op.amount = amount;
 
-    signed_transaction tx;
-    tx.operations.push_back( op );
-    tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
+    return op;
 }
 
-annotated_signed_transaction alexandria_api::withdraw_vesting(string from, asset vesting_shares, bool broadcast )
+operation alexandria_api::withdraw_vesting(string from, asset vesting_shares)
 {
 
     withdraw_vesting_operation op;
     op.account = from;
     op.vesting_shares = vesting_shares;
 
-    signed_transaction tx;
-    tx.operations.push_back( op );
-    tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
+    return op;
 }
 
 annotated_signed_transaction alexandria_api::publish_feed(string witness, price exchange_rate, bool broadcast )
@@ -1157,14 +1140,17 @@ annotated_signed_transaction alexandria_api::broadcast_transaction(signed_transa
     }FC_CAPTURE_AND_RETHROW((tx))
 }
 
-signed_transaction alexandria_api::create_transaction(operation op) const
+signed_transaction alexandria_api::create_transaction(vector<operation> op_vec) const
 {
     try{
         signed_transaction tx;
-        tx.operations.push_back(op);
+        for(const auto& op : op_vec)
+        {
+            tx.operations.push_back(op);
+        }
         tx.validate();
         return tx;
-    }FC_CAPTURE_AND_RETHROW( (op))
+    }FC_CAPTURE_AND_RETHROW( (op_vec))
 }
 
 digest_type alexandria_api::get_digest(signed_transaction tx) const

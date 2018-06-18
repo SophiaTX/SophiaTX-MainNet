@@ -295,11 +295,8 @@ class alexandria_api
        *
        * @param account_to_modify the name or id of the account to update
        * @param proxy the name of account that should proxy to, or empty string to have no proxy
-       * @param broadcast true if you wish to broadcast the transaction
        */
-      annotated_signed_transaction set_voting_proxy(string account_to_modify,
-                                          string proxy,
-                                          bool broadcast = false);
+      operation set_voting_proxy(string account_to_modify, string proxy);
 
       /**
        * Vote for a witness to become a block producer. By default an account has not voted
@@ -310,12 +307,10 @@ class alexandria_api
        * @param account_to_vote_with The account voting for a witness
        * @param witness_to_vote_for The witness that is being voted for
        * @param approve true if the account is voting for the account to be able to be a block produce
-       * @param broadcast true if you wish to broadcast the transaction
        */
-      annotated_signed_transaction vote_for_witness(string account_to_vote_with,
+      operation vote_for_witness(string account_to_vote_with,
                                           string witness_to_vote_for,
-                                          bool approve = true,
-                                          bool broadcast = false);
+                                          bool approve = true);
 
       /**
        * Transfer funds from one account to another. STEEM can be transferred.
@@ -427,9 +422,8 @@ class alexandria_api
        * @param from The account the STEEM is coming from
        * @param to The account getting the VESTS
        * @param amount The amount of STEEM to vest i.e. "100.00 STEEM"
-       * @param broadcast true if you wish to broadcast the transaction
        */
-      annotated_signed_transaction transfer_to_vesting(string from, string to, asset amount, bool broadcast = false);
+      operation transfer_to_vesting(string from, string to, asset amoun);
 
    /**
     *  @param from       - the account that initiated the transfer
@@ -448,9 +442,8 @@ class alexandria_api
     * @param from The account the VESTS are withdrawn from
     * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
     *    withdrawn and deposited back as STEEM. i.e. "10.000000 VESTS"
-    * @param broadcast true if you wish to broadcast the transaction
     */
-      annotated_signed_transaction withdraw_vesting( string from, asset vesting_shares, bool broadcast = false );
+      operation withdraw_vesting( string from, asset vesting_shares);
 
       /**
        * A witness can public a price feed for the STEEM:SBD market. The median price feed is used
@@ -600,7 +593,6 @@ class alexandria_api
        */
       vector< condenser_api::api_application_buying_object >  get_application_buyings(string name, string search_type, uint32_t count);
 
-
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
       std::shared_ptr<detail::alexandria_api_impl> my;
@@ -638,7 +630,7 @@ class alexandria_api
 
       annotated_signed_transaction broadcast_transaction(signed_transaction tx) const;
 
-      signed_transaction create_transaction(operation op) const;
+      signed_transaction create_transaction(vector<operation> op_vec) const;
 
       digest_type get_digest(signed_transaction tx) const;
 
@@ -681,15 +673,15 @@ FC_API( steem::wallet::alexandria_api,
         (update_account)
         (delete_account)
         (update_witness)
-//        (set_voting_proxy)
-//        (vote_for_witness)
+        (set_voting_proxy)
+        (vote_for_witness)
 //        (transfer)
 //        (escrow_transfer)
 //        (escrow_approve)
 //        (escrow_dispute)
 //        (escrow_release)
-//        (transfer_to_vesting)
-//        (withdraw_vesting)
+        (transfer_to_vesting)
+        (withdraw_vesting)
 //        (publish_feed)
 //        (set_transaction_expiration)
 //        (request_account_recovery)
