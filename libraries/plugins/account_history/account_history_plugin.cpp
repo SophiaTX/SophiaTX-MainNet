@@ -73,6 +73,8 @@ struct operation_visitor
             obj.op_in_trx    = _note.op_in_trx;
             obj.virtual_op   = _note.virtual_op;
             obj.timestamp    = _db.head_block_time();
+
+            obj.fee_payer = _note.fee_payer;
             //fc::raw::pack( obj.serialized_op , _note.op);  //call to 'pack' is ambiguous
             auto size = fc::raw::pack_size( _note.op );
             obj.serialized_op.resize( size );
@@ -152,6 +154,7 @@ void account_history_plugin_impl::on_operation( const operation_notification& no
 
    const operation_object* new_obj = nullptr;
    app::operation_get_impacted_accounts( note.op, impacted );
+   impacted.insert(note.fee_payer);
 
    for( const auto& item : impacted ) {
       auto itr = _tracked_accounts.lower_bound( item );

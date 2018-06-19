@@ -235,7 +235,7 @@ int main( int argc, char** argv )
             [&]( const fc::http::request& req, const fc::http::server::response& resp )
             {
                auto itr = allowed_ip_set.find( fc::ip::endpoint::from_string(req.remote_endpoint).get_address() );
-               if( itr == allowed_ip_set.end() ) {
+               if( allowed_ip_set.size() && itr == allowed_ip_set.end() ) {
                   elog("rejected connection from ${ip} because it isn't in allowed set ${s}", ("ip",req.remote_endpoint)("s",allowed_ip_set) );
                   resp.set_status( fc::http::reply::NotAuthorized );
                   return;

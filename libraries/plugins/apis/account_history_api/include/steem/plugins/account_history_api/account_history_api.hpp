@@ -23,7 +23,8 @@ struct api_operation_object
       block( op_obj.block ),
       trx_in_block( op_obj.trx_in_block ),
       virtual_op( op_obj.virtual_op ),
-      timestamp( op_obj.timestamp )
+      timestamp( op_obj.timestamp ),
+      fee_payer( op_obj.fee_payer )
    {
       op = fc::raw::unpack_from_buffer< steem::protocol::operation >( op_obj.serialized_op );
    }
@@ -35,6 +36,7 @@ struct api_operation_object
    uint64_t                               virtual_op = 0;
    fc::time_point_sec                     timestamp;
    steem::protocol::operation             op;
+   string                                 fee_payer;
 };
 
 
@@ -90,7 +92,7 @@ class account_history_api
 } } } // steem::plugins::account_history
 
 FC_REFLECT( steem::plugins::account_history::api_operation_object,
-   (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op) )
+   (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op)(fee_payer) )
 
 FC_REFLECT( steem::plugins::account_history::get_ops_in_block_args,
    (block_num)(only_virtual) )

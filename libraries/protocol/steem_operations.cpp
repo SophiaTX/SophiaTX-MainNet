@@ -390,6 +390,12 @@ namespace steem { namespace protocol {
       FC_ASSERT(amount.amount > 0);
    }
 
+   void sponsor_fees_operation::validate() const
+   {
+      if(sponsor != "") validate_account_name(sponsor);
+      validate_account_name(sponsored);
+   }
+   
    void buy_application_operation::validate() const
    {
       validate_account_name( buyer );

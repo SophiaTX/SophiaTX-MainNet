@@ -34,6 +34,7 @@ namespace steem { namespace chain {
          uint64_t             virtual_op = 0;
          time_point_sec       timestamp;
          buffer_type          serialized_op;
+         account_name_type    fee_payer;
    };
 
    struct by_location;
@@ -98,7 +99,7 @@ namespace steem { namespace chain {
    > account_history_index;
 } }
 
-FC_REFLECT( steem::chain::operation_object, (id)(trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(serialized_op) )
+FC_REFLECT( steem::chain::operation_object, (id)(trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(serialized_op)(fee_payer) )
 CHAINBASE_SET_INDEX_TYPE( steem::chain::operation_object, steem::chain::operation_index )
 
 FC_REFLECT( steem::chain::account_history_object, (id)(account)(sequence)(op) )

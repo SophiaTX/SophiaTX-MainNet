@@ -505,7 +505,9 @@ asset database::process_operation_fee( const operation& op )
          asset req_fee = bop.get_required_fee(bop.fee.symbol);
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          FC_ASSERT(bop.fee >= req_fee);
-         const auto& fee_payer = db->get_account(bop.get_fee_payer());
+         auto sponsor = db->get_sponsor(bop.get_fee_payer());
+         const auto& fee_payer = db->get_account(sponsor? *sponsor : bop.get_fee_payer());
+
          asset to_pay;
          if(bop.fee.symbol==STEEM_SYMBOL){
             to_pay = bop.fee;
@@ -522,7 +524,32 @@ asset database::process_operation_fee( const operation& op )
    return paid_fee;
 }
 
-uint32_t database::witness_participation_rate()const
+account_name_type database::get_fee_payer(const operation& op){
+   class op_visitor{
+   public:
+      database* db;
+      op_visitor(database* _db){db = _db;};
+      typedef account_name_type result_type;
+      result_type operator()(const base_operation& bop){
+         auto sponsor = db->get_sponsor(bop.get_fee_payer());
+         return sponsor? *sponsor : bop.get_fee_payer();
+      }
+   };
+
+   op_visitor op_v(this);
+   return op.visit(op_v);
+}
+
+optional<account_name_type> database::get_sponsor(const account_name_type& who) const {
+   try {
+      const account_fee_sponsor_object *s = find<account_fee_sponsor_object, by_sponsored>(who);
+      if( s )
+         return s->sponsor;
+      return optional<account_name_type>();
+   } FC_LOG_AND_RETHROW()
+}
+
+   uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    return uint64_t(STEEM_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
@@ -921,6 +948,7 @@ void database::notify_pre_apply_operation( operation_notification& note )
    note.block        = _current_block_num;
    note.trx_in_block = _current_trx_in_block;
    note.op_in_trx    = _current_op_in_trx;
+
 
    STEEM_TRY_NOTIFY( pre_apply_operation, note )
 }
@@ -1415,7 +1443,7 @@ void database::initialize_evaluators()
 #endif
    _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
    _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
-
+   _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
 
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< smt_setup_evaluator                      >();
@@ -1466,6 +1494,7 @@ void database::initialize_indexes()
    add_core_index< application_index                       >(*this);
    add_core_index< application_buying_index                   >(*this);
    add_core_index< custom_content_index                    >(*this);
+   add_core_index< account_fee_sponsor_index               >(*this);
 #ifdef STEEM_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
    add_core_index< account_regular_balance_index           >(*this);
@@ -2168,6 +2197,9 @@ void database::_apply_transaction(const signed_transaction& trx)
 void database::apply_operation(const operation& op)
 {
    operation_notification note(op);
+
+   note.fee_payer = get_fee_payer(op);
+
    notify_pre_apply_operation( note );
    process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );
