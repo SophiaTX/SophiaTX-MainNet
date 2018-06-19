@@ -65,7 +65,7 @@ class alexandria_api_impl;
 class alexandria_api
 {
    public:
-      alexandria_api( const string& _ws_server, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi );
+      alexandria_api( const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi );
       virtual ~alexandria_api();
 
       /** Returns a list of all commands supported by the wallet API.
@@ -112,11 +112,6 @@ class alexandria_api
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)
        */
       vector< account_name_type > get_active_witnesses()const;
-
-      /**
-       * Returns the state info associated with the URL
-       */
-      condenser_api::state get_state( string url );
 
       /** Lists all accounts registered in the blockchain.
        * This returns a list of all account names and their account ids, sorted by account name.
@@ -277,10 +272,8 @@ class alexandria_api
        * Stop being a witness, effectively deleting the witness object owned by the given account.
        *
        * @param witness_name The name of the witness account.
-       * @param broadcast true if you wish to broadcast the transaction.
        */
-      annotated_signed_transaction stop_witness(string witness_name,
-                                               bool broadcast = false);
+      operation stop_witness(string witness_name);
 
       /** Set the voting proxy for an account.
        *
@@ -324,97 +317,6 @@ class alexandria_api
       operation transfer(string from, string to, asset amount, string memo);
 
       /**
-       * Transfer funds from one account to another using escrow. STEEM can be transferred.
-       *
-       * @param from The account the funds are coming from
-       * @param to The account the funds are going to
-       * @param agent The account acting as the agent in case of dispute
-       * @param escrow_id A unique id for the escrow transfer. (from, escrow_id) must be a unique pair
-       * @param steem_amount The amount of STEEM to transfer
-       * @param fee The fee paid to the agent
-       * @param ratification_deadline The deadline for 'to' and 'agent' to approve the escrow transfer
-       * @param escrow_expiration The expiration of the escrow transfer, after which either party can claim the funds
-       * @param json_meta JSON encoded meta data
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction escrow_transfer(
-         string from,
-         string to,
-         string agent,
-         uint32_t escrow_id,
-         asset steem_amount,
-         asset fee,
-         time_point_sec ratification_deadline,
-         time_point_sec escrow_expiration,
-         string json_meta,
-         bool broadcast = false
-      );
-
-      /**
-       * Approve a proposed escrow transfer. Funds cannot be released until after approval. This is in lieu of requiring
-       * multi-sig on escrow_transfer
-       *
-       * @param from The account that funded the escrow
-       * @param to The destination of the escrow
-       * @param agent The account acting as the agent in case of dispute
-       * @param who The account approving the escrow transfer (either 'to' or 'agent)
-       * @param escrow_id A unique id for the escrow transfer
-       * @param approve true to approve the escrow transfer, otherwise cancels it and refunds 'from'
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction escrow_approve(
-         string from,
-         string to,
-         string agent,
-         string who,
-         uint32_t escrow_id,
-         bool approve,
-         bool broadcast = false
-      );
-
-      /**
-       * Raise a dispute on the escrow transfer before it expires
-       *
-       * @param from The account that funded the escrow
-       * @param to The destination of the escrow
-       * @param agent The account acting as the agent in case of dispute
-       * @param who The account raising the dispute (either 'from' or 'to')
-       * @param escrow_id A unique id for the escrow transfer
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction escrow_dispute(
-         string from,
-         string to,
-         string agent,
-         string who,
-         uint32_t escrow_id,
-         bool broadcast = false
-      );
-
-      /**
-       * Release funds help in escrow
-       *
-       * @param from The account that funded the escrow
-       * @param to The account the funds are originally going to
-       * @param agent The account acting as the agent in case of dispute
-       * @param who The account authorizing the release
-       * @param receiver The account that will receive funds being released
-       * @param escrow_id A unique id for the escrow transfer
-       * @param steem_amount The amount of STEEM that will be released
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction escrow_release(
-         string from,
-         string to,
-         string agent,
-         string who,
-         string receiver,
-         uint32_t escrow_id,
-         asset steem_amount,
-         bool broadcast = false
-      );
-
-      /**
        * Transfer STEEM into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
        * for a minimum of one coin year and can be withdrawn once a week over a two year withdraw period.
        * VESTS are protected against dilution up until 90% of STEEM is vesting.
@@ -425,35 +327,14 @@ class alexandria_api
        */
       operation transfer_to_vesting(string from, string to, asset amoun);
 
-   /**
-    *  @param from       - the account that initiated the transfer
-    *  @param request_id - an unique ID assigned by from account, the id is used to cancel the operation and can be reused after the transfer completes
-    *  @param to         - the account getting the transfer
-    *  @param amount     - the amount of assets to be transfered
-    *  @param memo A memo for the transactionm, encrypted with the to account's public memo key
-    *  @param broadcast true if you wish to broadcast the transaction
-    */
-      annotated_signed_transaction transfer_from_savings( string from, uint32_t request_id, string to, asset amount, string memo, bool broadcast = false );
-
-
-   /**
-    * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
-    *
-    * @param from The account the VESTS are withdrawn from
-    * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
-    *    withdrawn and deposited back as STEEM. i.e. "10.000000 VESTS"
-    */
+        /**
+        * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
+        *
+        * @param from The account the VESTS are withdrawn from
+        * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
+        *    withdrawn and deposited back as STEEM. i.e. "10.000000 VESTS"
+        */
       operation withdraw_vesting( string from, asset vesting_shares);
-
-      /** Signs a transaction.
-       *
-       * Given a fully-formed transaction that is only lacking signatures, this signs
-       * the transaction with the necessary keys and optionally broadcasts the transaction
-       * @param tx the unsigned transaction
-       * @param broadcast true if you wish to broadcast the transaction
-       * @return the signed version of the transaction
-       */
-      annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false);
 
       /** Returns an uninitialized object representing a given blockchain operation.
        *
@@ -473,40 +354,6 @@ class alexandria_api
        */
       operation get_prototype_operation(string operation_type);
 
-      /**
-       * Create an account recovery request as a recover account. The syntax for this command contains a serialized authority object
-       * so there is an example below on how to pass in the authority.
-       *
-       * request_account_recovery "your_account" "account_to_recover" {"weight_threshold": 1,"account_auths": [], "key_auths": [["new_public_key",1]]} true
-       *
-       * @param recovery_account The name of your account
-       * @param account_to_recover The name of the account you are trying to recover
-       * @param new_authority The new owner authority for the recovered account. This should be given to you by the holder of the compromised or lost account.
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction request_account_recovery( string recovery_account, string account_to_recover, authority new_authority, bool broadcast );
-
-      /**
-       * Recover your account using a recovery request created by your recovery account. The syntax for this commain contains a serialized
-       * authority object, so there is an example below on how to pass in the authority.
-       *
-       * recover_account "your_account" {"weight_threshold": 1,"account_auths": [], "key_auths": [["old_public_key",1]]} {"weight_threshold": 1,"account_auths": [], "key_auths": [["new_public_key",1]]} true
-       *
-       * @param account_to_recover The name of your account
-       * @param recent_authority A recent owner authority on your account
-       * @param new_authority The new authority that your recovery account used in the account recover request.
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction recover_account( string account_to_recover, authority recent_authority, authority new_authority, bool broadcast );
-
-      /**
-       * Change your recovery account after a 30 day delay.
-       *
-       * @param owner The name of your account
-       * @param new_recovery_account The name of the recovery account you wish to have
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction change_recovery_account( string owner, string new_recovery_account, bool broadcast );
 
       vector< database_api::api_owner_authority_history_object > get_owner_history( string account )const;
 
@@ -666,7 +513,6 @@ FC_API( steem::wallet::alexandria_api,
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
-        (get_state)
 
         /// transaction api
         (create_account)
@@ -676,15 +522,9 @@ FC_API( steem::wallet::alexandria_api,
         (set_voting_proxy)
         (vote_for_witness)
         (transfer)
-//        (escrow_transfer)
-//        (escrow_approve)
-//        (escrow_dispute)
-//        (escrow_release)
+
         (transfer_to_vesting)
         (withdraw_vesting)
-//        (request_account_recovery)
-//        (recover_account)
-//        (change_recovery_account)
         (create_application)
         (update_application)
         (delete_application)

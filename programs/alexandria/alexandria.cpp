@@ -33,14 +33,14 @@ bool generate_private_key(char *private_key, char *public_key) {
    }
 }
 
-bool get_transaction_digest(const char *transaction, const char* chain_id, char *digest) {
+bool get_transaction_digest(const char *transaction, char *digest) {
    if(transaction) {
       try {
          string tx_str(transaction);
          fc::variant v = fc::json::from_string( tx_str, fc::json::strict_parser );
          signed_transaction stx;
          fc::from_variant( v, stx);
-         digest_type dig = stx.sig_digest(fc::sha256(string(chain_id)));
+         digest_type dig = stx.digest();
          strcpy(digest, dig.str().c_str());
          return true;
       } catch (const fc::exception& e) {

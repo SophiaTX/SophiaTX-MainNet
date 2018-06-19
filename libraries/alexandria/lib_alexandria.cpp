@@ -193,13 +193,11 @@ class alexandria_api_impl
 
 public:
    alexandria_api& self;
-   alexandria_api_impl( alexandria_api& s, const string& _ws_server, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi )
+   alexandria_api_impl( alexandria_api& s, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi )
       : self( s ),
         _remote_api( rapi )
    {
       init_prototype_ops();
-
-      ws_server = _ws_server;
       steem_chain_id = _steem_chain_id;
    }
    virtual ~alexandria_api_impl()
@@ -293,155 +291,6 @@ public:
       return _remote_api->get_witness_by_account( owner_account );
    }
 
-   annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
-   {
-      //set fees first
-//      class op_visitor{
-//      public:
-//         op_visitor(){};
-//         typedef void result_type;
-//         result_type operator()( base_operation& bop){
-//            if(bop.has_special_fee())
-//               return;
-//            asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
-//            bop.fee = req_fee;
-//         };
-//      };
-//      op_visitor op_v;
-
-//      for(operation& o: tx.operations){
-//         o.visit(op_v);
-//      }
-
-//      flat_set< account_name_type >   req_active_approvals;
-//      flat_set< account_name_type >   req_owner_approvals;
-//      vector< authority >  other_auths;
-
-//      tx.get_required_authorities( req_active_approvals, req_owner_approvals, other_auths );
-
-//      for( const auto& auth : other_auths )
-//         for( const auto& a : auth.account_auths )
-//            req_active_approvals.insert(a.first);
-
-//      // std::merge lets us de-duplica te account_id's that occur in both
-//      //   sets, and dump them into a vector (as required by remote_db api)
-//      //   at the same time
-//      vector< account_name_type > v_approving_account_names;
-//      std::merge(req_active_approvals.begin(), req_active_approvals.end(),
-//                 req_owner_approvals.begin() , req_owner_approvals.end(),
-//                 std::back_inserter( v_approving_account_names ) );
-
-//      /// TODO: fetch the accounts specified via other_auths as well.
-
-//      auto approving_account_objects = _remote_api->get_accounts( v_approving_account_names );
-
-//      /// TODO: recursively check one layer deeper in the authority tree for keys
-
-//      FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
-
-//      flat_map< string, condenser_api::api_account_object > approving_account_lut;
-//      size_t i = 0;
-//      for( const optional< condenser_api::api_account_object >& approving_acct : approving_account_objects )
-//      {
-//         if( !approving_acct.valid() )
-//         {
-//            wlog( "operation_get_required_auths said approval of non-existing account ${name} was needed",
-//                  ("name", v_approving_account_names[i]) );
-//            i++;
-//            continue;
-//         }
-//         approving_account_lut[ approving_acct->name ] =  *approving_acct;
-//         i++;
-//      }
-//      auto get_account_from_lut = [&]( const std::string& name ) -> const condenser_api::api_account_object&
-//      {
-//         auto it = approving_account_lut.find( name );
-//         FC_ASSERT( it != approving_account_lut.end() );
-//         return it->second;
-//      };
-
-//      flat_set<public_key_type> approving_key_set;
-//      for( account_name_type& acct_name : req_active_approvals )
-//      {
-//         const auto it = approving_account_lut.find( acct_name );
-//         if( it == approving_account_lut.end() )
-//            continue;
-//         const condenser_api::api_account_object& acct = it->second;
-//         vector<public_key_type> v_approving_keys = acct.active.get_keys();
-//         wdump((v_approving_keys));
-//         for( const public_key_type& approving_key : v_approving_keys )
-//         {
-//            wdump((approving_key));
-//            approving_key_set.insert( approving_key );
-//         }
-//      }
-
-
-//      for( const account_name_type& acct_name : req_owner_approvals )
-//      {
-//         const auto it = approving_account_lut.find( acct_name );
-//         if( it == approving_account_lut.end() )
-//            continue;
-//         const condenser_api::api_account_object& acct = it->second;
-//         vector<public_key_type> v_approving_keys = acct.owner.get_keys();
-//         for( const public_key_type& approving_key : v_approving_keys )
-//         {
-//            wdump((approving_key));
-//            approving_key_set.insert( approving_key );
-//         }
-//      }
-//      for( const authority& a : other_auths )
-//      {
-//         for( const auto& k : a.key_auths )
-//         {
-//            wdump((k.first));
-//            approving_key_set.insert( k.first );
-//         }
-//      }
-
-//      auto dyn_props = _remote_api->get_dynamic_global_properties();
-//      tx.set_reference_block( dyn_props.head_block_id );
-//      tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
-//      tx.signatures.clear();
-
-//      //idump((_keys));
-//      flat_set< public_key_type > available_keys;
-//      flat_map< public_key_type, fc::ecc::private_key > available_private_keys;
-
-//      auto minimal_signing_keys = tx.minimize_required_signatures(
-//         steem_chain_id,
-//         available_keys,
-//         [&]( const string& account_name ) -> const authority&
-//         { return (get_account_from_lut( account_name ).active); },
-//         [&]( const string& account_name ) -> const authority&
-//         { return (get_account_from_lut( account_name ).owner); },
-//         STEEM_MAX_SIG_CHECK_DEPTH
-//         );
-
-//      for( const public_key_type& k : minimal_signing_keys )
-//      {
-//         auto it = available_private_keys.find(k);
-//         FC_ASSERT( it != available_private_keys.end() );
-//         tx.sign( it->second, steem_chain_id );
-//      }
-
-//      if( broadcast ) {
-//         try {
-//            auto result = _remote_api->broadcast_transaction_synchronous( tx );
-//            annotated_signed_transaction rtrx(tx);
-//            rtrx.block_num = result.block_num;
-//            rtrx.transaction_num = result.trx_num;
-//            return rtrx;
-//         }
-//         catch (const fc::exception& e)
-//         {
-//            elog("Caught exception while broadcasting tx ${id}:  ${e}", ("id", tx.id().str())("e", e.to_detail_string()) );
-//            throw;
-//         }
-//      }
-      return tx;
-   }
-
    std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const
    {
       std::map<string,std::function<string(fc::variant,const fc::variants&)> > m;
@@ -507,7 +356,6 @@ public:
       return it->second;
    }
 
-   string                                  ws_server;
    steem::protocol::chain_id_type          steem_chain_id;
 
    fc::sha512                              _checksum;
@@ -529,8 +377,8 @@ public:
 
 namespace steem { namespace wallet {
 
-alexandria_api::alexandria_api(const string& _ws_server, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi)
-   : my(new detail::alexandria_api_impl(*this, _ws_server, _steem_chain_id, rapi))
+alexandria_api::alexandria_api( const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi)
+   : my(new detail::alexandria_api_impl(*this, _steem_chain_id, rapi))
 {}
 
 alexandria_api::~alexandria_api(){}
@@ -599,13 +447,6 @@ variant_object alexandria_api::about() const
     return my->about();
 }
 
-/*
-fc::ecc::private_key alexandria_api::derive_private_key(const std::string& prefix_string, int sequence_number) const
-{
-   return detail::derive_private_key( prefix_string, sequence_number );
-}
-*/
-
 vector< account_name_type > alexandria_api::list_witnesses(const string& lowerbound, uint32_t limit)
 {
    return my->_remote_api->lookup_witness_accounts( lowerbound, limit );
@@ -618,11 +459,6 @@ optional< condenser_api::api_witness_object > alexandria_api::get_witness(string
 
 operation alexandria_api::set_voting_proxy(string account_to_modify, string voting_account)
 { return my->set_voting_proxy(account_to_modify, voting_account); }
-
-annotated_signed_transaction alexandria_api::sign_transaction(signed_transaction tx, bool broadcast /* = false */)
-{ try {
-   return my->sign_transaction( tx, broadcast);
-} FC_CAPTURE_AND_RETHROW( (tx) ) }
 
 operation alexandria_api::get_prototype_operation(string operation_name) {
    return my->get_prototype_operation( operation_name );
@@ -696,47 +532,6 @@ operation alexandria_api::create_account( string creator,
    return op;
 } FC_CAPTURE_AND_RETHROW( (creator)(new_account_name)(json_meta)(owner)(active)(memo)) }
 
-annotated_signed_transaction alexandria_api::request_account_recovery( string recovery_account, string account_to_recover, authority new_authority, bool broadcast )
-{
-   request_account_recovery_operation op;
-   op.recovery_account = recovery_account;
-   op.account_to_recover = account_to_recover;
-   op.new_owner_authority = new_authority;
-
-   signed_transaction tx;
-   tx.operations.push_back(op);
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
-annotated_signed_transaction alexandria_api::recover_account( string account_to_recover, authority recent_authority, authority new_authority, bool broadcast ) {
-
-   recover_account_operation op;
-   op.account_to_recover = account_to_recover;
-   op.new_owner_authority = new_authority;
-   op.recent_owner_authority = recent_authority;
-
-   signed_transaction tx;
-   tx.operations.push_back(op);
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
-annotated_signed_transaction alexandria_api::change_recovery_account( string owner, string new_recovery_account, bool broadcast ) {
-
-    change_recovery_account_operation op;
-   op.account_to_recover = owner;
-   op.new_recovery_account = new_recovery_account;
-
-   signed_transaction tx;
-   tx.operations.push_back(op);
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
 vector< database_api::api_owner_authority_history_object > alexandria_api::get_owner_history( string account )const
 {
    return my->_remote_api->get_owner_history( account );
@@ -791,20 +586,12 @@ operation alexandria_api::update_witness( string witness_account_name,
    return op;
 }
 
-annotated_signed_transaction alexandria_api::stop_witness( string witness_account_name,
-                                                         bool broadcast  )
+operation alexandria_api::stop_witness( string witness_account_name )
 {
-
-
    witness_stop_operation op;
 
    op.owner = witness_account_name;
-
-   signed_transaction tx;
-   tx.operations.push_back(op);
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
+   return op;
 }
 
 operation alexandria_api::vote_for_witness(string voting_account, string witness_to_vote_for, bool approve )
@@ -833,115 +620,6 @@ operation alexandria_api::transfer(string from, string to, asset amount, string 
     return op;
 } FC_CAPTURE_AND_RETHROW( (from)(to)(amount)(memo) ) }
 
-annotated_signed_transaction alexandria_api::escrow_transfer(
-      string from,
-      string to,
-      string agent,
-      uint32_t escrow_id,
-      asset steem_amount,
-      asset fee,
-      time_point_sec ratification_deadline,
-      time_point_sec escrow_expiration,
-      string json_meta,
-      bool broadcast
-   )
-{
-
-   escrow_transfer_operation op;
-   op.from = from;
-   op.to = to;
-   op.agent = agent;
-   op.escrow_id = escrow_id;
-   op.steem_amount = steem_amount;
-   op.escrow_fee = fee;
-   op.ratification_deadline = ratification_deadline;
-   op.escrow_expiration = escrow_expiration;
-   op.json_meta = json_meta;
-
-   signed_transaction tx;
-   tx.operations.push_back( op );
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
-annotated_signed_transaction alexandria_api::escrow_approve(
-      string from,
-      string to,
-      string agent,
-      string who,
-      uint32_t escrow_id,
-      bool approve,
-      bool broadcast
-   )
-{
-
-   escrow_approve_operation op;
-   op.from = from;
-   op.to = to;
-   op.agent = agent;
-   op.who = who;
-   op.escrow_id = escrow_id;
-
-   signed_transaction tx;
-   tx.operations.push_back( op );
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
-annotated_signed_transaction alexandria_api::escrow_dispute(
-      string from,
-      string to,
-      string agent,
-      string who,
-      uint32_t escrow_id,
-      bool broadcast
-   )
-{
-
-   escrow_dispute_operation op;
-   op.from = from;
-   op.to = to;
-   op.agent = agent;
-   op.who = who;
-   op.escrow_id = escrow_id;
-
-   signed_transaction tx;
-   tx.operations.push_back( op );
-   tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
-annotated_signed_transaction alexandria_api::escrow_release(
-   string from,
-   string to,
-   string agent,
-   string who,
-   string receiver,
-   uint32_t escrow_id,
-   asset steem_amount,
-   bool broadcast
-)
-{
-
-   escrow_release_operation op;
-   op.from = from;
-   op.to = to;
-   op.agent = agent;
-   op.who = who;
-   op.receiver = receiver;
-   op.escrow_id = escrow_id;
-   op.steem_amount = steem_amount;
-
-   signed_transaction tx;
-   tx.operations.push_back( op );
-   tx.validate();
-   return my->sign_transaction( tx, broadcast );
-}
-
-
 operation alexandria_api::transfer_to_vesting(string from, string to, asset amount)
 {
     transfer_to_vesting_operation op;
@@ -960,10 +638,6 @@ operation alexandria_api::withdraw_vesting(string from, asset vesting_shares)
     op.vesting_shares = vesting_shares;
 
     return op;
-}
-
-condenser_api::state alexandria_api::get_state( string url ) {
-   return my->_remote_api->get_state( url );
 }
 
 annotated_signed_transaction alexandria_api::get_transaction( transaction_id_type id )const {
@@ -1112,11 +786,31 @@ annotated_signed_transaction alexandria_api::broadcast_transaction(signed_transa
 signed_transaction alexandria_api::create_transaction(vector<operation> op_vec) const
 {
     try{
+         //set fees first
         signed_transaction tx;
-        for(const auto& op : op_vec)
+        class op_visitor{
+        public:
+           op_visitor(){};
+           typedef void result_type;
+           result_type operator()( base_operation& bop){
+              if(bop.has_special_fee())
+                 return;
+              asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+              bop.fee = req_fee;
+           };
+        };
+        op_visitor op_v;
+
+        for(auto& op : op_vec)
         {
+            op.visit(op_v);
             tx.operations.push_back(op);
         }
+
+        auto dyn_props = my->_remote_api->get_dynamic_global_properties();
+        tx.set_reference_block( dyn_props.head_block_id );
+        tx.set_expiration( dyn_props.time + fc::seconds(my->_tx_expiration_seconds) );
+
         tx.validate();
         return tx;
     }FC_CAPTURE_AND_RETHROW( (op_vec))
