@@ -272,10 +272,6 @@ namespace chainbase {
             _indices.erase( _indices.iterator_to( obj ) );
          }
 
-         void remove( const value_type& start, const value_type& end ) {
-
-         }
-
          template<typename CompatibleKey>
          const value_type* find( CompatibleKey&& key )const {
             auto itr = _indices.find( std::forward<CompatibleKey>(key) );
