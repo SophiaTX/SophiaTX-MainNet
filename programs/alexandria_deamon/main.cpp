@@ -51,7 +51,6 @@
 
 #ifdef WIN32
 # include <signal.h>
-#else
 #endif
 
 
@@ -69,6 +68,7 @@ int main( int argc, char** argv )
          opts.add_options()
          ("help,h", "Print this help message and exit.")
          ("server-rpc-endpoint,s", bpo::value<string>()->implicit_value("ws://127.0.0.1:8090"), "Server websocket RPC endpoint")
+         ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:8091"), "Endpoint for wallet websocket RPC to listen on")
          ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for wallet HTTP RPC to listen on")
          ("daemon,d", "Run the wallet in daemon mode" );
 
@@ -129,6 +129,21 @@ int main( int argc, char** argv )
          alexandria_deamon->stop();
       }));
       (void)(closed_connection);
+
+      auto _websocket_server = std::make_shared<fc::http::websocket_server>();
+      if( options.count("rpc-endpoint") )
+        {
+            _websocket_server->on_connection([&]( const fc::http::websocket_connection_ptr& c ){
+            std::cout << "here... \n";
+            wlog("." );
+            auto wsc = std::make_shared<fc::rpc::websocket_api_connection>(*c);
+            wsc->register_api(alex_api);
+            c->set_session_data( wsc );
+            });
+            ilog( "Listening for incoming RPC requests on ${p}", ("p", options.at("rpc-endpoint").as<string>() ));
+            _websocket_server->listen( fc::ip::endpoint::from_string(options.at("rpc-endpoint").as<string>()) );
+            _websocket_server->start_accept();
+      }
 
       auto _http_server = std::make_shared<fc::http::server>();
       if( options.count("rpc-http-endpoint" ) )
