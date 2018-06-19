@@ -395,5 +395,16 @@ namespace steem { namespace protocol {
       if(sponsor != "") validate_account_name(sponsor);
       validate_account_name(sponsored);
    }
+   
+   void buy_application_operation::validate() const
+   {
+      validate_account_name( buyer );
+   }
+
+   void cancel_application_buying_operation::validate() const
+   {
+       validate_account_name( app_owner );
+       validate_account_name( buyer );
+   }
 
 } } // steem::protocol

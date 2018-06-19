@@ -13,7 +13,7 @@ extern "C" {
    /**
     * Creates digest of JSON formatted transaction
     * @param transaction - transaction in JSON format
-    * @param digest - returned digest of transaction (size 32)
+    * @param digest - returned digest of transaction (size 64)
     * @return - true if operation is successful
     */
    bool get_transaction_digest(const char* transaction, char* digest);
@@ -22,7 +22,7 @@ extern "C" {
     * Creates signature for provided digest
     * @param digest - digest that will be singed
     * @param private_key  - private key for singing in WIF format
-    * @param signed_digest - returned signature (size 65)
+    * @param signed_digest - returned signature (size 130)
     * @return - true if operation is successful
     */
    bool sign_digest(const char* digest, const char* private_key, char* signed_digest);
@@ -35,6 +35,6 @@ extern "C" {
     * @return - true if operation is successful
     */
    bool add_signature(const char* transaction, const char* signature, char* signed_tx);
-};
+}
 
 #endif //STEEM_ALEXANDRIA_HPP

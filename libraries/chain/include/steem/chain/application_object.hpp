@@ -29,6 +29,23 @@ namespace steem { namespace chain {
             application_price_param price_param = none;
         };
 
+        class application_buying_object : public object< application_buying_object_type, application_buying_object >
+        {
+            application_buying_object() = delete;
+
+        public:
+            template<typename Constructor, typename Allocator>
+            application_buying_object( Constructor&& c, allocator< Allocator > a )
+            {
+                c(*this);
+            };
+
+            id_type                 id;
+            account_name_type       buyer;
+            application_id_type     app_id;
+            time_point_sec          created;
+        };
+
         struct by_name;
         struct by_author;
 
@@ -43,7 +60,29 @@ namespace steem { namespace chain {
         > application_index;
 
 
+        struct by_buyer_app;
+        struct by_app_id;
+
+        typedef multi_index_container<
+                application_buying_object,
+                indexed_by<
+                ordered_unique< tag< by_id >, member< application_buying_object, application_buying_id_type, &application_buying_object::id > >,
+                ordered_non_unique< tag< by_app_id >,  member<application_buying_object, application_id_type, &application_buying_object::app_id > >,
+                ordered_non_unique< tag< by_author >, member<application_buying_object, account_name_type, &application_buying_object::buyer > >,
+                ordered_unique< tag< by_buyer_app >,
+                   composite_key< application_buying_object,
+                      member< application_buying_object, account_name_type,  &application_buying_object::buyer >,
+                      member< application_buying_object, application_id_type, &application_buying_object::app_id >
+                   >
+                >
+        >,
+        allocator< application_buying_object >
+        > application_buying_index;
+
     } }
 
 FC_REFLECT( steem::chain::application_object, (id)(name)(author)(url)(metadata)(price_param))
 CHAINBASE_SET_INDEX_TYPE( steem::chain::application_object, steem::chain::application_index )
+
+FC_REFLECT( steem::chain::application_buying_object, (id)(buyer)(app_id)(created))
+CHAINBASE_SET_INDEX_TYPE( steem::chain::application_buying_object, steem::chain::application_buying_index )

@@ -66,7 +66,8 @@ void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    const account_object& acn = _db.get_account( o.owner ); // verify owner exists
-   FC_ASSERT( acn.vesting_shares.amount >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, "witness requires at least ${a} of vested balance", ("a", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE) );
+   const auto& gpo = _db.get_dynamic_global_properties();
+   FC_ASSERT( acn.vesting_shares >= gpo.witness_required_vesting , "witness requires at least ${a} of vested balance", ("a", gpo.witness_required_vesting) );
 
    if( _db.is_producing() )
    {
@@ -550,6 +551,7 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 {
    const auto& account = _db.get_account( o.account );
+   const auto& gpo = _db.get_dynamic_global_properties();
 
    FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient Steem Power for withdraw." );
    FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient Steem Power for withdraw." );
@@ -585,7 +587,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.withdrawn = 0;
 
          auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
@@ -965,7 +967,7 @@ void set_reset_account_evaluator::do_apply( const set_reset_account_operation& o
 
 void application_create_evaluator::do_apply( const application_create_operation& o )
 {
-   const auto& author = _db.get_account( o.author );
+   _db.get_account( o.author );
 
    verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
 
@@ -1018,7 +1020,46 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
 
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
+   const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_app_id >();
+   auto itr = app_buy_idx.lower_bound( application.id );
+   while( itr != app_buy_idx.end() && itr->app_id == application.id )
+   {
+      const auto& current = *itr;
+      ++itr;
+      _db.remove(current);
+   }
+
    _db.remove(application);
+}
+
+void buy_application_evaluator::do_apply( const buy_application_operation& o )
+{
+   _db.get_application_by_id( o.app_id );
+
+   const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_buyer_app >();
+   auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_id) );
+   FC_ASSERT(request == app_buy_idx.end(), "This buying already exisit" );
+
+   verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
+
+   _db.create< application_buying_object >( [&]( application_buying_object& app_buy )
+                                   {
+                                        app_buy.buyer = o.buyer;
+                                        app_buy.app_id = o.app_id;
+                                        app_buy.created = _db.head_block_time();
+                                   });
+}
+
+void cancel_application_buying_evaluator::do_apply( const cancel_application_buying_operation& o )
+{
+   const auto& application = _db.get_application_by_id( o.app_id );
+   const auto& app_buying = _db.get_application_buying( o.buyer, o.app_id );
+
+   verify_authority_accounts_exist( _db, o.active, o.app_owner, authority::active );
+
+   FC_ASSERT(application.author == o.app_owner, "Provided app author is not this applcation author" );
+
+   _db.remove(app_buying);
 }
 
 void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promotion_pool_operation& op){

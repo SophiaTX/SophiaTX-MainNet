@@ -800,6 +800,38 @@ class wallet_api
       annotated_signed_transaction delete_application( string author, authority active_auth, string app_name,
                                                        bool broadcast );
 
+      /**
+      *  This method will create application buy object
+      *
+      *  @param buyer The buyer of application
+      *  @param active_auth The active authority for that account
+      *  @param app_id The id of app that buyer will buy
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction buy_application( string buyer, authority active_auth, int64_t app_id,
+                                                       bool broadcast );
+
+      /**
+      *  This method will cancel application buy object
+      *
+      *  @param app_owner The owner of bought application
+      *  @param buyer The buyer of application
+      *  @param active_auth The active authority for application owner
+      *  @param app_id The id of bought app
+      *  @param broadcast true if you wish to broadcast the transaction
+      */
+      annotated_signed_transaction cancel_application_buying( string app_owner, string buyer, authority active_auth,
+                                                           int64_t app_id, bool broadcast );
+
+      /**
+       * Get all app buyings by app_name or buyer
+       * @param name Application id or buyers name
+       * @param search_type One of "by_buyer", "by_app_id"
+       * @param count Number of items to retrieve
+       * @return
+       */
+      vector< condenser_api::api_application_buying_object >  get_application_buyings(string name, string search_type, uint32_t count);
+
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
@@ -938,6 +970,9 @@ FC_API( steem::wallet::wallet_api,
         (create_application)
         (update_application)
         (delete_application)
+        (buy_application)
+        (cancel_application_buying)
+        (get_application_buyings)
 
         /// helper api
         (get_prototype_operation)

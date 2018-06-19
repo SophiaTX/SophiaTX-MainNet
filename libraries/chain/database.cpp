@@ -429,6 +429,20 @@ const application_object &database::get_application(const string &name) const
    } FC_CAPTURE_AND_RETHROW( (name) )
 }
 
+const application_object &database::get_application_by_id(  const application_id_type id )const
+{
+    try {
+       return get< application_object, by_id >( id );
+    } FC_CAPTURE_AND_RETHROW( (id) )
+}
+
+const application_buying_object &database::get_application_buying(const account_name_type &buyer, const application_id_type app_id) const
+{
+    try {
+       return get< application_buying_object, by_buyer_app >( boost::make_tuple(buyer, app_id) );
+    } FC_CAPTURE_AND_RETHROW( (buyer)(app_id) )
+}
+
 const dynamic_global_property_object&database::get_dynamic_global_properties() const
 { try {
       return get< dynamic_global_property_object >();
@@ -1290,12 +1304,13 @@ void database::process_funds()
    });
 
 
-   push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, STEEM_SYMBOL) ) );
-   adjust_balance(cwit.owner, asset(witness_reward, STEEM_SYMBOL));
+   push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, VESTS_SYMBOL) ) );
+   create_vesting(cwit.owner, asset(witness_reward, VESTS_SYMBOL));
 
    modify( props, [&]( dynamic_global_property_object& p )
    {
         p.current_supply           += asset( witness_reward, STEEM_SYMBOL );
+        p.total_vesting_shares     += asset( witness_reward, VESTS_SYMBOL );
    });
 
 }
@@ -1421,6 +1436,8 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_create_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
+   _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif
@@ -1475,6 +1492,7 @@ void database::initialize_indexes()
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
    add_core_index< application_index                       >(*this);
+   add_core_index< application_buying_index                   >(*this);
    add_core_index< custom_content_index                    >(*this);
    add_core_index< account_fee_sponsor_index               >(*this);
 #ifdef STEEM_ENABLE_SMT
@@ -1637,6 +1655,7 @@ void database::init_genesis( uint64_t init_supply )
          p.participation_count = 128;
          p.current_supply = asset( init_supply, STEEM_SYMBOL );
          p.maximum_block_size = STEEM_MAX_BLOCK_SIZE;
+         p.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
       } );
 
       create< economic_model_object >( [&]( economic_model_object& e )
@@ -2021,9 +2040,7 @@ void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
       uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
-      const auto &gpo = get_dynamic_global_properties();
       const auto &econ = get_economic_model();
-      share_type supply = gpo.current_supply.amount;
       share_type supply_increase = 0;
       uint64_t id = batch;
       while( const account_object *a = find_account(id)) {
@@ -2184,7 +2201,7 @@ void database::apply_operation(const operation& op)
    note.fee_payer = get_fee_payer(op);
 
    notify_pre_apply_operation( note );
-   asset paid_fee = process_operation_fee(op);
+   process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }
@@ -2266,6 +2283,14 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.head_block_id = b.id();
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
+#ifndef PRIVATE_NET
+      if( head_block_num() % STEEM_BLOCKS_PER_DAY && head_block_num() <= STEEM_BLOCKS_PER_DAY * SOPHIATX_WITNESS_VESTING_INCREASE_DAYS){
+         uint64_t total_increase = SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE;
+         uint64_t increase_per_day = total_increase / SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
+         share_type next_requirement = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + ( head_block_num() / STEEM_BLOCKS_PER_DAY ) * increase_per_day;
+         dgp.witness_required_vesting = asset(next_requirement, VESTS_SYMBOL);
+      }
+#endif
    } );
 
    if( !(get_node_properties().skip_flags & skip_undo_history_check) )
@@ -2424,13 +2449,24 @@ void database::adjust_smt_balance( const account_name_type& name, const asset& d
 }
 #endif
 
+void database::create_vesting( const account_object& a, const asset& delta){
+   FC_ASSERT(delta.symbol == VESTS_SYMBOL, "invalid symbol");
+   FC_ASSERT(delta.amount >= 0, "cannot remove vests");
+
+   modify( a, [&]( account_object& acnt )
+   {
+        acnt.vesting_shares.amount += delta.amount;
+
+        acnt.update_considered_holding(delta.amount, head_block_num());
+        adjust_proxied_witness_votes(a, delta.amount);
+
+   } );
+}
+
+
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   const auto& economics = get_economic_model();
-   const auto& gpo = get_dynamic_global_properties();
-
    FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
-
 
    modify( a, [&]( account_object& acnt )
    {
@@ -2479,6 +2515,10 @@ void database::adjust_balance( const account_name_type& name, const asset& delta
    modify_balance( a, delta, true );
 }
 
+void database::create_vesting( const account_name_type& name, const asset& delta){
+   const auto& a = get_account( name );
+   create_vesting( a, delta);
+}
 
 void database::adjust_supply( const asset& delta )
 {

@@ -198,7 +198,12 @@ void remote_node_api::broadcast_block( signed_block )
 
 vector<condenser_api::api_application_object> remote_node_api::get_applications(vector<string>)
 {
-   FC_ASSERT( false );
+    FC_ASSERT( false );
+}
+
+vector<condenser_api::api_application_buying_object> remote_node_api::get_application_buyings(std::string, uint32_t, std::string)
+{
+    FC_ASSERT( false );
 }
 
 map< uint64_t, condenser_api::api_received_object >  remote_node_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){

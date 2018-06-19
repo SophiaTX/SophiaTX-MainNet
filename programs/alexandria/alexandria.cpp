@@ -23,9 +23,7 @@ using namespace std;
 
 bool generate_private_key(char *private_key) {
    try {
-      char seed[16];
-      fc::rand_bytes(seed, sizeof(seed));
-      private_key_type priv_key = fc::ecc::private_key::regenerate( fc::sha256::hash(seed) );
+      private_key_type priv_key = fc::ecc::private_key::generate();
       strcpy(private_key, key_to_wif(priv_key).c_str());
       return true;
    } catch (const fc::exception& e) {
@@ -54,10 +52,10 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
    if(digest && private_key)
    {
       try {
-         fc::sha256 dig(digest, strlen(digest));
+         fc::sha256 dig(string(digest, strlen(digest)));
          string private_k_str(private_key);
          auto priv_key = *steem::utilities::wif_to_key(private_k_str);
-         auto sig = priv_key.sign_compact( dig);
+         auto sig = priv_key.sign_compact(dig);
          strcpy(signed_digest, fc::json::to_string(sig).c_str());
          return true;
       } catch (const fc::exception& e) {
@@ -74,14 +72,12 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
          string tx_str(transaction);
          fc::variant v = fc::json::from_string( tx_str, fc::json::strict_parser );
          signed_transaction stx;
-         fc::from_variant( v, stx);
+         fc::from_variant( v, stx );
 
-         v = fc::json::from_string( signature, fc::json::strict_parser );
          compact_signature sig;
-         fc::from_variant( v, sig);
+         fc::from_hex( string(signature), (char*)sig.begin(), sizeof(compact_signature) );
 
          stx.signatures.push_back(sig);
-
          strcpy(signed_tx, fc::json::to_string(stx).c_str());
          return true;
 

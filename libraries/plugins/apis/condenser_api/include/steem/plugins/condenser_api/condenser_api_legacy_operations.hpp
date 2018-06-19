@@ -45,7 +45,8 @@ namespace steem { namespace plugins { namespace condenser_api {
    typedef application_update_operation           legacy_application_update_operation;
    typedef application_delete_operation           legacy_application_delete_operation;
    typedef sponsor_fees_operation                 legacy_sponsor_fees_operation;
-
+   typedef buy_application_operation              legacy_buy_application_operation;
+   typedef cancel_application_buying_operation    legacy_cancel_application_buying_operation;
 
 
    typedef fc::static_variant<
@@ -86,7 +87,9 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_application_create_operation,
             legacy_application_update_operation,
             legacy_application_delete_operation,
-            legacy_sponsor_fees_operation
+            legacy_sponsor_fees_operation,
+            legacy_buy_application_operation,
+            legacy_cancel_application_buying_operation
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor
@@ -226,6 +229,16 @@ namespace steem { namespace plugins { namespace condenser_api {
          return true;
       }
 
+      bool operator()( const buy_application_operation& op) const
+      {
+         l_op = legacy_buy_application_operation(op);
+         return true;
+      }
+      bool operator()( const cancel_application_buying_operation& op) const
+      {
+         l_op = legacy_cancel_application_buying_operation(op);
+         return true;
+      }
 
       // Should only be SMT ops
       template< typename T >
@@ -327,6 +340,17 @@ struct convert_from_legacy_operation_visitor
    {
       return operation( application_delete_operation(op));
    }
+
+   operation operator()( const legacy_buy_application_operation& op)const
+   {
+      return operation( buy_application_operation(op));
+   }
+
+   operation operator()( const legacy_cancel_application_buying_operation& op)const
+   {
+      return operation( cancel_application_buying_operation(op));
+   }
+
    template< typename T >
    operation operator()( const T& t )const
    {

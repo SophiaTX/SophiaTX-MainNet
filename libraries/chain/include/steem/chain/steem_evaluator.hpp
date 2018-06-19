@@ -39,6 +39,8 @@ STEEM_DEFINE_EVALUATOR( set_reset_account )
 STEEM_DEFINE_EVALUATOR( application_create )
 STEEM_DEFINE_EVALUATOR( application_update )
 STEEM_DEFINE_EVALUATOR( application_delete )
+STEEM_DEFINE_EVALUATOR( buy_application )
+STEEM_DEFINE_EVALUATOR( cancel_application_buying )
 
 STEEM_DEFINE_EVALUATOR( witness_set_properties )
 STEEM_DEFINE_EVALUATOR( transfer_from_promotion_pool )

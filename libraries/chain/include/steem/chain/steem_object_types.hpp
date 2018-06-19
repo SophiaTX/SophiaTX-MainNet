@@ -56,6 +56,7 @@ enum object_type
    custom_content_object_type,
    application_object_type,
    account_fee_sponsor_object_type,
+   application_buying_object_type,
 #ifdef STEEM_ENABLE_SMT
    // SMT objects
    smt_token_object_type,
@@ -85,6 +86,7 @@ class economic_model_object;
 class custom_content_object;
 class application_object;
 class account_fee_sponsor_object;
+class application_buying_object;
 
 #ifdef STEEM_ENABLE_SMT
 class smt_token_object;
@@ -114,6 +116,7 @@ typedef oid< economic_model_object                  > economic_model_id_type;
 typedef oid< custom_content_object                  > custom_content_id_type;
 typedef oid< application_object                     > application_id_type;
 typedef oid< account_fee_sponsor_object             > account_fee_sponsor_id_type;
+typedef oid< application_buying_object              > application_buying_id_type;
 
 #ifdef STEEM_ENABLE_SMT
 typedef oid< smt_token_object                       > smt_token_id_type;
@@ -191,6 +194,7 @@ FC_REFLECT_ENUM( steem::chain::object_type,
                  (custom_content_object_type)
                  (application_object_type)
                  (account_fee_sponsor_object_type)
+                 (application_buying_object_type)
                )
 
 FC_REFLECT_TYPENAME( steem::chain::shared_string )
