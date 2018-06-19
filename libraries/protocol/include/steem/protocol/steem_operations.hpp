@@ -776,10 +776,10 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
         extensions_type   extensions;             ///< Extensions. Not currently used.
 
 
-        account_name_type get_fee_payer()const { return sponsor;};
+        account_name_type get_fee_payer()const { if(sponsor == "") return sponsored; return sponsor;};
         asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
-        void get_required_active_authorities( flat_set<account_name_type>& a )const{ if(sponsor == "") a.insert(sponsored); else a.insert( sponsor ); }
+        void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(get_fee_payer()); }
 
         void validate() const;
      };

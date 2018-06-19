@@ -1041,7 +1041,7 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
 
 void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
 {
-   if(op.sponsor == ""){
+   if( op.sponsor == account_name_type("") ){
       _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
       return;
    }

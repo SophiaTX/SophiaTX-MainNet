@@ -526,14 +526,16 @@ account_name_type database::get_fee_payer(const operation& op){
    return op.visit(op_v);
 }
 
-optional<account_name_type> database::get_sponsor(const account_name_type& who) const{
-   const account_fee_sponsor_object* s = find< account_fee_sponsor_object, by_sponsored >( who );
-   if(s)
-      return s->sponsor;
-   return optional<account_name_type>();
+optional<account_name_type> database::get_sponsor(const account_name_type& who) const {
+   try {
+      const account_fee_sponsor_object *s = find<account_fee_sponsor_object, by_sponsored>(who);
+      if( s )
+         return s->sponsor;
+      return optional<account_name_type>();
+   } FC_LOG_AND_RETHROW()
 }
 
-uint32_t database::witness_participation_rate()const
+   uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    return uint64_t(STEEM_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
