@@ -43,18 +43,15 @@
 #include <steem/alexandria/lib_alexandria.hpp>
 
 #include <fc/interprocess/signals.hpp>
-#include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <fc/log/console_appender.hpp>
 #include <fc/log/file_appender.hpp>
-#include <fc/log/logger.hpp>
 #include <fc/log/logger_config.hpp>
 
 #ifdef WIN32
 # include <signal.h>
 #else
-# include <csignal>
 #endif
 
 
@@ -72,10 +69,6 @@ int main( int argc, char** argv )
          opts.add_options()
          ("help,h", "Print this help message and exit.")
          ("server-rpc-endpoint,s", bpo::value<string>()->implicit_value("ws://127.0.0.1:8090"), "Server websocket RPC endpoint")
-         ("cert-authority,a", bpo::value<string>()->default_value("_default"), "Trusted CA bundle file for connecting to wss:// TLS server")
-         ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:8091"), "Endpoint for wallet websocket RPC to listen on")
-         ("rpc-tls-endpoint,t", bpo::value<string>()->implicit_value("127.0.0.1:8092"), "Endpoint for wallet websocket TLS RPC to listen on")
-         ("rpc-tls-certificate,c", bpo::value<string>()->implicit_value("server.pem"), "PEM certificate for wallet websocket TLS RPC")
          ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for wallet HTTP RPC to listen on")
          ("daemon,d", "Run the wallet in daemon mode" );
 
@@ -117,7 +110,7 @@ int main( int argc, char** argv )
       if( options.count("server-rpc-endpoint") )
          ws_server = options.at("server-rpc-endpoint").as<std::string>();
 
-      fc::http::websocket_client client( options["cert-authority"].as<std::string>() );
+      fc::http::websocket_client client;
       auto con  = client.connect( ws_server );
       auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
 
@@ -136,38 +129,6 @@ int main( int argc, char** argv )
          alexandria_deamon->stop();
       }));
       (void)(closed_connection);
-
-      auto _websocket_server = std::make_shared<fc::http::websocket_server>();
-      if( options.count("rpc-endpoint") )
-      {
-         _websocket_server->on_connection([&]( const fc::http::websocket_connection_ptr& c ){
-            std::cout << "here... \n";
-            wlog("." );
-            auto wsc = std::make_shared<fc::rpc::websocket_api_connection>(*c);
-            wsc->register_api(alex_api);
-            c->set_session_data( wsc );
-         });
-         ilog( "Listening for incoming RPC requests on ${p}", ("p", options.at("rpc-endpoint").as<string>() ));
-         _websocket_server->listen( fc::ip::endpoint::from_string(options.at("rpc-endpoint").as<string>()) );
-         _websocket_server->start_accept();
-      }
-
-      string cert_pem = "server.pem";
-      if( options.count( "rpc-tls-certificate" ) )
-         cert_pem = options.at("rpc-tls-certificate").as<string>();
-
-      auto _websocket_tls_server = std::make_shared<fc::http::websocket_tls_server>(cert_pem);
-      if( options.count("rpc-tls-endpoint") )
-      {
-         _websocket_tls_server->on_connection([&]( const fc::http::websocket_connection_ptr& c ){
-            auto wsc = std::make_shared<fc::rpc::websocket_api_connection>(*c);
-            wsc->register_api(alex_api);
-            c->set_session_data( wsc );
-         });
-         ilog( "Listening for incoming TLS RPC requests on ${p}", ("p", options.at("rpc-tls-endpoint").as<string>() ));
-         _websocket_tls_server->listen( fc::ip::endpoint::from_string(options.at("rpc-tls-endpoint").as<string>()) );
-         _websocket_tls_server->start_accept();
-      }
 
       auto _http_server = std::make_shared<fc::http::server>();
       if( options.count("rpc-http-endpoint" ) )
