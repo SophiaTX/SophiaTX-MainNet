@@ -816,6 +816,36 @@ signed_transaction alexandria_api::create_transaction(vector<operation> op_vec) 
     }FC_CAPTURE_AND_RETHROW( (op_vec))
 }
 
+signed_transaction alexandria_api::create_simple_transaction(operation op) const
+{
+    try{
+         //set fees first
+        signed_transaction tx;
+        class op_visitor{
+        public:
+           op_visitor(){};
+           typedef void result_type;
+           result_type operator()( base_operation& bop){
+              if(bop.has_special_fee())
+                 return;
+              asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+              bop.fee = req_fee;
+           };
+        };
+        op_visitor op_v;
+
+        op.visit(op_v);
+        tx.operations.push_back(op);
+
+        auto dyn_props = my->_remote_api->get_dynamic_global_properties();
+        tx.set_reference_block( dyn_props.head_block_id );
+        tx.set_expiration( dyn_props.time + fc::seconds(my->_tx_expiration_seconds) );
+
+        tx.validate();
+        return tx;
+    }FC_CAPTURE_AND_RETHROW( (op))
+}
+
 digest_type alexandria_api::get_digest(signed_transaction tx) const
 {
     try{

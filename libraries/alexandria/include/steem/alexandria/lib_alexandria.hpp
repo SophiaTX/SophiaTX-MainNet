@@ -475,6 +475,13 @@ class alexandria_api
       signed_transaction create_transaction(vector<operation> op_vec) const;
 
       /**
+       * Creating single operation form operation
+       * @param op operation that should be in this transaction
+       * @return signle transaction with all the operations
+       */
+      signed_transaction create_simple_transaction(operation op) const;
+
+      /**
        * Calculate digest of transaction
        * @param tx Transaction to be digested
        * @returned digest of transaction
@@ -537,6 +544,7 @@ FC_API( steem::wallet::alexandria_api,
         (serialize_transaction)
         (broadcast_transaction)
         (create_transaction)
+        (create_simple_transaction)
         (get_digest)
 
         (get_active_witnesses)
