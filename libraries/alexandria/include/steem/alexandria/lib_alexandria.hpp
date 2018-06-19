@@ -321,7 +321,7 @@ class alexandria_api
        * @param memo A memo for the transactionm, encrypted with the to account's public memo key
        * @param broadcast true if you wish to broadcast the transaction
        */
-      annotated_signed_transaction transfer(string from, string to, asset amount, string memo, bool broadcast = false);
+      operation transfer(string from, string to, asset amount, string memo);
 
       /**
        * Transfer funds from one account to another using escrow. STEEM can be transferred.
@@ -445,16 +445,6 @@ class alexandria_api
     */
       operation withdraw_vesting( string from, asset vesting_shares);
 
-      /**
-       * A witness can public a price feed for the STEEM:SBD market. The median price feed is used
-       * to process conversion requests from SBD to STEEM.
-       *
-       * @param witness The witness publishing the price feed
-       * @param exchange_rate The desired exchange rate
-       * @param broadcast true if you wish to broadcast the transaction
-       */
-      annotated_signed_transaction publish_feed(string witness, price exchange_rate, bool broadcast );
-
       /** Signs a transaction.
        *
        * Given a fully-formed transaction that is only lacking signatures, this signs
@@ -482,11 +472,6 @@ class alexandria_api
        * @return a default-constructed operation of the given type
        */
       operation get_prototype_operation(string operation_type);
-
-      /**
-       * Sets the amount of time in the future until a transaction expires.
-       */
-      void set_transaction_expiration(uint32_t seconds);
 
       /**
        * Create an account recovery request as a recover account. The syntax for this command contains a serialized authority object
@@ -628,10 +613,25 @@ class alexandria_api
        */
       map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
+      /**
+       * Broadcast transaction to node
+       * @param tx Signed transaction to be broadcasts
+       * @return transaction with block information
+       */
       annotated_signed_transaction broadcast_transaction(signed_transaction tx) const;
 
+      /**
+       * Creating single operation form vector of operations
+       * @param op_vec Vector of operations that should be in this transaction
+       * @return signle transaction with all the operations
+       */
       signed_transaction create_transaction(vector<operation> op_vec) const;
 
+      /**
+       * Calculate digest of transaction
+       * @param tx Transaction to be digested
+       * @returned digest of transaction
+       */
       digest_type get_digest(signed_transaction tx) const;
 
 };
@@ -675,15 +675,13 @@ FC_API( steem::wallet::alexandria_api,
         (update_witness)
         (set_voting_proxy)
         (vote_for_witness)
-//        (transfer)
+        (transfer)
 //        (escrow_transfer)
 //        (escrow_approve)
 //        (escrow_dispute)
 //        (escrow_release)
         (transfer_to_vesting)
         (withdraw_vesting)
-//        (publish_feed)
-//        (set_transaction_expiration)
 //        (request_account_recovery)
 //        (recover_account)
 //        (change_recovery_account)

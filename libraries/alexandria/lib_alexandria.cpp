@@ -293,12 +293,6 @@ public:
       return _remote_api->get_witness_by_account( owner_account );
    }
 
-   void set_transaction_expiration( uint32_t tx_expiration_seconds )
-   {
-      FC_ASSERT( tx_expiration_seconds < STEEM_MAX_TIME_UNTIL_EXPIRATION );
-      _tx_expiration_seconds = tx_expiration_seconds;
-   }
-
    annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
    {
       //set fees first
@@ -826,7 +820,7 @@ operation alexandria_api::vote_for_witness(string voting_account, string witness
 
 
 
-annotated_signed_transaction alexandria_api::transfer(string from, string to, asset amount, string memo, bool broadcast )
+operation alexandria_api::transfer(string from, string to, asset amount, string memo)
 { try {
 
    // check_memo( memcheck_memocheck_memocheck_memocheck_memoo, get_account( from ) );
@@ -836,13 +830,8 @@ annotated_signed_transaction alexandria_api::transfer(string from, string to, as
     op.amount = amount;
 
     op.memo = /*get_encrypted_memo( from, to,*/ memo /*)*/;
-
-    signed_transaction tx;
-    tx.operations.push_back( op );
-    tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-} FC_CAPTURE_AND_RETHROW( (from)(to)(amount)(memo)(broadcast) ) }
+    return op;
+} FC_CAPTURE_AND_RETHROW( (from)(to)(amount)(memo) ) }
 
 annotated_signed_transaction alexandria_api::escrow_transfer(
       string from,
@@ -973,37 +962,17 @@ operation alexandria_api::withdraw_vesting(string from, asset vesting_shares)
     return op;
 }
 
-annotated_signed_transaction alexandria_api::publish_feed(string witness, price exchange_rate, bool broadcast )
-{
-
-    feed_publish_operation op;
-    op.publisher     = witness;
-    op.exchange_rate = exchange_rate;
-
-    signed_transaction tx;
-    tx.operations.push_back( op );
-    tx.validate();
-
-   return my->sign_transaction( tx, broadcast );
-}
-
-
 condenser_api::state alexandria_api::get_state( string url ) {
    return my->_remote_api->get_state( url );
 }
 
-void alexandria_api::set_transaction_expiration(uint32_t seconds)
-{
-   my->set_transaction_expiration(seconds);
+annotated_signed_transaction alexandria_api::get_transaction( transaction_id_type id )const {
+   return my->_remote_api->get_transaction( id );
 }
 
 condenser_api::api_account_object alexandria_api::get_account( string account_name ) const
 {
    return my->get_account( account_name );
-}
-
-annotated_signed_transaction alexandria_api::get_transaction( transaction_id_type id )const {
-   return my->_remote_api->get_transaction( id );
 }
 
 operation
