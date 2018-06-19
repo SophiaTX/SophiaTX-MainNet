@@ -416,6 +416,7 @@ namespace steem { namespace chain {
             { _on_reindex_done.connect(functor); }
 
          asset process_operation_fee( const operation& op);
+         account_name_type get_fee_payer(const operation& op);
          optional<account_name_type> get_sponsor(const account_name_type& who) const;
 
    protected:

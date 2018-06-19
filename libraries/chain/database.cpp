@@ -510,6 +510,22 @@ asset database::process_operation_fee( const operation& op )
    return paid_fee;
 }
 
+account_name_type database::get_fee_payer(const operation& op){
+   class op_visitor{
+   public:
+      database* db;
+      op_visitor(database* _db){db = _db;};
+      typedef account_name_type result_type;
+      result_type operator()(const base_operation& bop){
+         auto sponsor = db->get_sponsor(bop.get_fee_payer());
+         return sponsor? *sponsor : bop.get_fee_payer();
+      }
+   };
+
+   op_visitor op_v(this);
+   return op.visit(op_v);
+}
+
 optional<account_name_type> database::get_sponsor(const account_name_type& who) const{
    const account_fee_sponsor_object* s = find< account_fee_sponsor_object, by_sponsored >( who );
    if(s)
@@ -916,6 +932,7 @@ void database::notify_pre_apply_operation( operation_notification& note )
    note.block        = _current_block_num;
    note.trx_in_block = _current_trx_in_block;
    note.op_in_trx    = _current_op_in_trx;
+
 
    STEEM_TRY_NOTIFY( pre_apply_operation, note )
 }
@@ -1407,7 +1424,7 @@ void database::initialize_evaluators()
 #endif
    _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
    _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
-
+   _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
 
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< smt_setup_evaluator                      >();
@@ -2161,6 +2178,9 @@ void database::_apply_transaction(const signed_transaction& trx)
 void database::apply_operation(const operation& op)
 {
    operation_notification note(op);
+
+   note.fee_payer = get_fee_payer(op);
+
    notify_pre_apply_operation( note );
    asset paid_fee = process_operation_fee(op);
    _my->_evaluator_registry.get_evaluator( op ).apply( op );

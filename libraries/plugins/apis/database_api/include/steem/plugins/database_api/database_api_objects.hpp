@@ -45,11 +45,27 @@ struct api_account_object
       proxied_vsf_votes.reserve( n );
       for( size_t i=0; i<n; i++ )
          proxied_vsf_votes.push_back( a.proxied_vsf_votes[i] );*/
+      const auto& by_sponsor_idx = db.get_index<account_fee_sponsor_index>().indices().get<by_sponsor>();
+      auto sponsor_itr = by_sponsor_idx.lower_bound(std::make_tuple(a.name, ""));
+      while( sponsor_itr->sponsor == a.name && sponsor_itr != by_sponsor_idx.end() ){
+         sponsored_accounts.push_back(sponsor_itr->sponsored);
+         sponsor_itr++;
+      }
+
+      const auto& by_sponsored_idx = db.get_index<account_fee_sponsor_index>().indices().get<by_sponsored>();
+      auto sponsored_itr = by_sponsored_idx.find(a.name);
+      if(sponsored_itr!=by_sponsored_idx.end()){
+         sponsoring_account = sponsored_itr->sponsor;
+      }else{
+         sponsoring_account = "";
+      }
 
       const auto& auth = db.get< account_authority_object, by_account >( name );
       owner = authority( auth.owner );
       active = authority( auth.active );
       //last_owner_update = auth.last_owner_update;
+
+
 
 #ifdef STEEM_ENABLE_SMT
       const auto& by_control_account_index = db.get_index<smt_token_index>().indices().get<by_control_account>();

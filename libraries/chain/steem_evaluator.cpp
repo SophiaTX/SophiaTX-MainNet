@@ -1041,6 +1041,11 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
 
 void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
 {
+   if(op.sponsor == ""){
+      _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
+      return;
+   }
+
    const auto& sponsor_obj = _db.get_account(op.sponsor);
    const auto& sponsored_obj = _db.get_account(op.sponsored);
    optional< account_name_type > existing_sponsor = _db.get_sponsor(op.sponsored);
@@ -1051,7 +1056,7 @@ void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
          o.sponsored = op.sponsored;
       });
    }else{
-      FC_ASSERT( *existing_sponsor == op.sponsor, "You are not sponsoring this account" );
+      FC_ASSERT( existing_sponsor && *existing_sponsor == op.sponsor, "You are not sponsoring this account" );
       _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
    }
 }

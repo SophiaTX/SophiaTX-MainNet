@@ -44,6 +44,7 @@ namespace steem { namespace plugins { namespace condenser_api {
    typedef application_create_operation           legacy_application_create_operation;
    typedef application_update_operation           legacy_application_update_operation;
    typedef application_delete_operation           legacy_application_delete_operation;
+   typedef sponsor_fees_operation                 legacy_sponsor_fees_operation;
 
 
 
@@ -84,7 +85,8 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_transfer_from_promotion_pool_operation,
             legacy_application_create_operation,
             legacy_application_update_operation,
-            legacy_application_delete_operation
+            legacy_application_delete_operation,
+            legacy_sponsor_fees_operation
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor

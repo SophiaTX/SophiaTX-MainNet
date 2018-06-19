@@ -1881,6 +1881,23 @@ annotated_signed_transaction wallet_api::send_custom_binary_document(uint32_t ap
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data)(broadcast))
 }
 
+annotated_signed_transaction wallet_api::sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast){
+   try{
+      FC_ASSERT( !is_locked() );
+      sponsor_fees_operation op;
+      op.sponsor = sponsoring_account;
+      op.sponsored = sponsored_account;
+      op.is_sponsoring = is_sponsoring;
+
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+
+   }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account)(broadcast) )
+}
+
 map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
       return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);

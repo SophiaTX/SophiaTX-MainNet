@@ -25,7 +25,7 @@ using namespace chain;
 
 namespace detail{ class condenser_api_impl; }
 
-
+//typedef account_history::api_operation_object api_operation_object;
 struct api_operation_object
 {
    api_operation_object() {}
@@ -35,7 +35,8 @@ struct api_operation_object
       trx_in_block( obj.trx_in_block ),
       virtual_op( obj.virtual_op ),
       timestamp( obj.timestamp ),
-      op( l_op )
+      op( l_op ),
+      fee_payer( obj.fee_payer)
    {}
 
    transaction_id_type  trx_id;
@@ -45,6 +46,7 @@ struct api_operation_object
    uint64_t             virtual_op = 0;
    fc::time_point_sec   timestamp;
    legacy_operation     op;
+   string               fee_payer;
 };
 
 typedef steem::plugins::custom::received_object api_received_object;
@@ -458,7 +460,7 @@ FC_REFLECT( steem::plugins::condenser_api::state,
             (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_operation_object,
-             (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op) )
+             (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op)(fee_payer) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_account_object,
              (id)(name)(owner)(active)(memo_key)(json_metadata)(voting_proxy)

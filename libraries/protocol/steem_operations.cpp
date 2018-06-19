@@ -392,7 +392,7 @@ namespace steem { namespace protocol {
 
    void sponsor_fees_operation::validate() const
    {
-      validate_account_name(sponsor);
+      if(sponsor != "") validate_account_name(sponsor);
       validate_account_name(sponsored);
    }
 

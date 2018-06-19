@@ -765,7 +765,8 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
     };
 
     /**
-     * Allow sponsoring someone elses fees
+     * Allow sponsoring someone elses fees. In order to remove sponsor, just send with your account in "sponsored" and keep the "sponsor" empty. On other side, to 
+     * stop sponsoring, set "is_sponsoring" to false. 
      */
      struct sponsor_fees_operation : public base_operation
      {
@@ -778,7 +779,7 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
         account_name_type get_fee_payer()const { return sponsor;};
         asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
 
-        void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert( sponsor ); }
+        void get_required_active_authorities( flat_set<account_name_type>& a )const{ if(sponsor == "") a.insert(sponsored); else a.insert( sponsor ); }
 
         void validate() const;
      };
