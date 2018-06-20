@@ -81,8 +81,7 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
          fc::from_hex( string(signature), (char*)sig.begin(), sizeof(compact_signature) );
 
          stx.signatures.push_back(sig);
-         string result = fc::json::to_string(stx);
-         strcpy(signed_tx, result.substr(1, result.size() - 1).c_str());
+         strcpy(signed_tx, fc::json::to_string(stx).c_str());
          return true;
 
       } catch (const fc::exception& e) {
