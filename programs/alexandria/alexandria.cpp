@@ -58,7 +58,8 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
          string private_k_str(private_key);
          auto priv_key = *steem::utilities::wif_to_key(private_k_str);
          auto sig = priv_key.sign_compact(dig);
-         strcpy(signed_digest, fc::json::to_string(sig).c_str());
+         string result = fc::json::to_string(sig);
+         strcpy(signed_digest, result.substr(1, result.size() - 1).c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -80,7 +81,8 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
          fc::from_hex( string(signature), (char*)sig.begin(), sizeof(compact_signature) );
 
          stx.signatures.push_back(sig);
-         strcpy(signed_tx, fc::json::to_string(stx).c_str());
+         string result = fc::json::to_string(stx);
+         strcpy(signed_tx, result.substr(1, result.size() - 1).c_str());
          return true;
 
       } catch (const fc::exception& e) {
