@@ -553,7 +553,7 @@ FC_REFLECT( steem::plugins::condenser_api::scheduled_hardfork,
             (hf_version)(live_time) )
 
 FC_REFLECT( steem::plugins::condenser_api::get_version_return,
-            (blockchain_version)(steem_revision)(fc_revision) )
+            (blockchain_version)(steem_revision)(fc_revision)(chain_id) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_application_object,
             (id)
