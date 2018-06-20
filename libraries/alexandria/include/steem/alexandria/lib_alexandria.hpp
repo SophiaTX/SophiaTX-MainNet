@@ -153,15 +153,6 @@ class alexandria_api
        */
       string  gethelp(const string& method)const;
 
-      /** Suggests a safe brain key to use for creating your account.
-       * \c create_account_with_brain_key() requires you to specify a 'brain key',
-       * a long passphrase that provides enough entropy to generate cyrptographic
-       * keys.  This function will suggest a suitably random string that should
-       * be easy to write down (and, with effort, memorize).
-       * @returns a suggested brain_key
-       */
-      brain_key_info suggest_brain_key()const;
-
       /** Converts a signed_transaction in JSON form to its binary representation.
        *
        * TODO: I don't see a broadcast_transaction() function, do we need one?
@@ -172,16 +163,6 @@ class alexandria_api
        *          in it
        */
       string serialize_transaction(signed_transaction tx) const;
-
-      /** Transforms a brain key to reduce the chance of errors when re-entering the key from memory.
-       *
-       * This takes a user-supplied brain key and normalizes it into the form used
-       * for generating private keys.  In particular, this upper-cases all ASCII characters
-       * and collapses multiple spaces into one.
-       * @param s the brain key as supplied by the user
-       * @returns the brain key in its normalized form
-       */
-      string normalize_brain_key(string s) const;
 
       /**
        * This method is used by faucets to create new accounts for other users which must
@@ -336,25 +317,6 @@ class alexandria_api
         */
       operation withdraw_vesting( string from, asset vesting_shares);
 
-      /** Returns an uninitialized object representing a given blockchain operation.
-       *
-       * This returns a default-initialized object of the given type; it can be used
-       * during early development of the wallet when we don't yet have custom commands for
-       * creating all of the operations the blockchain supports.
-       *
-       * Any operation the blockchain supports can be created using the transaction builder's
-       * \c add_operation_to_builder_transaction() , but to do that from the CLI you need to
-       * know what the JSON form of the operation looks like.  This will give you a template
-       * you can fill in.  It's better than nothing.
-       *
-       * @param operation_type the type of operation to return, must be one of the
-       *                       operations defined in `steem/chain/operations.hpp`
-       *                       (e.g., "global_parameters_update_operation")
-       * @return a default-constructed operation of the given type
-       */
-      operation get_prototype_operation(string operation_type);
-
-
       vector< database_api::api_owner_authority_history_object > get_owner_history( string account )const;
 
       /**
@@ -482,16 +444,7 @@ class alexandria_api
       signed_transaction create_simple_transaction(operation op) const;
 };
 
-struct plain_keys {
-   fc::sha512                  checksum;
-   map<public_key_type,string> keys;
-};
-
 } }
-
-FC_REFLECT( steem::wallet::brain_key_info, (brain_priv_key)(wif_priv_key) (pub_key))
-
-FC_REFLECT( steem::wallet::plain_keys, (checksum)(keys) )
 
 FC_REFLECT_ENUM( steem::wallet::authority_type, (owner)(active) )
 
@@ -499,10 +452,6 @@ FC_API( steem::wallet::alexandria_api,
         /// wallet api
         (help)(gethelp)
         (about)
-
-        /// key api
-        (suggest_brain_key)
-        (normalize_brain_key)
 
         /// query api
         (info)
@@ -532,7 +481,6 @@ FC_API( steem::wallet::alexandria_api,
         (get_application_buyings)
 
         /// helper api
-        (get_prototype_operation)
         (serialize_transaction)
         (broadcast_transaction)
         (create_transaction)

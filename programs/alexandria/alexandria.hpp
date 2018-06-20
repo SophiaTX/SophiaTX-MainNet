@@ -6,10 +6,27 @@ extern "C" {
    /**
     * Generates private_key in WIF format based on random seed.
     * @param private_key - return parameter of size 51
-    * @param public_key - return paramter of size 53
+    * @param public_key - return parameter of size 53
     * @return - true if operation is successful
     */
    bool generate_private_key(char* private_key, char* public_key);
+
+   /**
+    * Returns public_key for given private_key
+    * @param private_key - Private key in WIF format
+    * @param public_key - return paramter public key derived from private_key
+    * @return - true if operation is successful
+    */
+   bool get_public_key(const char* private_key, char* public_key);
+
+   /**
+    * Generates new private/public key pair from brian key.​
+    * @param brain_key - Brain key that will be used for private/public key generation
+    * @param private_key - return parameter of size 51 (WIF)
+    * @param public_key - return parameter of size 53
+    * @return - true if operation is successful
+    */
+   bool generate_key_pair_from_brain_key(const char* brain_key, char* private_key, char* public_key )
 
    /**
     * Creates digest of JSON formatted transaction
@@ -37,6 +54,35 @@ extern "C" {
     * @return - true if operation is successful
     */
    bool add_signature(const char* transaction, const char* signature, char* signed_tx);
+
+   /**
+    * Function for verifying signature base on digest and public key
+    * @param digest - digest that will be singed
+    * @param public_key - corresponding public key to private_key used fo signing
+    * @param signed_digest - digest singed by private_key
+    * @return - true if signature is correct
+    */
+   bool verify_signature(const char* digest, const char* public_key, const char* signed_digest);
+
+   /**
+   *  Returns the encrypted memo
+   * @param memo - memo that should be encrypted
+   * @param private_key - Private key of sender of memo
+   * @param public_key - Public key of recipient
+   * @param encrypted_memo - return value of encrypted memo
+   * @return - true if signature is correct
+   */
+   bool encrypt_memo(const char* memo, const char* private_key, const char* public_key, char* encrypted_memo );
+
+   /**
+    * Returns the decrypted memo if possible given private keys
+    * @param memo - memo that should be encrypted
+    * @param private_key - Private key of recipient of memo
+    * @param public_key - Public key of sender
+    * @param decrypted_memo - decrypted memo
+    * @return - true if signature is correct
+    */
+   bool decrypt_memo(const char* memo, const char* private_key, const char* public_key, char* decrypted_memo );
 }
 
 #endif //STEEM_ALEXANDRIA_HPP
