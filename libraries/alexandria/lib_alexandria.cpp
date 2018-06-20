@@ -193,12 +193,11 @@ class alexandria_api_impl
 
 public:
    alexandria_api& self;
-   alexandria_api_impl( alexandria_api& s, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi )
+   alexandria_api_impl( alexandria_api& s, fc::api< remote_node_api > rapi )
       : self( s ),
         _remote_api( rapi )
    {
       init_prototype_ops();
-      steem_chain_id = _steem_chain_id;
    }
    virtual ~alexandria_api_impl()
    {}
@@ -261,6 +260,7 @@ public:
          result["server_blockchain_version"] = v.blockchain_version;
          result["server_steem_revision"] = v.steem_revision;
          result["server_fc_revision"] = v.fc_revision;
+         result["chain_id"] = v.chain_id;
       }
       catch( fc::exception& )
       {
@@ -356,8 +356,6 @@ public:
       return it->second;
    }
 
-   steem::protocol::chain_id_type          steem_chain_id;
-
    fc::sha512                              _checksum;
    fc::api< remote_node_api >              _remote_api;
    uint32_t                                _tx_expiration_seconds = 30;
@@ -377,8 +375,8 @@ public:
 
 namespace steem { namespace wallet {
 
-alexandria_api::alexandria_api( const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi)
-   : my(new detail::alexandria_api_impl(*this, _steem_chain_id, rapi))
+alexandria_api::alexandria_api(fc::api< remote_node_api > rapi)
+   : my(new detail::alexandria_api_impl(*this, rapi))
 {}
 
 alexandria_api::~alexandria_api(){}
@@ -844,13 +842,6 @@ signed_transaction alexandria_api::create_simple_transaction(operation op) const
         tx.validate();
         return tx;
     }FC_CAPTURE_AND_RETHROW( (op))
-}
-
-digest_type alexandria_api::get_digest(signed_transaction tx) const
-{
-    try{
-        return tx.sig_digest(my->steem_chain_id);;
-    }FC_CAPTURE_AND_RETHROW( (tx))
 }
 
 operation alexandria_api::delete_account(string account_name) {

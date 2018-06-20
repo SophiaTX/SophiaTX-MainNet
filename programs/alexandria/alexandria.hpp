@@ -14,10 +14,11 @@ extern "C" {
    /**
     * Creates digest of JSON formatted transaction
     * @param transaction - transaction in JSON format
+    * @param chain_id - id of current blockchain
     * @param digest - returned digest of transaction (size 64)
     * @return - true if operation is successful
     */
-   bool get_transaction_digest(const char* transaction, char* digest);
+   bool get_transaction_digest(const char* transaction, const char* chain_id, char* digest);
 
    /**
     * Creates signature for provided digest

@@ -65,7 +65,7 @@ class alexandria_api_impl;
 class alexandria_api
 {
    public:
-      alexandria_api( const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi );
+      alexandria_api( fc::api< remote_node_api > rapi );
       virtual ~alexandria_api();
 
       /** Returns a list of all commands supported by the wallet API.
@@ -480,14 +480,6 @@ class alexandria_api
        * @return signle transaction with all the operations
        */
       signed_transaction create_simple_transaction(operation op) const;
-
-      /**
-       * Calculate digest of transaction
-       * @param tx Transaction to be digested
-       * @returned digest of transaction
-       */
-      digest_type get_digest(signed_transaction tx) const;
-
 };
 
 struct plain_keys {
@@ -545,7 +537,6 @@ FC_API( steem::wallet::alexandria_api,
         (broadcast_transaction)
         (create_transaction)
         (create_simple_transaction)
-        (get_digest)
 
         (get_active_witnesses)
         (get_transaction)

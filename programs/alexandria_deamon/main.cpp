@@ -81,7 +81,6 @@ int main( int argc, char** argv )
          std::cout << opts << "\n";
          return 0;
       }
-      steem::protocol::chain_id_type _steem_chain_id = STEEM_CHAIN_ID;
 
       fc::path data_dir;
       fc::logging_config cfg;
@@ -116,7 +115,7 @@ int main( int argc, char** argv )
 
       auto remote_api = apic->get_remote_api< steem::wallet::remote_node_api >( 0, "condenser_api" );
 
-      auto alex_apiptr = std::make_shared<alexandria_api>( _steem_chain_id, remote_api );
+      auto alex_apiptr = std::make_shared<alexandria_api>( remote_api );
 
       fc::api<alexandria_api> alex_api(alex_apiptr);
 
