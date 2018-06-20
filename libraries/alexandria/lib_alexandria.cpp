@@ -1,6 +1,5 @@
 #include <steem/utilities/git_revision.hpp>
 #include <steem/utilities/key_conversion.hpp>
-#include <steem/utilities/words.hpp>
 
 #include <steem/protocol/base.hpp>
 #include <steem/alexandria/lib_alexandria.hpp>
@@ -208,11 +207,9 @@ public:
       return m;
    }
 
-   fc::sha512                              _checksum;
    fc::api< remote_node_api >              _remote_api;
    uint32_t                                _tx_expiration_seconds = 30;
 
-   static_variant_map _operation_which_map = create_static_variant_map< operation >();
 
 #ifdef __unix__
    mode_t                  _old_umask;
@@ -316,11 +313,6 @@ condenser_api::api_feed_history_object alexandria_api::get_feed_history(asset_sy
    return my->_remote_api->get_feed_history(symbol);
 }
 
-/**
- * This method is used by faucets to create new accounts for other users which must
- * provide their desired keys. The resulting account may not be controllable by this
- * wallet.
- */
 operation alexandria_api::create_account( string creator,
                                       string new_account_name,
                                       string json_meta,
@@ -419,13 +411,12 @@ operation alexandria_api::vote_for_witness(string voting_account, string witness
 operation alexandria_api::transfer(string from, string to, asset amount, string memo)
 { try {
 
-   // check_memo( memcheck_memocheck_memocheck_memocheck_memoo, get_account( from ) );
     transfer_operation op;
     op.from = from;
     op.to = to;
     op.amount = amount;
 
-    op.memo = /*get_encrypted_memo( from, to,*/ memo /*)*/;
+    op.memo =  memo;
     return op;
 } FC_CAPTURE_AND_RETHROW( (from)(to)(amount)(memo) ) }
 

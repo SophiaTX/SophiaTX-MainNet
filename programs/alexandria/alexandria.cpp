@@ -4,16 +4,14 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <fc/io/json.hpp>
-#include <fc/crypto/rand.hpp>
-
 #include <steem/utilities/key_conversion.hpp>
-
 #include <steem/protocol/transaction.hpp>
 
+#include <fc/io/json.hpp>
 #include <fc/real128.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/aes.hpp>
+#include <fc/crypto/rand.hpp>
 #include <fc/api.hpp>
 
 
@@ -24,16 +22,16 @@ using namespace std;
 
 struct memo_data {
 
-   static optional<memo_data> from_string( string str ) {
+   static fc::optional<memo_data> from_string( string str ) {
       try {
          if( str.size() > sizeof(memo_data)) {
-            auto data = fc::from_base58( str.substr(1) );
+            auto data = fc::from_base58( str );
             auto m  = fc::raw::unpack_from_vector<memo_data>( data );
             FC_ASSERT( string(m) == str );
             return m;
          }
       } catch ( ... ) {}
-      return optional<memo_data>();
+      return fc::optional<memo_data>();
    }
 
    public_key_type from;
@@ -48,6 +46,8 @@ struct memo_data {
       return base58;
    }
 };
+
+FC_REFLECT( memo_data, (from)(to)(nonce)(check)(encrypted) )
 
 bool generate_private_key(char *private_key, char *public_key) {
    try {
@@ -67,6 +67,7 @@ bool get_public_key(const char *private_key, char *public_key) {
          auto priv_key = *steem::utilities::wif_to_key(string(private_key));
          auto pub_key = priv_key.get_public_key();
          strcpy(public_key, public_key::to_base58(pub_key).c_str());
+         return true;
       } catch (const fc::exception& e) {
          return false;
       }
@@ -82,6 +83,7 @@ bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, 
          auto pub_key = priv_key.get_public_key();
          strcpy(private_key, key_to_wif(priv_key).c_str());
          strcpy(public_key, public_key::to_base58(pub_key).c_str());
+         return true;
       } catch (const fc::exception& e) {
          return false;
       }
@@ -89,7 +91,7 @@ bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, 
    return false;
 }
 
-bool get_transaction_digest(const char *transaction, const char* chain_id, char *digest) {
+bool get_transaction_digest(const char *transaction, const char *chain_id, char *digest) {
    if(transaction) {
       try {
          string tx_str(transaction);
@@ -146,10 +148,10 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
 }
 
 bool verify_signature(const char *digest, const char *public_key, const char *signed_digest) {
-   if(digest && public_key && signed_digest){
+   if(digest && public_key && signed_digest) {
       try {
          fc::sha256 dig(string(digest, strlen(digest)));
-         public_key pub_key = public_key::from_base58(string(public_key));
+         auto pub_key = public_key::from_base58(string(public_key));
          compact_signature sig;
          fc::from_hex( string(signed_digest), (char*)sig.begin(), sizeof(compact_signature) );
 
@@ -185,7 +187,7 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
 
          m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(string(memo)) );
          m.check = fc::sha256::hash( encrypt_key )._hash[0];
-         strcpy(encrypted_memo, m.string().c_str());
+         strcpy(encrypted_memo, string(m).c_str());
          return true;
 
       } catch (const fc::exception& e) {
@@ -198,7 +200,8 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
 bool decrypt_memo(const char *memo, const char *private_key, const char* public_key, char *decrypted_memo) {
    if(memo && private_key) {
       try {
-         auto m = memo_data::from_string( string(memo) );
+         string str_memo(memo);
+         auto m = memo_data::from_string( str_memo );
 
          if( m ) {
             fc::sha512 shared_secret;

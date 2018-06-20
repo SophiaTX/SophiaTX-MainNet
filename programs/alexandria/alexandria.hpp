@@ -26,7 +26,7 @@ extern "C" {
     * @param public_key - return parameter of size 53
     * @return - true if operation is successful
     */
-   bool generate_key_pair_from_brain_key(const char* brain_key, char* private_key, char* public_key )
+   bool generate_key_pair_from_brain_key(const char* brain_key, char* private_key, char* public_key);
 
    /**
     * Creates digest of JSON formatted transaction
