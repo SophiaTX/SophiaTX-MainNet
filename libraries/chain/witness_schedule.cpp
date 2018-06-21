@@ -232,12 +232,17 @@ void update_witness_schedule4( database& db )
 
       _wso.num_scheduled_witnesses = std::max< uint8_t >( active_witnesses.size(), 1 );
 
+      // (top19_weight * num_elected + timeshare_weight * num_timeshare)/witness_pay_normalization_factor = (num_elected + num_timeshare)
+      // (top19_weight * num_elected + timeshare_weight * num_timeshare) = (num_elected + num_timeshare) * witness_pay_normalization_factor
+      // (top19_weight * num_elected + top19_weight * 3 * num_timeshare) = (num_elected + num_timeshare) * witness_pay_normalization_factor
+      // top19_weight * (num_elected + 3*num_timeshare ) = (num_elected + num_timeshare) * witness_pay_normalization_factor
+      //      top19_weight / witness_pay_normalization_factor = (num_elected + num_timeshare) / (num_elected + 3*num_timeshare )
+
       _wso.top19_weight = (num_elected + num_timeshare);
       _wso.timeshare_weight = 3 * _wso.top19_weight;
 
       _wso.witness_pay_normalization_factor =
-           _wso.top19_weight * num_elected
-         + _wso.timeshare_weight * num_timeshare;
+           num_elected + 3 * num_timeshare;
 
       /// shuffle current shuffled witnesses
       auto now_hi = uint64_t(db.head_block_time().sec_since_epoch()) << 32;
