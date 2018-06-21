@@ -27,29 +27,46 @@ struct api_account_object
       name( a.name ),
       memo_key( a.memo_key ),
       json_metadata( to_string( a.json_metadata ) ),
-      proxy( a.proxy ),
-      last_account_update( a.last_account_update ),
-      created( a.created ),
-      recovery_account( a.recovery_account ),
-      reset_account( a.reset_account ),
-      last_account_recovery( a.last_account_recovery ),
+      voting_proxy( a.proxy ),
+      //last_account_update( a.last_account_update ),
+      //created( a.created ),
+      //recovery_account( a.recovery_account ),
+      //reset_account( a.reset_account ),
+      //last_account_recovery( a.last_account_recovery ),
       balance( a.balance ),
       vesting_shares( a.vesting_shares ),
       vesting_withdraw_rate( a.vesting_withdraw_rate ),
-      next_vesting_withdrawal( a.next_vesting_withdrawal ),
-      withdrawn( a.withdrawn ),
-      to_withdraw( a.to_withdraw ),
-      witnesses_voted_for( a.witnesses_voted_for )
+      //next_vesting_withdrawal( a.next_vesting_withdrawal ),
+      //withdrawn( a.withdrawn ),
+      to_withdraw( a.to_withdraw )
+      //witnesses_voted_for( a.witnesses_voted_for )
    {
-      size_t n = a.proxied_vsf_votes.size();
+      /*size_t n = a.proxied_vsf_votes.size();
       proxied_vsf_votes.reserve( n );
       for( size_t i=0; i<n; i++ )
-         proxied_vsf_votes.push_back( a.proxied_vsf_votes[i] );
+         proxied_vsf_votes.push_back( a.proxied_vsf_votes[i] );*/
+      const auto& by_sponsor_idx = db.get_index<account_fee_sponsor_index>().indices().get<by_sponsor>();
+      auto sponsor_itr = by_sponsor_idx.lower_bound(std::make_tuple(a.name, ""));
+      while( sponsor_itr->sponsor == a.name && sponsor_itr != by_sponsor_idx.end() ){
+         sponsored_accounts.push_back(sponsor_itr->sponsored);
+         sponsor_itr++;
+      }
+
+      const auto& by_sponsored_idx = db.get_index<account_fee_sponsor_index>().indices().get<by_sponsored>();
+      auto sponsored_itr = by_sponsored_idx.find(a.name);
+      if(sponsored_itr!=by_sponsored_idx.end()){
+         sponsoring_account = sponsored_itr->sponsor;
+      }else{
+         sponsoring_account = "";
+      }
 
       const auto& auth = db.get< account_authority_object, by_account >( name );
       owner = authority( auth.owner );
       active = authority( auth.active );
-      last_owner_update = auth.last_owner_update;
+      //last_owner_update = auth.last_owner_update;
+
+
+
 #ifdef STEEM_ENABLE_SMT
       const auto& by_control_account_index = db.get_index<smt_token_index>().indices().get<by_control_account>();
       auto smt_obj_itr = by_control_account_index.find( name );
@@ -67,27 +84,30 @@ struct api_account_object
    authority         active;
    public_key_type   memo_key;
    string            json_metadata;
-   account_name_type proxy;
+   account_name_type voting_proxy;
 
-   time_point_sec    last_owner_update;
-   time_point_sec    last_account_update;
+//   time_point_sec    last_owner_update;
+//   time_point_sec    last_account_update;
 
-   time_point_sec    created;
-   account_name_type recovery_account;
-   account_name_type reset_account;
-   time_point_sec    last_account_recovery;
+//   time_point_sec    created;
+//   account_name_type recovery_account;
+//   account_name_type reset_account;
+//   time_point_sec    last_account_recovery;
+   std::vector<account_name_type>       sponsored_accounts;
+   account_name_type                    sponsoring_account;
+   vector<account_name_type>            witness_votes;
 
    asset             balance;
 
    asset             vesting_shares;
    asset             vesting_withdraw_rate;
-   time_point_sec    next_vesting_withdrawal;
-   share_type        withdrawn;
+//   time_point_sec    next_vesting_withdrawal;
+//   share_type        withdrawn;
    share_type        to_withdraw;
 
-   vector< share_type > proxied_vsf_votes;
+//   vector< share_type > proxied_vsf_votes;
 
-   uint16_t          witnesses_voted_for;
+//   uint16_t          witnesses_voted_for;
 
 };
 
@@ -322,12 +342,12 @@ struct api_application_buying_object
 
 
 FC_REFLECT( steem::plugins::database_api::api_account_object,
-             (id)(name)(owner)(active)(memo_key)(json_metadata)(proxy)(last_owner_update)(last_account_update)
-             (created)
-             (recovery_account)(last_account_recovery)(reset_account)
+             (id)(name)(owner)(active)(memo_key)(json_metadata)(voting_proxy)//(last_owner_update)(last_account_update)
+             //(created) (recovery_account)(last_account_recovery)(reset_account)
              (balance)
-             (vesting_shares)(vesting_withdraw_rate)(next_vesting_withdrawal)(withdrawn)(to_withdraw)
-             (proxied_vsf_votes)(witnesses_voted_for)
+             (vesting_shares)(vesting_withdraw_rate)(to_withdraw)//(next_vesting_withdrawal)(withdrawn)
+             //(proxied_vsf_votes)(witnesses_voted_for)
+             (witness_votes)(sponsored_accounts)(sponsoring_account)
           )
 
 FC_REFLECT( steem::plugins::database_api::api_owner_authority_history_object,

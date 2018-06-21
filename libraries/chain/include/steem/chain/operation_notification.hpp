@@ -16,6 +16,7 @@ struct operation_notification
    uint16_t            op_in_trx = 0;
    uint64_t            virtual_op = 0;
    const operation&    op;
+   account_name_type   fee_payer;
 };
 
 } }

@@ -421,6 +421,8 @@ namespace steem { namespace chain {
             { _on_reindex_done.connect(functor); }
 
          asset process_operation_fee( const operation& op);
+         account_name_type get_fee_payer(const operation& op);
+         optional<account_name_type> get_sponsor(const account_name_type& who) const;
 
    protected:
          //Mark pop_undo() as protected -- we do not want outside calling pop_undo(); it should call pop_block() instead
