@@ -1303,7 +1303,6 @@ void database::process_funds()
       witness_reward = e.withdraw_mining_reward(_current_block_num, nominator, denominator);
    });
 
-   elog("producer reward is ${r}, nominator ${n}, denominator ${d}", ("r", witness_reward)("n", nominator)("d", denominator));
    push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, VESTS_SYMBOL) ) );
    create_vesting(cwit.owner, asset(witness_reward, VESTS_SYMBOL));
 
