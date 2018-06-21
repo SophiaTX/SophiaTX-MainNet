@@ -96,6 +96,7 @@ FC_REFLECT( steem::chain::dynamic_global_property_object,
              (total_reward_fund)
              (maximum_block_size)
              (current_aslot)
+             (witness_required_vesting)
              (recent_slots_filled)
              (participation_count)
              (last_irreversible_block_num)

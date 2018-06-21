@@ -950,6 +950,7 @@ FC_API( steem::wallet::wallet_api,
         (delete_account)
         (sponsor_account_fees)
         (update_witness)
+        (stop_witness)
         (set_voting_proxy)
         (vote_for_witness)
         (transfer)
