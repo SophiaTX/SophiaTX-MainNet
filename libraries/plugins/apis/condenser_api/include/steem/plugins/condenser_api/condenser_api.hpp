@@ -128,7 +128,8 @@ struct extended_dynamic_global_properties
       current_aslot( o.current_aslot ),
       recent_slots_filled( o.recent_slots_filled ),
       participation_count( o.participation_count ),
-      last_irreversible_block_num( o.last_irreversible_block_num )
+      last_irreversible_block_num( o.last_irreversible_block_num ),
+      witness_required_vesting( legacy_asset::from_asset( o.witness_required_vesting ) )
    {}
 
    uint32_t          head_block_number = 0;
@@ -143,6 +144,8 @@ struct extended_dynamic_global_properties
    uint64_t          current_aslot = 0;
    fc::uint128_t     recent_slots_filled;
    uint8_t           participation_count = 0;
+   legacy_asset      witness_required_vesting;
+
 
    uint32_t          last_irreversible_block_num = 0;
 
@@ -483,7 +486,7 @@ FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
             (current_witness)
             (current_supply)
-            (total_vesting_shares)
+            (total_vesting_shares)(witness_required_vesting)
             (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
             (average_block_size) )
 

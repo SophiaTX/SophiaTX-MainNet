@@ -273,7 +273,7 @@ public:
       result["median_sbd5_price"] = _remote_api->get_current_median_history_price(SBD5_SYMBOL);
 
       result["account_creation_fee"] = _remote_api->get_chain_properties().account_creation_fee;
-      //result["post_reward_fund"] = fc::variant(_remote_api->get_reward_fund( STEEM_POST_REWARD_FUND_NAME )).get_object();
+
       return result;
    }
 
