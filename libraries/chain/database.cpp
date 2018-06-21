@@ -1303,7 +1303,7 @@ void database::process_funds()
       witness_reward = e.withdraw_mining_reward(_current_block_num, nominator, denominator);
    });
 
-
+   elog("producer reward is ${r}, nominator ${n}, denominator ${d}", ("r", witness_reward)("n", nominator)("d", denominator));
    push_virtual_operation( producer_reward_operation( cwit.owner, asset(witness_reward, VESTS_SYMBOL) ) );
    create_vesting(cwit.owner, asset(witness_reward, VESTS_SYMBOL));
 
@@ -1422,8 +1422,6 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< custom_json_evaluator                    >();
    _my->_evaluator_registry.register_evaluator< report_over_production_evaluator         >();
    _my->_evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< placeholder_a_evaluator                  >();
-   _my->_evaluator_registry.register_evaluator< placeholder_b_evaluator                  >();
    _my->_evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
    _my->_evaluator_registry.register_evaluator< recover_account_evaluator                >();
    _my->_evaluator_registry.register_evaluator< change_recovery_account_evaluator        >();
@@ -1437,7 +1435,7 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
    _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
 #ifdef STEEM_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif
@@ -1492,7 +1490,7 @@ void database::initialize_indexes()
    add_core_index< change_recovery_account_request_index   >(*this);
    add_core_index< escrow_index                            >(*this);
    add_core_index< application_index                       >(*this);
-   add_core_index< application_buying_index                   >(*this);
+   add_core_index< application_buying_index                >(*this);
    add_core_index< custom_content_index                    >(*this);
    add_core_index< account_fee_sponsor_index               >(*this);
 #ifdef STEEM_ENABLE_SMT
