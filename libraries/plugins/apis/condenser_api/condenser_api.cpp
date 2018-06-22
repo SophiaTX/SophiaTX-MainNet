@@ -96,7 +96,8 @@ namespace detail
       (
          fc::string( STEEM_BLOCKCHAIN_VERSION ),
          fc::string( steem::utilities::git_revision_sha ),
-         fc::string( fc::git_revision_sha )
+         fc::string( fc::git_revision_sha ),
+         fc::string( STEEM_CHAIN_ID )
       );
    }
 

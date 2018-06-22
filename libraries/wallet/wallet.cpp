@@ -1777,14 +1777,13 @@ annotated_signed_transaction wallet_api::get_transaction( transaction_id_type id
 }
 
 annotated_signed_transaction
-wallet_api::delete_application(string author, authority active_auth, string app_name, bool broadcast) {
+wallet_api::delete_application(string author, string app_name, bool broadcast) {
    try
    {
       FC_ASSERT( !is_locked() );
 
       application_delete_operation op;
       op.author = author;
-      op.active = active_auth;
       op.name = app_name;
 
       signed_transaction tx;
@@ -1793,10 +1792,10 @@ wallet_api::delete_application(string author, authority active_auth, string app_
 
       return my->sign_transaction( tx, broadcast );
    }
-    FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(broadcast) )
+    FC_CAPTURE_AND_RETHROW( (author)(app_name)(broadcast) )
 }
 
-annotated_signed_transaction wallet_api::buy_application(string buyer, authority active_auth, int64_t app_id, bool broadcast)
+annotated_signed_transaction wallet_api::buy_application(string buyer, int64_t app_id, bool broadcast)
 {
     try
     {
@@ -1804,7 +1803,6 @@ annotated_signed_transaction wallet_api::buy_application(string buyer, authority
 
        buy_application_operation op;
        op.buyer = buyer;
-       op.active = active_auth;
        op.app_id = app_id;
 
        signed_transaction tx;
@@ -1813,10 +1811,10 @@ annotated_signed_transaction wallet_api::buy_application(string buyer, authority
 
        return my->sign_transaction( tx, broadcast );
     }
-    FC_CAPTURE_AND_RETHROW( (buyer)(active_auth)(app_id)(broadcast) )
+    FC_CAPTURE_AND_RETHROW( (buyer)(app_id)(broadcast) )
 }
 
-annotated_signed_transaction wallet_api::cancel_application_buying(string app_owner, string buyer, authority active_auth, int64_t app_id, bool broadcast)
+annotated_signed_transaction wallet_api::cancel_application_buying(string app_owner, string buyer, int64_t app_id, bool broadcast)
 {
     try
     {
@@ -1825,7 +1823,6 @@ annotated_signed_transaction wallet_api::cancel_application_buying(string app_ow
        cancel_application_buying_operation op;
        op.app_owner = app_owner;
        op.buyer = buyer;
-       op.active = active_auth;
        op.app_id = app_id;
 
        signed_transaction tx;
@@ -1834,7 +1831,7 @@ annotated_signed_transaction wallet_api::cancel_application_buying(string app_ow
 
        return my->sign_transaction( tx, broadcast );
     }
-    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(active_auth)(app_id)(broadcast) )
+    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(app_id)(broadcast) )
 }
 
 vector<condenser_api::api_application_buying_object> wallet_api::get_application_buyings(string name, string search_type, uint32_t count)
@@ -1845,7 +1842,7 @@ vector<condenser_api::api_application_buying_object> wallet_api::get_application
 }
 
 annotated_signed_transaction
-wallet_api::update_application(string author, authority active_auth, string app_name, string new_author, string url,
+wallet_api::update_application(string author, string app_name, string new_author, string url,
                                string meta_data, uint8_t price_param, bool broadcast) {
    try
    {
@@ -1853,7 +1850,6 @@ wallet_api::update_application(string author, authority active_auth, string app_
 
       application_update_operation op;
       op.author = author;
-      op.active = active_auth;
       op.name = app_name;
       op.new_author= new_author;
       op.url = url;
@@ -1866,11 +1862,11 @@ wallet_api::update_application(string author, authority active_auth, string app_
 
       return my->sign_transaction( tx, broadcast );
    }
-   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(new_author)(url)(meta_data)(price_param)(broadcast) )
+   FC_CAPTURE_AND_RETHROW( (author)(app_name)(new_author)(url)(meta_data)(price_param)(broadcast) )
 }
 
 annotated_signed_transaction
-wallet_api::create_application(string author, authority active_auth, string app_name, string url, string meta_data,
+wallet_api::create_application(string author, string app_name, string url, string meta_data,
                                uint8_t price_param, bool broadcast) {
    try
    {
@@ -1878,7 +1874,6 @@ wallet_api::create_application(string author, authority active_auth, string app_
 
       application_create_operation op;
       op.author = author;
-      op.active = active_auth;
       op.name = app_name;
       op.url = url;
       op.metadata = meta_data;
@@ -1890,7 +1885,7 @@ wallet_api::create_application(string author, authority active_auth, string app_
 
       return my->sign_transaction( tx, broadcast );
    }
-   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(url)(meta_data)(price_param)(broadcast) )
+   FC_CAPTURE_AND_RETHROW( (author)(app_name)(url)(meta_data)(price_param)(broadcast) )
 }
 
 annotated_signed_transaction wallet_api::send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json, bool broadcast){
@@ -1952,7 +1947,7 @@ map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_do
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
-annotated_signed_transaction wallet_api::delete_account(string account_name, authority owner_auth, bool broadcast) {
+annotated_signed_transaction wallet_api::delete_account(string account_name, bool broadcast) {
    try{
       FC_ASSERT( !is_locked() );
       account_delete_operation op;
@@ -1963,7 +1958,7 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, aut
 
       return my->sign_transaction( tx, broadcast );
 
-   }FC_CAPTURE_AND_RETHROW( (account_name)(owner_auth)(broadcast))
+   }FC_CAPTURE_AND_RETHROW( (account_name)(broadcast))
 }
 
 } } // steem::wallet

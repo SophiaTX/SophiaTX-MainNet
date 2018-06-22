@@ -960,8 +960,6 @@ void application_create_evaluator::do_apply( const application_create_operation&
 {
    _db.get_account( o.author );
 
-   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
-
    _db.create< application_object >( [&]( application_object& app )
                                    {
                                         app.name = o.name;
@@ -979,7 +977,11 @@ void application_update_evaluator::do_apply( const application_update_operation&
 {
    const auto& application = _db.get_application( o.name );
 
-   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+   if(o.new_author)
+   {
+      _db.get_account(*o.new_author);
+      const auto& account_auth = _db.get< account_authority_object, by_account >( *o.new_author );
+   }
 
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
@@ -1007,8 +1009,6 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
 {
    const auto& application = _db.get_application( o.name );
 
-   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
-
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
    const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_app_id >();
@@ -1031,8 +1031,6 @@ void buy_application_evaluator::do_apply( const buy_application_operation& o )
    auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_id) );
    FC_ASSERT(request == app_buy_idx.end(), "This buying already exisit" );
 
-   verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
-
    _db.create< application_buying_object >( [&]( application_buying_object& app_buy )
                                    {
                                         app_buy.buyer = o.buyer;
@@ -1045,8 +1043,6 @@ void cancel_application_buying_evaluator::do_apply( const cancel_application_buy
 {
    const auto& application = _db.get_application_by_id( o.app_id );
    const auto& app_buying = _db.get_application_buying( o.buyer, o.app_id );
-
-   verify_authority_accounts_exist( _db, o.active, o.app_owner, authority::active );
 
    FC_ASSERT(application.author == o.app_owner, "Provided app author is not this applcation author" );
 

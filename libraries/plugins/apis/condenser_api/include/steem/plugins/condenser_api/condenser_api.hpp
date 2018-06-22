@@ -343,12 +343,13 @@ typedef vector< variant > get_version_args;
 struct get_version_return
 {
    get_version_return() {}
-   get_version_return( fc::string bc_v, fc::string s_v, fc::string fc_v )
-      :blockchain_version( bc_v ), steem_revision( s_v ), fc_revision( fc_v ) {}
+   get_version_return( fc::string bc_v, fc::string s_v, fc::string fc_v, fc::string ci_v )
+      :blockchain_version( bc_v ), steem_revision( s_v ), fc_revision( fc_v ), chain_id(ci_v) {}
 
    fc::string blockchain_version;
    fc::string steem_revision;
    fc::string fc_revision;
+   fc::string chain_id;
 };
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
@@ -539,7 +540,7 @@ FC_REFLECT( steem::plugins::condenser_api::scheduled_hardfork,
             (hf_version)(live_time) )
 
 FC_REFLECT( steem::plugins::condenser_api::get_version_return,
-            (blockchain_version)(steem_revision)(fc_revision) )
+            (blockchain_version)(steem_revision)(fc_revision)(chain_id) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_application_object,
             (id)
