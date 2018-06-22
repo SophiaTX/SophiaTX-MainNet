@@ -3777,5 +3777,89 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
    FC_LOG_AND_RETHROW()
 }
 
+BOOST_AUTO_TEST_CASE( sponsor_fees )
+{
+   try{
+      BOOST_TEST_MESSAGE("Testing: sponsor_fees");
+      ACTORS((alice)(bob)(cecil));
+      fund("alice", 100000000);
+      fund("bob",   1000000);
+
+      generate_block();
+      sponsor_fees_operation sponsor_op;
+      sponsor_op.sponsor = "alice";
+      sponsor_op.sponsored = "bob";
+      sponsor_op.is_sponsoring = true;
+
+      signed_transaction tx;
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(sponsor_op);
+      tx.sign(alice_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      generate_block();
+
+      transfer_operation t_op;
+      t_op.from = "bob";
+      t_op.to = "cecil";
+      t_op.amount = ASSET("0.500000 SPHTX");
+      t_op.fee = ASSET("0.100000 SPHTX");
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(t_op);
+      tx.sign(bob_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      generate_block();
+
+      const auto& new_alice = db->get_account( "alice" );
+      const auto& new_bob = db->get_account( "bob" );
+      const auto& new_cecil = db->get_account( "cecil" );
+
+      BOOST_REQUIRE( new_alice.balance.amount.value == ASSET( "99.900000 SPHTX" ).amount.value && new_bob.balance.amount.value == ASSET( "0.500000 SPHTX" ).amount.value && new_cecil.balance.amount.value == ASSET( "0.500000 SPHTX" ).amount.value);
+
+      sponsor_op.is_sponsoring = false;
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(sponsor_op);
+      tx.sign(alice_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      generate_block();
+
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(t_op);
+      tx.sign(bob_private_key, db->get_chain_id());
+      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+
+      sponsor_op.is_sponsoring = true;
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(sponsor_op);
+      tx.sign(alice_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+
+      generate_block();
+      sponsor_op.sponsor = "";
+      sponsor_op.is_sponsoring = false;
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(sponsor_op);
+      tx.sign(bob_private_key, db->get_chain_id());
+      db->push_transaction(tx, 0);
+      generate_block();
+
+      tx.clear();
+      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.operations.push_back(t_op);
+      tx.sign(bob_private_key, db->get_chain_id());
+      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+
+   }
+   FC_LOG_AND_RETHROW()
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()
 //#endif

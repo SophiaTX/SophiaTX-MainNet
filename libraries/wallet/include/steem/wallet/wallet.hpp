@@ -878,6 +878,8 @@ class wallet_api
        */
       map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
+      annotated_signed_transaction sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast);
+
 };
 
 struct plain_keys {
@@ -937,7 +939,9 @@ FC_API( steem::wallet::wallet_api,
         (update_account_meta)
         (update_account_memo_key)
         (delete_account)
+        (sponsor_account_fees)
         (update_witness)
+        (stop_witness)
         (set_voting_proxy)
         (vote_for_witness)
         (transfer)

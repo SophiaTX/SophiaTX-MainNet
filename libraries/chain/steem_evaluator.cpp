@@ -58,7 +58,7 @@ void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
    if( wit_itr != by_witness_name_idx.end() )
    {
       _db.modify(*wit_itr, [&]( witness_object& w ) {
-         w.stopped = true;
+         w.signing_key = public_key_type();
       });
    }
 }
@@ -587,7 +587,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.withdrawn = 0;
 
          auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
+         FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
@@ -806,15 +806,6 @@ void report_over_production_evaluator::do_apply( const report_over_production_op
    FC_ASSERT( false, "report_over_production_operation is disabled." );
 }
 
-void placeholder_a_evaluator::do_apply( const placeholder_a_operation& o )
-{
-   FC_ASSERT( false, "This is not a valid op." );
-}
-
-void placeholder_b_evaluator::do_apply( const placeholder_b_operation& o )
-{
-   FC_ASSERT( false, "This is not a valid op" );
-}
 
 void request_account_recovery_evaluator::do_apply( const request_account_recovery_operation& o )
 {
@@ -1074,6 +1065,28 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
    wop.to_account = op.transfer_to;
    wop.withdrawn =  asset(withdrawn, STEEM_SYMBOL);
    _db.push_virtual_operation(wop);
+}
+
+void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
+{
+   if( op.sponsor == account_name_type("") ){
+      _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
+      return;
+   }
+
+   _db.get_account(op.sponsor);
+   _db.get_account(op.sponsored);
+   optional< account_name_type > existing_sponsor = _db.get_sponsor(op.sponsored);
+   if(op.is_sponsoring){
+      FC_ASSERT(!existing_sponsor, "This account is already sponsored");
+      _db.create<account_fee_sponsor_object>([&](account_fee_sponsor_object& o){
+         o.sponsor = op.sponsor;
+         o.sponsored = op.sponsored;
+      });
+   }else{
+      FC_ASSERT( existing_sponsor && *existing_sponsor == op.sponsor, "You are not sponsoring this account" );
+      _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
+   }
 }
 
 #ifdef STEEM_ENABLE_SMT

@@ -25,7 +25,7 @@ using namespace chain;
 
 namespace detail{ class condenser_api_impl; }
 
-
+//typedef account_history::api_operation_object api_operation_object;
 struct api_operation_object
 {
    api_operation_object() {}
@@ -35,7 +35,8 @@ struct api_operation_object
       trx_in_block( obj.trx_in_block ),
       virtual_op( obj.virtual_op ),
       timestamp( obj.timestamp ),
-      op( l_op )
+      op( l_op ),
+      fee_payer( obj.fee_payer)
    {}
 
    transaction_id_type  trx_id;
@@ -45,6 +46,7 @@ struct api_operation_object
    uint64_t             virtual_op = 0;
    fc::time_point_sec   timestamp;
    legacy_operation     op;
+   string               fee_payer;
 };
 
 typedef steem::plugins::custom::received_object api_received_object;
@@ -59,23 +61,16 @@ struct api_account_object
       active( a.active ),
       memo_key( a.memo_key ),
       json_metadata( a.json_metadata ),
-      proxy( a.proxy ),
-      last_owner_update( a.last_owner_update ),
-      last_account_update( a.last_account_update ),
-      created( a.created ),
-      recovery_account( a.recovery_account ),
-      reset_account( a.reset_account ),
-      last_account_recovery( a.last_account_recovery ),
+      voting_proxy( a.voting_proxy ),
       balance( legacy_asset::from_asset( a.balance ) ),
       vesting_shares( legacy_asset::from_asset( a.vesting_shares ) ),
+      sponsoring_account(a.sponsoring_account),
       vesting_withdraw_rate( legacy_asset::from_asset( a.vesting_withdraw_rate ) ),
-      next_vesting_withdrawal( a.next_vesting_withdrawal ),
-      withdrawn( a.withdrawn ),
-      to_withdraw( a.to_withdraw ),
-      witnesses_voted_for( a.witnesses_voted_for )
-
+      to_withdraw( a.to_withdraw )
    {
-      proxied_vsf_votes.insert( proxied_vsf_votes.end(), a.proxied_vsf_votes.begin(), a.proxied_vsf_votes.end() );
+      sponsored_accounts.insert( sponsored_accounts.end(), a.sponsored_accounts.begin(), a.sponsored_accounts.end() );
+      witness_votes.insert( witness_votes.end(), a.witness_votes.begin(), a.witness_votes.end() );
+
    }
 
 
@@ -88,27 +83,18 @@ struct api_account_object
    authority         active;
    public_key_type   memo_key;
    string            json_metadata;
-   account_name_type proxy;
-
-   time_point_sec    last_owner_update;
-   time_point_sec    last_account_update;
-
-   time_point_sec    created;
-   account_name_type recovery_account;
-   account_name_type reset_account;
-   time_point_sec    last_account_recovery;
+   account_name_type voting_proxy;
 
    legacy_asset      balance;
 
+   std::vector<account_name_type>       sponsored_accounts;
+   account_name_type                    sponsoring_account;
+   vector<account_name_type>            witness_votes;
+
    legacy_asset      vesting_shares;
    legacy_asset      vesting_withdraw_rate;
-   time_point_sec    next_vesting_withdrawal;
-   share_type        withdrawn;
+
    share_type        to_withdraw;
-
-   vector< share_type > proxied_vsf_votes;
-
-   uint16_t          witnesses_voted_for;
 
 };
 
@@ -142,7 +128,8 @@ struct extended_dynamic_global_properties
       current_aslot( o.current_aslot ),
       recent_slots_filled( o.recent_slots_filled ),
       participation_count( o.participation_count ),
-      last_irreversible_block_num( o.last_irreversible_block_num )
+      last_irreversible_block_num( o.last_irreversible_block_num ),
+      witness_required_vesting( legacy_asset::from_asset( o.witness_required_vesting ) )
    {}
 
    uint32_t          head_block_number = 0;
@@ -157,6 +144,8 @@ struct extended_dynamic_global_properties
    uint64_t          current_aslot = 0;
    fc::uint128_t     recent_slots_filled;
    uint8_t           participation_count = 0;
+   legacy_asset      witness_required_vesting;
+
 
    uint32_t          last_irreversible_block_num = 0;
 
@@ -481,16 +470,14 @@ FC_REFLECT( steem::plugins::condenser_api::state,
             (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_operation_object,
-             (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op) )
+             (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op)(fee_payer) )
 
 FC_REFLECT( steem::plugins::condenser_api::api_account_object,
-             (id)(name)(owner)(active)(memo_key)(json_metadata)(proxy)(last_owner_update)(last_account_update)
-             (created)
-             (recovery_account)(last_account_recovery)(reset_account)
+             (id)(name)(owner)(active)(memo_key)(json_metadata)(voting_proxy)
              (balance)
-             (vesting_shares)(vesting_withdraw_rate)(next_vesting_withdrawal)(withdrawn)(to_withdraw)
-             (proxied_vsf_votes)(witnesses_voted_for)
-          )
+             (vesting_shares)(vesting_withdraw_rate)(to_withdraw)
+             (witness_votes)(sponsored_accounts)(sponsoring_account)
+)
 
 FC_REFLECT_DERIVED( steem::plugins::condenser_api::extended_account, (steem::plugins::condenser_api::api_account_object),
             (vesting_balance)(transfer_history)(other_history)(witness_votes) )
@@ -499,7 +486,7 @@ FC_REFLECT( steem::plugins::condenser_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
             (current_witness)
             (current_supply)
-            (total_vesting_shares)
+            (total_vesting_shares)(witness_required_vesting)
             (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
             (average_block_size) )
 

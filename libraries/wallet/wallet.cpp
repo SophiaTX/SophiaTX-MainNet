@@ -273,7 +273,7 @@ public:
       result["median_sbd5_price"] = _remote_api->get_current_median_history_price(SBD5_SYMBOL);
 
       result["account_creation_fee"] = _remote_api->get_chain_properties().account_creation_fee;
-      //result["post_reward_fund"] = fc::variant(_remote_api->get_reward_fund( STEEM_POST_REWARD_FUND_NAME )).get_object();
+
       return result;
    }
 
@@ -1922,6 +1922,23 @@ annotated_signed_transaction wallet_api::send_custom_binary_document(uint32_t ap
       return my->sign_transaction( tx, broadcast );
 
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data)(broadcast))
+}
+
+annotated_signed_transaction wallet_api::sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast){
+   try{
+      FC_ASSERT( !is_locked() );
+      sponsor_fees_operation op;
+      op.sponsor = sponsoring_account;
+      op.sponsored = sponsored_account;
+      op.is_sponsoring = is_sponsoring;
+
+      signed_transaction tx;
+      tx.operations.push_back(op);
+      tx.validate();
+
+      return my->sign_transaction( tx, broadcast );
+
+   }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account)(broadcast) )
 }
 
 map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){

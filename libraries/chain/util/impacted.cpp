@@ -144,6 +144,33 @@ struct get_impacted_account_visitor
       _impacted.insert( op.owner );
    }
 
+   void operator()( const sponsor_fees_operation& op)
+   {
+      if(op.sponsor!="")
+         _impacted.insert( op.sponsor );
+      _impacted.insert( op.sponsored );
+   }
+
+   void operator() (const transfer_from_promotion_pool_operation& op)
+   {
+      _impacted.insert(STEEM_INIT_MINER_NAME);
+      _impacted.insert(op.transfer_to);
+   }
+
+   void operator() (const application_create_operation& op)
+   {
+      _impacted.insert(op.author);
+   }
+
+   void operator() (const application_update_operation& op)
+   {
+      _impacted.insert(op.author);
+   }
+
+   void operator() (const application_delete_operation& op)
+   {
+      _impacted.insert(op.author);
+   }
    //void operator()( const operation& op ){}
 };
 
