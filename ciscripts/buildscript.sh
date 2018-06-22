@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
-export IMAGE_NAME="steemit/steem:$BRANCH_NAME"
-if [[ $IMAGE_NAME == "steemit/steem:stable" ]] ; then
-  IMAGE_NAME="steemit/steem:latest"
+export IMAGE_NAME="sophiatxit/sophiatx:$BRANCH_NAME"
+if [[ $IMAGE_NAME == "sophiatxit/sophiatx:stable" ]] ; then
+  IMAGE_NAME="sophiatxit/sophiatx:latest"
 fi
 sudo docker build -t=$IMAGE_NAME .
 sudo docker login --username=$DOCKER_USER --password=$DOCKER_PASS

@@ -1,10 +1,10 @@
 
-add_library( steem_plugins
+add_library( sophiatx_plugins
    mf_plugins.cpp
-   ${CMAKE_CURRENT_SOURCE_DIR}/include/steem/manifest/plugins.hpp
+   ${CMAKE_CURRENT_SOURCE_DIR}/include/sophiatx/manifest/plugins.hpp
 )
 
-target_link_libraries( steem_plugins appbase fc
+target_link_libraries( sophiatx_plugins appbase fc
 
    smt_test_plugin
 
@@ -46,12 +46,12 @@ target_link_libraries( steem_plugins appbase fc
 
 )
 
-target_include_directories( steem_plugins
+target_include_directories( sophiatx_plugins
    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
    )
 
 INSTALL( TARGETS
-   steem_plugins
+   sophiatx_plugins
 
    RUNTIME DESTINATION bin
    LIBRARY DESTINATION lib

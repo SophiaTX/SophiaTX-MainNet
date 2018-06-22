@@ -1,22 +1,22 @@
-#include <steem/plugins/smt_test/smt_test_plugin.hpp>
-#include <steem/plugins/smt_test/smt_test_objects.hpp>
+#include <sophiatx/plugins/smt_test/smt_test_plugin.hpp>
+#include <sophiatx/plugins/smt_test/smt_test_objects.hpp>
 
-#include <steem/chain/account_object.hpp>
-#include <steem/chain/database.hpp>
-#include <steem/chain/index.hpp>
-#include <steem/chain/operation_notification.hpp>
+#include <sophiatx/chain/account_object.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/index.hpp>
+#include <sophiatx/chain/operation_notification.hpp>
 
-#include <steem/protocol/smt_operations.hpp>
+#include <sophiatx/protocol/smt_operations.hpp>
 
-namespace steem { namespace plugins { namespace smt_test {
+namespace sophiatx { namespace plugins { namespace smt_test {
 
-using namespace steem::protocol;
+using namespace sophiatx::protocol;
 
 class smt_test_plugin_impl
 {
    public:
       smt_test_plugin_impl( smt_test_plugin& _plugin ) :
-         _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ) {}
 
       void pre_operation( const operation_notification& op_obj );
@@ -64,34 +64,34 @@ void smt_test_plugin_impl::post_operation( const operation_notification& note )
    note.op.visit( post_operation_visitor( *this ) );
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 
 void test_alpha()
 {
    vector<operation>  operations;
 
    smt_capped_generation_policy gpolicy;
-   uint64_t max_supply = STEEM_MAX_SHARE_SUPPLY / 6000;
+   uint64_t max_supply = SOPHIATX_MAX_SHARE_SUPPLY / 6000;
 
-   // set steem unit, total is 100 STEEM-satoshis = 0.1 STEEM
-   gpolicy.pre_soft_cap_unit.steem_unit.emplace( "founder_a",   7 );
-   gpolicy.pre_soft_cap_unit.steem_unit.emplace( "founder_b",  23 );
-   gpolicy.pre_soft_cap_unit.steem_unit.emplace( "founder_c",  70 );
+   // set sophiatx unit, total is 100 SOPHIATX-satoshis = 0.1 SOPHIATX
+   gpolicy.pre_soft_cap_unit.sophiatx_unit.emplace( "founder_a",   7 );
+   gpolicy.pre_soft_cap_unit.sophiatx_unit.emplace( "founder_b",  23 );
+   gpolicy.pre_soft_cap_unit.sophiatx_unit.emplace( "founder_c",  70 );
 
    // set token unit, total is 6 token-satoshis = 0.0006 ALPHA
    gpolicy.pre_soft_cap_unit.token_unit.emplace( "$from", 5 );
    gpolicy.pre_soft_cap_unit.token_unit.emplace( "founder_d", 1 );
 
    // no soft cap -> no soft cap unit
-   gpolicy.post_soft_cap_unit.steem_unit.clear();
+   gpolicy.post_soft_cap_unit.sophiatx_unit.clear();
    gpolicy.post_soft_cap_unit.token_unit.clear();
 
-   gpolicy.min_steem_units_commitment.fillin_nonhidden_value( 1 );
-   gpolicy.hard_cap_steem_units_commitment.fillin_nonhidden_value( max_supply );
+   gpolicy.min_sophiatx_units_commitment.fillin_nonhidden_value( 1 );
+   gpolicy.hard_cap_sophiatx_units_commitment.fillin_nonhidden_value( max_supply );
 
-   gpolicy.soft_cap_percent = STEEM_100_PERCENT;
+   gpolicy.soft_cap_percent = SOPHIATX_100_PERCENT;
 
-   // .0006 ALPHA / 0.1 STEEM -> 1000 token-units / steem-unit
+   // .0006 ALPHA / 0.1 SOPHIATX -> 1000 token-units / sophiatx-unit
    gpolicy.min_unit_ratio = 1000;
    gpolicy.max_unit_ratio = 1000;
 
@@ -130,9 +130,9 @@ void test_beta()
 
    smt_capped_generation_policy gpolicy;
 
-   // set steem unit, total is 100 STEEM-satoshis = 0.1 STEEM
-   gpolicy.pre_soft_cap_unit.steem_unit.emplace( "fred"  , 3 );
-   gpolicy.pre_soft_cap_unit.steem_unit.emplace( "george", 2 );
+   // set sophiatx unit, total is 100 SOPHIATX-satoshis = 0.1 SOPHIATX
+   gpolicy.pre_soft_cap_unit.sophiatx_unit.emplace( "fred"  , 3 );
+   gpolicy.pre_soft_cap_unit.sophiatx_unit.emplace( "george", 2 );
 
    // set token unit, total is 6 token-satoshis = 0.0006 ALPHA
    gpolicy.pre_soft_cap_unit.token_unit.emplace( "$from" , 7 );
@@ -140,15 +140,15 @@ void test_beta()
    gpolicy.pre_soft_cap_unit.token_unit.emplace( "henry" , 2 );
 
    // no soft cap -> no soft cap unit
-   gpolicy.post_soft_cap_unit.steem_unit.clear();
+   gpolicy.post_soft_cap_unit.sophiatx_unit.clear();
    gpolicy.post_soft_cap_unit.token_unit.clear();
 
-   gpolicy.min_steem_units_commitment.fillin_nonhidden_value( 5000000 );
-   gpolicy.hard_cap_steem_units_commitment.fillin_nonhidden_value( 30000000 );
+   gpolicy.min_sophiatx_units_commitment.fillin_nonhidden_value( 5000000 );
+   gpolicy.hard_cap_sophiatx_units_commitment.fillin_nonhidden_value( 30000000 );
 
-   gpolicy.soft_cap_percent = STEEM_100_PERCENT;
+   gpolicy.soft_cap_percent = SOPHIATX_100_PERCENT;
 
-   // .0006 ALPHA / 0.1 STEEM -> 1000 token-units / steem-unit
+   // .0006 ALPHA / 0.1 SOPHIATX -> 1000 token-units / sophiatx-unit
    gpolicy.min_unit_ratio = 50;
    gpolicy.max_unit_ratio = 100;
 
@@ -186,22 +186,22 @@ void test_delta()
 
    smt_capped_generation_policy gpolicy;
 
-   // set steem unit, total is 1 STEEM-satoshi = 0.001 STEEM
-   gpolicy.pre_soft_cap_unit.steem_unit.emplace( "founder", 1 );
+   // set sophiatx unit, total is 1 SOPHIATX-satoshi = 0.001 SOPHIATX
+   gpolicy.pre_soft_cap_unit.sophiatx_unit.emplace( "founder", 1 );
 
    // set token unit, total is 10,000 token-satoshis = 0.10000 DELTA
    gpolicy.pre_soft_cap_unit.token_unit.emplace( "founder" , 10000 );
 
    // no soft cap -> no soft cap unit
-   gpolicy.post_soft_cap_unit.steem_unit.clear();
+   gpolicy.post_soft_cap_unit.sophiatx_unit.clear();
    gpolicy.post_soft_cap_unit.token_unit.clear();
 
-   gpolicy.min_steem_units_commitment.fillin_nonhidden_value(      10000000 );
-   gpolicy.hard_cap_steem_units_commitment.fillin_nonhidden_value( 10000000 );
+   gpolicy.min_sophiatx_units_commitment.fillin_nonhidden_value(      10000000 );
+   gpolicy.hard_cap_sophiatx_units_commitment.fillin_nonhidden_value( 10000000 );
 
-   gpolicy.soft_cap_percent = STEEM_100_PERCENT;
+   gpolicy.soft_cap_percent = SOPHIATX_100_PERCENT;
 
-   // .001 STEEM / .100000 DELTA -> 100 DELTA / STEEM
+   // .001 SOPHIATX / .100000 DELTA -> 100 DELTA / SOPHIATX
    gpolicy.min_unit_ratio = 1000;
    gpolicy.max_unit_ratio = 1000;
 
@@ -267,7 +267,7 @@ void smt_test_plugin::plugin_initialize( const boost::program_options::variables
    try
    {
       ilog( "Initializing smt_test plugin" );
-      chain::database& db = appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       db.pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
       db.post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );
@@ -281,4 +281,4 @@ void smt_test_plugin::plugin_startup() {}
 
 void smt_test_plugin::plugin_shutdown() {}
 
-} } } // steem::plugins::smt_test
+} } } // sophiatx::plugins::smt_test

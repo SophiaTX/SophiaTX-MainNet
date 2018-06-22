@@ -1,18 +1,18 @@
 #ifdef IS_TEST_NET
-#include <steem/chain/generic_custom_operation_interpreter.hpp>
-#include <steem/chain/account_object.hpp>
+#include <sophiatx/chain/generic_custom_operation_interpreter.hpp>
+#include <sophiatx/chain/account_object.hpp>
 
 #include <boost/test/unit_test.hpp>
 
 #include "../db_fixture/database_fixture.hpp"
 
-using namespace steem::chain;
-using namespace steem::chain::test;
+using namespace sophiatx::chain;
+using namespace sophiatx::chain::test;
 /*
-namespace steem { namespace plugin_tests {
+namespace sophiatx { namespace plugin_tests {
 
-using namespace steem::app;
-using namespace steem::chain;
+using namespace sophiatx::app;
+using namespace sophiatx::chain;
 
 struct test_a_operation : base_operation
 {
@@ -42,8 +42,8 @@ class test_plugin : public plugin
       std::shared_ptr< generic_custom_operation_interpreter< test_op > > _evaluator_registry;
 };
 
-STEEM_DEFINE_PLUGIN_EVALUATOR( test_plugin, test_a_operation, test_a );
-STEEM_DEFINE_PLUGIN_EVALUATOR( test_plugin, test_b_operation, test_b );
+SOPHIATX_DEFINE_PLUGIN_EVALUATOR( test_plugin, test_a_operation, test_a );
+SOPHIATX_DEFINE_PLUGIN_EVALUATOR( test_plugin, test_b_operation, test_b );
 
 void test_a_evaluator::do_apply( const test_a_operation& o )
 {
@@ -75,16 +75,16 @@ test_plugin::test_plugin( application* app ) : plugin( app )
    database().set_custom_operation_interpreter( plugin_name(), _evaluator_registry );
 }
 
-} } // steem::plugin_tests
+} } // sophiatx::plugin_tests
 
-STEEM_DEFINE_PLUGIN( test, steem::plugin_tests::test_plugin )
+SOPHIATX_DEFINE_PLUGIN( test, sophiatx::plugin_tests::test_plugin )
 
-FC_REFLECT( steem::plugin_tests::test_a_operation, (account) )
-FC_REFLECT( steem::plugin_tests::test_b_operation, (account) )
+FC_REFLECT( sophiatx::plugin_tests::test_a_operation, (account) )
+FC_REFLECT( sophiatx::plugin_tests::test_b_operation, (account) )
 
-STEEM_DECLARE_OPERATION_TYPE( steem::plugin_tests::test_op );
-FC_REFLECT_TYPENAME( steem::plugin_tests::test_op );
-STEEM_DEFINE_OPERATION_TYPE( steem::plugin_tests::test_op );
+SOPHIATX_DECLARE_OPERATION_TYPE( sophiatx::plugin_tests::test_op );
+FC_REFLECT_TYPENAME( sophiatx::plugin_tests::test_op );
+SOPHIATX_DEFINE_OPERATION_TYPE( sophiatx::plugin_tests::test_op );
 */
 
 BOOST_FIXTURE_TEST_SUITE( plugin_ops, clean_database_fixture );

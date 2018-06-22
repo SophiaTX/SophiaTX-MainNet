@@ -7,17 +7,17 @@
 #include <fc/io/json.hpp>
 #include <fc/crypto/rand.hpp>
 
-#include <steem/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
 
-#include <steem/protocol/transaction.hpp>
+#include <sophiatx/protocol/transaction.hpp>
 
 #include <fc/real128.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/api.hpp>
 
 
-using namespace steem::utilities;
-using namespace steem::protocol;
+using namespace sophiatx::utilities;
+using namespace sophiatx::protocol;
 using namespace fc::ecc;
 using namespace std;
 
@@ -54,7 +54,7 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
       try {
          fc::sha256 dig(string(digest, strlen(digest)));
          string private_k_str(private_key);
-         auto priv_key = *steem::utilities::wif_to_key(private_k_str);
+         auto priv_key = *sophiatx::utilities::wif_to_key(private_k_str);
          auto sig = priv_key.sign_compact(dig);
          strcpy(signed_digest, fc::json::to_string(sig).c_str());
          return true;

@@ -9,8 +9,8 @@ from pathlib import Path
 from time import sleep
 
 # local imports
-from steemdebugnode import DebugNode
-from steemapi.steemnoderpc import SteemNodeRPC
+from sophiatxdebugnode import DebugNode
+from sophiatxapi.sophiatxnoderpc import SophiaTXNodeRPC
 
 WAITING = True
 
@@ -20,9 +20,9 @@ def main( ):
       print( "This script only works on POSIX systems" )
       return
 
-   parser = ArgumentParser( description='Run a steemd debug node on an existing chain, trigger a hardfork' \
+   parser = ArgumentParser( description='Run a sophiatxd debug node on an existing chain, trigger a hardfork' \
                               ' and verify hardfork does not break invariants or block production' )
-   parser.add_argument( '--steemd', '-s', type=str, required=True, help='The location of a steemd binary to run the debug node' )
+   parser.add_argument( '--sophiatxd', '-s', type=str, required=True, help='The location of a sophiatxd binary to run the debug node' )
    parser.add_argument( '--data-dir', '-d', type=str, required=True, help='The location of an existing data directory. ' + \
                         'The debug node will pull blocks from this directory when replaying the chain. The directory ' + \
                         'will not be changed.' )
@@ -31,19 +31,19 @@ def main( ):
 
    args = parser.parse_args()
 
-   steemd = Path( args.steemd )
-   if( not steemd.exists() ):
-      print( 'Error: steemd does not exist.' )
+   sophiatxd = Path( args.sophiatxd )
+   if( not sophiatxd.exists() ):
+      print( 'Error: sophiatxd does not exist.' )
       return
 
-   steemd = steemd.resolve()
-   if( not steemd.is_file() ):
-      print( 'Error: steemd is not a file.' )
+   sophiatxd = sophiatxd.resolve()
+   if( not sophiatxd.is_file() ):
+      print( 'Error: sophiatxd is not a file.' )
       return
 
    data_dir = Path( args.data_dir )
    if( not data_dir.exists() ):
-      print( 'Error: data_dir does not exist or is not a properly constructed steemd data directory' )
+      print( 'Error: data_dir does not exist or is not a properly constructed sophiatxd data directory' )
 
    data_dir = data_dir.resolve()
    if( not data_dir.is_dir() ):
@@ -51,11 +51,11 @@ def main( ):
 
    signal.signal( signal.SIGINT, sigint_handler )
 
-   debug_node = DebugNode( str( steemd ), str( data_dir ), steemd_err=sys.stderr )
+   debug_node = DebugNode( str( sophiatxd ), str( data_dir ), sophiatxd_err=sys.stderr )
 
    with debug_node :
 
-      run_steemd_tests( debug_node )
+      run_sophiatxd_tests( debug_node )
 
       if( args.pause_node ):
          print( "Letting the node hang for manual inspection..." )
@@ -66,8 +66,8 @@ def main( ):
          sleep( 1 )
 
 
-def run_steemd_tests( debug_node ):
-   from steemapi.steemnoderpc import SteemNodeRPC
+def run_sophiatxd_tests( debug_node ):
+   from sophiatxapi.sophiatxnoderpc import SophiaTXNodeRPC
 
    try:
       print( 'Replaying blocks...', )
@@ -81,7 +81,7 @@ def run_steemd_tests( debug_node ):
       print( "Triggering payouts" )
       sys.stdout.flush()
       debug_node.debug_generate_blocks_until( 1467590400 - 3 )
-      rpc = SteemNodeRPC( 'ws://127.0.0.1:8095', '', '' )
+      rpc = SophiaTXNodeRPC( 'ws://127.0.0.1:8095', '', '' )
       ret = rpc.lookup_accounts( '', str( 0xFFFFFFFF ) )
 
       debug_node.debug_generate_blocks( 1 )
@@ -114,7 +114,7 @@ def run_steemd_tests( debug_node ):
       '''
       print( "Printing account reward dump:" )
       sorted_rewards = sorted( account_rewards.items(), key=operator.itemgetter(1) )
-      print( "account, curation_steem" )
+      print( "account, curation_sophiatx" )
       for rew in sorted_rewards:
          print( rew[0] + ', ' + str( rew[1] ) + ', ' + str( vote_count[ rew[0] ] ) )
 

@@ -1,11 +1,11 @@
-#include <steem/utilities/git_revision.hpp>
-#include <steem/utilities/key_conversion.hpp>
-#include <steem/utilities/words.hpp>
+#include <sophiatx/utilities/git_revision.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/words.hpp>
 
-#include <steem/protocol/base.hpp>
-#include <steem/wallet/wallet.hpp>
-#include <steem/wallet/api_documentation.hpp>
-#include <steem/wallet/reflect_util.hpp>
+#include <sophiatx/protocol/base.hpp>
+#include <sophiatx/wallet/wallet.hpp>
+#include <sophiatx/wallet/api_documentation.hpp>
+#include <sophiatx/wallet/reflect_util.hpp>
 
 
 #include <boost/algorithm/string/replace.hpp>
@@ -33,9 +33,9 @@
 
 #define BRAIN_KEY_WORD_COUNT 16
 
-namespace steem { namespace wallet {
+namespace sophiatx { namespace wallet {
 
-using steem::plugins::condenser_api::legacy_asset;
+using sophiatx::plugins::condenser_api::legacy_asset;
 
 namespace detail {
 
@@ -193,14 +193,14 @@ class wallet_api_impl
 
 public:
    wallet_api& self;
-   wallet_api_impl( wallet_api& s, const wallet_data& initial_data, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi )
+   wallet_api_impl( wallet_api& s, const wallet_data& initial_data, const sophiatx::protocol::chain_id_type& _sophiatx_chain_id, fc::api< remote_node_api > rapi )
       : self( s ),
         _remote_api( rapi )
    {
       init_prototype_ops();
 
       _wallet.ws_server = initial_data.ws_server;
-      steem_chain_id = _steem_chain_id;
+      sophiatx_chain_id = _sophiatx_chain_id;
    }
    virtual ~wallet_api_impl()
    {}
@@ -273,22 +273,22 @@ public:
       result["median_sbd5_price"] = _remote_api->get_current_median_history_price(SBD5_SYMBOL);
 
       result["account_creation_fee"] = _remote_api->get_chain_properties().account_creation_fee;
-      //result["post_reward_fund"] = fc::variant(_remote_api->get_reward_fund( STEEM_POST_REWARD_FUND_NAME )).get_object();
+      //result["post_reward_fund"] = fc::variant(_remote_api->get_reward_fund( SOPHIATX_POST_REWARD_FUND_NAME )).get_object();
       return result;
    }
 
    variant_object about() const
    {
-      string client_version( steem::utilities::git_revision_description );
+      string client_version( sophiatx::utilities::git_revision_description );
       const size_t pos = client_version.find( '/' );
       if( pos != string::npos && client_version.size() > pos )
          client_version = client_version.substr( pos + 1 );
 
       fc::mutable_variant_object result;
-      result["blockchain_version"]       = STEEM_BLOCKCHAIN_VERSION;
+      result["blockchain_version"]       = SOPHIATX_BLOCKCHAIN_VERSION;
       result["client_version"]           = client_version;
-      result["steem_revision"]           = steem::utilities::git_revision_sha;
-      result["steem_revision_age"]       = fc::get_approximate_relative_time_string( fc::time_point_sec( steem::utilities::git_revision_unix_timestamp ) );
+      result["sophiatx_revision"]           = sophiatx::utilities::git_revision_sha;
+      result["sophiatx_revision_age"]       = fc::get_approximate_relative_time_string( fc::time_point_sec( sophiatx::utilities::git_revision_unix_timestamp ) );
       result["fc_revision"]              = fc::git_revision_sha;
       result["fc_revision_age"]          = fc::get_approximate_relative_time_string( fc::time_point_sec( fc::git_revision_unix_timestamp ) );
       result["compile_date"]             = "compiled on " __DATE__ " at " __TIME__;
@@ -311,7 +311,7 @@ public:
       {
          auto v = _remote_api->get_version();
          result["server_blockchain_version"] = v.blockchain_version;
-         result["server_steem_revision"] = v.steem_revision;
+         result["server_sophiatx_revision"] = v.sophiatx_revision;
          result["server_fc_revision"] = v.fc_revision;
       }
       catch( fc::exception& )
@@ -364,7 +364,7 @@ public:
       fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
       if (!optional_private_key)
          FC_THROW("Invalid private key");
-      steem::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
+      sophiatx::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
 
       _keys[wif_pub_key] = wif_key;
       return true;
@@ -435,7 +435,7 @@ public:
       for (int key_index = 0; ; ++key_index)
       {
          fc::ecc::private_key derived_private_key = derive_private_key(key_to_wif(parent_key), key_index);
-         steem::chain::public_key_type derived_public_key = derived_private_key.get_public_key();
+         sophiatx::chain::public_key_type derived_public_key = derived_private_key.get_public_key();
          if( _keys.find(derived_public_key) == _keys.end() )
          {
             if (number_of_consecutive_unused_keys)
@@ -471,9 +471,9 @@ public:
          int memo_key_index = find_first_unused_derived_key_index(active_privkey);
          fc::ecc::private_key memo_privkey = derive_private_key( key_to_wif(active_privkey), memo_key_index);
 
-         steem::chain::public_key_type owner_pubkey = owner_privkey.get_public_key();
-         steem::chain::public_key_type active_pubkey = active_privkey.get_public_key();
-         steem::chain::public_key_type memo_pubkey = memo_privkey.get_public_key();
+         sophiatx::chain::public_key_type owner_pubkey = owner_privkey.get_public_key();
+         sophiatx::chain::public_key_type active_pubkey = active_privkey.get_public_key();
+         sophiatx::chain::public_key_type memo_pubkey = memo_privkey.get_public_key();
 
          account_create_operation account_create_op;
 
@@ -520,7 +520,7 @@ public:
 
    void set_transaction_expiration( uint32_t tx_expiration_seconds )
    {
-      FC_ASSERT( tx_expiration_seconds < STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      FC_ASSERT( tx_expiration_seconds < SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       _tx_expiration_seconds = tx_expiration_seconds;
    }
 
@@ -534,7 +534,7 @@ public:
          result_type operator()( base_operation& bop){
             if(bop.has_special_fee())
                return;
-            asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+            asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
             bop.fee = req_fee;
          };
       };
@@ -651,20 +651,20 @@ public:
       }
 
       auto minimal_signing_keys = tx.minimize_required_signatures(
-         steem_chain_id,
+         sophiatx_chain_id,
          available_keys,
          [&]( const string& account_name ) -> const authority&
          { return (get_account_from_lut( account_name ).active); },
          [&]( const string& account_name ) -> const authority&
          { return (get_account_from_lut( account_name ).owner); },
-         STEEM_MAX_SIG_CHECK_DEPTH
+         SOPHIATX_MAX_SIG_CHECK_DEPTH
          );
 
       for( const public_key_type& k : minimal_signing_keys )
       {
          auto it = available_private_keys.find(k);
          FC_ASSERT( it != available_private_keys.end() );
-         tx.sign( it->second, steem_chain_id );
+         tx.sign( it->second, sophiatx_chain_id );
       }
 
       if( broadcast ) {
@@ -701,10 +701,10 @@ public:
          std::stringstream out;
 
          auto accounts = result.as<vector<condenser_api::api_account_object>>();
-         asset total_steem;
+         asset total_sophiatx;
          asset total_vest(0, VESTS_SYMBOL );
          for( const auto& a : accounts ) {
-            total_steem += a.balance.to_asset();
+            total_sophiatx += a.balance.to_asset();
             total_vest  += a.vesting_shares.to_asset();
             out << std::left << std::setw( 17 ) << std::string(a.name)
                 << std::right << std::setw(18) << fc::variant(a.balance).as_string() <<" "
@@ -712,7 +712,7 @@ public:
          }
          out << "-------------------------------------------------------------------------\n";
             out << std::left << std::setw( 17 ) << "TOTAL"
-                << std::right << std::setw(18) << legacy_asset::from_asset(total_steem).to_string() <<" "
+                << std::right << std::setw(18) << legacy_asset::from_asset(total_sophiatx).to_string() <<" "
                 << std::right << std::setw(26) << legacy_asset::from_asset(total_vest).to_string() <<" \n";
          return out.str();
       };
@@ -751,7 +751,7 @@ public:
 
    string                                  _wallet_filename;
    wallet_data                             _wallet;
-   steem::protocol::chain_id_type          steem_chain_id;
+   sophiatx::protocol::chain_id_type          sophiatx_chain_id;
 
    map<public_key_type,string>             _keys;
    fc::sha512                              _checksum;
@@ -768,14 +768,14 @@ public:
    const string _wallet_filename_extension = ".wallet";
 };
 
-} } } // steem::wallet::detail
+} } } // sophiatx::wallet::detail
 
 
 
-namespace steem { namespace wallet {
+namespace sophiatx { namespace wallet {
 
-wallet_api::wallet_api(const wallet_data& initial_data, const steem::protocol::chain_id_type& _steem_chain_id, fc::api< remote_node_api > rapi)
-   : my(new detail::wallet_api_impl(*this, initial_data, _steem_chain_id, rapi))
+wallet_api::wallet_api(const wallet_data& initial_data, const sophiatx::protocol::chain_id_type& _sophiatx_chain_id, fc::api< remote_node_api > rapi)
+   : my(new detail::wallet_api_impl(*this, initial_data, _sophiatx_chain_id, rapi))
 {}
 
 wallet_api::~wallet_api(){}
@@ -844,11 +844,11 @@ brain_key_info wallet_api::suggest_brain_key()const
 
    for( int i=0; i<BRAIN_KEY_WORD_COUNT; i++ )
    {
-      fc::bigint choice = entropy % steem::words::word_list_size;
-      entropy /= steem::words::word_list_size;
+      fc::bigint choice = entropy % sophiatx::words::word_list_size;
+      entropy /= sophiatx::words::word_list_size;
       if( i > 0 )
          brain_key += " ";
-      brain_key += steem::words::word_list[ choice.to_int64() ];
+      brain_key += sophiatx::words::word_list[ choice.to_int64() ];
    }
 
    brain_key = normalize_brain_key(brain_key);
@@ -1078,7 +1078,7 @@ annotated_signed_transaction wallet_api::create_account_with_keys( string creato
    op.active = authority( 1, active, 1 );
    op.memo_key = memo;
    op.json_metadata = json_meta;
-   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, STEEM_SYMBOL );
+   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
 
    signed_transaction tx;
    tx.operations.push_back(op);
@@ -1568,7 +1568,7 @@ annotated_signed_transaction wallet_api::escrow_transfer(
       string to,
       string agent,
       uint32_t escrow_id,
-      asset steem_amount,
+      asset sophiatx_amount,
       asset fee,
       time_point_sec ratification_deadline,
       time_point_sec escrow_expiration,
@@ -1582,7 +1582,7 @@ annotated_signed_transaction wallet_api::escrow_transfer(
    op.to = to;
    op.agent = agent;
    op.escrow_id = escrow_id;
-   op.steem_amount = steem_amount;
+   op.sophiatx_amount = sophiatx_amount;
    op.escrow_fee = fee;
    op.ratification_deadline = ratification_deadline;
    op.escrow_expiration = escrow_expiration;
@@ -1651,7 +1651,7 @@ annotated_signed_transaction wallet_api::escrow_release(
    string who,
    string receiver,
    uint32_t escrow_id,
-   asset steem_amount,
+   asset sophiatx_amount,
    bool broadcast
 )
 {
@@ -1663,7 +1663,7 @@ annotated_signed_transaction wallet_api::escrow_release(
    op.who = who;
    op.receiver = receiver;
    op.escrow_id = escrow_id;
-   op.steem_amount = steem_amount;
+   op.sophiatx_amount = sophiatx_amount;
 
    signed_transaction tx;
    tx.operations.push_back( op );
@@ -1966,5 +1966,5 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, aut
    }FC_CAPTURE_AND_RETHROW( (account_name)(owner_auth)(broadcast))
 }
 
-} } // steem::wallet
+} } // sophiatx::wallet
 

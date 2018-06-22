@@ -1,8 +1,8 @@
-#include <steem/chain/economics.hpp>
-#include <steem/chain/util/uint256.hpp>
+#include <sophiatx/chain/economics.hpp>
+#include <sophiatx/chain/util/uint256.hpp>
 
 
-namespace steem { namespace chain {
+namespace sophiatx { namespace chain {
 namespace {
    uint128_t multiplier(uint64_t(0x0fffffffffffffff), uint64_t(0xffffffffffffffff));
    share_type get_next_block_interests(uint32_t block, share_type remaining_interests){
@@ -12,14 +12,14 @@ namespace {
    }
 }
 
-using namespace steem::protocol;
+using namespace sophiatx::protocol;
 
 
 void economic_model_object::init_economics(share_type _init_supply, share_type _total_supply){
    share_type coinbase = _total_supply - _init_supply;
-   mining_pool_from_coinbase = coinbase * SOPHIATX_MINING_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   interest_pool_from_coinbase = coinbase * SOPHIATX_INTEREST_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   promotion_pool = coinbase * SOPHIATX_PROMOTION_POOL_PERCENTAGE / STEEM_100_PERCENT;
+   mining_pool_from_coinbase = coinbase * SOPHIATX_MINING_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
+   interest_pool_from_coinbase = coinbase * SOPHIATX_INTEREST_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
+   promotion_pool = coinbase * SOPHIATX_PROMOTION_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
    initial_promotion_pool = promotion_pool;
    init_supply = _init_supply;
    total_supply = _total_supply;
@@ -28,21 +28,21 @@ void economic_model_object::init_economics(share_type _init_supply, share_type _
 share_type economic_model_object::get_mining_reward(uint32_t block_number)const{
    uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number;
    //mining reward consist of coinbase reward, which uniformly distributes mining pool among SOPHIATX_COINBASE_BLOCKS rewards,
-   // and fees rewards, where each block is rewarded one 1/(STEEM_BLOCKS_PER_DAY * 7) of the current pool.
+   // and fees rewards, where each block is rewarded one 1/(SOPHIATX_BLOCKS_PER_DAY * 7) of the current pool.
    share_type reward = mining_pool_from_coinbase / blocks_to_coinbase_end;
-   reward += mining_pool_from_fees / (STEEM_BLOCKS_PER_DAY * 7);
+   reward += mining_pool_from_fees / (SOPHIATX_BLOCKS_PER_DAY * 7);
    return reward;
 }
 
 share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, uint32_t nominator, uint32_t denominator){
    uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number+1;
    //mining reward consist of coinbase reward, which uniformly distributes mining pool among SOPHIATX_COINBASE_BLOCKS rewards,
-   // and fees rewards, where each block is rewarded one 1/(STEEM_BLOCKS_PER_DAY * 7) of the current pool.
+   // and fees rewards, where each block is rewarded one 1/(SOPHIATX_BLOCKS_PER_DAY * 7) of the current pool.
    share_type reward_from_coinbase = mining_pool_from_coinbase / blocks_to_coinbase_end;
    reward_from_coinbase = (reward_from_coinbase * nominator) / denominator;
    reward_from_coinbase = std::min(reward_from_coinbase, mining_pool_from_coinbase);
 
-   share_type reward_from_fees = mining_pool_from_fees / (STEEM_BLOCKS_PER_DAY * 7);
+   share_type reward_from_fees = mining_pool_from_fees / (SOPHIATX_BLOCKS_PER_DAY * 7);
    reward_from_fees = (reward_from_fees * nominator) / denominator;
    reward_from_fees = std::min(reward_from_fees, mining_pool_from_fees);
 
@@ -60,7 +60,7 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
    //TODO_SOPHIATX - check invariants here.
 }
 
-#define SOPHIATX_TOTAL_INTERESTS ((uint64_t(STEEM_TOTAL_SUPPLY) - uint64_t(STEEM_INIT_SUPPLY)) * uint64_t(SOPHIATX_INTEREST_POOL_PERCENTAGE) / uint64_t(STEEM_100_PERCENT))
+#define SOPHIATX_TOTAL_INTERESTS ((uint64_t(SOPHIATX_TOTAL_SUPPLY) - uint64_t(SOPHIATX_INIT_SUPPLY)) * uint64_t(SOPHIATX_INTEREST_POOL_PERCENTAGE) / uint64_t(SOPHIATX_100_PERCENT))
 share_type economic_model_object::withdraw_interests(share_type holding, uint32_t period) {
    try {
       FC_ASSERT(holding >= 0 && interest_pool_from_coinbase >= 0 && interest_pool_from_fees >= 0 && accumulated_supply >= holding);
@@ -81,8 +81,8 @@ share_type economic_model_object::withdraw_interests(share_type holding, uint32_
 }
 
 void economic_model_object::add_fee(share_type fee) {
-   auto to_mining_pool = fee * SOPHIATX_MINING_POOL_PERCENTAGE / STEEM_100_PERCENT;
-   auto to_promotion_pool = fee * SOPHIATX_PROMOTION_POOL_PERCENTAGE / STEEM_100_PERCENT;
+   auto to_mining_pool = fee * SOPHIATX_MINING_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
+   auto to_promotion_pool = fee * SOPHIATX_PROMOTION_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
    mining_pool_from_fees += to_mining_pool;
    promotion_pool += to_promotion_pool;
    share_type to_interests = fee - to_mining_pool - to_promotion_pool;
@@ -91,7 +91,7 @@ void economic_model_object::add_fee(share_type fee) {
 
 share_type economic_model_object::get_available_promotion_pool(uint32_t block_number) const{
    uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number;
-   //share_type locked_pool = promotion_pool_per_day * blocks_to_coinbase_end / STEEM_BLOCKS_PER_DAY;
+   //share_type locked_pool = promotion_pool_per_day * blocks_to_coinbase_end / SOPHIATX_BLOCKS_PER_DAY;
    share_type locked_pool = (((initial_promotion_pool * 65536) / SOPHIATX_COINBASE_BLOCKS) * blocks_to_coinbase_end ) / 65536;
    FC_ASSERT(promotion_pool >= locked_pool);
    return promotion_pool - locked_pool;

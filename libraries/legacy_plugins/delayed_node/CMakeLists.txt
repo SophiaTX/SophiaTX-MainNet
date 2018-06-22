@@ -1,11 +1,11 @@
-file(GLOB HEADERS "include/steem/delayed_node/*.hpp")
+file(GLOB HEADERS "include/sophiatx/delayed_node/*.hpp")
 
-add_library( steem_delayed_node
+add_library( sophiatx_delayed_node
              delayed_node_plugin.cpp
            )
 
-target_link_libraries( steem_delayed_node steem_chain steem_protocol steem_app )
-target_include_directories( steem_delayed_node
+target_link_libraries( sophiatx_delayed_node sophiatx_chain sophiatx_protocol sophiatx_app )
+target_include_directories( sophiatx_delayed_node
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 if(MSVC)
@@ -13,7 +13,7 @@ if(MSVC)
 endif(MSVC)
 
 install( TARGETS
-   steem_delayed_node
+   sophiatx_delayed_node
 
    RUNTIME DESTINATION bin
    LIBRARY DESTINATION lib

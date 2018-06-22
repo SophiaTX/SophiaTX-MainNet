@@ -13,7 +13,7 @@ endif()
 
 
 target_link_libraries( alexandria PRIVATE
-        steem_protocol steem_utilities fc
+        sophiatx_protocol sophiatx_utilities fc
         ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 
 

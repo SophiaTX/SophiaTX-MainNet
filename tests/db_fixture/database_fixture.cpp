@@ -1,15 +1,15 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/program_options.hpp>
 
-#include <steem/utilities/tempdir.hpp>
+#include <sophiatx/utilities/tempdir.hpp>
 
-#include <steem/chain/steem_objects.hpp>
-#include <steem/chain/history_object.hpp>
-#include <steem/plugins/account_history/account_history_plugin.hpp>
-#include <steem/plugins/witness/witness_plugin.hpp>
-#include <steem/plugins/chain/chain_plugin.hpp>
-#include <steem/plugins/webserver/webserver_plugin.hpp>
-#include <steem/plugins/condenser_api/condenser_api_plugin.hpp>
+#include <sophiatx/chain/sophiatx_objects.hpp>
+#include <sophiatx/chain/history_object.hpp>
+#include <sophiatx/plugins/account_history/account_history_plugin.hpp>
+#include <sophiatx/plugins/witness/witness_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/webserver/webserver_plugin.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include <fc/smart_ref_impl.hpp>
@@ -20,16 +20,16 @@
 
 #include "database_fixture.hpp"
 
-//using namespace steem::chain::test;
+//using namespace sophiatx::chain::test;
 
-uint32_t STEEM_TESTING_GENESIS_TIMESTAMP = 1431700000;
+uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP = 1431700000;
 
-using namespace steem::plugins::webserver;
-using namespace steem::plugins::database_api;
-using namespace steem::plugins::block_api;
-using steem::plugins::condenser_api::condenser_api_plugin;
+using namespace sophiatx::plugins::webserver;
+using namespace sophiatx::plugins::database_api;
+using namespace sophiatx::plugins::block_api;
+using sophiatx::plugins::condenser_api::condenser_api_plugin;
 
-namespace steem { namespace chain {
+namespace sophiatx { namespace chain {
 
 using std::cout;
 using std::cerr;
@@ -48,18 +48,18 @@ clean_database_fixture::clean_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
-   appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
-   db_plugin = &appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
-   appbase::app().register_plugin< steem::plugins::witness::witness_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+   db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
 
    db_plugin->logging = false;
    appbase::app().initialize<
-      steem::plugins::account_history::account_history_plugin,
-      steem::plugins::debug_node::debug_node_plugin,
-      steem::plugins::witness::witness_plugin
+      sophiatx::plugins::account_history::account_history_plugin,
+      sophiatx::plugins::debug_node::debug_node_plugin,
+      sophiatx::plugins::witness::witness_plugin
       >( argc, argv );
 
-   db = &appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+   db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -67,7 +67,7 @@ clean_database_fixture::clean_database_fixture()
    open_database();
 
    generate_block();
-   db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
+   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
 
@@ -76,12 +76,12 @@ clean_database_fixture::clean_database_fixture()
    validate_database();
 
     // Fill up the rest of the required miners
-   for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
    {
-      account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
+      fund( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -139,18 +139,18 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
 
 
    generate_block();
-   db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
+   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
    vest( "initminer", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
-   for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
    {
-      account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
+      fund( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -167,14 +167,14 @@ live_database_fixture::live_database_fixture()
       _chain_dir = fc::current_path() / "test_blockchain";
       FC_ASSERT( fc::exists( _chain_dir ), "Requires blockchain to test on in ./test_blockchain" );
 
-      appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
-      db_plugin = &appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
+      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
 
       appbase::app().initialize<
-         steem::plugins::account_history::account_history_plugin, steem::plugins::debug_node::debug_node_plugin
+         sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
          >( argc, argv );
 
-      db = &appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+      db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
       BOOST_REQUIRE( db );
 
       {
@@ -229,7 +229,7 @@ asset_symbol_type database_fixture::name_to_asset_symbol( const std::string& nam
 
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 asset_symbol_type database_fixture::get_new_smt_symbol( uint8_t token_decimal_places, chain::database* db )
 {
    // The list of available nais is not dependent on SMT desired precision (token_decimal_places).
@@ -252,7 +252,7 @@ void database_fixture::open_database()
 {
    if( !data_dir )
    {
-      data_dir = fc::temp_directory( steem::utilities::temp_directory_path() );
+      data_dir = fc::temp_directory( sophiatx::utilities::temp_directory_path() );
       db->_log_hardforks = false;
 
       database::open_args args;
@@ -267,7 +267,7 @@ void database_fixture::open_database()
 void database_fixture::generate_block(uint32_t skip, const fc::ecc::private_key& key, int miss_blocks)
 {
    skip |= default_skip;
-   db_plugin->debug_generate_blocks( steem::utilities::key_to_wif( key ), 1, skip, miss_blocks );
+   db_plugin->debug_generate_blocks( sophiatx::utilities::key_to_wif( key ), 1, skip, miss_blocks );
 }
 
 void database_fixture::generate_blocks( uint32_t block_count )
@@ -279,7 +279,7 @@ void database_fixture::generate_blocks( uint32_t block_count )
 void database_fixture::generate_blocks(fc::time_point_sec timestamp, bool miss_intermediate_blocks)
 {
    db_plugin->debug_generate_blocks_until( debug_key, timestamp, miss_intermediate_blocks, default_skip );
-   BOOST_REQUIRE( ( db->head_block_time() - timestamp ).to_seconds() < STEEM_BLOCK_INTERVAL );
+   BOOST_REQUIRE( ( db->head_block_time() - timestamp ).to_seconds() < SOPHIATX_BLOCK_INTERVAL );
 }
 
 const account_object& database_fixture::account_create(
@@ -296,7 +296,7 @@ const account_object& database_fixture::account_create(
       account_create_operation op;
       op.new_account_name = name;
       op.creator = creator;
-      op.fee = asset( fee, STEEM_SYMBOL );
+      op.fee = asset( fee, SOPHIATX_SYMBOL );
       op.owner = authority( 1, key, 1 );
       op.active = authority( 1, key, 1 );
       op.memo_key = key;
@@ -304,7 +304,7 @@ const account_object& database_fixture::account_create(
 
       trx.operations.push_back( op );
 
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( creator_key, db->get_chain_id() );
       trx.validate();
       db->push_transaction( trx, 0 );
@@ -327,7 +327,7 @@ const account_object& database_fixture::account_create(
    {
       return account_create(
          name,
-         STEEM_INIT_MINER_NAME,
+         SOPHIATX_INIT_MINER_NAME,
          init_account_priv_key,
          std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount, share_type( 100 ) ),
          key,
@@ -350,10 +350,10 @@ const witness_object& database_fixture::witness_create(
       op.owner = owner;
       op.url = url;
       op.block_signing_key = signing_key;
-      op.fee = asset( fee, STEEM_SYMBOL );
+      op.fee = asset( fee, SOPHIATX_SYMBOL );
 
       trx.operations.push_back( op );
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( owner_key, db->get_chain_id() );
       trx.validate();
       db->push_transaction( trx, 0 );
@@ -372,7 +372,7 @@ void database_fixture::fund(
 {
    try
    {
-      transfer( STEEM_INIT_MINER_NAME, account_name, asset( amount, STEEM_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, account_name, asset( amount, SOPHIATX_SYMBOL ) );
 
    } FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
 }
@@ -388,13 +388,13 @@ void database_fixture::fund(
       {
          db.modify( db.get_account( account_name ), [&]( account_object& a )
          {
-            if( amount.symbol == STEEM_SYMBOL )
+            if( amount.symbol == SOPHIATX_SYMBOL )
                a.balance += amount;
          });
 
          db.modify( db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
          {
-            if( amount.symbol == STEEM_SYMBOL )
+            if( amount.symbol == SOPHIATX_SYMBOL )
                gpo.current_supply += amount;
 
          });
@@ -416,10 +416,10 @@ void database_fixture::transfer(
       op.from = from;
       op.to = to;
       op.amount = amount;
-      op.fee = asset(100000, STEEM_SYMBOL);
+      op.fee = asset(100000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back( op );
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.validate();
       db->push_transaction( trx, ~0 );
       trx.operations.clear();
@@ -429,12 +429,12 @@ void database_fixture::transfer(
 void database_fixture::vest( const string& account_name, const share_type& amount )
 {
 
-   vest(account_name, asset(amount, STEEM_SYMBOL));
+   vest(account_name, asset(amount, SOPHIATX_SYMBOL));
 }
 
 void database_fixture::vest( const string& account_name, const asset& amount )
 {
-   if( amount.symbol != STEEM_SYMBOL )
+   if( amount.symbol != SOPHIATX_SYMBOL )
       return;
 
    try
@@ -444,7 +444,7 @@ void database_fixture::vest( const string& account_name, const asset& amount )
       op.to = account_name;
       op.amount = amount;
       trx.operations.push_back( op );
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.validate();
 
       db->push_transaction( trx, ~0 );
@@ -460,7 +460,7 @@ void database_fixture::proxy( const string& account, const string& proxy )
       op.account = account;
       op.proxy = proxy;
       trx.operations.push_back( op );
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       db->push_transaction( trx, ~0 );
       trx.operations.clear();
@@ -486,7 +486,7 @@ void database_fixture::set_witness_props( const flat_map< string, vector< char >
    for( size_t i = 1; i < 8; i++ )
    {
       witness_set_properties_operation op;
-      op.owner = STEEM_INIT_MINER_NAME + fc::to_string( i );
+      op.owner = SOPHIATX_INIT_MINER_NAME + fc::to_string( i );
       op.props = props;
 
       if( op.props.find( "key" ) == op.props.end() )
@@ -495,12 +495,12 @@ void database_fixture::set_witness_props( const flat_map< string, vector< char >
       }
 
       trx.operations.push_back( op );
-      trx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       db->push_transaction( trx, ~0 );
       trx.operations.clear();
    }
 
-   generate_blocks( STEEM_BLOCKS_PER_HOUR );
+   generate_blocks( SOPHIATX_BLOCKS_PER_HOUR );
 }
 
 const asset& database_fixture::get_balance( const string& account_name )const
@@ -526,7 +526,7 @@ vector< operation > database_fixture::get_last_operations( uint32_t num_ops )
       std::vector<char> serialized_op;
       serialized_op.reserve( bip_serialized_op.size() );
       std::copy( bip_serialized_op.begin(), bip_serialized_op.end(), std::back_inserter( serialized_op ) );
-      ops.push_back( fc::raw::unpack_from_vector< steem::chain::operation >( serialized_op ) );
+      ops.push_back( fc::raw::unpack_from_vector< sophiatx::chain::operation >( serialized_op ) );
    }
 
    return ops;
@@ -547,7 +547,7 @@ vector< operation > database_fixture::get_last_operations( uint32_t num_ops, str
       std::vector<char> serialized_op;
       serialized_op.reserve( bip_serialized_op.size() );
       std::copy( bip_serialized_op.begin(), bip_serialized_op.end(), std::back_inserter( serialized_op ) );
-      ops.push_back( fc::raw::unpack_from_vector< steem::chain::operation >( serialized_op ) );
+      ops.push_back( fc::raw::unpack_from_vector< sophiatx::chain::operation >( serialized_op ) );
       itr++;
    }
 
@@ -559,14 +559,14 @@ void database_fixture::validate_database( void )
    try
    {
       db->validate_invariants();
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
       db->validate_smt_invariants();
 #endif
    }
    FC_LOG_AND_RETHROW();
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 
 template< typename T >
 asset_symbol_type t_smt_database_fixture< T >::create_smt( const string& account_name, const fc::ecc::private_key& key,
@@ -588,7 +588,7 @@ asset_symbol_type t_smt_database_fixture< T >::create_smt( const string& account
       op.control_account = account_name;
 
       tx.operations.push_back( op );
-      tx.set_expiration( this->db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( this->db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( key, this->db->get_chain_id() );
 
       this->db->push_transaction( tx, 0 );
@@ -642,7 +642,7 @@ std::array<asset_symbol_type, 3> t_smt_database_fixture< T >::create_smt_3(const
       tx.operations.push_back( op0 );
       tx.operations.push_back( op1 );
       tx.operations.push_back( op2 );
-      tx.set_expiration( this->db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( this->db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( key, this->db->get_chain_id() );
       this->db->push_transaction( tx, 0 );
 
@@ -661,9 +661,9 @@ void push_invalid_operation(const operation& invalid_op, const fc::ecc::private_
 {
    signed_transaction tx;
    tx.operations.push_back( invalid_op );
-   tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+   tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
    tx.sign( key, db->get_chain_id() );
-   STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::assert_exception );
+   SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::assert_exception );
 }
 
 template< typename T >
@@ -671,7 +671,7 @@ void t_smt_database_fixture< T >::create_invalid_smt( const char* control_accoun
 {
    // Fail due to precision too big.
    smt_create_operation op_precision;
-   STEEM_REQUIRE_THROW( set_create_op(this->db, &op_precision, control_account_name, STEEM_ASSET_MAX_DECIMALS + 1), fc::assert_exception );
+   SOPHIATX_REQUIRE_THROW( set_create_op(this->db, &op_precision, control_account_name, SOPHIATX_ASSET_MAX_DECIMALS + 1), fc::assert_exception );
 }
 
 template< typename T >
@@ -712,28 +712,28 @@ json_rpc_database_fixture::json_rpc_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
-   appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
-   db_plugin = &appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
-   appbase::app().register_plugin< steem::plugins::witness::witness_plugin >();
-   rpc_plugin = &appbase::app().register_plugin< steem::plugins::json_rpc::json_rpc_plugin >();
-   appbase::app().register_plugin< steem::plugins::block_api::block_api_plugin >();
-   appbase::app().register_plugin< steem::plugins::database_api::database_api_plugin >();
-   appbase::app().register_plugin< steem::plugins::condenser_api::condenser_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+   db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+   rpc_plugin = &appbase::app().register_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >();
 
    db_plugin->logging = false;
    appbase::app().initialize<
-      steem::plugins::account_history::account_history_plugin,
-      steem::plugins::debug_node::debug_node_plugin,
-      steem::plugins::witness::witness_plugin,
-      steem::plugins::json_rpc::json_rpc_plugin,
-      steem::plugins::block_api::block_api_plugin,
-      steem::plugins::database_api::database_api_plugin,
-      steem::plugins::condenser_api::condenser_api_plugin
+      sophiatx::plugins::account_history::account_history_plugin,
+      sophiatx::plugins::debug_node::debug_node_plugin,
+      sophiatx::plugins::witness::witness_plugin,
+      sophiatx::plugins::json_rpc::json_rpc_plugin,
+      sophiatx::plugins::block_api::block_api_plugin,
+      sophiatx::plugins::database_api::database_api_plugin,
+      sophiatx::plugins::condenser_api::condenser_api_plugin
       >( argc, argv );
 
-   appbase::app().get_plugin< steem::plugins::condenser_api::condenser_api_plugin >().plugin_startup();
+   appbase::app().get_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >().plugin_startup();
 
-   db = &appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+   db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -741,18 +741,18 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    open_database();
 
    generate_block();
-   db->set_hardfork( STEEM_BLOCKCHAIN_VERSION.minor() );
+   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
    generate_block();
 
    vest( "initminer", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
-   for( int i = STEEM_NUM_INIT_MINERS; i < STEEM_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
    {
-      account_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( STEEM_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( STEEM_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
+      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
+      fund( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
    }
 
    validate_database();
@@ -895,6 +895,6 @@ void _push_transaction( database& db, const signed_transaction& tx, uint32_t ski
    db.push_transaction( tx, skip_flags );
 } FC_CAPTURE_AND_RETHROW((tx)) }
 
-} // steem::chain::test
+} // sophiatx::chain::test
 
-} } // steem::chain
+} } // sophiatx::chain

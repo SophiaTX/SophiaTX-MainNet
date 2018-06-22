@@ -1,5 +1,5 @@
-#ifndef STEEM_ALEXANDRIA_HPP
-#define STEEM_ALEXANDRIA_HPP
+#ifndef SOPHIATX_ALEXANDRIA_HPP
+#define SOPHIATX_ALEXANDRIA_HPP
 
 extern "C" {
 
@@ -37,4 +37,4 @@ extern "C" {
    bool add_signature(const char* transaction, const char* signature, char* signed_tx);
 }
 
-#endif //STEEM_ALEXANDRIA_HPP
+#endif //SOPHIATX_ALEXANDRIA_HPP

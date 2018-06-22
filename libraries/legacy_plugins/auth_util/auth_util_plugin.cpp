@@ -1,11 +1,11 @@
 
 
-#include <steem/plugins/auth_util/auth_util_api.hpp>
-#include <steem/plugins/auth_util/auth_util_plugin.hpp>
+#include <sophiatx/plugins/auth_util/auth_util_api.hpp>
+#include <sophiatx/plugins/auth_util/auth_util_plugin.hpp>
 
 #include <string>
 
-namespace steem { namespace plugin { namespace auth_util {
+namespace sophiatx { namespace plugin { namespace auth_util {
 
 auth_util_plugin::auth_util_plugin( application* app ) : plugin( app ) {}
 auth_util_plugin::~auth_util_plugin() {}
@@ -28,6 +28,6 @@ void auth_util_plugin::plugin_shutdown()
 {
 }
 
-} } } // steem::plugin::auth_util
+} } } // sophiatx::plugin::auth_util
 
-STEEM_DEFINE_PLUGIN( auth_util, steem::plugin::auth_util::auth_util_plugin )
+SOPHIATX_DEFINE_PLUGIN( auth_util, sophiatx::plugin::auth_util::auth_util_plugin )

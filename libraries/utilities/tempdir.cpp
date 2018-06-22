@@ -22,18 +22,18 @@
  * THE SOFTWARE.
  */
 
-#include <steem/utilities/tempdir.hpp>
+#include <sophiatx/utilities/tempdir.hpp>
 
 #include <cstdlib>
 
-namespace steem { namespace utilities {
+namespace sophiatx { namespace utilities {
 
 fc::path temp_directory_path()
 {
-   const char* steemit_tempdir = getenv("STEEM_TEMPDIR");
-   if( steemit_tempdir != nullptr )
-      return fc::path( steemit_tempdir );
-   return fc::temp_directory_path() / "steem-tmp";
+   const char* sophiatxit_tempdir = getenv("SOPHIATX_TEMPDIR");
+   if( sophiatxit_tempdir != nullptr )
+      return fc::path( sophiatxit_tempdir );
+   return fc::temp_directory_path() / "sophiatx-tmp";
 }
 
-} } // steem::utilities
+} } // sophiatx::utilities

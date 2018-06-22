@@ -24,10 +24,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <steem/chain/database.hpp>
-#include <steem/protocol/protocol.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/protocol/protocol.hpp>
 
-#include <steem/protocol/steem_operations.hpp>
+#include <sophiatx/protocol/sophiatx_operations.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include <fc/crypto/hex.hpp>
@@ -36,9 +36,9 @@
 #include <algorithm>
 #include <random>
 
-using namespace steem;
-using namespace steem::chain;
-using namespace steem::protocol;
+using namespace sophiatx;
+using namespace sophiatx::chain;
+using namespace sophiatx::protocol;
 
 BOOST_FIXTURE_TEST_SUITE( basic_tests, clean_database_fixture )
 

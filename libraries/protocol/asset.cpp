@@ -1,4 +1,4 @@
-#include <steem/protocol/asset.hpp>
+#include <sophiatx/protocol/asset.hpp>
 
 #include <fc/io/json.hpp>
 
@@ -7,7 +7,7 @@
 
 
 
-namespace steem { namespace protocol {
+namespace sophiatx { namespace protocol {
 
 //1USD/5SPHTX   10SPHTX/2USD
 #define BQ(a) \
@@ -62,8 +62,8 @@ DEFINE_PRICE_COMPARISON_OPERATOR( >= )
          return price{ base, quote };
       } FC_CAPTURE_AND_RETHROW( (base)(quote) ) }
 
-      price price::max( asset_symbol_type base, asset_symbol_type quote ) { return asset( share_type(STEEM_MAX_SATOSHIS), base ) / asset( share_type(1), quote); }
-      price price::min( asset_symbol_type base, asset_symbol_type quote ) { return asset( 1, base ) / asset( STEEM_MAX_SATOSHIS, quote); }
+      price price::max( asset_symbol_type base, asset_symbol_type quote ) { return asset( share_type(SOPHIATX_MAX_SATOSHIS), base ) / asset( share_type(1), quote); }
+      price price::min( asset_symbol_type base, asset_symbol_type quote ) { return asset( 1, base ) / asset( SOPHIATX_MAX_SATOSHIS, quote); }
 
       bool price::is_null() const { return *this == price(); }
 
@@ -111,7 +111,7 @@ asset asset::from_string( const std::string& from )
       auto ivalue = static_cast<int64_t>(round(dvalue * SOPHIATX_SATOSHIS));
 
       FC_ASSERT( ivalue >= 0);
-      FC_ASSERT( STEEM_MAX_SHARE_SUPPLY >= ivalue);
+      FC_ASSERT( SOPHIATX_MAX_SHARE_SUPPLY >= ivalue);
 
       result.amount = ivalue;
       result.symbol = asset_symbol_type::from_string( str_symbol.c_str() );
@@ -120,10 +120,10 @@ asset asset::from_string( const std::string& from )
    FC_CAPTURE_AND_RETHROW( (from) )
 }
 
-} } // steem::protocol
+} } // sophiatx::protocol
 
 namespace fc {
-   void to_variant( const steem::protocol::asset& var, fc::variant& vo )
+   void to_variant( const sophiatx::protocol::asset& var, fc::variant& vo )
    {
       vo = var.to_string();
       /*try
@@ -135,9 +135,9 @@ namespace fc {
       } FC_CAPTURE_AND_RETHROW()*/
    }
 
-   void from_variant( const fc::variant& var, steem::protocol::asset& vo )
+   void from_variant( const fc::variant& var, sophiatx::protocol::asset& vo )
    {
-      vo = steem::protocol::asset::from_string(var.as< std::string >());
+      vo = sophiatx::protocol::asset::from_string(var.as< std::string >());
       /*try
       {
          auto v = var.as< std::vector< variant > >();
@@ -146,7 +146,7 @@ namespace fc {
          // share_type is safe< int64_t >
          vo.amount = boost::lexical_cast< int64_t >( v[0].as< std::string >() );
          FC_ASSERT( vo.amount >= 0, "Asset amount cannot be negative" );
-         vo.symbol = steem::protocol::asset_symbol_type::from_string( v[1].as< std::string >() );
+         vo.symbol = sophiatx::protocol::asset_symbol_type::from_string( v[1].as< std::string >() );
       } FC_CAPTURE_AND_RETHROW((var))*/
    }
 }

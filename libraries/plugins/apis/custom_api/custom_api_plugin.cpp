@@ -1,8 +1,8 @@
-#include <steem/plugins/custom_api/custom_api_plugin.hpp>
-#include <steem/plugins/custom_api/custom_api.hpp>
+#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api.hpp>
 
 
-namespace steem { namespace plugins { namespace custom {
+namespace sophiatx { namespace plugins { namespace custom {
 
 custom_api_plugin::custom_api_plugin() {}
 custom_api_plugin::~custom_api_plugin() {}

@@ -1,9 +1,9 @@
-#include <steem/plugins/condenser_api/condenser_api_legacy_asset.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api_legacy_asset.hpp>
 
 
 namespace {
 
-int64_t precision( const steem::protocol::asset_symbol_type& symbol )
+int64_t precision( const sophiatx::protocol::asset_symbol_type& symbol )
 {
    /*static int64_t table[] = {
          1, 10, 100, 1000, 10000,
@@ -19,7 +19,7 @@ int64_t precision( const steem::protocol::asset_symbol_type& symbol )
 
 }
 
-namespace steem { namespace plugins { namespace condenser_api {
+namespace sophiatx { namespace plugins { namespace condenser_api {
 
 string legacy_asset::to_string()const
 {
@@ -63,7 +63,7 @@ legacy_asset legacy_asset::from_string( const string& from )
       auto ivalue = static_cast<int64_t>(round(dvalue * precision( result.symbol )));
 
       FC_ASSERT( ivalue >= 0);
-      FC_ASSERT( STEEM_MAX_SHARE_SUPPLY >= ivalue);
+      FC_ASSERT( SOPHIATX_MAX_SHARE_SUPPLY >= ivalue);
 
       result.amount = ivalue;
 

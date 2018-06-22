@@ -1,12 +1,12 @@
-#include <steem/plugins/account_by_key/account_by_key_plugin.hpp>
-#include <steem/plugins/account_by_key/account_by_key_objects.hpp>
+#include <sophiatx/plugins/account_by_key/account_by_key_plugin.hpp>
+#include <sophiatx/plugins/account_by_key/account_by_key_objects.hpp>
 
-#include <steem/chain/account_object.hpp>
-#include <steem/chain/database.hpp>
-#include <steem/chain/index.hpp>
-#include <steem/chain/operation_notification.hpp>
+#include <sophiatx/chain/account_object.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/index.hpp>
+#include <sophiatx/chain/operation_notification.hpp>
 
-namespace steem { namespace plugins { namespace account_by_key {
+namespace sophiatx { namespace plugins { namespace account_by_key {
 
 namespace detail {
 
@@ -14,7 +14,7 @@ class account_by_key_plugin_impl
 {
    public:
       account_by_key_plugin_impl( account_by_key_plugin& _plugin ) :
-         _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ) {}
 
       void pre_operation( const operation_notification& op_obj );
@@ -208,7 +208,7 @@ void account_by_key_plugin::plugin_initialize( const boost::program_options::var
    try
    {
       ilog( "Initializing account_by_key plugin" );
-      chain::database& db = appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       my->pre_apply_connection = db.pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
       my->post_apply_connection = db.post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );
@@ -226,4 +226,4 @@ void account_by_key_plugin::plugin_shutdown()
    chain::util::disconnect_signal( my->post_apply_connection );
 }
 
-} } } // steem::plugins::account_by_key
+} } } // sophiatx::plugins::account_by_key

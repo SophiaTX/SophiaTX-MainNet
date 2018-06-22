@@ -1,5 +1,5 @@
 
-#include <steem/utilities/benchmark_dumper.hpp>
+#include <sophiatx/utilities/benchmark_dumper.hpp>
 
 #ifdef _MSC_VER
 #include <windows.h>
@@ -7,7 +7,7 @@
 #include <psapi.h>
 #endif
 
-namespace steem { namespace utilities {
+namespace sophiatx { namespace utilities {
 
 #define PROC_STATUS_LINE_LENGTH 1028
 

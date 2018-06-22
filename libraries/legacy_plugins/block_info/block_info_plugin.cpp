@@ -1,14 +1,14 @@
 
-#include <steem/chain/database.hpp>
-#include <steem/chain/global_property_object.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/global_property_object.hpp>
 
-#include <steem/plugins/block_info/block_info.hpp>
-#include <steem/plugins/block_info/block_info_api.hpp>
-#include <steem/plugins/block_info/block_info_plugin.hpp>
+#include <sophiatx/plugins/block_info/block_info.hpp>
+#include <sophiatx/plugins/block_info/block_info_api.hpp>
+#include <sophiatx/plugins/block_info/block_info_plugin.hpp>
 
 #include <string>
 
-namespace steem { namespace plugin { namespace block_info {
+namespace sophiatx { namespace plugin { namespace block_info {
 
 block_info_plugin::block_info_plugin( application* app ) : plugin( app ) {}
 block_info_plugin::~block_info_plugin() {}
@@ -53,6 +53,6 @@ void block_info_plugin::on_applied_block( const chain::signed_block& b )
    return;
 }
 
-} } } // steem::plugin::block_info
+} } } // sophiatx::plugin::block_info
 
-STEEM_DEFINE_PLUGIN( block_info, steem::plugin::block_info::block_info_plugin )
+SOPHIATX_DEFINE_PLUGIN( block_info, sophiatx::plugin::block_info::block_info_plugin )

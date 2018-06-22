@@ -1,4 +1,4 @@
-#include <steem/utilities/logging_config.hpp>
+#include <sophiatx/utilities/logging_config.hpp>
 
 #include <fc/exception/exception.hpp>
 
@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace steem { namespace utilities {
+namespace sophiatx { namespace utilities {
 
 using std::string;
 using std::vector;

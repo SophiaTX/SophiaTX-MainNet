@@ -1,15 +1,15 @@
 #ifdef IS_TEST_NET
 #include <boost/test/unit_test.hpp>
 
-#include <steem/chain/account_object.hpp>
-#include <steem/chain/comment_object.hpp>
-#include <steem/protocol/steem_operations.hpp>
-#include <steem/plugins/json_rpc/json_rpc_plugin.hpp>
+#include <sophiatx/chain/account_object.hpp>
+#include <sophiatx/chain/comment_object.hpp>
+#include <sophiatx/protocol/sophiatx_operations.hpp>
+#include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 
 #include "../db_fixture/database_fixture.hpp"
 
-using namespace steem::chain;
-using namespace steem::protocol;
+using namespace sophiatx::chain;
+using namespace sophiatx::protocol;
 
 BOOST_FIXTURE_TEST_SUITE( json_rpc, json_rpc_database_fixture )
 

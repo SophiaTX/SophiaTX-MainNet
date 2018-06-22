@@ -1,17 +1,17 @@
-#include <steem/plugins/condenser_api/condenser_api.hpp>
-#include <steem/plugins/condenser_api/condenser_api_plugin.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
 
-#include <steem/plugins/database_api/database_api_plugin.hpp>
-#include <steem/plugins/block_api/block_api_plugin.hpp>
-#include <steem/plugins/account_history_api/account_history_api_plugin.hpp>
-#include <steem/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
-#include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
-#include <steem/plugins/witness_api/witness_api_plugin.hpp>
-#include <steem/plugins/custom_api/custom_api_plugin.hpp>
+#include <sophiatx/plugins/database_api/database_api_plugin.hpp>
+#include <sophiatx/plugins/block_api/block_api_plugin.hpp>
+#include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
+#include <sophiatx/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
+#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
-#include <steem/utilities/git_revision.hpp>
+#include <sophiatx/utilities/git_revision.hpp>
 
-#include <steem/chain/util/uint256.hpp>
+#include <sophiatx/chain/util/uint256.hpp>
 
 #include <fc/git_revision.hpp>
 
@@ -21,7 +21,7 @@
 #define CHECK_ARG_SIZE( s ) \
    FC_ASSERT( args.size() == s, "Expected #s argument(s), was ${n}", ("n", args.size()) );
 
-namespace steem { namespace plugins { namespace condenser_api {
+namespace sophiatx { namespace plugins { namespace condenser_api {
 
 namespace detail
 {
@@ -94,8 +94,8 @@ namespace detail
       CHECK_ARG_SIZE( 0 )
       return get_version_return
       (
-         fc::string( STEEM_BLOCKCHAIN_VERSION ),
-         fc::string( steem::utilities::git_revision_sha ),
+         fc::string( SOPHIATX_BLOCKCHAIN_VERSION ),
+         fc::string( sophiatx::utilities::git_revision_sha ),
          fc::string( fc::git_revision_sha )
       );
    }
@@ -371,7 +371,7 @@ namespace detail
 
    DEFINE_API_IMPL( condenser_api_impl, get_account_references )
    {
-      FC_ASSERT( false, "condenser_api::get_account_references --- Needs to be refactored for Steem." );
+      FC_ASSERT( false, "condenser_api::get_account_references --- Needs to be refactored for SophiaTX." );
    }
 
    DEFINE_API_IMPL( condenser_api_impl, lookup_account_names )
@@ -724,7 +724,7 @@ namespace detail
 condenser_api::condenser_api()
    : my( new detail::condenser_api_impl() )
 {
-   JSON_RPC_REGISTER_API( STEEM_CONDENSER_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_CONDENSER_API_PLUGIN_NAME );
 }
 
 condenser_api::~condenser_api() {}
@@ -809,4 +809,4 @@ DEFINE_READ_APIS( condenser_api,
    (get_application_buyings)
 )
 
-} } } // steem::plugins::condenser_api
+} } } // sophiatx::plugins::condenser_api
