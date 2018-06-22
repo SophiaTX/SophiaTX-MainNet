@@ -20,6 +20,8 @@ using namespace steem::protocol;
 using namespace fc::ecc;
 using namespace std;
 
+namespace sophiatx { namespace alexandria {
+
 struct memo_data {
 
    static fc::optional<memo_data> from_string( string str ) {
@@ -47,7 +49,6 @@ struct memo_data {
    }
 };
 
-FC_REFLECT( memo_data, (from)(to)(nonce)(check)(encrypted) )
 
 bool generate_private_key(char *private_key, char *public_key) {
    try {
@@ -228,4 +229,6 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
    return false;
 }
 
+}} //sophiatx::alexandria
 
+FC_REFLECT( sophiatx::alexandria::memo_data, (from)(to)(nonce)(check)(encrypted) )
