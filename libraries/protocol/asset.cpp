@@ -96,7 +96,7 @@ asset asset::from_string( const std::string& from )
       auto space_pos = s.find( " " );
       auto dot_pos = s.find( "." );
 
-      FC_ASSERT( space_pos != std::string::npos );
+      FC_ASSERT( space_pos != std::string::npos, "Missing asset symbol" );
 
       if(dot_pos != std::string::npos)
       {

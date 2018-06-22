@@ -20,7 +20,7 @@ using namespace steem::protocol;
 using namespace fc::ecc;
 using namespace std;
 
-namespace sophiatx { namespace alexandria {
+namespace {
 
 struct memo_data {
 
@@ -55,7 +55,8 @@ bool generate_private_key(char *private_key, char *public_key) {
       private_key_type priv_key = fc::ecc::private_key::generate();
       public_key_type pub_key = priv_key.get_public_key();
       strcpy(private_key, key_to_wif(priv_key).c_str());
-      strcpy(public_key, public_key::to_base58( pub_key ).c_str());
+      auto public_key_str = fc::json::to_string(pub_key);
+      strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
       return true;
    } catch (const fc::exception& e) {
       return false;
@@ -67,7 +68,8 @@ bool get_public_key(const char *private_key, char *public_key) {
       try {
          auto priv_key = *steem::utilities::wif_to_key(string(private_key));
          auto pub_key = priv_key.get_public_key();
-         strcpy(public_key, public_key::to_base58(pub_key).c_str());
+         auto public_key_str = fc::json::to_string(pub_key);
+         strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -83,7 +85,8 @@ bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, 
          auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
          auto pub_key = priv_key.get_public_key();
          strcpy(private_key, key_to_wif(priv_key).c_str());
-         strcpy(public_key, public_key::to_base58(pub_key).c_str());
+         auto public_key_str = fc::json::to_string(pub_key);
+         strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -117,7 +120,7 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
          auto priv_key = *steem::utilities::wif_to_key(private_k_str);
          auto sig = priv_key.sign_compact(dig);
          string result = fc::json::to_string(sig);
-         strcpy(signed_digest, result.substr(1, result.size() - 1).c_str());
+         strcpy(signed_digest, result.substr(1, result.size() - 2).c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -152,7 +155,11 @@ bool verify_signature(const char *digest, const char *public_key, const char *si
    if(digest && public_key && signed_digest) {
       try {
          fc::sha256 dig(string(digest, strlen(digest)));
-         auto pub_key = public_key::from_base58(string(public_key));
+
+         fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+         fc::ecc::public_key pub_key;
+         fc::from_variant( v, pub_key );
+
          compact_signature sig;
          fc::from_hex( string(signed_digest), (char*)sig.begin(), sizeof(compact_signature) );
 
@@ -176,7 +183,12 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
          auto priv_key = *steem::utilities::wif_to_key(string(private_key));
 
          m.from = priv_key.get_public_key();
-         m.to = public_key::from_base58(string(public_key));
+
+         fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+         fc::ecc::public_key pub_key;
+         fc::from_variant( v, pub_key );
+
+         m.to = pub_key;
          m.nonce = fc::time_point::now().time_since_epoch().count();
 
          auto shared_secret = priv_key.get_shared_secret( m.to );
@@ -207,7 +219,12 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
          if( m ) {
             fc::sha512 shared_secret;
             auto priv_key = *steem::utilities::wif_to_key(string(private_key));
-            shared_secret = priv_key.get_shared_secret(public_key::from_base58(string(public_key)));
+
+            fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+            fc::ecc::public_key pub_key;
+            fc::from_variant( v, pub_key );
+
+            shared_secret = priv_key.get_shared_secret(pub_key);
 
             fc::sha512::encoder enc;
             fc::raw::pack( enc, m->nonce );
@@ -229,6 +246,6 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
    return false;
 }
 
-}} //sophiatx::alexandria
+} //
 
-FC_REFLECT( sophiatx::alexandria::memo_data, (from)(to)(nonce)(check)(encrypted) )
+FC_REFLECT( memo_data, (from)(to)(nonce)(check)(encrypted) )
