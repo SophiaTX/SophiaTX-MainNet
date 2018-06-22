@@ -38,8 +38,8 @@ struct memo_data {
 
    public_key_type from;
    public_key_type to;
-   uint64_t        nonce = 0;
-   uint32_t        check = 0;
+   int64_t         nonce = 0;
+   uint64_t        check = 0;
    vector<char>    encrypted;
 
    operator string()const {
@@ -67,7 +67,7 @@ bool get_public_key(const char *private_key, char *public_key) {
    if(private_key) {
       try {
          auto priv_key = *steem::utilities::wif_to_key(string(private_key));
-         auto pub_key = priv_key.get_public_key();
+         public_key_type pub_key = priv_key.get_public_key();
          auto public_key_str = fc::json::to_string(pub_key);
          strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
          return true;
@@ -83,7 +83,7 @@ bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, 
       try {
          fc::sha512 h = fc::sha512::hash(string(brain_key) + " 0");
          auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
-         auto pub_key = priv_key.get_public_key();
+         public_key_type pub_key = priv_key.get_public_key();
          strcpy(private_key, key_to_wif(priv_key).c_str());
          auto public_key_str = fc::json::to_string(pub_key);
          strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
@@ -157,7 +157,7 @@ bool verify_signature(const char *digest, const char *public_key, const char *si
          fc::sha256 dig(string(digest, strlen(digest)));
 
          fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-         fc::ecc::public_key pub_key;
+         public_key_type pub_key;
          fc::from_variant( v, pub_key );
 
          compact_signature sig;
@@ -185,7 +185,7 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
          m.from = priv_key.get_public_key();
 
          fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-         fc::ecc::public_key pub_key;
+         public_key_type pub_key;
          fc::from_variant( v, pub_key );
 
          m.to = pub_key;
@@ -221,7 +221,7 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
             auto priv_key = *steem::utilities::wif_to_key(string(private_key));
 
             fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-            fc::ecc::public_key pub_key;
+            public_key_type pub_key;
             fc::from_variant( v, pub_key );
 
             shared_secret = priv_key.get_shared_secret(pub_key);
@@ -231,7 +231,7 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
             fc::raw::pack( enc, shared_secret );
             auto encryption_key = enc.result();
 
-            uint32_t check = fc::sha256::hash( encryption_key )._hash[0];
+            uint64_t check = fc::sha256::hash( encryption_key )._hash[0];
             if( check != m->check ) return false;
 
             vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
