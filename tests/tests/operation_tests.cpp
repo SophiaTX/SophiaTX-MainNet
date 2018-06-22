@@ -3436,7 +3436,6 @@ BOOST_AUTO_TEST_CASE( application_create )
 
       application_create_operation op;
       op.author = "alice";
-      op.active = authority();
       op.name = "test_app";
       op.fee = ASSET( "0.100000 SPHTX" );
       op.price_param = static_cast<uint8_t >(time_based);
@@ -3484,13 +3483,9 @@ BOOST_AUTO_TEST_CASE( application_update )
       ACTORS( (alice)(bob) )
       fund("alice", 1000000);
 
-      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
-      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
-
       {
          application_create_operation op;
          op.author = "alice";
-         op.active = alice_auth.active;
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
@@ -3514,7 +3509,6 @@ BOOST_AUTO_TEST_CASE( application_update )
       op.new_author = "bob";
       op.metadata = "New metadata";
       op.url = "www.sophiatx.com/update";
-      op.active = alice_auth.active;
       op.validate();
 
       signed_transaction tx;
@@ -3547,12 +3541,10 @@ BOOST_AUTO_TEST_CASE( application_delete )
       ACTORS( (alice) )
       fund("alice", 1000000);
 
-      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
       {
          application_create_operation op;
          op.author = "alice";
          op.fee = ASSET( "0.100000 SPHTX" );
-         op.active = alice_auth.active;
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
@@ -3571,7 +3563,6 @@ BOOST_AUTO_TEST_CASE( application_delete )
       op.fee = ASSET( "0.100000 SPHTX" );
       op.name = "test_app";
       op.author = "alice";
-      op.active = alice_auth.active;
       op.validate();
 
       signed_transaction tx;
@@ -3597,14 +3588,10 @@ BOOST_AUTO_TEST_CASE( application_buy )
       fund("bob", 1000000);
       fund("alice", 1000000);
 
-      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
-      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
-
       {
          application_create_operation op;
          op.author = "alice";
          op.fee = ASSET( "0.100000 SPHTX" );
-         op.active = alice_auth.active;
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
@@ -3625,7 +3612,6 @@ BOOST_AUTO_TEST_CASE( application_buy )
       op.fee = ASSET( "0.100000 SPHTX" );
       op.app_id = app.id._id;
       op.buyer = "bob";
-      op.active = bob_auth.active;
       op.validate();
 
       signed_transaction tx;
@@ -3645,7 +3631,6 @@ BOOST_AUTO_TEST_CASE( application_buy )
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test application buying with wrong authorities" );
-      op.active = alice_auth.active;
       tx.signatures.clear();
       tx.sign(alice_private_key, db->get_chain_id());
       BOOST_REQUIRE_THROW( db->push_transaction(tx, database::skip_transaction_dupe_check), fc::exception );
@@ -3658,7 +3643,6 @@ BOOST_AUTO_TEST_CASE( application_buy )
       op_cancel.app_id = app.id._id;
       op_cancel.buyer = "bob";
       op_cancel.app_owner = "alice";
-      op_cancel.active = alice_auth.active;
       op_cancel.validate();
 
       tx.clear();
@@ -3684,14 +3668,10 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       fund("bob", 1000000);
       fund("alice", 1000000);
 
-      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
-      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
-
       {
          application_create_operation op;
          op.author = "alice";
          op.fee = ASSET( "0.100000 SPHTX" );
-         op.active = alice_auth.active;
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
@@ -3712,7 +3692,6 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       op.fee = ASSET( "0.100000 SPHTX" );
       op.app_id = app.id._id;
       op.buyer = "bob";
-      op.active = bob_auth.active;
       op.validate();
 
       signed_transaction tx;
@@ -3732,7 +3711,6 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       op_d.fee = ASSET( "0.100000 SPHTX" );
       op_d.name = "test_app";
       op_d.author = "alice";
-      op_d.active = alice_auth.active;
       op_d.validate();
 
       tx.clear();

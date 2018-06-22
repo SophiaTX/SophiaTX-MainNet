@@ -450,45 +450,42 @@ condenser_api::api_account_object alexandria_api::get_account( string account_na
 }
 
 operation
-alexandria_api::delete_application(string author, authority active_auth, string app_name)
+alexandria_api::delete_application(string author, string app_name)
 {
    try
    {
       application_delete_operation op;
       op.author = author;
-      op.active = active_auth;
       op.name = app_name;
 
       return op;
    }
-    FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name))
+    FC_CAPTURE_AND_RETHROW( (author)(app_name))
 }
 
-operation alexandria_api::buy_application(string buyer, authority active_auth, int64_t app_id)
+operation alexandria_api::buy_application(string buyer, int64_t app_id)
 {
     try
     {
        buy_application_operation op;
        op.buyer = buyer;
-       op.active = active_auth;
        op.app_id = app_id;
        return op;
     }
-    FC_CAPTURE_AND_RETHROW( (buyer)(active_auth)(app_id))
+    FC_CAPTURE_AND_RETHROW( (buyer)(app_id))
 }
 
-operation alexandria_api::cancel_application_buying(string app_owner, string buyer, authority active_auth, int64_t app_id)
+operation alexandria_api::cancel_application_buying(string app_owner, string buyer, int64_t app_id)
 {
     try
     {
        cancel_application_buying_operation op;
        op.app_owner = app_owner;
        op.buyer = buyer;
-       op.active = active_auth;
        op.app_id = app_id;
        return op;
     }
-    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(active_auth)(app_id))
+    FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(app_id))
 }
 
 vector<condenser_api::api_application_buying_object> alexandria_api::get_application_buyings(string name, string search_type, uint32_t count)
@@ -499,7 +496,7 @@ vector<condenser_api::api_application_buying_object> alexandria_api::get_applica
 }
 
 operation
-alexandria_api::update_application(string author, authority active_auth, string app_name, string new_author, string url,
+alexandria_api::update_application(string author, string app_name, string new_author, string url,
                                string meta_data, uint8_t price_param) {
    try
    {
@@ -507,7 +504,6 @@ alexandria_api::update_application(string author, authority active_auth, string 
 
       application_update_operation op;
       op.author = author;
-      op.active = active_auth;
       op.name = app_name;
       op.new_author= new_author;
       op.url = url;
@@ -516,11 +512,11 @@ alexandria_api::update_application(string author, authority active_auth, string 
 
       return op;
    }
-   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(new_author)(url)(meta_data)(price_param))
+   FC_CAPTURE_AND_RETHROW( (author)(app_name)(new_author)(url)(meta_data)(price_param))
 }
 
 operation
-alexandria_api::create_application(string author, authority active_auth, string app_name, string url, string meta_data,
+alexandria_api::create_application(string author, string app_name, string url, string meta_data,
                                uint8_t price_param) {
    try
    {
@@ -528,14 +524,13 @@ alexandria_api::create_application(string author, authority active_auth, string 
 
       application_create_operation op;
       op.author = author;
-      op.active = active_auth;
       op.name = app_name;
       op.url = url;
       op.metadata = meta_data;
       op.price_param = price_param;
       return op;
    }
-   FC_CAPTURE_AND_RETHROW( (author)(active_auth)(app_name)(url)(meta_data)(price_param))
+   FC_CAPTURE_AND_RETHROW( (author)(app_name)(url)(meta_data)(price_param))
 }
 
 operation alexandria_api::send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json){

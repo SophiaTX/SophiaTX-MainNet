@@ -297,58 +297,50 @@ class alexandria_api
       *  'info' wallet command.
       *
       *  @param author The account creating the new application
-      *  @param active_auth The active authority for that account
       *  @param app_name The unique name for new application
       *  @param url The url of the new application
       *  @param meta_data The meta data of new application
       *  @param price_param The price parameter that specifies billing for the app
       */
-      operation create_application( string author, authority active_auth, string app_name,
-                                                       string url, string meta_data, uint8_t price_param);
+      operation create_application( string author, string app_name, string url, string meta_data, uint8_t price_param);
 
       /**
       *  This method will update existing application object.
       *
       *  @param author The author of application
-      *  @param active_auth The active authority for that account
       *  @param app_name The name of app that will be updated
       *  @param new_author The new author
       *  @param url Updated url
       *  @param meta_data Updated meta data
       *  @param price_param Updated price param
       */
-      operation update_application( string author, authority active_auth, string app_name,
-                                                       string new_author, string url, string meta_data,
-                                                       uint8_t price_param);
+      operation update_application( string author, string app_name, string new_author, string url, string meta_data,
+                                    uint8_t price_param);
 
       /**
       *  This method will delete specified application object.
       *
       *  @param author The author of application that will be deleted
-      *  @param active_auth The active authority for that account
       *  @param app_name The name of app that will be deleted
       */
-      operation delete_application( string author, authority active_auth, string app_name);
+      operation delete_application( string author, string app_name);
 
       /**
       *  This method will create application buy object
       *
       *  @param buyer The buyer of application
-      *  @param active_auth The active authority for that account
       *  @param app_id The id of app that buyer will buy
       */
-      operation buy_application( string buyer, authority active_auth, int64_t app_id);
+      operation buy_application( string buyer, int64_t app_id);
 
       /**
       *  This method will cancel application buy object
       *
       *  @param app_owner The owner of bought application
       *  @param buyer The buyer of application
-      *  @param active_auth The active authority for application owner
       *  @param app_id The id of bought app
       */
-      operation cancel_application_buying( string app_owner, string buyer, authority active_auth,
-                                                           int64_t app_id);
+      operation cancel_application_buying( string app_owner, string buyer, int64_t app_id);
 
       /**
        * Get all app buyings by app_name or buyer
