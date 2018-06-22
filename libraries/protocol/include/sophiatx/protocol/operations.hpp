@@ -24,8 +24,11 @@ namespace sophiatx { namespace protocol {
             account_delete_operation,
 
             witness_update_operation,
+            witness_stop_operation,
             account_witness_vote_operation,
             account_witness_proxy_operation,
+            witness_set_properties_operation,
+
 
             custom_operation,
             custom_json_operation,
@@ -33,8 +36,6 @@ namespace sophiatx { namespace protocol {
 
             report_over_production_operation,
 
-            placeholder_a_operation,               // A new op can go here
-            placeholder_b_operation,               // A new op can go here
             request_account_recovery_operation,
             recover_account_operation,
             change_recovery_account_operation,
@@ -51,32 +52,17 @@ namespace sophiatx { namespace protocol {
             application_delete_operation,
             buy_application_operation,
             cancel_application_buying_operation,
-#ifdef SOPHIATX_ENABLE_SMT
-            claim_reward_balance2_operation,
-#endif
-            witness_set_properties_operation,
-            witness_stop_operation,
-
-#ifdef SOPHIATX_ENABLE_SMT
-            /// SMT operations
-            smt_setup_operation,
-            smt_cap_reveal_operation,
-            smt_refund_operation,
-            smt_setup_emissions_operation,
-            smt_set_setup_parameters_operation,
-            smt_set_runtime_parameters_operation,
-            smt_create_operation,
-#endif
-            /// virtual operations below this point
+            transfer_from_promotion_pool_operation,
+            sponsor_fees_operation,
+           /// virtual operations below this point
 
             interest_operation,
             fill_vesting_withdraw_operation,
             shutdown_witness_operation,
             hardfork_operation,
             producer_reward_operation,
-            promotion_pool_withdraw_operation,
-            transfer_from_promotion_pool_operation,
-            sponsor_fees_operation
+            promotion_pool_withdraw_operation
+
          > operation;
 
    /*void operation_get_required_authorities( const operation& op,

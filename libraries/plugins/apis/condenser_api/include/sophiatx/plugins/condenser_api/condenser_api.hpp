@@ -128,7 +128,8 @@ struct extended_dynamic_global_properties
       current_aslot( o.current_aslot ),
       recent_slots_filled( o.recent_slots_filled ),
       participation_count( o.participation_count ),
-      last_irreversible_block_num( o.last_irreversible_block_num )
+      last_irreversible_block_num( o.last_irreversible_block_num ),
+      witness_required_vesting( legacy_asset::from_asset( o.witness_required_vesting ) )
    {}
 
    uint32_t          head_block_number = 0;
@@ -143,6 +144,8 @@ struct extended_dynamic_global_properties
    uint64_t          current_aslot = 0;
    fc::uint128_t     recent_slots_filled;
    uint8_t           participation_count = 0;
+   legacy_asset      witness_required_vesting;
+
 
    uint32_t          last_irreversible_block_num = 0;
 
@@ -340,12 +343,13 @@ typedef vector< variant > get_version_args;
 struct get_version_return
 {
    get_version_return() {}
-   get_version_return( fc::string bc_v, fc::string s_v, fc::string fc_v )
-      :blockchain_version( bc_v ), sophiatx_revision( s_v ), fc_revision( fc_v ) {}
+   get_version_return( fc::string bc_v, fc::string s_v, fc::string fc_v, fc::string ci_v )
+      :blockchain_version( bc_v ), sophiatx_revision( s_v ), fc_revision( fc_v ), chain_id(ci_v) {}
 
    fc::string blockchain_version;
    fc::string sophiatx_revision;
    fc::string fc_revision;
+   fc::string chain_id;
 };
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
@@ -482,7 +486,7 @@ FC_REFLECT( sophiatx::plugins::condenser_api::extended_dynamic_global_properties
             (head_block_number)(head_block_id)(time)
             (current_witness)
             (current_supply)
-            (total_vesting_shares)
+            (total_vesting_shares)(witness_required_vesting)
             (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
             (average_block_size) )
 
@@ -536,7 +540,7 @@ FC_REFLECT( sophiatx::plugins::condenser_api::scheduled_hardfork,
             (hf_version)(live_time) )
 
 FC_REFLECT( sophiatx::plugins::condenser_api::get_version_return,
-            (blockchain_version)(sophiatx_revision)(fc_revision) )
+            (blockchain_version)(sophiatx_revision)(fc_revision)(chain_id) )
 
 FC_REFLECT( sophiatx::plugins::condenser_api::api_application_object,
             (id)

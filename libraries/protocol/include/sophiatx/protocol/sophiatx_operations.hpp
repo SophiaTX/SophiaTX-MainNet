@@ -668,7 +668,6 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
    struct application_create_operation : public base_operation {
 
       account_name_type       author;
-      authority               active;
       string                  name;
       string                  url;
       string                  metadata;
@@ -683,7 +682,6 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
    struct application_update_operation : public base_operation {
 
       account_name_type             author;
-      authority                     active;
       optional<account_name_type>   new_author;
       string                        name;
       string                        url;
@@ -699,7 +697,6 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
    struct application_delete_operation : public base_operation {
 
       account_name_type             author;
-      authority                     active;
       string                        name;
 
       account_name_type get_fee_payer()const { return author;};
@@ -711,7 +708,6 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
    struct buy_application_operation : public base_operation {
 
       account_name_type             buyer;
-      authority                     active;
       int64_t                       app_id;
 
       account_name_type get_fee_payer()const { return buyer;};
@@ -724,7 +720,6 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
 
       account_name_type             app_owner;
       account_name_type             buyer;
-      authority                     active;
       int64_t                       app_id;
 
       account_name_type get_fee_payer()const { return app_owner;};
@@ -857,7 +852,6 @@ FC_REFLECT( sophiatx::protocol::votable_asset_info_v1, (max_accepted_payout)(all
 FC_REFLECT( sophiatx::protocol::allowed_vote_assets, (votable_assets) )
 #endif
 
-
 FC_REFLECT_DERIVED( sophiatx::protocol::escrow_transfer_operation, (sophiatx::protocol::base_operation), (from)(to)(sophiatx_amount)(escrow_id)(agent)(escrow_fee)(json_meta)(ratification_deadline)(escrow_expiration) );
 FC_REFLECT_DERIVED( sophiatx::protocol::escrow_approve_operation, (sophiatx::protocol::base_operation), (from)(to)(agent)(who)(escrow_id)(approve) );
 FC_REFLECT_DERIVED( sophiatx::protocol::escrow_dispute_operation, (sophiatx::protocol::base_operation), (from)(to)(agent)(who)(escrow_id) );
@@ -866,12 +860,12 @@ FC_REFLECT_DERIVED( sophiatx::protocol::placeholder_a_operation, (sophiatx::prot
 FC_REFLECT_DERIVED( sophiatx::protocol::placeholder_b_operation, (sophiatx::protocol::base_operation), );
 FC_REFLECT_DERIVED( sophiatx::protocol::request_account_recovery_operation, (sophiatx::protocol::base_operation), (recovery_account)(account_to_recover)(new_owner_authority)(extensions) );
 FC_REFLECT_DERIVED( sophiatx::protocol::recover_account_operation, (sophiatx::protocol::base_operation), (account_to_recover)(new_owner_authority)(recent_owner_authority)(extensions) );
-FC_REFLECT_DERIVED( sophiatx::protocol::application_create_operation, (sophiatx::protocol::base_operation), (author)(active)(name)(url)(metadata)(price_param) )
-FC_REFLECT_DERIVED( sophiatx::protocol::application_update_operation, (sophiatx::protocol::base_operation), (author)(active)(new_author)(name)(url)(metadata)(price_param) )
-FC_REFLECT_DERIVED( sophiatx::protocol::application_delete_operation, (sophiatx::protocol::base_operation), (author)(active)(name) )
+FC_REFLECT_DERIVED( sophiatx::protocol::application_create_operation, (sophiatx::protocol::base_operation), (author)(name)(url)(metadata)(price_param) )
+FC_REFLECT_DERIVED( sophiatx::protocol::application_update_operation, (sophiatx::protocol::base_operation), (author)(new_author)(name)(url)(metadata)(price_param) )
+FC_REFLECT_DERIVED( sophiatx::protocol::application_delete_operation, (sophiatx::protocol::base_operation), (author)(name) )
 FC_REFLECT_ENUM( sophiatx::protocol::application_price_param, (permanent)(time_based)(none) )
-FC_REFLECT_DERIVED( sophiatx::protocol::buy_application_operation, (sophiatx::protocol::base_operation), (buyer)(active)(app_id) )
-FC_REFLECT_DERIVED( sophiatx::protocol::cancel_application_buying_operation, (sophiatx::protocol::base_operation), (app_owner)(buyer)(active)(app_id) )
+FC_REFLECT_DERIVED( sophiatx::protocol::buy_application_operation, (sophiatx::protocol::base_operation), (buyer)(app_id) )
+FC_REFLECT_DERIVED( sophiatx::protocol::cancel_application_buying_operation, (sophiatx::protocol::base_operation), (app_owner)(buyer)(app_id) )
 FC_REFLECT_DERIVED( sophiatx::protocol::change_recovery_account_operation, (sophiatx::protocol::base_operation), (account_to_recover)(new_recovery_account)(extensions) );
 FC_REFLECT_DERIVED( sophiatx::protocol::transfer_from_promotion_pool_operation, (sophiatx::protocol::base_operation), (transfer_to)(amount)(extensions))
 FC_REFLECT_DERIVED( sophiatx::protocol::sponsor_fees_operation, (sophiatx::protocol::base_operation), (sponsor)(sponsored)(is_sponsoring) )

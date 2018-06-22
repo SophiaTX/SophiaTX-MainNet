@@ -6,8 +6,6 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
    using namespace sophiatx::protocol;
 
    typedef account_update_operation               legacy_account_update_operation;
-   typedef placeholder_a_operation                legacy_placeholder_a_operation;
-   typedef placeholder_b_operation                legacy_placeholder_b_operation;
    typedef escrow_approve_operation               legacy_escrow_approve_operation;
    typedef escrow_dispute_operation               legacy_escrow_dispute_operation;
    typedef witness_set_properties_operation       legacy_witness_set_properties_operation;
@@ -48,24 +46,31 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
    typedef buy_application_operation              legacy_buy_application_operation;
    typedef cancel_application_buying_operation    legacy_cancel_application_buying_operation;
 
+   typedef placeholder_a_operation                legacy_placeholder_a_operation;
+   typedef placeholder_b_operation                legacy_placeholder_b_operation;
 
    typedef fc::static_variant<
             legacy_transfer_operation,
             legacy_transfer_to_vesting_operation,
             legacy_withdraw_vesting_operation,
             legacy_feed_publish_operation,
+
             legacy_account_create_operation,
             legacy_account_update_operation,
             legacy_account_delete_operation,
+
             legacy_witness_update_operation,
             legacy_witness_stop_operation,
             legacy_account_witness_vote_operation,
             legacy_account_witness_proxy_operation,
+            legacy_witness_set_properties_operation,
+
             legacy_custom_operation,
-            legacy_report_over_production_operation,
             legacy_custom_json_operation,
-            legacy_placeholder_a_operation,
-            legacy_placeholder_b_operation,
+            legacy_custom_binary_operation,
+
+            legacy_report_over_production_operation,
+
             legacy_request_account_recovery_operation,
             legacy_recover_account_operation,
             legacy_change_recovery_account_operation,
@@ -73,23 +78,27 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
             legacy_escrow_dispute_operation,
             legacy_escrow_release_operation,
             legacy_escrow_approve_operation,
-            legacy_custom_binary_operation,
+
             legacy_reset_account_operation,
             legacy_set_reset_account_operation,
-            legacy_witness_set_properties_operation,
+
+            legacy_application_create_operation,
+            legacy_application_update_operation,
+            legacy_application_delete_operation,
+            legacy_buy_application_operation,
+            legacy_cancel_application_buying_operation,
+
+            legacy_transfer_from_promotion_pool_operation,
+            legacy_sponsor_fees_operation,
+
             legacy_interest_operation,
             legacy_fill_vesting_withdraw_operation,
             legacy_shutdown_witness_operation,
             legacy_hardfork_operation,
             legacy_producer_reward_operation,
             legacy_promotion_pool_withdraw_operation,
-            legacy_transfer_from_promotion_pool_operation,
-            legacy_application_create_operation,
-            legacy_application_update_operation,
-            legacy_application_delete_operation,
-            legacy_sponsor_fees_operation,
-            legacy_buy_application_operation,
-            legacy_cancel_application_buying_operation
+
+            legacy_placeholder_a_operation
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor
@@ -99,146 +108,45 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
       typedef bool result_type;
 
       legacy_operation& l_op;
-
+      bool operator()( const transfer_operation& op )const                       { l_op = op; return true; }
+      bool operator()( const transfer_to_vesting_operation& op )const            { l_op = op; return true; }
+      bool operator()( const withdraw_vesting_operation& op )const               { l_op = op; return true; }
+      bool operator()( const feed_publish_operation& op )const                   { l_op = op; return true; }
+      bool operator()( const account_create_operation& op )const                 { l_op = op; return true; }
       bool operator()( const account_update_operation& op )const                 { l_op = op; return true; }
-      bool operator()( const placeholder_a_operation& op )const                  { l_op = op; return true; }
-      bool operator()( const placeholder_b_operation& op )const                  { l_op = op; return true; }
-      bool operator()( const escrow_approve_operation& op )const                 { l_op = op; return true; }
-      bool operator()( const escrow_dispute_operation& op )const                 { l_op = op; return true; }
-      bool operator()( const witness_set_properties_operation& op )const         { l_op = op; return true; }
+      bool operator()( const account_delete_operation& op )const                 { l_op = op; return true; }
+      bool operator()( const witness_update_operation& op )const                 { l_op = op; return true; }
+      bool operator()( const witness_stop_operation& op )const                   { l_op = op; return true; }
       bool operator()( const account_witness_vote_operation& op )const           { l_op = op; return true; }
       bool operator()( const account_witness_proxy_operation& op )const          { l_op = op; return true; }
+      bool operator()( const witness_set_properties_operation& op )const         { l_op = op; return true; }
       bool operator()( const custom_operation& op )const                         { l_op = op; return true; }
       bool operator()( const custom_json_operation& op )const                    { l_op = op; return true; }
       bool operator()( const custom_binary_operation& op )const                  { l_op = op; return true; }
       bool operator()( const report_over_production_operation& op )const         { l_op = op; return true; }
       bool operator()( const request_account_recovery_operation& op )const       { l_op = op; return true; }
       bool operator()( const recover_account_operation& op )const                { l_op = op; return true; }
+      bool operator()( const change_recovery_account_operation& op )const        { l_op = op; return true; }
+      bool operator()( const escrow_transfer_operation& op )const                { l_op = op; return true; }
+      bool operator()( const escrow_approve_operation& op )const                 { l_op = op; return true; }
+      bool operator()( const escrow_dispute_operation& op )const                 { l_op = op; return true; }
+      bool operator()( const escrow_release_operation& op )const                 { l_op = op; return true; }
       bool operator()( const reset_account_operation& op )const                  { l_op = op; return true; }
       bool operator()( const set_reset_account_operation& op )const              { l_op = op; return true; }
-      bool operator()( const change_recovery_account_operation& op )const        { l_op = op; return true; }
+      bool operator()( const application_create_operation& op )const             { l_op = op; return true; }
+      bool operator()( const application_update_operation& op )const             { l_op = op; return true; }
+      bool operator()( const application_delete_operation& op )const             { l_op = op; return true; }
+      bool operator()( const buy_application_operation& op )const                { l_op = op; return true; }
+      bool operator()( const cancel_application_buying_operation& op )const      { l_op = op; return true; }
+      bool operator()( const transfer_from_promotion_pool_operation& op )const   { l_op = op; return true; }
+      bool operator()( const sponsor_fees_operation& op )const                   { l_op = op; return true; }
+
+      bool operator()( const interest_operation& op )const                       { l_op = op; return true; }
+      bool operator()( const fill_vesting_withdraw_operation& op )const          { l_op = op; return true; }
       bool operator()( const shutdown_witness_operation& op )const               { l_op = op; return true; }
       bool operator()( const hardfork_operation& op )const                       { l_op = op; return true; }
-
-      bool operator()( const transfer_operation& op )const
-      {
-         l_op = legacy_transfer_operation( op );
-         return true;
-      }
-
-      bool operator()( const transfer_to_vesting_operation& op )const
-      {
-         l_op = legacy_transfer_to_vesting_operation( op );
-         return true;
-      }
-
-      bool operator()( const withdraw_vesting_operation& op )const
-      {
-         l_op = legacy_withdraw_vesting_operation( op );
-         return true;
-      }
-
-      bool operator()( const feed_publish_operation& op )const
-      {
-         l_op = legacy_feed_publish_operation( op );
-         return true;
-      }
-
-      bool operator()( const account_create_operation& op )const
-      {
-         l_op = legacy_account_create_operation( op );
-         return true;
-      }
-
-      bool operator()( const account_delete_operation& op )const
-      {
-         l_op = legacy_account_delete_operation( op );
-         return true;
-      }
-
-
-      bool operator()( const witness_update_operation& op )const
-      {
-         l_op = legacy_witness_update_operation( op );
-         return true;
-      }
-
-      bool operator()( const witness_stop_operation& op )const
-      {
-         l_op = legacy_witness_stop_operation( op );
-         return true;
-      }
-
-      bool operator()( const escrow_transfer_operation& op )const
-      {
-         l_op = legacy_escrow_transfer_operation( op );
-         return true;
-      }
-
-      bool operator()( const escrow_release_operation& op )const
-      {
-         l_op = legacy_escrow_release_operation( op );
-         return true;
-      }
-
-      bool operator()( const interest_operation& op )const
-      {
-         l_op = legacy_interest_operation( op );
-         return true;
-      }
-
-      bool operator()( const fill_vesting_withdraw_operation& op )const
-      {
-         l_op = legacy_fill_vesting_withdraw_operation( op );
-         return true;
-      }
-
-      bool operator()( const producer_reward_operation& op )const
-      {
-         l_op = legacy_producer_reward_operation( op );
-         return true;
-      }
-
-      bool operator()( const promotion_pool_withdraw_operation& op) const
-      {
-         l_op = legacy_promotion_pool_withdraw_operation(op);
-         return true;
-      }
-
-      bool operator()( const transfer_from_promotion_pool_operation& op) const
-      {
-         l_op = legacy_transfer_from_promotion_pool_operation(op);
-         return true;
-      }
-
-      bool operator()( const application_create_operation& op) const
-      {
-         l_op = legacy_application_create_operation(op);
-         return true;
-      }
-
-      bool operator()( const application_update_operation& op) const
-      {
-         l_op = legacy_application_update_operation(op);
-         return true;
-      }
-
-      bool operator()( const application_delete_operation& op) const
-      {
-         l_op = legacy_application_delete_operation(op);
-         return true;
-      }
-
-      bool operator()( const buy_application_operation& op) const
-      {
-         l_op = legacy_buy_application_operation(op);
-         return true;
-      }
-      bool operator()( const cancel_application_buying_operation& op) const
-      {
-         l_op = legacy_cancel_application_buying_operation(op);
-         return true;
-      }
+      bool operator()( const producer_reward_operation& op )const                { l_op = op; return true; }
+      bool operator()( const promotion_pool_withdraw_operation& op )const        { l_op = op; return true; }
 
       // Should only be SMT ops
       template< typename T >
@@ -251,7 +159,7 @@ struct convert_from_legacy_operation_visitor
 
    typedef operation result_type;
 
-   operation operator()( const legacy_transfer_operation& op )const
+   /*operation operator()( const legacy_transfer_operation& op )const
    {
       return operation( transfer_operation( op ) );
    }
@@ -349,8 +257,11 @@ struct convert_from_legacy_operation_visitor
    operation operator()( const legacy_cancel_application_buying_operation& op)const
    {
       return operation( cancel_application_buying_operation(op));
-   }
+   }*/
 
+   operation operator() (const legacy_placeholder_a_operation& op)const{
+      return operation( transfer_operation() );
+   }
    template< typename T >
    operation operator()( const T& t )const
    {

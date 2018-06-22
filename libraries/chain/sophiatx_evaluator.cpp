@@ -58,7 +58,7 @@ void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
    if( wit_itr != by_witness_name_idx.end() )
    {
       _db.modify(*wit_itr, [&]( witness_object& w ) {
-         w.stopped = true;
+         w.signing_key = public_key_type();
       });
    }
 }
@@ -587,7 +587,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
          a.withdrawn = 0;
 
          auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
+         FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
@@ -806,15 +806,6 @@ void report_over_production_evaluator::do_apply( const report_over_production_op
    FC_ASSERT( false, "report_over_production_operation is disabled." );
 }
 
-void placeholder_a_evaluator::do_apply( const placeholder_a_operation& o )
-{
-   FC_ASSERT( false, "This is not a valid op." );
-}
-
-void placeholder_b_evaluator::do_apply( const placeholder_b_operation& o )
-{
-   FC_ASSERT( false, "This is not a valid op" );
-}
 
 void request_account_recovery_evaluator::do_apply( const request_account_recovery_operation& o )
 {
@@ -969,8 +960,6 @@ void application_create_evaluator::do_apply( const application_create_operation&
 {
    _db.get_account( o.author );
 
-   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
-
    _db.create< application_object >( [&]( application_object& app )
                                    {
                                         app.name = o.name;
@@ -988,7 +977,11 @@ void application_update_evaluator::do_apply( const application_update_operation&
 {
    const auto& application = _db.get_application( o.name );
 
-   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
+   if(o.new_author)
+   {
+      _db.get_account(*o.new_author);
+      const auto& account_auth = _db.get< account_authority_object, by_account >( *o.new_author );
+   }
 
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
@@ -1016,8 +1009,6 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
 {
    const auto& application = _db.get_application( o.name );
 
-   verify_authority_accounts_exist( _db, o.active, o.author, authority::active );
-
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
    const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_app_id >();
@@ -1040,8 +1031,6 @@ void buy_application_evaluator::do_apply( const buy_application_operation& o )
    auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_id) );
    FC_ASSERT(request == app_buy_idx.end(), "This buying already exisit" );
 
-   verify_authority_accounts_exist( _db, o.active, o.buyer, authority::active );
-
    _db.create< application_buying_object >( [&]( application_buying_object& app_buy )
                                    {
                                         app_buy.buyer = o.buyer;
@@ -1054,8 +1043,6 @@ void cancel_application_buying_evaluator::do_apply( const cancel_application_buy
 {
    const auto& application = _db.get_application_by_id( o.app_id );
    const auto& app_buying = _db.get_application_buying( o.buyer, o.app_id );
-
-   verify_authority_accounts_exist( _db, o.active, o.app_owner, authority::active );
 
    FC_ASSERT(application.author == o.app_owner, "Provided app author is not this applcation author" );
 
@@ -1087,8 +1074,8 @@ void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
       return;
    }
 
-   const auto& sponsor_obj = _db.get_account(op.sponsor);
-   const auto& sponsored_obj = _db.get_account(op.sponsored);
+   _db.get_account(op.sponsor);
+   _db.get_account(op.sponsored);
    optional< account_name_type > existing_sponsor = _db.get_sponsor(op.sponsored);
    if(op.is_sponsoring){
       FC_ASSERT(!existing_sponsor, "This account is already sponsored");

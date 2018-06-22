@@ -96,7 +96,8 @@ namespace detail
       (
          fc::string( SOPHIATX_BLOCKCHAIN_VERSION ),
          fc::string( sophiatx::utilities::git_revision_sha ),
-         fc::string( fc::git_revision_sha )
+         fc::string( fc::git_revision_sha ),
+         fc::string( SOPHIATX_CHAIN_ID )
       );
    }
 

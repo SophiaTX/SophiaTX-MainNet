@@ -441,10 +441,9 @@ class wallet_api
       * This method deletes an existing account.
       *
       * @param account_name The name of the account you wish to delete
-      * @param owner_auth The owner authority for this account
       * @param broadcast true if you wish to broadcast the transaction.
       */
-      annotated_signed_transaction delete_account( string account_name, authority owner_auth, bool broadcast );
+      annotated_signed_transaction delete_account( string account_name, bool broadcast );
 
       /**
        *  This method is used to convert a JSON transaction to its transaction ID.
@@ -762,14 +761,13 @@ class wallet_api
       *  'info' wallet command.
       *
       *  @param author The account creating the new application
-      *  @param active_auth The active authority for that account
       *  @param app_name The unique name for new application
       *  @param url The url of the new application
       *  @param meta_data The meta data of new application
       *  @param price_param The price parameter that specifies billing for the app
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction create_application( string author, authority active_auth, string app_name,
+      annotated_signed_transaction create_application( string author, string app_name,
                                                        string url, string meta_data, uint8_t price_param,
                                                        bool broadcast );
 
@@ -777,7 +775,6 @@ class wallet_api
       *  This method will update existing application object.
       *
       *  @param author The author of application
-      *  @param active_auth The active authority for that account
       *  @param app_name The name of app that will be updated
       *  @param new_author The new author
       *  @param url Updated url
@@ -785,7 +782,7 @@ class wallet_api
       *  @param price_param Updated price param
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction update_application( string author, authority active_auth, string app_name,
+      annotated_signed_transaction update_application( string author, string app_name,
                                                        string new_author, string url, string meta_data,
                                                        uint8_t price_param, bool broadcast );
 
@@ -793,35 +790,29 @@ class wallet_api
       *  This method will delete specified application object.
       *
       *  @param author The author of application that will be deleted
-      *  @param active_auth The active authority for that account
       *  @param app_name The name of app that will be deleted
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction delete_application( string author, authority active_auth, string app_name,
-                                                       bool broadcast );
+      annotated_signed_transaction delete_application( string author, string app_name, bool broadcast );
 
       /**
       *  This method will create application buy object
       *
       *  @param buyer The buyer of application
-      *  @param active_auth The active authority for that account
       *  @param app_id The id of app that buyer will buy
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction buy_application( string buyer, authority active_auth, int64_t app_id,
-                                                       bool broadcast );
+      annotated_signed_transaction buy_application( string buyer, int64_t app_id, bool broadcast );
 
       /**
       *  This method will cancel application buy object
       *
       *  @param app_owner The owner of bought application
       *  @param buyer The buyer of application
-      *  @param active_auth The active authority for application owner
       *  @param app_id The id of bought app
       *  @param broadcast true if you wish to broadcast the transaction
       */
-      annotated_signed_transaction cancel_application_buying( string app_owner, string buyer, authority active_auth,
-                                                           int64_t app_id, bool broadcast );
+      annotated_signed_transaction cancel_application_buying( string app_owner, string buyer, int64_t app_id, bool broadcast );
 
       /**
        * Get all app buyings by app_name or buyer
@@ -950,6 +941,7 @@ FC_API( sophiatx::wallet::wallet_api,
         (delete_account)
         (sponsor_account_fees)
         (update_witness)
+        (stop_witness)
         (set_voting_proxy)
         (vote_for_witness)
         (transfer)
