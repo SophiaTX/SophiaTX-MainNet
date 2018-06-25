@@ -30,9 +30,9 @@ namespace sophiatx { namespace utilities {
 
 fc::path temp_directory_path()
 {
-   const char* sophiatxit_tempdir = getenv("SOPHIATX_TEMPDIR");
-   if( sophiatxit_tempdir != nullptr )
-      return fc::path( sophiatxit_tempdir );
+   const char* sophiatx_tempdir = getenv("SOPHIATX_TEMPDIR");
+   if( sophiatx_tempdir != nullptr )
+      return fc::path( sophiatx_tempdir );
    return fc::temp_directory_path() / "sophiatx-tmp";
 }
 

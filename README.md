@@ -30,13 +30,13 @@ You can read the SophiaTX Whitepaper at [SophiaTX.io/SophiaTXWhitePaper.pdf](htt
 
 # Quickstart
 
-Just want to get up and running quickly? We have pre-built docker images for your convenience. More details are in our [quickstart guide](https://github.com/sophiatxit/sophiatx/blob/master/doc/exchangequickstart.md).
+Just want to get up and running quickly? We have pre-built docker images for your convenience. More details are in our [quickstart guide](https://github.com/SophiaTX/SophiaTX/blob/master/doc/exchangequickstart.md).
 
 # Building
 
-We strongly recommend using one of our pre-built Docker images or using Docker to build SophiaTX. Both of these processes are described in the [quickstart guide](https://github.com/sophiatxit/sophiatx/blob/master/doc/exchangequickstart.md).
+We strongly recommend using one of our pre-built Docker images or using Docker to build SophiaTX. Both of these processes are described in the [quickstart guide](https://github.com/SophiaTX/SophiaTX/blob/master/doc/exchangequickstart.md).
 
-If you would still like to build from source, we do have [build instructions](https://github.com/sophiatxit/sophiatx/blob/master/doc/building.md) for Linux (Ubuntu LTS) and macOS.
+If you would still like to build from source, we do have [build instructions](https://github.com/SophiaTX/SophiaTX/blob/master/doc/building.md) for Linux (Ubuntu LTS) and macOS.
 
 ## Dockerized p2p Node
 
@@ -44,7 +44,7 @@ To run a p2p node (ca. 2GB of memory is required at the moment):
 
     docker run \
         -d -p 2001:2001 -p 8090:8090 --name sophiatxd-default \
-        sophiatxit/sophiatx
+        SophiaTX/SophiaTX
 
     docker logs -f sophiatxd-default  # follow along
 
@@ -56,7 +56,7 @@ that uses ca. 14GB of memory and growing:
     docker run \
         --env USE_WAY_TOO_MUCH_RAM=1 --env USE_FULL_WEB_NODE=1 \
         -d -p 2001:2001 -p 8090:8090 --name sophiatxd-full \
-        sophiatxit/sophiatx
+        SophiaTX/SophiaTX
 
     docker logs -f sophiatxd-full
 

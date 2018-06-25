@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 SophiaTXit, Inc., and contributors.
+ * Copyright (c) 2016 Steemit, Inc., Equidato Technologies and contributors.
  */
 #pragma once
 #include <sophiatx/protocol/hardfork.hpp>

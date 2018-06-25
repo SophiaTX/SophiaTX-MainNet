@@ -17,7 +17,7 @@ add_library( {plugin_provider}_{plugin_name}
              {plugin_name}_api.cpp
            )
 
-target_link_libraries( {plugin_provider}_{plugin_name} sophiatxit_app sophiatxit_chain sophiatxit_protocol )
+target_link_libraries( {plugin_provider}_{plugin_name} sophiatx_app sophiatx_chain sophiatx_protocol )
 target_include_directories( {plugin_provider}_{plugin_name}
                             PUBLIC "${{CMAKE_CURRENT_SOURCE_DIR}}/include" )
 """,
@@ -230,7 +230,7 @@ import sys
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("provider", help="Name of plugin provider (sophiatx for plugins developed by SophiaTXit)")
+    parser.add_argument("provider", help="Name of plugin provider (sophiatx for plugins developed by Equidato Technologies)")
     parser.add_argument("name", help="Name of plugin to create")
     args = parser.parse_args(argv[1:])
     ctx = {

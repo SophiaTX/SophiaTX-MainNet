@@ -7,7 +7,7 @@ PAT_FILE=$TEST_DIR/get_ops_in_block.json.pat
 
 function print_help_and_quit {
    echo "Usage: last_block_number [--pre-appbase] 1st_node_address [--pre-appbase] 2nd_node_address"
-   echo "Example: 10000 --pre-appbase https://sophiatxd.sophiatxit.com http://127.0.0.1:8090"
+   echo "Example: 10000 --pre-appbase https://sophiatxd.sophiatx.com http://127.0.0.1:8090"
    exit $EXIT_CODE
 }
 

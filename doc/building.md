@@ -32,9 +32,9 @@ huge gain if you do not need this functionality.
 
 We ship a Dockerfile.  This builds both common node type binaries.
 
-    git clone https://github.com/sophiatxit/sophiatx
+    git clone https://github.com/SophiaTX/SophiaTX
     cd sophiatx
-    docker build -t sophiatxit/sophiatx .
+    docker build -t SophiaTX/SophiaTX .
 
 ## Building on Ubuntu 16.04
 
@@ -78,7 +78,7 @@ will build out of the box without further effort:
         libreadline-dev \
         perl
 
-    git clone https://github.com/sophiatxit/sophiatx
+    git clone https://github.com/SophiaTX/SophiaTX
     cd sophiatx
     git checkout stable
     git submodule update --init --recursive
@@ -142,7 +142,7 @@ Here is how to build and install Boost 1.60 into your user's home directory
 
 Then the instructions are the same as for sophiatx:
 
-    git clone https://github.com/sophiatxit/sophiatx
+    git clone https://github.com/SophiaTX/SophiaTX
     cd sophiatx
     git checkout stable
     git submodule update --init --recursive
@@ -197,7 +197,7 @@ sophiatx. Until then, this will allow you to install boost 1.60.0.
 
 ### Clone the Repository
 
-    git clone https://github.com/sophiatxit/sophiatx.git
+    git clone https://github.com/SophiaTX/SophiaTX
     cd sophiatx
 
 ### Compile

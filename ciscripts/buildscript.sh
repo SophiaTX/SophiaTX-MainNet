@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
-export IMAGE_NAME="sophiatxit/sophiatx:$BRANCH_NAME"
-if [[ $IMAGE_NAME == "sophiatxit/sophiatx:stable" ]] ; then
-  IMAGE_NAME="sophiatxit/sophiatx:latest"
+export IMAGE_NAME="SophiaTX/SophiaTX:$BRANCH_NAME"
+if [[ $IMAGE_NAME == "SophiaTX/SophiaTX:stable" ]] ; then
+  IMAGE_NAME="SophiaTX/SophiaTX:latest"
 fi
 sudo docker build -t=$IMAGE_NAME .
 sudo docker login --username=$DOCKER_USER --password=$DOCKER_PASS

@@ -6,7 +6,7 @@ Use docker:
 ```
 docker run \
     -d -p 2001:2001 -p 8090:8090 --name sophiatxd-default \
-    --restart unless-stopped sophiatxit/sophiatx
+    --restart unless-stopped SophiaTX/SophiaTX
 ```
 #### Low memory node?
 Above runs low memory node, which is suitable for:
@@ -20,7 +20,7 @@ docker run \
     --env USE_WAY_TOO_MUCH_RAM=1 --env USE_FULL_WEB_NODE=1 \
     -d -p 2001:2001 -p 8090:8090 --name sophiatxd-full \
     --restart unless-stopped \
-    sophiatxit/sophiatx
+    SophiaTX/SophiaTX
 ```
 ### Configure for your use case
 #### Full API node
@@ -44,7 +44,7 @@ This configuration exists in Docker with the following command
 docker run -d --env TRACK_ACCOUNT="yourexchangeid" \
     --name sophiatxd \
     --restart unless-stopped \
-    sophiatxit/sophiatx
+    SophiaTX/SophiaTX
 ```
 
 ### Resources usage

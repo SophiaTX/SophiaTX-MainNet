@@ -22,8 +22,8 @@ sh get-docker.sh
 
 Pull in the sophiatx repo from the official source on github and then change into the directory that's created for it.
 ```
-git clone https://github.com/sophiatxit/sophiatx
-cd sophiatx
+git clone https://github.com/SophiaTX/SophiaTX
+cd SophiaTX
 ```
 
 ### Build the image from source with docker
@@ -31,7 +31,7 @@ cd sophiatx
 Docker isn't just for downloading already built images, it can be used to build from source the same way you would otherwise build. By doing this you ensure that your build environment is identical to what we use to develop the software. Use the below command to start the build:
 
 ```
-docker build -t=sophiatxit/sophiatx .
+docker build -t=SophiaTX/SophiaTX .
 ```
 
 Don't forget the `.` at the end of the line which indicates the build target is in the current directory.
@@ -45,7 +45,7 @@ When the build completes you will see a message indicating that it is 'successfu
 If you'd like to use our already pre-built official binary images, it's as simple as downloading it from the Dockerhub registry with only one command:
 
 ```
-docker pull sophiatxit/sophiatx
+docker pull SophiaTX/SophiaTX
 ```
 
 ### Running a binary build without a Docker container
@@ -55,7 +55,7 @@ If you build with Docker but do not want to run sophiatxd from within a docker c
 To extract the binary you need to start a container and then copy the file from it.
 
 ```
-docker run -d --name sophiatxd-exchange sophiatxit/sophiatx
+docker run -d --name sophiatxd-exchange SophiaTX/SophiaTX
 docker cp sophiatxd-exchange:/usr/local/sophiatxd-default/bin/sophiatxd /local/path/to/sophiatxd
 docker cp sophiatxd-exchange:/usr/local/sophiatxd-default/bin/cli_wallet /local/path/to/cli_wallet
 docker stop sophiatxd-exchange
@@ -77,7 +77,7 @@ mkdir sophiatxwallet
 The below command will start a daemonized instance opening ports for p2p and RPC  while linking the directories we created for blockchain and wallet data inside the container. Fill in `TRACK_ACCOUNT` with the name of your exchange account that you want to follow. The `-v` flags are how you map directories outside of the container to the inside, you list the path to the directories you created earlier before the `:` for each `-v` flag. The restart policy ensures that the container will automatically restart even if your system is restarted.
 
 ```
-docker run -d --name sophiatxd-exchange --env TRACK_ACCOUNT=nameofaccount -p 2001:2001 -p 8090:8090 -v /path/to/sophiatxwallet:/var/sophiatxwallet -v /path/to/blockchain:/var/lib/sophiatxd/blockchain --restart always sophiatxit/sophiatx
+docker run -d --name sophiatxd-exchange --env TRACK_ACCOUNT=nameofaccount -p 2001:2001 -p 8090:8090 -v /path/to/sophiatxwallet:/var/sophiatxwallet -v /path/to/blockchain:/var/lib/sophiatxd/blockchain --restart always SophiaTX/SophiaTX
 ```
 
 You can see that the container is running with the `docker ps` command.

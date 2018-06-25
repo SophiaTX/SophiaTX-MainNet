@@ -23,7 +23,7 @@ popd () { command popd "$@" > /dev/null; }
 
 function print_help_and_quit {
    echo "Usage: path_to_tested_sophiatxd path_to_reference_sophiatxd path_to_test_blockchain_directory path_to_reference_blockchain_directory number_of_blocks_to_replay"
-   echo "Example: ~/work/sophiatxit/sophiatx/build/Release/programs/sophiatxd/sophiatxd ~/master/sophiatxit/sophiatx/build/Release/programs/sophiatxd/sophiatxd ~/sophiatxit/sophiatx/work1 ~/sophiatxit/sophiatx/work2 5000000"
+   echo "Example: ~/work/SophiaTX/SophiaTX/build/Release/programs/sophiatxd/sophiatxd ~/master/SophiaTX/SophiaTX/build/Release/programs/sophiatxd/sophiatxd ~/SophiaTX/SophiaTX/work1 ~/SophiaTX/SophiaTX/work2 5000000"
    exit $EXIT_CODE
 }
 

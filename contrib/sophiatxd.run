@@ -95,7 +95,7 @@ cd $HOME
 
 if [[ "$USE_PUBLIC_SHARED_MEMORY" ]]; then
   echo sophiatxd: Downloading and uncompressing blockchain-$VERSION-latest.tar.lz4 - this may take awhile.
-  wget -qO- https://s3.amazonaws.com/sophiatxit-dev-blockchainstate/blockchain-$VERSION-latest.tar.lz4 | lz4 -d | tar x
+  wget -qO- https://s3.amazonaws.com/sophiatx-dev-blockchainstate/blockchain-$VERSION-latest.tar.lz4 | lz4 -d | tar x
 fi
 
 # slow down restart loop if flapping

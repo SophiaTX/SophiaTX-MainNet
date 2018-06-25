@@ -5,7 +5,7 @@
 From the root of the repository:
 
     docker build --rm=false \
-        -t sophiatxitinc/ci-test-environment:latest \
+        -t sophiatx/ci-test-environment:latest \
         -f tests/scripts/Dockerfile.testenv .
 
 ## To Run The Tests
@@ -13,13 +13,13 @@ From the root of the repository:
 (Also in the root of the repository.)
 
     docker build --rm=false \
-        -t sophiatxitinc/sophiatx-test \
+        -t sophiatx/sophiatx-test \
         -f Dockerfile.test .
 
 ## To Troubleshoot Failing Tests
 
     docker run -ti \
-        sophiatxitinc/ci-test-environment:latest \
+        sophiatx/ci-test-environment:latest \
         /bin/bash
 
 Then, inside the container:
@@ -27,7 +27,7 @@ Then, inside the container:
 (These steps are taken from `/Dockerfile.test` in the
 repository root.)
 
-    git clone https://github.com/sophiatxit/sophiatx.git \
+    git clone https://github.com/SophiaTX/SophiaTX.git \
         /usr/local/src/sophiatx
     cd /usr/local/src/sophiatx
     git checkout <branch> # e.g. 123-feature
