@@ -532,7 +532,7 @@ alexandria_api::create_application(string author, string app_name, string url, s
    FC_CAPTURE_AND_RETHROW( (author)(app_name)(url)(meta_data)(price_param))
 }
 
-operation alexandria_api::send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json){
+operation alexandria_api::make_custom_json_operation(uint32_t app_id, string from, vector<string> to, string json){
    try{
 
       custom_json_operation op;
@@ -547,7 +547,7 @@ operation alexandria_api::send_custom_json_document(uint32_t app_id, string from
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(json))
 }
 
-operation alexandria_api::send_custom_binary_document(uint32_t app_id, string from, vector<string> to, string data){
+operation alexandria_api::make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data){
    try{
 
       custom_binary_operation op;

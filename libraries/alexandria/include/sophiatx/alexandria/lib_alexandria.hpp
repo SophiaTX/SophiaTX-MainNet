@@ -363,7 +363,7 @@ class alexandria_api
        * @param json Data formatted in JSON
        * @return
        */
-      operation send_custom_json_document(uint32_t app_id, string from, vector<string> to, string json);
+      operation make_custom_json_operation(uint32_t app_id, string from, vector<string> to, string json);
 
       /**
        * Send custom data data
@@ -373,7 +373,7 @@ class alexandria_api
        * @param data Data formatted in base58.
        * @return
        */
-      operation send_custom_binary_document(uint32_t app_id, string from, vector<string> to, string data);
+      operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
 
       /**
        * Get all recevied custom jsons and data.
@@ -453,8 +453,8 @@ FC_API( sophiatx::wallet::alexandria_api,
         (get_active_witnesses)
         (get_transaction)
 
-        (send_custom_json_document)
-        (send_custom_binary_document)
+        (make_custom_json_operation)
+        (make_custom_binary_operation)
         (get_received_documents)
       )
 
