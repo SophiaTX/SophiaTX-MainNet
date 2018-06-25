@@ -1,6 +1,6 @@
-#include<steem/alexandria/remote_node_api.hpp>
+#include<sophiatx/alexandria/remote_node_api.hpp>
 
-namespace steem { namespace wallet{
+namespace sophiatx { namespace wallet{
 
 // This class exists only to provide method signature information to fc::api, not to execute calls.
 

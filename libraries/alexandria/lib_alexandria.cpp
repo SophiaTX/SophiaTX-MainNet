@@ -1,10 +1,10 @@
-#include <steem/utilities/git_revision.hpp>
-#include <steem/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/git_revision.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
 
-#include <steem/protocol/base.hpp>
-#include <steem/alexandria/lib_alexandria.hpp>
-#include <steem/alexandria/api_documentation.hpp>
-#include <steem/alexandria/reflect_util.hpp>
+#include <sophiatx/protocol/base.hpp>
+#include <sophiatx/alexandria/lib_alexandria.hpp>
+#include <sophiatx/alexandria/api_documentation.hpp>
+#include <sophiatx/alexandria/reflect_util.hpp>
 
 
 #include <boost/algorithm/string/replace.hpp>
@@ -30,9 +30,9 @@
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/smart_ref_impl.hpp>
 
-namespace steem { namespace wallet {
+namespace sophiatx { namespace wallet {
 
-using steem::plugins::condenser_api::legacy_asset;
+using sophiatx::plugins::condenser_api::legacy_asset;
 
 namespace detail {
 
@@ -79,22 +79,21 @@ public:
       result["median_sbd5_price"] = _remote_api->get_current_median_history_price(SBD5_SYMBOL);
 
       result["account_creation_fee"] = _remote_api->get_chain_properties().account_creation_fee;
-      //result["post_reward_fund"] = fc::variant(_remote_api->get_reward_fund( STEEM_POST_REWARD_FUND_NAME )).get_object();
       return result;
    }
 
    variant_object about() const
    {
-      string client_version( steem::utilities::git_revision_description );
+      string client_version( sophiatx::utilities::git_revision_description );
       const size_t pos = client_version.find( '/' );
       if( pos != string::npos && client_version.size() > pos )
          client_version = client_version.substr( pos + 1 );
 
       fc::mutable_variant_object result;
-      result["blockchain_version"]       = STEEM_BLOCKCHAIN_VERSION;
+      result["blockchain_version"]       = SOPHIATX_BLOCKCHAIN_VERSION;
       result["client_version"]           = client_version;
-      result["steem_revision"]           = steem::utilities::git_revision_sha;
-      result["steem_revision_age"]       = fc::get_approximate_relative_time_string( fc::time_point_sec( steem::utilities::git_revision_unix_timestamp ) );
+      result["sophiatx_revision"]        = sophiatx::utilities::git_revision_sha;
+      result["sophiatx_revision_age"]    = fc::get_approximate_relative_time_string( fc::time_point_sec( sophiatx::utilities::git_revision_unix_timestamp ) );
       result["fc_revision"]              = fc::git_revision_sha;
       result["fc_revision_age"]          = fc::get_approximate_relative_time_string( fc::time_point_sec( fc::git_revision_unix_timestamp ) );
       result["compile_date"]             = "compiled on " __DATE__ " at " __TIME__;
@@ -117,7 +116,7 @@ public:
       {
          auto v = _remote_api->get_version();
          result["server_blockchain_version"] = v.blockchain_version;
-         result["server_steem_revision"] = v.steem_revision;
+         result["server_sophiatx_revision"] = v.sophiatx_revision;
          result["server_fc_revision"] = v.fc_revision;
          result["chain_id"] = v.chain_id;
       }
@@ -167,10 +166,10 @@ public:
          std::stringstream out;
 
          auto accounts = result.as<vector<condenser_api::api_account_object>>();
-         asset total_steem;
+         asset total_sophiatx;
          asset total_vest(0, VESTS_SYMBOL );
          for( const auto& a : accounts ) {
-            total_steem += a.balance.to_asset();
+            total_sophiatx += a.balance.to_asset();
             total_vest  += a.vesting_shares.to_asset();
             out << std::left << std::setw( 17 ) << std::string(a.name)
                 << std::right << std::setw(18) << fc::variant(a.balance).as_string() <<" "
@@ -178,7 +177,7 @@ public:
          }
          out << "-------------------------------------------------------------------------\n";
             out << std::left << std::setw( 17 ) << "TOTAL"
-                << std::right << std::setw(18) << legacy_asset::from_asset(total_steem).to_string() <<" "
+                << std::right << std::setw(18) << legacy_asset::from_asset(total_sophiatx).to_string() <<" "
                 << std::right << std::setw(26) << legacy_asset::from_asset(total_vest).to_string() <<" \n";
          return out.str();
       };
@@ -216,11 +215,11 @@ public:
 #endif
 };
 
-} } } // steem::wallet::detail
+} } } // sophiatx::wallet::detail
 
 
 
-namespace steem { namespace wallet {
+namespace sophiatx { namespace wallet {
 
 alexandria_api::alexandria_api(fc::api< remote_node_api > rapi)
    : my(new detail::alexandria_api_impl(*this, rapi))
@@ -328,7 +327,7 @@ operation alexandria_api::create_account( string creator,
    op.active = authority( 1, active, 1 );
    op.memo_key = memo;
    op.json_metadata = json_meta;
-   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, STEEM_SYMBOL );
+   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
 
    return op;
 } FC_CAPTURE_AND_RETHROW( (creator)(new_account_name)(json_meta)(owner)(active)(memo)) }
@@ -590,7 +589,7 @@ signed_transaction alexandria_api::create_transaction(vector<operation> op_vec) 
            result_type operator()( base_operation& bop){
               if(bop.has_special_fee())
                  return;
-              asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+              asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
               bop.fee = req_fee;
            };
         };
@@ -623,7 +622,7 @@ signed_transaction alexandria_api::create_simple_transaction(operation op) const
            result_type operator()( base_operation& bop){
               if(bop.has_special_fee())
                  return;
-              asset req_fee = bop.get_required_fee(STEEM_SYMBOL);
+              asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
               bop.fee = req_fee;
            };
         };
@@ -649,5 +648,5 @@ operation alexandria_api::delete_account(string account_name) {
    }FC_CAPTURE_AND_RETHROW( (account_name))
 }
 
-} } // steem::wallet
+} } // sophiatx::wallet
 

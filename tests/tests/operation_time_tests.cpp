@@ -1,15 +1,15 @@
 #include <boost/test/unit_test.hpp>
 
-#include <steem/protocol/exceptions.hpp>
-#include <steem/protocol/hardfork.hpp>
+#include <sophiatx/protocol/exceptions.hpp>
+#include <sophiatx/protocol/hardfork.hpp>
 
-#include <steem/chain/block_summary_object.hpp>
-#include <steem/chain/database.hpp>
-#include <steem/chain/history_object.hpp>
-#include <steem/chain/steem_objects.hpp>
+#include <sophiatx/chain/block_summary_object.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/history_object.hpp>
+#include <sophiatx/chain/sophiatx_objects.hpp>
 
 
-#include <steem/plugins/debug_node/debug_node_plugin.hpp>
+#include <sophiatx/plugins/debug_node/debug_node_plugin.hpp>
 
 #include <fc/macros.hpp>
 #include <fc/crypto/digest.hpp>
@@ -18,9 +18,9 @@
 
 #include <cmath>
 
-using namespace steem;
-using namespace steem::chain;
-using namespace steem::protocol;
+using namespace sophiatx;
+using namespace sophiatx::chain;
+using namespace sophiatx::protocol;
 #define DUMP( x ) {fc::variant vo; fc::to_variant( x , vo); std::cout<< fc::json::to_string(vo) <<"\n";}
 
 BOOST_FIXTURE_TEST_SUITE( operation_time_tests, clean_database_fixture )
@@ -41,19 +41,19 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       withdraw_vesting_operation op;
       op.account = "alice";
       op.vesting_shares = asset( new_alice.vesting_shares.amount / 2, VESTS_SYMBOL );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      auto next_withdrawal = db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS;
+      auto next_withdrawal = db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS;
       asset vesting_shares = new_alice.vesting_shares;
       asset to_withdraw = op.vesting_shares;
       asset original_vesting = vesting_shares;
       asset withdraw_rate = new_alice.vesting_withdraw_rate;
 
       BOOST_TEST_MESSAGE( "Generating block up to first withdrawal" );
-      generate_blocks( next_withdrawal - ( STEEM_BLOCK_INTERVAL / 2 ), true);
+      generate_blocks( next_withdrawal - ( SOPHIATX_BLOCK_INTERVAL / 2 ), true);
 
       BOOST_REQUIRE( db->get_account( "alice" ).vesting_shares.amount.value == vesting_shares.amount.value );
 
@@ -77,9 +77,9 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       auto balance = db->get_account( "alice" ).balance;
       auto old_next_vesting = db->get_account( "alice" ).next_vesting_withdrawal;
 
-      for( int i = 1; i < STEEM_VESTING_WITHDRAW_INTERVALS - 1; i++ )
+      for( int i = 1; i < SOPHIATX_VESTING_WITHDRAW_INTERVALS - 1; i++ )
       {
-         generate_blocks( db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS );
+         generate_blocks( db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS );
 
          const auto& alice = db->get_account( "alice" );
 
@@ -93,10 +93,10 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
          BOOST_REQUIRE( fill_op.withdrawn.amount.value == withdraw_rate.amount.value );
          BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
 
-         if ( i == STEEM_VESTING_WITHDRAW_INTERVALS - 1 )
+         if ( i == SOPHIATX_VESTING_WITHDRAW_INTERVALS - 1 )
             BOOST_REQUIRE( alice.next_vesting_withdrawal == fc::time_point_sec::maximum() );
          else
-            BOOST_REQUIRE( alice.next_vesting_withdrawal.sec_since_epoch() == ( old_next_vesting + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS ).sec_since_epoch() );
+            BOOST_REQUIRE( alice.next_vesting_withdrawal.sec_since_epoch() == ( old_next_vesting + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS ).sec_since_epoch() );
 
          validate_database();
 
@@ -108,17 +108,17 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       if (  to_withdraw.amount.value % withdraw_rate.amount.value != 0 )
       {
          BOOST_TEST_MESSAGE( "Generating one more block to take care of remainder" );
-         generate_blocks( db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
+         generate_blocks( db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
          fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
          gpo = db->get_dynamic_global_properties();
 
-         BOOST_REQUIRE( db->get_account( "alice" ).next_vesting_withdrawal.sec_since_epoch() == ( old_next_vesting + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS ).sec_since_epoch() );
+         BOOST_REQUIRE( db->get_account( "alice" ).next_vesting_withdrawal.sec_since_epoch() == ( old_next_vesting + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS ).sec_since_epoch() );
          BOOST_REQUIRE( fill_op.from_account == "alice" );
          BOOST_REQUIRE( fill_op.to_account == "alice" );
          BOOST_REQUIRE( fill_op.withdrawn.amount.value == withdraw_rate.amount.value );
          BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
 
-         generate_blocks( db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
+         generate_blocks( db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
          gpo = db->get_dynamic_global_properties();
          fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
 
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       }
       else
       {
-         generate_blocks( db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
+         generate_blocks( db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
 
          BOOST_REQUIRE( db->get_account( "alice" ).next_vesting_withdrawal.sec_since_epoch() == fc::time_point_sec::maximum().sec_since_epoch() );
 
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
       BOOST_TEST_MESSAGE( "Setup" );
 
-      generate_blocks( 30 / STEEM_BLOCK_INTERVAL );
+      generate_blocks( 30 / SOPHIATX_BLOCK_INTERVAL );
 
       vector< string > accounts;
       accounts.push_back( "alice0" );
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       // Upgrade accounts to witnesses
       for( int i = 0; i < 7; i++ )
       {
-         transfer( STEEM_INIT_MINER_NAME, accounts[i], asset( SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, STEEM_SYMBOL ) );
+         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, SOPHIATX_SYMBOL ) );
          vest( accounts[i], SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
          witness_create( accounts[i], keys[i], "foo.bar", keys[i].get_public_key(), 0 );
 
@@ -195,17 +195,17 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          txs.push_back( signed_transaction() );
       }
 
-      ops[0].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 100000, STEEM_SYMBOL ) );
-      ops[1].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 105000, STEEM_SYMBOL ) );
-      ops[2].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  98000, STEEM_SYMBOL ) );
-      ops[3].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97000, STEEM_SYMBOL ) );
-      ops[4].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  99000, STEEM_SYMBOL ) );
-      ops[5].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97500, STEEM_SYMBOL ) );
-      ops[6].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 102000, STEEM_SYMBOL ) );
+      ops[0].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 100000, SOPHIATX_SYMBOL ) );
+      ops[1].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 105000, SOPHIATX_SYMBOL ) );
+      ops[2].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  98000, SOPHIATX_SYMBOL ) );
+      ops[3].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97000, SOPHIATX_SYMBOL ) );
+      ops[4].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  99000, SOPHIATX_SYMBOL ) );
+      ops[5].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97500, SOPHIATX_SYMBOL ) );
+      ops[6].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 102000, SOPHIATX_SYMBOL ) );
 
       for( int i = 0; i < 7; i++ )
       {
-         txs[i].set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+         txs[i].set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          txs[i].operations.push_back( ops[i] );
          txs[i].sign( keys[i], db->get_chain_id() );
          db->push_transaction( txs[i], 0 );
@@ -213,12 +213,12 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
       BOOST_TEST_MESSAGE( "Jump forward an hour" );
 
-      generate_blocks( STEEM_BLOCKS_PER_HOUR ); // Jump forward 1 hour
+      generate_blocks( SOPHIATX_BLOCKS_PER_HOUR ); // Jump forward 1 hour
       BOOST_TEST_MESSAGE( "Get feed history object" );
       feed_history_object feed_history = db->get_feed_history(SBD1_SYMBOL);
       BOOST_TEST_MESSAGE( "Check state" );
-      BOOST_REQUIRE( feed_history.current_median_history == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, STEEM_SYMBOL) ) );
-      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, STEEM_SYMBOL) ) );
+      BOOST_REQUIRE( feed_history.current_median_history == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, SOPHIATX_SYMBOL) ) );
+      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, SOPHIATX_SYMBOL) ) );
       validate_database();
 
       for ( int i = 0; i < 23; i++ )
@@ -229,8 +229,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          {
             txs[j].operations.clear();
             txs[j].signatures.clear();
-            ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, STEEM_SYMBOL ) );
-            txs[j].set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+            ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, SOPHIATX_SYMBOL ) );
+            txs[j].set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
             txs[j].operations.push_back( ops[j] );
             txs[j].sign( keys[j], db->get_chain_id() );
             db->push_transaction( txs[j], 0 );
@@ -238,7 +238,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
          BOOST_TEST_MESSAGE( "Generate Blocks" );
 
-         generate_blocks( STEEM_BLOCKS_PER_HOUR  ); // Jump forward 1 hour
+         generate_blocks( SOPHIATX_BLOCKS_PER_HOUR  ); // Jump forward 1 hour
 
          BOOST_TEST_MESSAGE( "Check feed_history" );
 
@@ -291,10 +291,10 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
-      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
@@ -311,16 +311,16 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       wop.vesting_shares = ASSET("1000.000000 SPHTX");
 
       tx.clear();
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( wop );
       tx.sign( alice_private_key, db->get_chain_id() );
 
-      STEEM_REQUIRE_THROW(db->push_transaction( tx, 0 ), fc::exception);
+      SOPHIATX_REQUIRE_THROW(db->push_transaction( tx, 0 ), fc::exception);
 
 
 
-      generate_blocks( STEEM_BLOCKS_PER_DAY * 1);
+      generate_blocks( SOPHIATX_BLOCKS_PER_DAY * 1);
 
       fund( "bob", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( "bob", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
@@ -331,19 +331,19 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
-      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
 
       tx.clear();
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       vest( "bob", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 
       tx.clear();
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
@@ -373,27 +373,27 @@ BOOST_AUTO_TEST_CASE( clear_null_account )
 
       transfer_operation transfer1;
       transfer1.from = "alice";
-      transfer1.to = STEEM_NULL_ACCOUNT;
+      transfer1.to = SOPHIATX_NULL_ACCOUNT;
       transfer1.amount = ASSET( "1.000 TESTS" );
 
       transfer_operation transfer2;
       transfer2.from = "alice";
-      transfer2.to = STEEM_NULL_ACCOUNT;
+      transfer2.to = SOPHIATX_NULL_ACCOUNT;
       transfer2.amount = ASSET( "2.000 TBD" );
 
       transfer_to_vesting_operation vest;
       vest.from = "alice";
-      vest.to = STEEM_NULL_ACCOUNT;
+      vest.to = SOPHIATX_NULL_ACCOUNT;
       vest.amount = ASSET( "3.000 TESTS" );
 
       transfer_to_savings_operation save1;
       save1.from = "alice";
-      save1.to = STEEM_NULL_ACCOUNT;
+      save1.to = SOPHIATX_NULL_ACCOUNT;
       save1.amount = ASSET( "4.000 TESTS" );
 
       transfer_to_savings_operation save2;
       save2.from = "alice";
-      save2.to = STEEM_NULL_ACCOUNT;
+      save2.to = SOPHIATX_NULL_ACCOUNT;
       save2.amount = ASSET( "5.000 TBD" );
 
       BOOST_TEST_MESSAGE( "--- Transferring to NULL Account" );
@@ -404,19 +404,19 @@ BOOST_AUTO_TEST_CASE( clear_null_account )
       tx.operations.push_back( vest );
       tx.operations.push_back( save1);
       tx.operations.push_back( save2 );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
       validate_database();
 
       db_plugin->debug_update( [=]( database& db )
       {
-         db.modify( db.get_account( STEEM_NULL_ACCOUNT ), [&]( account_object& a )
+         db.modify( db.get_account( SOPHIATX_NULL_ACCOUNT ), [&]( account_object& a )
          {
-            a.reward_steem_balance = ASSET( "1.000 TESTS" );
+            a.reward_sophiatx_balance = ASSET( "1.000 TESTS" );
             a.reward_sbd_balance = ASSET( "1.000 TBD" );
             a.reward_vesting_balance = ASSET( "1.000000 VESTS" );
-            a.reward_vesting_steem = ASSET( "1.000 TESTS" );
+            a.reward_vesting_sophiatx = ASSET( "1.000 TESTS" );
          });
 
          db.modify( db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
@@ -424,21 +424,21 @@ BOOST_AUTO_TEST_CASE( clear_null_account )
             gpo.current_supply += ASSET( "2.000 TESTS" );
             gpo.current_sbd_supply += ASSET( "1.000 TBD" );
             gpo.pending_rewarded_vesting_shares += ASSET( "1.000000 VESTS" );
-            gpo.pending_rewarded_vesting_steem += ASSET( "1.000 TESTS" );
+            gpo.pending_rewarded_vesting_sophiatx += ASSET( "1.000 TESTS" );
          });
       });
 
       validate_database();
 
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).balance == ASSET( "1.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).sbd_balance == ASSET( "2.000 TBD" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).vesting_shares > ASSET( "0.000000 VESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).savings_balance == ASSET( "4.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).savings_sbd_balance == ASSET( "5.000 TBD" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_sbd_balance == ASSET( "1.000 TBD" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_steem_balance == ASSET( "1.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_vesting_balance == ASSET( "1.000000 VESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_vesting_steem == ASSET( "1.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).balance == ASSET( "1.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).sbd_balance == ASSET( "2.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).vesting_shares > ASSET( "0.000000 VESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).savings_balance == ASSET( "4.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).savings_sbd_balance == ASSET( "5.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_sbd_balance == ASSET( "1.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_sophiatx_balance == ASSET( "1.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_vesting_balance == ASSET( "1.000000 VESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_vesting_sophiatx == ASSET( "1.000 TESTS" ) );
       BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "2.000 TESTS" ) );
       BOOST_REQUIRE( db->get_account( "alice" ).sbd_balance == ASSET( "3.000 TBD" ) );
 
@@ -446,15 +446,15 @@ BOOST_AUTO_TEST_CASE( clear_null_account )
       generate_block();
       validate_database();
 
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).balance == ASSET( "0.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).sbd_balance == ASSET( "0.000 TBD" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).vesting_shares == ASSET( "0.000000 VESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).savings_balance == ASSET( "0.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).savings_sbd_balance == ASSET( "0.000 TBD" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_sbd_balance == ASSET( "0.000 TBD" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_steem_balance == ASSET( "0.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_vesting_balance == ASSET( "0.000000 VESTS" ) );
-      BOOST_REQUIRE( db->get_account( STEEM_NULL_ACCOUNT ).reward_vesting_steem == ASSET( "0.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).balance == ASSET( "0.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).sbd_balance == ASSET( "0.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).vesting_shares == ASSET( "0.000000 VESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).savings_balance == ASSET( "0.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).savings_sbd_balance == ASSET( "0.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_sbd_balance == ASSET( "0.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_sophiatx_balance == ASSET( "0.000 TESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_vesting_balance == ASSET( "0.000000 VESTS" ) );
+      BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_vesting_sophiatx == ASSET( "0.000 TESTS" ) );
       BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "2.000 TESTS" ) );
       BOOST_REQUIRE( db->get_account( "alice" ).sbd_balance == ASSET( "3.000 TBD" ) );
    }

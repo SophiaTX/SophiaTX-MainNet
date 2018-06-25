@@ -1,13 +1,13 @@
 #include <appbase/application.hpp>
 
-#include <steem/plugins/database_api/database_api.hpp>
-#include <steem/plugins/database_api/database_api_plugin.hpp>
+#include <sophiatx/plugins/database_api/database_api.hpp>
+#include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
-#include <steem/protocol/get_config.hpp>
-#include <steem/protocol/exceptions.hpp>
-#include <steem/protocol/transaction_util.hpp>
+#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/protocol/exceptions.hpp>
+#include <sophiatx/protocol/transaction_util.hpp>
 
-namespace steem { namespace plugins { namespace database_api {
+namespace sophiatx { namespace plugins { namespace database_api {
 
 class database_api_impl
 {
@@ -77,13 +77,13 @@ class database_api_impl
 database_api::database_api()
    : my( new database_api_impl() )
 {
-   JSON_RPC_REGISTER_API( STEEM_DATABASE_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_DATABASE_API_PLUGIN_NAME );
 }
 
 database_api::~database_api() {}
 
 database_api_impl::database_api_impl()
-   : _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ) {}
+   : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
 database_api_impl::~database_api_impl() {}
 
@@ -96,7 +96,7 @@ database_api_impl::~database_api_impl() {}
 
 DEFINE_API_IMPL( database_api_impl, get_config )
 {
-   return steem::protocol::get_config();
+   return sophiatx::protocol::get_config();
 }
 
 DEFINE_API_IMPL( database_api_impl, get_dynamic_global_properties )
@@ -593,7 +593,7 @@ DEFINE_API_IMPL( database_api_impl, get_required_signatures )
                                                    args.available_keys,
                                                    [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
                                                    [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
-                                                   STEEM_MAX_SIG_CHECK_DEPTH );
+                                                   SOPHIATX_MAX_SIG_CHECK_DEPTH );
 
    return result;
 }
@@ -618,7 +618,7 @@ DEFINE_API_IMPL( database_api_impl, get_potential_signatures )
             result.keys.insert( k );
          return authority( auth );
       },
-      STEEM_MAX_SIG_CHECK_DEPTH
+      SOPHIATX_MAX_SIG_CHECK_DEPTH
    );
 
    return result;
@@ -629,7 +629,7 @@ DEFINE_API_IMPL( database_api_impl, verify_authority )
    args.trx.verify_authority(_db.get_chain_id(),
                            [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
                            [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
-                           STEEM_MAX_SIG_CHECK_DEPTH );
+                           SOPHIATX_MAX_SIG_CHECK_DEPTH );
    return verify_authority_return( { true } );
 }
 
@@ -655,7 +655,7 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
    flat_set< public_key_type > sig_keys;
    for( const auto&  sig : args.signatures )
    {
-      STEEM_ASSERT(
+      SOPHIATX_ASSERT(
          sig_keys.insert( fc::ecc::public_key( sig, args.hash ) ).second,
          protocol::tx_duplicate_sig,
          "Duplicate Signature detected" );
@@ -667,12 +667,12 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
    // verify authority throws on failure, catch and return false
    try
    {
-      steem::protocol::verify_authority< verify_signatures_args >(
+      sophiatx::protocol::verify_authority< verify_signatures_args >(
          { args },
          sig_keys,
          [this]( const string& name ) { return authority( _db.get< chain::account_authority_object, chain::by_account >( name ).owner ); },
          [this]( const string& name ) { return authority( _db.get< chain::account_authority_object, chain::by_account >( name ).active ); },
-         STEEM_MAX_SIG_CHECK_DEPTH );
+         SOPHIATX_MAX_SIG_CHECK_DEPTH );
    }
    catch( fc::exception& ) { result.valid = false; }
 
@@ -681,10 +681,10 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
 
 DEFINE_API_IMPL( database_api_impl, get_promotion_pool_balance )
 {
-   return asset(_db.get_economic_model().get_available_promotion_pool(_db.head_block_num()), STEEM_SYMBOL);
+   return asset(_db.get_economic_model().get_available_promotion_pool(_db.head_block_num()), SOPHIATX_SYMBOL);
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
 // SMT                                                              //
@@ -732,4 +732,4 @@ DEFINE_READ_APIS( database_api,
    (get_promotion_pool_balance)
 )
 
-} } } // steem::plugins::database_api
+} } } // sophiatx::plugins::database_api

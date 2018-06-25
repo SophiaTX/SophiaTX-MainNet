@@ -1,4 +1,4 @@
-file(GLOB HEADERS "include/steem/alexandria/*.hpp")
+file(GLOB HEADERS "include/sophiatx/alexandria/*.hpp")
 
 #find_package( Perl )
 #find_package( Doxygen )
@@ -8,7 +8,7 @@ file(GLOB HEADERS "include/steem/alexandria/*.hpp")
 #  add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxygen/perlmod/DoxyDocs.pm
 #                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 #                      COMMAND ${DOXYGEN_EXECUTABLE}
-#                      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile ${CMAKE_CURRENT_SOURCE_DIR}/include/steem/alexadnria/lib_alexandria.hpp )
+#                      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile ${CMAKE_CURRENT_SOURCE_DIR}/include/sophiatx/alexadnria/lib_alexandria.hpp )
 
 #	if(WIN32)
 #	  add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/api_documentation.cpp
@@ -35,7 +35,7 @@ file(GLOB HEADERS "include/steem/alexandria/*.hpp")
 #endif()
 
 add_library( lib_alexandria lib_alexandria.cpp remote_node_api.cpp ${CMAKE_CURRENT_BINARY_DIR}/api_documentation.cpp ${HEADERS} )
-target_link_libraries( lib_alexandria PRIVATE graphene_net steem_chain steem_protocol steem_utilities fc condenser_api_plugin ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+target_link_libraries( lib_alexandria PRIVATE graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities fc condenser_api_plugin ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 target_include_directories( lib_alexandria PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 if( CLANG_TIDY_EXE )
@@ -56,4 +56,4 @@ install( TARGETS
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
-install( FILES ${HEADERS} DESTINATION "include/steem/alexandria" )
+install( FILES ${HEADERS} DESTINATION "include/sophiatx/alexandria" )

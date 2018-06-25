@@ -1,14 +1,14 @@
-#include <steem/plugins/account_history_api/account_history_api_plugin.hpp>
-#include <steem/plugins/account_history_api/account_history_api.hpp>
+#include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
+#include <sophiatx/plugins/account_history_api/account_history_api.hpp>
 
-namespace steem { namespace plugins { namespace account_history {
+namespace sophiatx { namespace plugins { namespace account_history {
 
 namespace detail {
 
 class account_history_api_impl
 {
    public:
-      account_history_api_impl() : _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ) {}
+      account_history_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       DECLARE_API_IMPL(
          (get_ops_in_block)
@@ -78,7 +78,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
 
 account_history_api::account_history_api(): my( new detail::account_history_api_impl() )
 {
-   JSON_RPC_REGISTER_API( STEEM_ACCOUNT_HISTORY_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME );
 }
 
 account_history_api::~account_history_api() {}
@@ -89,4 +89,4 @@ DEFINE_READ_APIS( account_history_api,
    (get_account_history)
 )
 
-} } } // steem::plugins::account_history
+} } } // sophiatx::plugins::account_history

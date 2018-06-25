@@ -1,8 +1,8 @@
-#include <steem/plugins/witness_api/witness_api_plugin.hpp>
-#include <steem/plugins/witness_api/witness_api.hpp>
+#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
+#include <sophiatx/plugins/witness_api/witness_api.hpp>
 
 
-namespace steem { namespace plugins { namespace witness {
+namespace sophiatx { namespace plugins { namespace witness {
 
 witness_api_plugin::witness_api_plugin() {}
 witness_api_plugin::~witness_api_plugin() {}
@@ -17,4 +17,4 @@ void witness_api_plugin::plugin_initialize( const variables_map& options )
 void witness_api_plugin::plugin_startup() {}
 void witness_api_plugin::plugin_shutdown() {}
 
-} } } // steem::plugins::witness
+} } } // sophiatx::plugins::witness

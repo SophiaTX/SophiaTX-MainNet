@@ -79,7 +79,7 @@
 #include <graphene/net/config.hpp>
 #include <graphene/net/exceptions.hpp>
 
-#include <steem/protocol/config.hpp>
+#include <sophiatx/protocol/config.hpp>
 
 #include <fc/git_revision.hpp>
 
@@ -351,7 +351,7 @@ namespace graphene { namespace net {
 
       fc::variant_object get_call_statistics();
 
-      steem::protocol::chain_id_type get_chain_id() const override;
+      sophiatx::protocol::chain_id_type get_chain_id() const override;
       bool has_item( const net::item_id& id ) override;
       void handle_message( const message& ) override;
       bool handle_block( const graphene::net::block_message& block_message, bool sync_mode, std::vector<fc::uint160_t>& contained_transaction_message_ids ) override;
@@ -753,7 +753,7 @@ namespace graphene { namespace net {
       _suspend_fetching_sync_blocks(false),
       _items_to_fetch_updated(false),
       _items_to_fetch_sequence_counter(0),
-      _recent_block_interval_in_seconds(STEEM_BLOCK_INTERVAL),
+      _recent_block_interval_in_seconds(SOPHIATX_BLOCK_INTERVAL),
       _user_agent_string(user_agent),
       _most_recent_blocks_accepted(GRAPHENE_NET_DEFAULT_MAX_CONNECTIONS),
       _total_number_of_unfetched_items(0),
@@ -1846,7 +1846,7 @@ namespace graphene { namespace net {
       if (user_data.contains("last_known_fork_block_number"))
         originating_peer->last_known_fork_block_number = user_data["last_known_fork_block_number"].as<uint32_t>();
       if (user_data.contains("chain_id"))
-        originating_peer->chain_id = user_data["chain_id"].as<steem::protocol::chain_id_type>();
+        originating_peer->chain_id = user_data["chain_id"].as<sophiatx::protocol::chain_id_type>();
     }
 
     void node_impl::on_hello_message( peer_connection* originating_peer, const hello_message& hello_message_received )
@@ -2616,7 +2616,7 @@ namespace graphene { namespace net {
           // they must be an attacker or have a buggy client.
           fc::time_point_sec minimum_time_of_last_offered_block =
               originating_peer->last_block_time_delegate_has_seen + // timestamp of the block immediately before the first unfetched block
-              originating_peer->number_of_unfetched_item_ids * STEEM_BLOCK_INTERVAL;
+              originating_peer->number_of_unfetched_item_ids * SOPHIATX_BLOCK_INTERVAL;
           if (minimum_time_of_last_offered_block > _delegate->get_blockchain_now() + GRAPHENE_NET_FUTURE_SYNC_BLOCKS_GRACE_PERIOD_SEC)
           {
             wlog("Disconnecting from peer ${peer} who offered us an implausible number of blocks, their last block would be in the future (${timestamp})",
@@ -5478,7 +5478,7 @@ namespace graphene { namespace net {
 */
 #endif
 
-    steem::protocol::chain_id_type statistics_gathering_node_delegate_wrapper::get_chain_id() const
+    sophiatx::protocol::chain_id_type statistics_gathering_node_delegate_wrapper::get_chain_id() const
     {
       INVOKE_AND_COLLECT_STATISTICS(get_chain_id);
     }

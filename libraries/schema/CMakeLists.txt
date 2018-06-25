@@ -1,13 +1,13 @@
-file(GLOB HEADERS "include/steem/schema/*.hpp")
-add_library( steem_schema schema.cpp ${HEADERS} )
-target_link_libraries( steem_schema fc )
-target_include_directories( steem_schema PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+file(GLOB HEADERS "include/sophiatx/schema/*.hpp")
+add_library( sophiatx_schema schema.cpp ${HEADERS} )
+target_link_libraries( sophiatx_schema fc )
+target_include_directories( sophiatx_schema PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 install( TARGETS
-   steem_schema
+   sophiatx_schema
 
    RUNTIME DESTINATION bin
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
-install( FILES ${HEADERS} DESTINATION "include/steem/schema" )
+install( FILES ${HEADERS} DESTINATION "include/sophiatx/schema" )

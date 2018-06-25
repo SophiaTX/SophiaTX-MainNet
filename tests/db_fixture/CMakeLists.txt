@@ -12,8 +12,8 @@ add_library(db_fixture
             ${HEADERS})
 
 target_link_libraries(db_fixture
-                      steem_chain
-                      steem_protocol
+                      sophiatx_chain
+                      sophiatx_protocol
                       account_history_plugin
                       block_api_plugin
                       database_api_plugin

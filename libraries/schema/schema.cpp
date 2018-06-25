@@ -1,9 +1,9 @@
 
-#include <steem/schema/schema.hpp>
+#include <sophiatx/schema/schema.hpp>
 
 #include <set>
 
-namespace steem { namespace schema {
+namespace sophiatx { namespace schema {
 
 namespace detail {
 

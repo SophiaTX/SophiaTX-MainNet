@@ -9,14 +9,14 @@ if( GPERFTOOLS_FOUND )
     list( APPEND PLATFORM_SPECIFIC_LIBS tcmalloc )
 endif()
 
-if( STEEM_STATIC_BUILD )
+if( sophiatx_STATIC_BUILD )
    target_link_libraries( alexandria_deamon PRIVATE
                           "-static-libstdc++ -static-libgcc -lreadline"
-                          graphene_net steem_chain steem_protocol steem_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
-else( STEEM_STATIC_BUILD )
+                          graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+else( sophiatx_STATIC_BUILD )
    target_link_libraries( alexandria_deamon PRIVATE
-                          graphene_net steem_chain steem_protocol steem_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
-endif( STEEM_STATIC_BUILD )
+                          graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+endif( sophiatx_STATIC_BUILD )
 
 if( CLANG_TIDY_EXE )
    set_target_properties(

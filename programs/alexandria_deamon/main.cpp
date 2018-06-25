@@ -36,11 +36,11 @@
 #include <fc/rpc/websocket_api.hpp>
 #include <fc/smart_ref_impl.hpp>
 
-#include <steem/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
 
-#include <steem/protocol/protocol.hpp>
-#include <steem/alexandria/remote_node_api.hpp>
-#include <steem/alexandria/lib_alexandria.hpp>
+#include <sophiatx/protocol/protocol.hpp>
+#include <sophiatx/alexandria/remote_node_api.hpp>
+#include <sophiatx/alexandria/lib_alexandria.hpp>
 
 #include <fc/interprocess/signals.hpp>
 #include <boost/algorithm/string.hpp>
@@ -54,9 +54,9 @@
 #endif
 
 
-using namespace steem::utilities;
-using namespace steem::chain;
-using namespace steem::wallet;
+using namespace sophiatx::utilities;
+using namespace sophiatx::chain;
+using namespace sophiatx::wallet;
 using namespace std;
 namespace bpo = boost::program_options;
 
@@ -113,7 +113,7 @@ int main( int argc, char** argv )
       auto con  = client.connect( ws_server );
       auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
 
-      auto remote_api = apic->get_remote_api< steem::wallet::remote_node_api >( 0, "condenser_api" );
+      auto remote_api = apic->get_remote_api< sophiatx::wallet::remote_node_api >( 0, "condenser_api" );
 
       auto alex_apiptr = std::make_shared<alexandria_api>( remote_api );
 

@@ -8,26 +8,26 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/variant.hpp>
 
-#include <steem/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
 
-#include <steem/protocol/transaction.hpp>
-#include <steem/protocol/types.hpp>
+#include <sophiatx/protocol/transaction.hpp>
+#include <sophiatx/protocol/types.hpp>
 
 #define CHAIN_ID_PARAM "--chain-id"
 
 struct tx_signing_request
 {
-   steem::protocol::transaction     tx;
+   sophiatx::protocol::transaction     tx;
    std::string                      wif;
 };
 
 struct tx_signing_result
 {
-   steem::protocol::transaction     tx;
+   sophiatx::protocol::transaction     tx;
    fc::sha256                       digest;
    fc::sha256                       sig_digest;
-   steem::protocol::public_key_type key;
-   steem::protocol::signature_type  sig;
+   sophiatx::protocol::public_key_type key;
+   sophiatx::protocol::signature_type  sig;
 };
 
 struct error_result
@@ -43,7 +43,7 @@ int main(int argc, char** argv, char** envp)
 {
    fc::sha256 chainId;
 
-   chainId = STEEM_CHAIN_ID;
+   chainId = SOPHIATX_CHAIN_ID;
 
    const size_t chainIdLen = strlen(CHAIN_ID_PARAM);
 
@@ -120,12 +120,12 @@ int main(int argc, char** argv, char** envp)
          sres.digest = sreq.tx.digest();
          sres.sig_digest = sreq.tx.sig_digest(chainId);
 
-         auto priv_key = steem::utilities::wif_to_key( sreq.wif );
+         auto priv_key = sophiatx::utilities::wif_to_key( sreq.wif );
 
          if(priv_key)
          {
             sres.sig = priv_key->sign_compact( sres.sig_digest );
-            sres.key = steem::protocol::public_key_type( priv_key->get_public_key() );
+            sres.key = sophiatx::protocol::public_key_type( priv_key->get_public_key() );
             std::string sres_str = fc::json::to_string( sres );
             std::cout << "{\"result\":" << sres_str << "}" << std::endl;
          }

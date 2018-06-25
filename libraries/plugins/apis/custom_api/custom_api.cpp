@@ -1,15 +1,15 @@
-#include <steem/plugins/custom_api/custom_api_plugin.hpp>
-#include <steem/plugins/custom_api/custom_api.hpp>
-#include <steem/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
 
-namespace steem { namespace plugins { namespace custom {
+namespace sophiatx { namespace plugins { namespace custom {
 
 namespace detail {
 
 class custom_api_impl
 {
 public:
-   custom_api_impl() : _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() )  {}
+   custom_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {}
 
    DECLARE_API_IMPL(
          (get_received_documents)
@@ -93,7 +93,7 @@ DEFINE_API_IMPL( custom_api_impl, get_received_documents )
 
 custom_api::custom_api(): my( new detail::custom_api_impl() )
 {
-   JSON_RPC_REGISTER_API( STEEM_CUSTOM_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_CUSTOM_API_PLUGIN_NAME );
 }
 
 custom_api::~custom_api() {}
@@ -102,4 +102,4 @@ DEFINE_READ_APIS( custom_api,
       (get_received_documents)
 )
 
-} } } // steem::plugins::custom
+} } } // sophiatx::plugins::custom

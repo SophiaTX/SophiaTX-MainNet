@@ -1,9 +1,9 @@
-#include <steem/plugins/p2p/p2p_plugin.hpp>
+#include <sophiatx/plugins/p2p/p2p_plugin.hpp>
 
 #include <graphene/net/node.hpp>
 #include <graphene/net/exceptions.hpp>
 
-#include <steem/chain/database_exceptions.hpp>
+#include <sophiatx/chain/database_exceptions.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/network/resolve.hpp>
@@ -18,7 +18,7 @@
 using std::string;
 using std::vector;
 
-namespace steem { namespace plugins { namespace p2p {
+namespace sophiatx { namespace plugins { namespace p2p {
 
 using appbase::app;
 
@@ -28,10 +28,10 @@ using graphene::net::message;
 using graphene::net::block_message;
 using graphene::net::trx_message;
 
-using steem::protocol::block_header;
-using steem::protocol::signed_block_header;
-using steem::protocol::signed_block;
-using steem::protocol::block_id_type;
+using sophiatx::protocol::block_header;
+using sophiatx::protocol::signed_block_header;
+using sophiatx::protocol::signed_block;
+using sophiatx::protocol::block_id_type;
 
 namespace detail {
 
@@ -75,7 +75,7 @@ public:
    virtual ~p2p_plugin_impl() {}
 
    bool is_included_block(const block_id_type& block_id);
-   virtual steem::protocol::chain_id_type get_chain_id() const override;
+   virtual sophiatx::protocol::chain_id_type get_chain_id() const override;
 
    // node_delegate interface
    virtual bool has_item( const graphene::net::item_id& ) override;
@@ -275,7 +275,7 @@ graphene::net::message p2p_plugin_impl::get_item( const graphene::net::item_id& 
    });
 } FC_CAPTURE_AND_RETHROW( (id) ) }
 
-steem::protocol::chain_id_type p2p_plugin_impl::get_chain_id() const
+sophiatx::protocol::chain_id_type p2p_plugin_impl::get_chain_id() const
 {
    return chain.db().get_chain_id();
 }
@@ -497,7 +497,7 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
    if( options.count( "p2p-endpoint" ) )
       my->endpoint = fc::ip::endpoint::from_string( options.at( "p2p-endpoint" ).as< string >() );
 
-   my->user_agent = "Steem Reference Implementation";
+   my->user_agent = "SophiaTX Reference Implementation";
 
    if( options.count( "p2p-max-connections" ) )
       my->max_connections = options.at( "p2p-max-connections" ).as< uint32_t >();
@@ -603,13 +603,13 @@ void p2p_plugin::plugin_shutdown() {
    my->node.reset();
 }
 
-void p2p_plugin::broadcast_block( const steem::protocol::signed_block& block )
+void p2p_plugin::broadcast_block( const sophiatx::protocol::signed_block& block )
 {
    ulog("Broadcasting block #${n}", ("n", block.block_num()));
    my->node->broadcast( graphene::net::block_message( block ) );
 }
 
-void p2p_plugin::broadcast_transaction( const steem::protocol::signed_transaction& tx )
+void p2p_plugin::broadcast_transaction( const sophiatx::protocol::signed_transaction& tx )
 {
    ulog("Broadcasting tx #${n}", ("id", tx.id()));
    my->node->broadcast( graphene::net::trx_message( tx ) );
@@ -620,4 +620,4 @@ void p2p_plugin::set_block_production( bool producing_blocks )
    my->block_producer = producing_blocks;
 }
 
-} } } // namespace steem::plugins::p2p
+} } } // namespace sophiatx::plugins::p2p

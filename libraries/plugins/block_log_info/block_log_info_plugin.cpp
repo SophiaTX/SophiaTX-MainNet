@@ -1,17 +1,17 @@
-#include <steem/plugins/block_log_info/block_log_info_plugin.hpp>
-#include <steem/plugins/block_log_info/block_log_info_objects.hpp>
+#include <sophiatx/plugins/block_log_info/block_log_info_plugin.hpp>
+#include <sophiatx/plugins/block_log_info/block_log_info_objects.hpp>
 
-#include <steem/chain/account_object.hpp>
-#include <steem/chain/database.hpp>
-#include <steem/chain/global_property_object.hpp>
-#include <steem/chain/index.hpp>
-#include <steem/chain/operation_notification.hpp>
+#include <sophiatx/chain/account_object.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/global_property_object.hpp>
+#include <sophiatx/chain/index.hpp>
+#include <sophiatx/chain/operation_notification.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-namespace steem { namespace plugins { namespace block_log_info {
+namespace sophiatx { namespace plugins { namespace block_log_info {
 
 namespace detail {
 
@@ -19,7 +19,7 @@ class block_log_info_plugin_impl
 {
    public:
       block_log_info_plugin_impl( block_log_info_plugin& _plugin ) :
-         _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ) {}
 
       void on_applied_block( const signed_block& b );
@@ -147,7 +147,7 @@ void block_log_info_plugin::plugin_initialize( const boost::program_options::var
    try
    {
       ilog( "Initializing block_log_info plugin" );
-      chain::database& db = appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       my->on_applied_block_connection = db.applied_block.connect( [&]( const signed_block& b ){ my->on_applied_block( b ); } );
 
@@ -173,4 +173,4 @@ void block_log_info_plugin::plugin_shutdown()
    chain::util::disconnect_signal( my->on_applied_block_connection );
 }
 
-} } } // steem::plugins::block_log_info
+} } } // sophiatx::plugins::block_log_info

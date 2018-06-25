@@ -1,27 +1,27 @@
-#include <steem/protocol/steem_operations.hpp>
+#include <sophiatx/protocol/sophiatx_operations.hpp>
 
-#include <steem/chain/block_summary_object.hpp>
-#include <steem/chain/compound.hpp>
-#include <steem/chain/custom_operation_interpreter.hpp>
-#include <steem/chain/database.hpp>
-#include <steem/chain/database_exceptions.hpp>
-#include <steem/chain/db_with.hpp>
-#include <steem/chain/evaluator_registry.hpp>
-#include <steem/chain/global_property_object.hpp>
-#include <steem/chain/history_object.hpp>
-#include <steem/chain/index.hpp>
-#include <steem/chain/smt_objects.hpp>
-#include <steem/chain/steem_evaluator.hpp>
-#include <steem/chain/steem_objects.hpp>
-#include <steem/chain/custom_content_object.hpp>
-#include <steem/chain/transaction_object.hpp>
-#include <steem/chain/shared_db_merkle.hpp>
-#include <steem/chain/operation_notification.hpp>
-#include <steem/chain/witness_schedule.hpp>
-#include <steem/chain/application_object.hpp>
+#include <sophiatx/chain/block_summary_object.hpp>
+#include <sophiatx/chain/compound.hpp>
+#include <sophiatx/chain/custom_operation_interpreter.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/db_with.hpp>
+#include <sophiatx/chain/evaluator_registry.hpp>
+#include <sophiatx/chain/global_property_object.hpp>
+#include <sophiatx/chain/history_object.hpp>
+#include <sophiatx/chain/index.hpp>
+#include <sophiatx/chain/smt_objects.hpp>
+#include <sophiatx/chain/sophiatx_evaluator.hpp>
+#include <sophiatx/chain/sophiatx_objects.hpp>
+#include <sophiatx/chain/custom_content_object.hpp>
+#include <sophiatx/chain/transaction_object.hpp>
+#include <sophiatx/chain/shared_db_merkle.hpp>
+#include <sophiatx/chain/operation_notification.hpp>
+#include <sophiatx/chain/witness_schedule.hpp>
+#include <sophiatx/chain/application_object.hpp>
 
-#include <steem/chain/util/asset.hpp>
-#include <steem/chain/util/uint256.hpp>
+#include <sophiatx/chain/util/asset.hpp>
+#include <sophiatx/chain/util/uint256.hpp>
 
 #include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
@@ -37,7 +37,7 @@
 #include <fstream>
 #include <functional>
 
-namespace steem { namespace chain {
+namespace sophiatx { namespace chain {
 
 struct object_schema_repr
 {
@@ -61,11 +61,11 @@ struct db_schema
 
 } }
 
-FC_REFLECT( steem::chain::object_schema_repr, (space_type)(type) )
-FC_REFLECT( steem::chain::operation_schema_repr, (id)(type) )
-FC_REFLECT( steem::chain::db_schema, (types)(object_types)(operation_type)(custom_operation_types) )
+FC_REFLECT( sophiatx::chain::object_schema_repr, (space_type)(type) )
+FC_REFLECT( sophiatx::chain::operation_schema_repr, (id)(type) )
+FC_REFLECT( sophiatx::chain::db_schema, (types)(object_types)(operation_type)(custom_operation_types) )
 
-namespace steem { namespace chain {
+namespace sophiatx { namespace chain {
 
 using boost::container::flat_set;
 
@@ -85,7 +85,7 @@ database_impl::database_impl( database& self )
 database::database()
    : _my( new database_impl(*this) )
 {
-   set_chain_id( STEEM_CHAIN_ID_NAME );
+   set_chain_id( SOPHIATX_CHAIN_ID_NAME );
 }
 
 database::~database()
@@ -156,12 +156,12 @@ uint32_t database::reindex( const open_args& args )
    uint32_t last_block_number = 0; // result
 
    BOOST_SCOPE_EXIT(this_,&reindex_success,&last_block_number) {
-      STEEM_TRY_NOTIFY(this_->_on_reindex_done, reindex_success, last_block_number);
+      SOPHIATX_TRY_NOTIFY(this_->_on_reindex_done, reindex_success, last_block_number);
    } BOOST_SCOPE_EXIT_END
 
    try
    {
-      STEEM_TRY_NOTIFY(_on_reindex_start);
+      SOPHIATX_TRY_NOTIFY(_on_reindex_start);
 
       ilog( "Reindexing Blockchain" );
       wipe( args.data_dir, args.shared_mem_dir, false );
@@ -169,7 +169,7 @@ uint32_t database::reindex( const open_args& args )
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
       auto start = fc::time_point::now();
-      STEEM_ASSERT( _block_log.head(), block_log_exception, "No blocks in block log. Cannot reindex an empty chain." );
+      SOPHIATX_ASSERT( _block_log.head(), block_log_exception, "No blocks in block log. Cannot reindex an empty chain." );
 
       ilog( "Replaying blocks..." );
 
@@ -379,12 +379,12 @@ std::vector< block_id_type > database::get_block_ids_on_fork( block_id_type head
 
 chain_id_type database::get_chain_id() const
 {
-   return steem_chain_id;
+   return sophiatx_chain_id;
 }
 
 void database::set_chain_id( const std::string& _chain_id_name )
 {
-   steem_chain_id = generate_chain_id( _chain_id_name );
+   sophiatx_chain_id = generate_chain_id( _chain_id_name );
 }
 
 const witness_object& database::get_witness( const account_name_type& name ) const
@@ -481,7 +481,7 @@ void database::pay_fee( const account_object& account, asset fee )
    if( fee.amount == 0 )
       return;
 
-   FC_ASSERT(fee.symbol == STEEM_SYMBOL);
+   FC_ASSERT(fee.symbol == SOPHIATX_SYMBOL);
 
    FC_ASSERT( account.balance >= fee );
    adjust_balance( account, -fee );
@@ -501,7 +501,7 @@ asset database::process_operation_fee( const operation& op )
       typedef asset result_type;
       result_type operator()(const base_operation& bop){
          if(bop.has_special_fee())
-            return asset(0, STEEM_SYMBOL);
+            return asset(0, SOPHIATX_SYMBOL);
          asset req_fee = bop.get_required_fee(bop.fee.symbol);
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          FC_ASSERT(bop.fee >= req_fee);
@@ -509,12 +509,12 @@ asset database::process_operation_fee( const operation& op )
          const auto& fee_payer = db->get_account(sponsor? *sponsor : bop.get_fee_payer());
 
          asset to_pay;
-         if(bop.fee.symbol==STEEM_SYMBOL){
+         if(bop.fee.symbol==SOPHIATX_SYMBOL){
             to_pay = bop.fee;
          }else{
-            to_pay = db->to_steem(bop.fee);
+            to_pay = db->to_sophiatx(bop.fee);
          }
-         FC_ASSERT(to_pay.symbol == STEEM_SYMBOL && to_pay.amount >= 0);
+         FC_ASSERT(to_pay.symbol == SOPHIATX_SYMBOL && to_pay.amount >= 0);
          db->pay_fee(fee_payer, to_pay);
          return to_pay;
       };
@@ -552,7 +552,7 @@ optional<account_name_type> database::get_sponsor(const account_name_type& who) 
    uint32_t database::witness_participation_rate()const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
-   return uint64_t(STEEM_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
+   return uint64_t(SOPHIATX_100_PERCENT) * dpo.recent_slots_filled.popcount() / 128;
 }
 
 void database::add_checkpoints( const flat_map< uint32_t, block_id_type >& checkpts )
@@ -797,7 +797,7 @@ signed_block database::_generate_block(
       FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
-   auto maximum_block_size = get_dynamic_global_properties().maximum_block_size; //STEEM_MAX_BLOCK_SIZE;
+   auto maximum_block_size = get_dynamic_global_properties().maximum_block_size; //SOPHIATX_MAX_BLOCK_SIZE;
    size_t total_block_size = max_block_header_size;
 
    signed_block pending_block;
@@ -874,19 +874,19 @@ signed_block database::_generate_block(
    {
       const auto& witness = get_witness( witness_owner );
 
-      if( witness.running_version != STEEM_BLOCKCHAIN_VERSION )
-         pending_block.extensions.insert( block_header_extensions( STEEM_BLOCKCHAIN_VERSION ) );
+      if( witness.running_version != SOPHIATX_BLOCKCHAIN_VERSION )
+         pending_block.extensions.insert( block_header_extensions( SOPHIATX_BLOCKCHAIN_VERSION ) );
 
       const auto& hfp = get_hardfork_property_object();
 
-      if( hfp.current_hardfork_version < STEEM_BLOCKCHAIN_VERSION // Binary is newer hardfork than has been applied
+      if( hfp.current_hardfork_version < SOPHIATX_BLOCKCHAIN_VERSION // Binary is newer hardfork than has been applied
          && ( witness.hardfork_version_vote != _hardfork_versions[ hfp.last_hardfork + 1 ] || witness.hardfork_time_vote != _hardfork_times[ hfp.last_hardfork + 1 ] ) ) // Witness vote does not match binary configuration
       {
          // Make vote match binary configuration
          pending_block.extensions.insert( block_header_extensions( hardfork_version_vote( _hardfork_versions[ hfp.last_hardfork + 1 ], _hardfork_times[ hfp.last_hardfork + 1 ] ) ) );
       }
-      else if( hfp.current_hardfork_version == STEEM_BLOCKCHAIN_VERSION // Binary does not know of a new hardfork
-         && witness.hardfork_version_vote > STEEM_BLOCKCHAIN_VERSION ) // Voting for hardfork in the future, that we do not know of...
+      else if( hfp.current_hardfork_version == SOPHIATX_BLOCKCHAIN_VERSION // Binary does not know of a new hardfork
+         && witness.hardfork_version_vote > SOPHIATX_BLOCKCHAIN_VERSION ) // Voting for hardfork in the future, that we do not know of...
       {
          // Make vote match binary configuration. This is vote to not apply the new hardfork.
          pending_block.extensions.insert( block_header_extensions( hardfork_version_vote( _hardfork_versions[ hfp.last_hardfork ], _hardfork_times[ hfp.last_hardfork ] ) ) );
@@ -899,7 +899,7 @@ signed_block database::_generate_block(
    // TODO:  Move this to _push_block() so session is restored.
    if( !(skip & skip_block_size_check) )
    {
-      FC_ASSERT( fc::raw::pack_size(pending_block) <= STEEM_MAX_BLOCK_SIZE );
+      FC_ASSERT( fc::raw::pack_size(pending_block) <= SOPHIATX_MAX_BLOCK_SIZE );
    }
 
    push_block( pending_block, skip );
@@ -920,7 +920,7 @@ void database::pop_block()
 
       /// save the head block so we can recover its transactions
       optional<signed_block> head_block = fetch_block_by_id( head_id );
-      STEEM_ASSERT( head_block.valid(), pop_empty_chain, "there are no blocks to pop" );
+      SOPHIATX_ASSERT( head_block.valid(), pop_empty_chain, "there are no blocks to pop" );
 
       _fork_db.pop_block();
       undo();
@@ -950,12 +950,12 @@ void database::notify_pre_apply_operation( operation_notification& note )
    note.op_in_trx    = _current_op_in_trx;
 
 
-   STEEM_TRY_NOTIFY( pre_apply_operation, note )
+   SOPHIATX_TRY_NOTIFY( pre_apply_operation, note )
 }
 
 void database::notify_post_apply_operation( const operation_notification& note )
 {
-   STEEM_TRY_NOTIFY( post_apply_operation, note )
+   SOPHIATX_TRY_NOTIFY( post_apply_operation, note )
 }
 
 inline const void database::push_virtual_operation( const operation& op, bool force )
@@ -977,22 +977,22 @@ inline const void database::push_virtual_operation( const operation& op, bool fo
 
 void database::notify_applied_block( const signed_block& block )
 {
-   STEEM_TRY_NOTIFY( applied_block, block )
+   SOPHIATX_TRY_NOTIFY( applied_block, block )
 }
 
 void database::notify_on_pending_transaction( const signed_transaction& tx )
 {
-   STEEM_TRY_NOTIFY( on_pending_transaction, tx )
+   SOPHIATX_TRY_NOTIFY( on_pending_transaction, tx )
 }
 
 void database::notify_on_pre_apply_transaction( const signed_transaction& tx )
 {
-   STEEM_TRY_NOTIFY( on_pre_apply_transaction, tx )
+   SOPHIATX_TRY_NOTIFY( on_pre_apply_transaction, tx )
 }
 
 void database::notify_on_applied_transaction( const signed_transaction& tx )
 {
-   STEEM_TRY_NOTIFY( on_applied_transaction, tx )
+   SOPHIATX_TRY_NOTIFY( on_applied_transaction, tx )
 }
 
 account_name_type database::get_scheduled_witness( uint32_t slot_num )const
@@ -1008,7 +1008,7 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
    if( slot_num == 0 )
       return fc::time_point_sec();
 
-   auto interval = STEEM_BLOCK_INTERVAL;
+   auto interval = SOPHIATX_BLOCK_INTERVAL;
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
 
    if( head_block_num() == 0 )
@@ -1033,7 +1033,7 @@ uint32_t database::get_slot_at_time(fc::time_point_sec when)const
    fc::time_point_sec first_slot_time = get_slot_time( 1 );
    if( when < first_slot_time )
       return 0;
-   return (when - first_slot_time).to_seconds() / STEEM_BLOCK_INTERVAL + 1;
+   return (when - first_slot_time).to_seconds() / SOPHIATX_BLOCK_INTERVAL + 1;
 }
 
 void  database::vest( const account_name_type& name, const share_type delta)
@@ -1058,20 +1058,20 @@ void database::vest(const account_object& a, const share_type delta)
 }
 
 void database::adjust_proxied_witness_votes( const account_object& a,
-                                   const std::array< share_type, STEEM_MAX_PROXY_RECURSION_DEPTH+1 >& delta,
+                                   const std::array< share_type, SOPHIATX_MAX_PROXY_RECURSION_DEPTH+1 >& delta,
                                    int depth )
 {
-   if( a.proxy != STEEM_PROXY_TO_SELF_ACCOUNT )
+   if( a.proxy != SOPHIATX_PROXY_TO_SELF_ACCOUNT )
    {
       /// nested proxies are not supported, vote will not propagate
-      if( depth >= STEEM_MAX_PROXY_RECURSION_DEPTH )
+      if( depth >= SOPHIATX_MAX_PROXY_RECURSION_DEPTH )
          return;
 
       const auto& proxy = get_account( a.proxy );
 
       modify( proxy, [&]( account_object& a )
       {
-         for( int i = STEEM_MAX_PROXY_RECURSION_DEPTH - depth - 1; i >= 0; --i )
+         for( int i = SOPHIATX_MAX_PROXY_RECURSION_DEPTH - depth - 1; i >= 0; --i )
          {
             a.proxied_vsf_votes[i+depth] += delta[i];
          }
@@ -1082,7 +1082,7 @@ void database::adjust_proxied_witness_votes( const account_object& a,
    else
    {
       share_type total_delta = 0;
-      for( int i = STEEM_MAX_PROXY_RECURSION_DEPTH - depth; i >= 0; --i )
+      for( int i = SOPHIATX_MAX_PROXY_RECURSION_DEPTH - depth; i >= 0; --i )
          total_delta += delta[i];
       adjust_witness_votes( a, total_delta );
    }
@@ -1090,10 +1090,10 @@ void database::adjust_proxied_witness_votes( const account_object& a,
 
 void database::adjust_proxied_witness_votes( const account_object& a, share_type delta, int depth )
 {
-   if( a.proxy != STEEM_PROXY_TO_SELF_ACCOUNT )
+   if( a.proxy != SOPHIATX_PROXY_TO_SELF_ACCOUNT )
    {
       /// nested proxies are not supported, vote will not propagate
-      if( depth >= STEEM_MAX_PROXY_RECURSION_DEPTH )
+      if( depth >= SOPHIATX_MAX_PROXY_RECURSION_DEPTH )
          return;
 
       const auto& proxy = get_account( a.proxy );
@@ -1134,7 +1134,7 @@ void database::adjust_witness_vote( const witness_object& witness, share_type de
       w.votes += delta;
 
 
-      w.virtual_scheduled_time = w.virtual_last_update + (STEEM_VIRTUAL_SCHEDULE_LAP_LENGTH2 - w.virtual_position)/(w.votes.value+1);
+      w.virtual_scheduled_time = w.virtual_last_update + (SOPHIATX_VIRTUAL_SCHEDULE_LAP_LENGTH2 - w.virtual_position)/(w.votes.value+1);
       /** witnesses with a low number of votes could overflow the time field and end up with a scheduled time in the past */
 
       if( w.virtual_scheduled_time < wso.current_virtual_time )
@@ -1163,19 +1163,19 @@ void database::clear_witness_votes( const account_object& a )
 void database::clear_null_account_balance()
 {
 
-   const auto& null_account = get_account( STEEM_NULL_ACCOUNT );
-   asset total_steem( 0, STEEM_SYMBOL );
+   const auto& null_account = get_account( SOPHIATX_NULL_ACCOUNT );
+   asset total_sophiatx( 0, SOPHIATX_SYMBOL );
 
    if( null_account.balance.amount > 0 )
    {
-      total_steem += null_account.balance;
+      total_sophiatx += null_account.balance;
       adjust_balance( null_account, -null_account.balance );
    }
 
    if( null_account.vesting_shares.amount > 0 )
    {
       const auto& gpo = get_dynamic_global_properties();
-      auto converted_steem = null_account.vesting_shares;
+      auto converted_sophiatx = null_account.vesting_shares;
 
       modify( gpo, [&]( dynamic_global_property_object& g )
       {
@@ -1187,11 +1187,11 @@ void database::clear_null_account_balance()
          a.vesting_shares.amount = 0;
       });
 
-      total_steem.amount += converted_steem.amount;
+      total_sophiatx.amount += converted_sophiatx.amount;
    }
 
-   if( total_steem.amount > 0 )
-      adjust_supply( -total_steem );
+   if( total_sophiatx.amount > 0 )
+      adjust_supply( -total_sophiatx );
 
 }
 
@@ -1250,7 +1250,7 @@ void database::process_vesting_withdrawals()
          }
          else
          {
-            a.next_vesting_withdrawal += fc::seconds( STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS );
+            a.next_vesting_withdrawal += fc::seconds( SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS );
          }
       });
 
@@ -1262,13 +1262,13 @@ void database::process_vesting_withdrawals()
       //if( to_withdraw > 0 )
       //   adjust_proxied_witness_votes( from_account, -to_withdraw );
 
-      push_virtual_operation( fill_vesting_withdraw_operation( from_account.name, from_account.name, asset( to_withdraw, VESTS_SYMBOL ), asset( to_withdraw, STEEM_SYMBOL ) ) );
+      push_virtual_operation( fill_vesting_withdraw_operation( from_account.name, from_account.name, asset( to_withdraw, VESTS_SYMBOL ), asset( to_withdraw, SOPHIATX_SYMBOL ) ) );
    }
 }
 
 //TODO_SOPHIA - rework
 /**
- *  Overall the network has an inflation rate of 102% of virtual steem per year
+ *  Overall the network has an inflation rate of 102% of virtual sophiatx per year
  *  90% of inflation is directed to vesting shares
  *  10% of inflation is directed to subjective proof of work voting
  *  1% of inflation is directed to liquidity providers
@@ -1308,20 +1308,20 @@ void database::process_funds()
 
    modify( props, [&]( dynamic_global_property_object& p )
    {
-        p.current_supply           += asset( witness_reward, STEEM_SYMBOL );
+        p.current_supply           += asset( witness_reward, SOPHIATX_SYMBOL );
         p.total_vesting_shares     += asset( witness_reward, VESTS_SYMBOL );
    });
 
 }
 
-asset database::to_sbd(const asset &steem, asset_symbol_type to_symbol) const
+asset database::to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const
 {
-   return util::to_sbd(get_feed_history(to_symbol).current_median_history, steem );
+   return util::to_sbd(get_feed_history(to_symbol).current_median_history, sophiatx );
 }
 
-asset database::to_steem( const asset& sbd )const
+asset database::to_sophiatx( const asset& sbd )const
 {
-   return util::to_steem(get_feed_history(sbd.symbol).current_median_history, sbd );
+   return util::to_sophiatx(get_feed_history(sbd.symbol).current_median_history, sbd );
 }
 
 void database::account_recovery_processing()
@@ -1340,7 +1340,7 @@ void database::account_recovery_processing()
    const auto& hist_idx = get_index< owner_authority_history_index >().indices(); //by id
    auto hist = hist_idx.begin();
 
-   while( hist != hist_idx.end() && time_point_sec( hist->last_valid_time + STEEM_OWNER_AUTH_RECOVERY_PERIOD ) < head_block_time() )
+   while( hist != hist_idx.end() && time_point_sec( hist->last_valid_time + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD ) < head_block_time() )
    {
       remove( *hist );
       hist = hist_idx.begin();
@@ -1372,7 +1372,7 @@ void database::expire_escrow_ratification()
       const auto& old_escrow = *escrow_itr;
       ++escrow_itr;
 
-      adjust_balance( old_escrow.from, old_escrow.steem_balance );
+      adjust_balance( old_escrow.from, old_escrow.sophiatx_balance );
       adjust_balance( old_escrow.from, old_escrow.pending_fee );
 
       remove( old_escrow );
@@ -1434,15 +1434,15 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
    _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
-#ifdef STEEM_ENABLE_SMT
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
+#ifdef SOPHIATX_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
 #endif
    _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
    _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
    _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
    _my->_evaluator_registry.register_evaluator< smt_setup_evaluator                      >();
    _my->_evaluator_registry.register_evaluator< smt_cap_reveal_evaluator                 >();
    _my->_evaluator_registry.register_evaluator< smt_refund_evaluator                     >();
@@ -1492,7 +1492,7 @@ void database::initialize_indexes()
    add_core_index< application_buying_index                >(*this);
    add_core_index< custom_content_index                    >(*this);
    add_core_index< account_fee_sponsor_index               >(*this);
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
    add_core_index< smt_token_index                         >(*this);
    add_core_index< account_regular_balance_index           >(*this);
    add_core_index< account_rewards_balance_index           >(*this);
@@ -1583,54 +1583,54 @@ void database::init_genesis( uint64_t init_supply )
       } inhibitor(*this);
 
       // Create blockchain accounts
-      public_key_type      init_public_key(STEEM_INIT_PUBLIC_KEY);
+      public_key_type      init_public_key(SOPHIATX_INIT_PUBLIC_KEY);
 
       create< account_object >( [&]( account_object& a )
       {
-         a.name = STEEM_MINER_ACCOUNT;
+         a.name = SOPHIATX_MINER_ACCOUNT;
       } );
       create< account_authority_object >( [&]( account_authority_object& auth )
       {
-         auth.account = STEEM_MINER_ACCOUNT;
+         auth.account = SOPHIATX_MINER_ACCOUNT;
          auth.owner.weight_threshold = 1;
          auth.active.weight_threshold = 1;
       });
 
       create< account_object >( [&]( account_object& a )
       {
-         a.name = STEEM_NULL_ACCOUNT;
+         a.name = SOPHIATX_NULL_ACCOUNT;
       } );
       create< account_authority_object >( [&]( account_authority_object& auth )
       {
-         auth.account = STEEM_NULL_ACCOUNT;
+         auth.account = SOPHIATX_NULL_ACCOUNT;
          auth.owner.weight_threshold = 1;
          auth.active.weight_threshold = 1;
       });
 
       create< account_object >( [&]( account_object& a )
       {
-         a.name = STEEM_TEMP_ACCOUNT;
+         a.name = SOPHIATX_TEMP_ACCOUNT;
       } );
       create< account_authority_object >( [&]( account_authority_object& auth )
       {
-         auth.account = STEEM_TEMP_ACCOUNT;
+         auth.account = SOPHIATX_TEMP_ACCOUNT;
          auth.owner.weight_threshold = 0;
          auth.active.weight_threshold = 0;
       });
 
-      for( int i = 0; i < STEEM_NUM_INIT_MINERS; ++i )
+      for( int i = 0; i < SOPHIATX_NUM_INIT_MINERS; ++i )
       {
          create< account_object >( [&]( account_object& a )
          {
-            a.name = STEEM_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
+            a.name = SOPHIATX_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
             a.memo_key = init_public_key;
-            a.balance  = asset( i ? 0 : init_supply, STEEM_SYMBOL );
+            a.balance  = asset( i ? 0 : init_supply, SOPHIATX_SYMBOL );
             a.holdings_considered_for_interests = a.balance.amount * 2;
          } );
 
          create< account_authority_object >( [&]( account_authority_object& auth )
          {
-            auth.account = STEEM_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
+            auth.account = SOPHIATX_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
             auth.owner.add_authority( init_public_key, 1 );
             auth.owner.weight_threshold = 1;
             auth.active  = auth.owner;
@@ -1638,7 +1638,7 @@ void database::init_genesis( uint64_t init_supply )
 
          create< witness_object >( [&]( witness_object& w )
          {
-            w.owner        = STEEM_INIT_MINER_NAME + ( i ? fc::to_string(i) : std::string() );
+            w.owner        = SOPHIATX_INIT_MINER_NAME + ( i ? fc::to_string(i) : std::string() );
             w.signing_key  = init_public_key;
             w.schedule = witness_object::top19;
          } );
@@ -1646,18 +1646,18 @@ void database::init_genesis( uint64_t init_supply )
 
       create< dynamic_global_property_object >( [&]( dynamic_global_property_object& p )
       {
-         p.current_witness = STEEM_INIT_MINER_NAME;
-         p.time = STEEM_GENESIS_TIME;
+         p.current_witness = SOPHIATX_INIT_MINER_NAME;
+         p.time = SOPHIATX_GENESIS_TIME;
          p.recent_slots_filled = fc::uint128::max_value();
          p.participation_count = 128;
-         p.current_supply = asset( init_supply, STEEM_SYMBOL );
-         p.maximum_block_size = STEEM_MAX_BLOCK_SIZE;
+         p.current_supply = asset( init_supply, SOPHIATX_SYMBOL );
+         p.maximum_block_size = SOPHIATX_MAX_BLOCK_SIZE;
          p.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
       } );
 
       create< economic_model_object >( [&]( economic_model_object& e )
                                                 {
-                                                    e.init_economics(init_supply, STEEM_TOTAL_SUPPLY);
+                                                    e.init_economics(init_supply, SOPHIATX_TOTAL_SUPPLY);
                                                 } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD1_SYMBOL;});
@@ -1670,13 +1670,13 @@ void database::init_genesis( uint64_t init_supply )
          create< block_summary_object >( [&]( block_summary_object& ) {});
       create< hardfork_property_object >( [&](hardfork_property_object& hpo )
       {
-         hpo.processed_hardforks.push_back( STEEM_GENESIS_TIME );
+         hpo.processed_hardforks.push_back( SOPHIATX_GENESIS_TIME );
       } );
 
       // Create witness scheduler
       create< witness_schedule_object >( [&]( witness_schedule_object& wso )
       {
-         wso.current_shuffled_witnesses[0] = STEEM_INIT_MINER_NAME;
+         wso.current_shuffled_witnesses[0] = SOPHIATX_INIT_MINER_NAME;
       } );
    }
    FC_CAPTURE_AND_RETHROW()
@@ -1699,7 +1699,7 @@ void database::notify_changed_objects()
    {
       /*vector< chainbase::generic_id > ids;
       get_changed_ids( ids );
-      STEEM_TRY_NOTIFY( changed_objects, ids )*/
+      SOPHIATX_TRY_NOTIFY( changed_objects, ids )*/
       /*
       if( _undo_db.enabled() )
       {
@@ -1714,7 +1714,7 @@ void database::notify_changed_objects()
             changed_ids.push_back( item.first );
             removed.emplace_back( item.second.get() );
          }
-         STEEM_TRY_NOTIFY( changed_objects, changed_ids )
+         SOPHIATX_TRY_NOTIFY( changed_objects, changed_ids )
       }
       */
    }
@@ -1806,9 +1806,9 @@ void database::check_free_memory( bool force_print, uint32_t current_block_num )
    uint64_t free_mem = get_free_memory();
    uint64_t max_mem = get_max_memory();
 
-   if( BOOST_UNLIKELY( _shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ( ( uint128_t( STEEM_100_PERCENT - _shared_file_full_threshold ) * max_mem ) / STEEM_100_PERCENT ).to_uint64() ) )
+   if( BOOST_UNLIKELY( _shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ( ( uint128_t( SOPHIATX_100_PERCENT - _shared_file_full_threshold ) * max_mem ) / SOPHIATX_100_PERCENT ).to_uint64() ) )
    {
-      uint64_t new_max = ( uint128_t( max_mem * _shared_file_scale_rate ) / STEEM_100_PERCENT ).to_uint64() + max_mem;
+      uint64_t new_max = ( uint128_t( max_mem * _shared_file_scale_rate ) / SOPHIATX_100_PERCENT ).to_uint64() + max_mem;
 
       wlog( "Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024*1024)) );
 
@@ -1853,7 +1853,7 @@ void database::_apply_block( const signed_block& next_block )
       // This allows the test net to launch with past hardforks and apply the next harfork when running
 
       uint32_t n;
-      for( n=0; n<STEEM_NUM_HARDFORKS; n++ )
+      for( n=0; n<SOPHIATX_NUM_HARDFORKS; n++ )
       {
          if( _hardfork_times[n+1] > next_block.timestamp )
             break;
@@ -1912,10 +1912,10 @@ void database::_apply_block( const signed_block& next_block )
    FC_ASSERT( block_size <= gprops.maximum_block_size, "Block Size is too Big", ("next_block_num",next_block_num)("block_size", block_size)("max",gprops.maximum_block_size) );
 
 
-   if( block_size < STEEM_MIN_BLOCK_SIZE )
+   if( block_size < SOPHIATX_MIN_BLOCK_SIZE )
    {
       elog( "Block size is too small",
-         ("next_block_num",next_block_num)("block_size", block_size)("min",STEEM_MIN_BLOCK_SIZE)
+         ("next_block_num",next_block_num)("block_size", block_size)("min",SOPHIATX_MIN_BLOCK_SIZE)
       );
    }
 
@@ -2052,11 +2052,11 @@ void database::process_interests() {
               ao.balance.amount += interest;
               ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
          });
-         push_virtual_operation(interest_operation(a->name, asset(interest, STEEM_SYMBOL)));
+         push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
          id += SOPHIATX_INTEREST_BLOCKS;
       }
 
-      adjust_supply(asset(supply_increase, STEEM_SYMBOL));
+      adjust_supply(asset(supply_increase, SOPHIATX_SYMBOL));
    }FC_CAPTURE_AND_RETHROW()
 }
 
@@ -2070,7 +2070,7 @@ void database::process_header_extensions( const signed_block& next_block )
 
 void database::update_median_feeds() {
 try {
-   if( (head_block_num() % STEEM_FEED_INTERVAL_BLOCKS) != 0 )
+   if( (head_block_num() % SOPHIATX_FEED_INTERVAL_BLOCKS) != 0 )
       return;
 
    auto now = head_block_time();
@@ -2081,13 +2081,13 @@ try {
       const auto& wit = get_witness( wso.current_shuffled_witnesses[i] );
       {
          for ( const auto& r: wit.submitted_exchange_rates )
-            if( r.second.last_change + STEEM_MAX_FEED_AGE_SECONDS > now  && !r.second.rate.is_null() )
+            if( r.second.last_change + SOPHIATX_MAX_FEED_AGE_SECONDS > now  && !r.second.rate.is_null() )
                all_feeds[r.first].push_back(r.second.rate);
       }
    }
 
    for ( const auto& feeds: all_feeds){
-      if( feeds.second.size() >= STEEM_MIN_FEEDS )
+      if( feeds.second.size() >= SOPHIATX_MIN_FEEDS )
       {
          vector<price> f = feeds.second;
          std::sort( f.begin(), f.end() );
@@ -2096,9 +2096,9 @@ try {
          modify(get_feed_history(feeds.first), [&](feed_history_object& fho )
          {
             fho.price_history.push_back( median_feed );
-            size_t steem_feed_history_window = STEEM_FEED_HISTORY_WINDOW;
+            size_t sophiatx_feed_history_window = SOPHIATX_FEED_HISTORY_WINDOW;
 
-            if( fho.price_history.size() > steem_feed_history_window )
+            if( fho.price_history.size() > sophiatx_feed_history_window )
                fho.price_history.pop_front();
 
             fho.current_median_history = median_feed;
@@ -2137,7 +2137,7 @@ void database::_apply_transaction(const signed_transaction& trx)
 
       try
       {
-         trx.verify_authority( chain_id, get_active, get_owner, STEEM_MAX_SIG_CHECK_DEPTH );
+         trx.verify_authority( chain_id, get_active, get_owner, SOPHIATX_MAX_SIG_CHECK_DEPTH );
       }
       catch( protocol::tx_missing_active_auth& e )
       {
@@ -2154,17 +2154,17 @@ void database::_apply_transaction(const signed_transaction& trx)
       {
          const auto& tapos_block_summary = get< block_summary_object >( trx.ref_block_num );
          //Verify TaPoS block summary has correct ID prefix, and that this block's time is not past the expiration
-         STEEM_ASSERT( trx.ref_block_prefix == tapos_block_summary.block_id._hash[1], transaction_tapos_exception,
+         SOPHIATX_ASSERT( trx.ref_block_prefix == tapos_block_summary.block_id._hash[1], transaction_tapos_exception,
                     "", ("trx.ref_block_prefix", trx.ref_block_prefix)
                     ("tapos_block_summary",tapos_block_summary.block_id._hash[1]));
       }
 
       fc::time_point_sec now = head_block_time();
 
-      STEEM_ASSERT( trx.expiration <= now + fc::seconds(STEEM_MAX_TIME_UNTIL_EXPIRATION), transaction_expiration_exception,
-                  "", ("trx.expiration",trx.expiration)("now",now)("max_til_exp",STEEM_MAX_TIME_UNTIL_EXPIRATION));
-      STEEM_ASSERT( now < trx.expiration, transaction_expiration_exception, "", ("now",now)("trx.exp",trx.expiration) );
-      STEEM_ASSERT( now <= trx.expiration, transaction_expiration_exception, "", ("now",now)("trx.exp",trx.expiration) );
+      SOPHIATX_ASSERT( trx.expiration <= now + fc::seconds(SOPHIATX_MAX_TIME_UNTIL_EXPIRATION), transaction_expiration_exception,
+                  "", ("trx.expiration",trx.expiration)("now",now)("max_til_exp",SOPHIATX_MAX_TIME_UNTIL_EXPIRATION));
+      SOPHIATX_ASSERT( now < trx.expiration, transaction_expiration_exception, "", ("now",now)("trx.exp",trx.expiration) );
+      SOPHIATX_ASSERT( now <= trx.expiration, transaction_expiration_exception, "", ("now",now)("trx.exp",trx.expiration) );
    }
 
    //Insert transaction into unique transactions database.
@@ -2254,7 +2254,7 @@ void database::update_global_dynamic_data( const signed_block& b )
             {
                w.total_missed++;
 
-               if( head_block_num() - w.last_confirmed_block_num  > STEEM_BLOCKS_PER_DAY )
+               if( head_block_num() - w.last_confirmed_block_num  > SOPHIATX_BLOCKS_PER_DAY )
                {
                   w.signing_key = public_key_type();
                   push_virtual_operation( shutdown_witness_operation( w.owner ) );
@@ -2281,10 +2281,10 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
 #ifndef PRIVATE_NET
-      if( head_block_num() % STEEM_BLOCKS_PER_DAY && head_block_num() <= STEEM_BLOCKS_PER_DAY * SOPHIATX_WITNESS_VESTING_INCREASE_DAYS){
+      if( head_block_num() % SOPHIATX_BLOCKS_PER_DAY && head_block_num() <= SOPHIATX_BLOCKS_PER_DAY * SOPHIATX_WITNESS_VESTING_INCREASE_DAYS){
          uint64_t total_increase = SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE;
          uint64_t increase_per_day = total_increase / SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
-         share_type next_requirement = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + ( head_block_num() / STEEM_BLOCKS_PER_DAY ) * increase_per_day;
+         share_type next_requirement = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + ( head_block_num() / SOPHIATX_BLOCKS_PER_DAY ) * increase_per_day;
          dgp.witness_required_vesting = asset(next_requirement, VESTS_SYMBOL);
       }
 #endif
@@ -2292,11 +2292,11 @@ void database::update_global_dynamic_data( const signed_block& b )
 
    if( !(get_node_properties().skip_flags & skip_undo_history_check) )
    {
-      STEEM_ASSERT( _dgp.head_block_number - _dgp.last_irreversible_block_num  < STEEM_MAX_UNDO_HISTORY, undo_database_exception,
+      SOPHIATX_ASSERT( _dgp.head_block_number - _dgp.last_irreversible_block_num  < SOPHIATX_MAX_UNDO_HISTORY, undo_database_exception,
                  "The database does not have enough undo history to support a blockchain with so many missed blocks. "
                  "Please add a checkpoint if you would like to continue applying blocks beyond this point.",
                  ("last_irreversible_block_num",_dgp.last_irreversible_block_num)("head", _dgp.head_block_number)
-                 ("max_undo",STEEM_MAX_UNDO_HISTORY) );
+                 ("max_undo",SOPHIATX_MAX_UNDO_HISTORY) );
    }
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -2320,12 +2320,12 @@ void database::update_last_irreversible_block()
     * Prior to voting taking over, we must be more conservative...
     *
     */
-   if( head_block_num() < STEEM_START_MINER_VOTING_BLOCK )
+   if( head_block_num() < SOPHIATX_START_MINER_VOTING_BLOCK )
    {
       modify( dpo, [&]( dynamic_global_property_object& _dpo )
       {
-         if ( head_block_num() > STEEM_MAX_WITNESSES )
-            _dpo.last_irreversible_block_num = head_block_num() - STEEM_MAX_WITNESSES;
+         if ( head_block_num() > SOPHIATX_MAX_WITNESSES )
+            _dpo.last_irreversible_block_num = head_block_num() - SOPHIATX_MAX_WITNESSES;
       } );
    }
    else
@@ -2337,13 +2337,13 @@ void database::update_last_irreversible_block()
       for( int i = 0; i < wso.num_scheduled_witnesses; i++ )
          wit_objs.push_back( &get_witness( wso.current_shuffled_witnesses[i] ) );
 
-      static_assert( STEEM_IRREVERSIBLE_THRESHOLD > 0, "irreversible threshold must be nonzero" );
+      static_assert( SOPHIATX_IRREVERSIBLE_THRESHOLD > 0, "irreversible threshold must be nonzero" );
 
       // 1 1 1 2 2 2 2 2 2 2 -> 2     .7*10 = 7
       // 1 1 1 1 1 1 1 2 2 2 -> 1
       // 3 3 3 3 3 3 3 3 3 3 -> 3
 
-      size_t offset = ((STEEM_100_PERCENT - STEEM_IRREVERSIBLE_THRESHOLD) * wit_objs.size() / STEEM_100_PERCENT);
+      size_t offset = ((SOPHIATX_100_PERCENT - SOPHIATX_IRREVERSIBLE_THRESHOLD) * wit_objs.size() / SOPHIATX_100_PERCENT);
 
       std::nth_element( wit_objs.begin(), wit_objs.begin() + offset, wit_objs.end(),
          []( const witness_object* a, const witness_object* b )
@@ -2401,7 +2401,7 @@ void database::clear_expired_transactions()
       remove( *dedupe_index.begin() );
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 template< typename smt_balance_object_type >
 void database::adjust_smt_balance( const account_name_type& name, const asset& delta, bool check_account )
 {
@@ -2463,7 +2463,7 @@ void database::create_vesting( const account_object& a, const asset& delta){
 
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   FC_ASSERT(delta.symbol == STEEM_SYMBOL, "invalid symbol");
+   FC_ASSERT(delta.symbol == SOPHIATX_SYMBOL, "invalid symbol");
 
    modify( a, [&]( account_object& acnt )
    {
@@ -2472,7 +2472,7 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
         acnt.update_considered_holding(delta.amount, head_block_num());
         if( check_balance )
         {
-           FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient STEEM funds" );
+           FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient SOPHIATX funds" );
         }
         adjust_proxied_witness_votes(a, delta.amount);
 
@@ -2484,7 +2484,7 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
 void database::adjust_balance( const account_object& a, const asset& delta )
 {
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
    // No account object modification for SMT balance, hence separate handling here.
    // Note that SMT related code, being post-20-hf needs no hf-guard to do balance checks.
    if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
@@ -2499,7 +2499,7 @@ void database::adjust_balance( const account_object& a, const asset& delta )
 void database::adjust_balance( const account_name_type& name, const asset& delta )
 {
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
    // No account object modification for SMT balance, hence separate handling here.
    // Note that SMT related code, being post-20-hf needs no hf-guard to do balance checks.
    if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
@@ -2519,7 +2519,7 @@ void database::create_vesting( const account_name_type& name, const asset& delta
 
 void database::adjust_supply( const asset& delta )
 {
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
    if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
    {
       const auto& smt = get< smt_token_object, by_symbol >( delta.symbol );
@@ -2539,7 +2539,7 @@ void database::adjust_supply( const asset& delta )
    {
       switch( delta.symbol.value )
       {
-         case STEEM_SYMBOL_SER:
+         case SOPHIATX_SYMBOL_SER:
          {
             props.current_supply += delta;
             FC_ASSERT( props.current_supply.amount.value >= 0 );
@@ -2557,12 +2557,12 @@ asset database::get_balance( const account_object& a, asset_symbol_type symbol )
 {
    switch( symbol.value )
    {
-      case STEEM_SYMBOL_SER:
+      case SOPHIATX_SYMBOL_SER:
          return a.balance;
 
       default:
       {
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
          FC_ASSERT( symbol.space() == asset_symbol_type::smt_nai_space, "invalid symbol" );
          const account_regular_balance_object* arbo =
             find< account_regular_balance_object, by_owner_symbol >( boost::make_tuple(a.name, symbol) );
@@ -2583,14 +2583,14 @@ asset database::get_balance( const account_object& a, asset_symbol_type symbol )
 
 void database::init_hardforks()
 {
-   _hardfork_times[ 0 ] = fc::time_point_sec( STEEM_GENESIS_TIME );
+   _hardfork_times[ 0 ] = fc::time_point_sec( SOPHIATX_GENESIS_TIME );
    _hardfork_versions[ 0 ] = hardfork_version( 0, 0 );
 
    const auto& hardforks = get_hardfork_property_object();
-   FC_ASSERT( hardforks.last_hardfork <= STEEM_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("STEEM_NUM_HARDFORKS",STEEM_NUM_HARDFORKS) );
-   FC_ASSERT( _hardfork_versions[ hardforks.last_hardfork ] <= STEEM_BLOCKCHAIN_VERSION, "Blockchain version is older than last applied hardfork" );
-   FC_ASSERT( STEEM_BLOCKCHAIN_HARDFORK_VERSION >= STEEM_BLOCKCHAIN_VERSION );
-   FC_ASSERT( STEEM_BLOCKCHAIN_HARDFORK_VERSION == _hardfork_versions[ STEEM_NUM_HARDFORKS ] );
+   FC_ASSERT( hardforks.last_hardfork <= SOPHIATX_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("SOPHIATX_NUM_HARDFORKS",SOPHIATX_NUM_HARDFORKS) );
+   FC_ASSERT( _hardfork_versions[ hardforks.last_hardfork ] <= SOPHIATX_BLOCKCHAIN_VERSION, "Blockchain version is older than last applied hardfork" );
+   FC_ASSERT( SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION >= SOPHIATX_BLOCKCHAIN_VERSION );
+   FC_ASSERT( SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION == _hardfork_versions[ SOPHIATX_NUM_HARDFORKS ] );
 }
 
 void database::process_hardforks()
@@ -2604,7 +2604,7 @@ void database::process_hardforks()
          while( _hardfork_versions[ hardforks.last_hardfork ] < hardforks.next_hardfork
             && hardforks.next_hardfork_time <= head_block_time() )
          {
-            if( hardforks.last_hardfork < STEEM_NUM_HARDFORKS ) {
+            if( hardforks.last_hardfork < SOPHIATX_NUM_HARDFORKS ) {
                apply_hardfork( hardforks.last_hardfork + 1 );
             }
             else
@@ -2625,7 +2625,7 @@ void database::set_hardfork( uint32_t hardfork, bool apply_now )
 {
    auto const& hardforks = get_hardfork_property_object();
 
-   for( uint32_t i = hardforks.last_hardfork + 1; i <= hardfork && i <= STEEM_NUM_HARDFORKS; i++ )
+   for( uint32_t i = hardforks.last_hardfork + 1; i <= hardfork && i <= SOPHIATX_NUM_HARDFORKS; i++ )
    {
 
       modify( hardforks, [&]( hardfork_property_object& hpo ) {
@@ -2674,7 +2674,7 @@ void database::validate_invariants()const
    try
    {
       const auto& account_idx = get_index<account_index>().indices().get<by_name>();
-      asset total_supply = asset( 0, STEEM_SYMBOL );
+      asset total_supply = asset( 0, SOPHIATX_SYMBOL );
       asset total_vesting = asset( 0, VESTS_SYMBOL );
       share_type total_vsf_votes = share_type( 0 );
 
@@ -2690,10 +2690,10 @@ void database::validate_invariants()const
       {
          total_supply += itr->balance;
          total_vesting += itr->vesting_shares;
-         total_vsf_votes += ( itr->proxy == STEEM_PROXY_TO_SELF_ACCOUNT ?
+         total_vsf_votes += ( itr->proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT ?
                                  itr->witness_vote_weight() :
-                                 ( STEEM_MAX_PROXY_RECURSION_DEPTH > 0 ?
-                                      itr->proxied_vsf_votes[STEEM_MAX_PROXY_RECURSION_DEPTH - 1] :
+                                 ( SOPHIATX_MAX_PROXY_RECURSION_DEPTH > 0 ?
+                                      itr->proxied_vsf_votes[SOPHIATX_MAX_PROXY_RECURSION_DEPTH - 1] :
                                       itr->balance.amount ) );
       }
 
@@ -2701,20 +2701,20 @@ void database::validate_invariants()const
 
       for( auto itr = escrow_idx.begin(); itr != escrow_idx.end(); ++itr )
       {
-         total_supply += itr->steem_balance;
+         total_supply += itr->sophiatx_balance;
 
-         if( itr->pending_fee.symbol == STEEM_SYMBOL )
+         if( itr->pending_fee.symbol == SOPHIATX_SYMBOL )
             total_supply += itr->pending_fee;
          else
             FC_ASSERT( false, "found escrow pending fee that is not SPHTX" );
       }
 
 
-      FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, STEEM_SYMBOL), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
+      FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, SOPHIATX_SYMBOL), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == STEEM_TOTAL_SUPPLY, "difference is $diff", ("diff", STEEM_TOTAL_SUPPLY -
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == SOPHIATX_TOTAL_SUPPLY, "difference is $diff", ("diff", SOPHIATX_TOTAL_SUPPLY -
                  (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
                  econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool)));
 
@@ -2722,7 +2722,7 @@ void database::validate_invariants()const
    FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 
 namespace {
    typedef std::map< asset_symbol_type, asset > TTotalSupplyMap;
@@ -2813,7 +2813,7 @@ void database::retally_witness_votes()
    // Apply all existing votes by account
    for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr )
    {
-      if( itr->proxy != STEEM_PROXY_TO_SELF_ACCOUNT ) continue;
+      if( itr->proxy != SOPHIATX_PROXY_TO_SELF_ACCOUNT ) continue;
 
       const auto& a = *itr;
 
@@ -2827,7 +2827,7 @@ void database::retally_witness_votes()
    }
 }
 
-#ifdef STEEM_ENABLE_SMT
+#ifdef SOPHIATX_ENABLE_SMT
 // 1. NAI number is stored in 32 bits, minus 4 for precision, minus 1 for control.
 // 2. NAI string has 8 characters (each between '0' and '9') available (11 minus '@@', minus checksum character is 8 )
 // 3. Max 27 bit decimal is 134,217,727 but only 8 characters are available to represent it as string so we are left
@@ -2865,4 +2865,4 @@ vector< asset_symbol_type > database::get_smt_next_identifier()
 }
 #endif
 
-} } //steem::chain
+} } //sophiatx::chain

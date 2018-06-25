@@ -4,8 +4,8 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <steem/utilities/key_conversion.hpp>
-#include <steem/protocol/transaction.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
+#include <sophiatx/protocol/transaction.hpp>
 
 #include <fc/io/json.hpp>
 #include <fc/real128.hpp>
@@ -15,8 +15,8 @@
 #include <fc/api.hpp>
 
 
-using namespace steem::utilities;
-using namespace steem::protocol;
+using namespace sophiatx::utilities;
+using namespace sophiatx::protocol;
 using namespace fc::ecc;
 using namespace std;
 
@@ -66,7 +66,7 @@ bool generate_private_key(char *private_key, char *public_key) {
 bool get_public_key(const char *private_key, char *public_key) {
    if(private_key) {
       try {
-         auto priv_key = *steem::utilities::wif_to_key(string(private_key));
+         auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
          public_key_type pub_key = priv_key.get_public_key();
          auto public_key_str = fc::json::to_string(pub_key);
          strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
@@ -117,7 +117,7 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
       try {
          fc::sha256 dig(string(digest, strlen(digest)));
          string private_k_str(private_key);
-         auto priv_key = *steem::utilities::wif_to_key(private_k_str);
+         auto priv_key = *sophiatx::utilities::wif_to_key(private_k_str);
          auto sig = priv_key.sign_compact(dig);
          string result = fc::json::to_string(sig);
          strcpy(signed_digest, result.substr(1, result.size() - 2).c_str());
@@ -180,7 +180,7 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
       try {
          memo_data m;
 
-         auto priv_key = *steem::utilities::wif_to_key(string(private_key));
+         auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
 
          m.from = priv_key.get_public_key();
 
@@ -218,7 +218,7 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
 
          if( m ) {
             fc::sha512 shared_secret;
-            auto priv_key = *steem::utilities::wif_to_key(string(private_key));
+            auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
 
             fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
             public_key_type pub_key;

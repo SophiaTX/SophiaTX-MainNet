@@ -1,15 +1,15 @@
 //#ifdef IS_TEST_NET
 #include <boost/test/unit_test.hpp>
 
-#include <steem/protocol/exceptions.hpp>
-#include <steem/protocol/hardfork.hpp>
+#include <sophiatx/protocol/exceptions.hpp>
+#include <sophiatx/protocol/hardfork.hpp>
 
-#include <steem/chain/database.hpp>
-#include <steem/chain/database_exceptions.hpp>
-#include <steem/chain/steem_objects.hpp>
-#include <steem/chain/application_object.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/sophiatx_objects.hpp>
+#include <sophiatx/chain/application_object.hpp>
 
-#include <steem/plugins/witness/witness_objects.hpp>
+#include <sophiatx/plugins/witness/witness_objects.hpp>
 
 #include <fc/macros.hpp>
 #include <fc/crypto/digest.hpp>
@@ -20,9 +20,9 @@
 #include <iostream>
 #include <stdexcept>
 
-using namespace steem;
-using namespace steem::chain;
-using namespace steem::protocol;
+using namespace sophiatx;
+using namespace sophiatx::chain;
+using namespace sophiatx::protocol;
 using fc::string;
 
 #define DUMP( x ) {fc::variant vo; fc::to_variant( x , vo); std::cout<< fc::json::to_string(vo) <<"\n";}
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       signed_transaction tx;
       private_key_type priv_key = generate_private_key( "alice" );
 
-      const account_object& init = db->get_account( STEEM_INIT_MINER_NAME );
+      const account_object& init = db->get_account( SOPHIATX_INIT_MINER_NAME );
       asset init_starting_balance = init.balance;
 
       const auto& gpo = db->get_dynamic_global_properties();
@@ -83,14 +83,14 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       op.fee = ASSET( "0.100000 SPHTX" );
       op.new_account_name = "alice";
-      op.creator = STEEM_INIT_MINER_NAME;
+      op.creator = SOPHIATX_INIT_MINER_NAME;
       op.owner = authority( 1, priv_key.get_public_key(), 1 );
       op.active = authority( 2, priv_key.get_public_key(), 2 );
       op.memo_key = priv_key.get_public_key();
       op.json_metadata = "{\"foo\":\"bar\"}";
 
       BOOST_TEST_MESSAGE( "--- Test normal account creation" );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
       tx.validate();
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_REQUIRE( acct.balance.amount.value == 0 );
       BOOST_REQUIRE( acct.id._id == acct_auth.id._id );
 
-      /// because init_witness has created vesting shares and blocks have been produced, 100 STEEM is worth less than 100 vesting shares due to rounding
+      /// because init_witness has created vesting shares and blocks have been produced, 100 SOPHIATX is worth less than 100 vesting shares due to rounding
       BOOST_REQUIRE( acct.vesting_shares.amount.value == 0 );
       BOOST_REQUIRE( acct.vesting_withdraw_rate.amount.value == 0 );
       BOOST_REQUIRE( acct.proxied_vsf_votes_total().value == 0 );
@@ -137,11 +137,11 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when creator cannot cover fee" );
       tx.signatures.clear();
       tx.operations.clear();
-      op.fee = asset( db->get_account( STEEM_INIT_MINER_NAME ).balance.amount + 1, STEEM_SYMBOL );
+      op.fee = asset( db->get_account( SOPHIATX_INIT_MINER_NAME ).balance.amount + 1, SOPHIATX_SYMBOL );
       op.new_account_name = "bob";
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure covering witness fee" );
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       op.fee = ASSET( "1.000000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE( account_update_validate )
          op.validate();
 
          signed_transaction tx;
-         tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+         tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          tx.operations.push_back( op );
          tx.sign( alice_private_key, db->get_chain_id() );
          db->push_transaction( tx, 0 );
@@ -218,25 +218,25 @@ BOOST_AUTO_TEST_CASE( account_update_authorities )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       BOOST_TEST_MESSAGE( "  Tests when owner authority is not updated ---" );
       BOOST_TEST_MESSAGE( "--- Test failure when no signature" );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when wrong signature" );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when containing additional incorrect signature" );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when containing duplicate signatures" );
       tx.signatures.clear();
       tx.sign( active_key, db->get_chain_id() );
       tx.sign( active_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success on active key" );
       tx.signatures.clear();
@@ -255,21 +255,21 @@ BOOST_AUTO_TEST_CASE( account_update_authorities )
       op.owner = authority( 1, active_key.get_public_key(), 1 );
       tx.operations.push_back( op );
       tx.sign( active_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_owner_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_owner_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when owner key and active key are present" );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when incorrect signature" );
       tx.signatures.clear();
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0), tx_missing_owner_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0), tx_missing_owner_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate owner keys are present" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success when updating the owner authority with an owner key" );
       tx.signatures.clear();
@@ -301,7 +301,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       op.account = "bob";
       tx.operations.push_back( op );
       tx.sign( new_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception )
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception )
       validate_database();
 
 
@@ -342,7 +342,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       op.active->add_authorities( "dave", 1 );
       tx.operations.push_back( op );
       tx.sign( new_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -366,7 +366,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -425,27 +425,27 @@ BOOST_AUTO_TEST_CASE( transfer_authorities )
       transfer_operation op;
       op.from = "alice";
       op.to = "bob";
-      op.fee = asset(100000, STEEM_SYMBOL);
+      op.fee = asset(100000, SOPHIATX_SYMBOL);
       op.amount = ASSET( "2.500 SPHTX" );
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signatures" );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
@@ -473,7 +473,7 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       update_op.active = authority( 2, "alice", 1, "bob", 1, "sam", 1 );
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( update_op );
 
       tx.sign( corp_private_key, db->get_chain_id() );
@@ -492,12 +492,12 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
 
       tx.sign( alice_private_key, db->get_chain_id() );
       signature_type alice_sig = tx.signatures.back();
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
       tx.sign( bob_private_key, db->get_chain_id() );
       signature_type bob_sig = tx.signatures.back();
       tx.sign( sam_private_key, db->get_chain_id() );
       signature_type sam_sig = tx.signatures.back();
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       tx.signatures.clear();
       tx.signatures.push_back( alice_sig );
@@ -507,7 +507,7 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       tx.signatures.clear();
       tx.signatures.push_back( alice_sig );
       tx.signatures.push_back( sam_sig );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
    }
    FC_LOG_AND_RETHROW()
 }
@@ -534,7 +534,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
 
       BOOST_TEST_MESSAGE( "--- Test normal transaction" );
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -556,7 +556,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.signatures.clear();
       tx.operations.clear();
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, database::skip_transaction_dupe_check );
 
@@ -568,9 +568,9 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.signatures.clear();
       tx.operations.clear();
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "0.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "0.010000 SPHTX" ).amount.value);
       BOOST_REQUIRE( new_bob.balance.amount.value >= ASSET( "10.000000 SPHTX" ).amount.value && new_bob.balance.amount.value < ASSET( "10.010000 SPHTX" ).amount.value);
@@ -606,23 +606,23 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_authorities )
       op.amount = ASSET( "2.500 SPHTX" );
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signatures" );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with from signature" );
       tx.signatures.clear();
@@ -657,7 +657,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -697,10 +697,10 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_authorities )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signature." );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test success with account signature" );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -708,13 +708,13 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure with duplicate signature" );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure with additional incorrect signature" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_irrelevant_sig );
 
       validate_database();
    }
@@ -747,14 +747,14 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
-      BOOST_REQUIRE( alice.vesting_withdraw_rate.amount.value == ( old_vesting_shares.amount / ( STEEM_VESTING_WITHDRAW_INTERVALS * 2 ) ).value );
+      BOOST_REQUIRE( alice.vesting_withdraw_rate.amount.value == ( old_vesting_shares.amount / ( SOPHIATX_VESTING_WITHDRAW_INTERVALS * 2 ) ).value );
       BOOST_REQUIRE( alice.to_withdraw.value == op.vesting_shares.amount.value );
-      BOOST_REQUIRE( alice.next_vesting_withdrawal == db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS );
+      BOOST_REQUIRE( alice.next_vesting_withdrawal == db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test changing vesting withdrawal" );
@@ -763,14 +763,14 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       op.vesting_shares = asset( alice.vesting_shares.amount / 3, VESTS_SYMBOL );
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
-      BOOST_REQUIRE( alice.vesting_withdraw_rate.amount.value == ( old_vesting_shares.amount / ( STEEM_VESTING_WITHDRAW_INTERVALS * 3 ) ).value );
+      BOOST_REQUIRE( alice.vesting_withdraw_rate.amount.value == ( old_vesting_shares.amount / ( SOPHIATX_VESTING_WITHDRAW_INTERVALS * 3 ) ).value );
       BOOST_REQUIRE( alice.to_withdraw.value == op.vesting_shares.amount.value );
-      BOOST_REQUIRE( alice.next_vesting_withdrawal == db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS );
+      BOOST_REQUIRE( alice.next_vesting_withdrawal == db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test withdrawing more vests than available" );
@@ -780,13 +780,13 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       op.vesting_shares = asset( alice.vesting_shares.amount * 2, VESTS_SYMBOL );
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
-      BOOST_REQUIRE( alice.vesting_withdraw_rate.amount.value == ( old_vesting_shares.amount / ( STEEM_VESTING_WITHDRAW_INTERVALS * 3 ) ).value );
-      BOOST_REQUIRE( alice.next_vesting_withdrawal == db->head_block_time() + STEEM_VESTING_WITHDRAW_INTERVAL_SECONDS );
+      BOOST_REQUIRE( alice.vesting_withdraw_rate.amount.value == ( old_vesting_shares.amount / ( SOPHIATX_VESTING_WITHDRAW_INTERVALS * 3 ) ).value );
+      BOOST_REQUIRE( alice.next_vesting_withdrawal == db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test withdrawing 0 to reset vesting withdraw" );
@@ -795,7 +795,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       op.vesting_shares = asset( 0, VESTS_SYMBOL );
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -830,7 +830,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       op.account = "alice";
       op.vesting_shares = ASSET( "0.000000 VESTS" );
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -870,23 +870,23 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       op.block_signing_key = signing_key.get_public_key();
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signatures" );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
@@ -895,7 +895,7 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
 
       tx.signatures.clear();
       tx.sign( signing_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -920,10 +920,10 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
-      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
@@ -980,7 +980,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       op.owner = "bob";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -1015,23 +1015,23 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
       op.witness = "alice";
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signatures" );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
       tx.sign( bob_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
       tx.sign( bob_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
@@ -1042,7 +1042,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
       proxy( "bob", "sam" );
       tx.signatures.clear();
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       validate_database();
    }
@@ -1074,7 +1074,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       op.approve = true;
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
@@ -1097,7 +1097,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
 
       BOOST_TEST_MESSAGE( "--- Test failure when attempting to revoke a non-existent vote" );
 
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
       BOOST_REQUIRE( sam_witness.votes.value == 0 );
       BOOST_REQUIRE( witness_vote_idx.find( std::make_tuple( sam_witness.owner, alice.name ) ) == witness_vote_idx.end() );
 
@@ -1122,7 +1122,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       op.account = "alice";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_REQUIRE( sam_witness.votes == ( bob.proxied_vsf_votes_total() + bob.vesting_shares.amount ) );
       BOOST_REQUIRE( witness_vote_idx.find( std::make_tuple( sam_witness.owner, bob.name ) ) != witness_vote_idx.end() );
@@ -1150,7 +1150,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure when voting for an account that is not a witness" );
@@ -1160,7 +1160,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -1190,23 +1190,23 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_authorities )
       op.proxy = "alice";
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signatures" );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
       tx.sign( bob_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
       tx.sign( bob_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
@@ -1216,7 +1216,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_authorities )
       BOOST_TEST_MESSAGE( "--- Test failure with proxy signature" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       validate_database();
    }
@@ -1248,7 +1248,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( bob_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
@@ -1257,7 +1257,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       const auto& new_alice = db->get_account("alice");
       BOOST_REQUIRE( new_bob.proxy == "alice" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_alice.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_alice.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total() == new_bob.total_balance() );
       validate_database();
 
@@ -1276,17 +1276,17 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxy == "sam" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_sam.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total().value == new_bob.total_balance() );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test failure when changing proxy to existing proxy" );
 
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_REQUIRE( new_bob.proxy == "sam" );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_sam.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_sam.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.total_balance());
       validate_database();
 
@@ -1307,7 +1307,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == "dave" );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.total_balance() );
-      BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_dave.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_bob.total_balance() ) );
 
       validate_database();
@@ -1332,7 +1332,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == "dave" );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == ( new_bob.total_balance() + new_alice.total_balance() ) );
-      BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_dave.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_bob.total_balance() + new_alice.total_balance() ) );
       validate_database();
 
@@ -1341,7 +1341,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.proxy = STEEM_PROXY_TO_SELF_ACCOUNT;
+      op.proxy = SOPHIATX_PROXY_TO_SELF_ACCOUNT;
       op.account = "bob";
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
@@ -1350,18 +1350,18 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       BOOST_REQUIRE( new_alice.proxy == "sam" );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_bob.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_bob.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == "dave" );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_alice.total_balance() );
-      BOOST_REQUIRE( new_dave.proxy == STEEM_PROXY_TO_SELF_ACCOUNT );
+      BOOST_REQUIRE( new_dave.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_alice.total_balance() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test votes are transferred when a proxy is added" );
       account_witness_vote_operation vote;
       vote.account= "bob";
-      vote.witness = STEEM_INIT_MINER_NAME;
+      vote.witness = SOPHIATX_INIT_MINER_NAME;
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( vote );
@@ -1377,11 +1377,11 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
-      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == ( new_alice.total_balance() + new_bob.total_balance() ) );
+      BOOST_REQUIRE( db->get_witness( SOPHIATX_INIT_MINER_NAME ).votes == ( new_alice.total_balance() + new_bob.total_balance() ) );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test votes are removed when a proxy is removed" );
-      op.proxy = STEEM_PROXY_TO_SELF_ACCOUNT;
+      op.proxy = SOPHIATX_PROXY_TO_SELF_ACCOUNT;
       tx.signatures.clear();
       tx.operations.clear();
       tx.operations.push_back( op );
@@ -1389,7 +1389,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_witness( STEEM_INIT_MINER_NAME ).votes == new_bob.total_balance() );
+      BOOST_REQUIRE( db->get_witness( SOPHIATX_INIT_MINER_NAME ).votes == new_bob.total_balance() );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -1500,21 +1500,21 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
 
       signed_transaction tx;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       BOOST_TEST_MESSAGE( "--- Test failure when no signature." );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure with duplicate signature" );
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_duplicate_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure with additional incorrect signature" );
       tx.signatures.clear();
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_irrelevant_sig );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness account signature" );
       tx.signatures.clear();
@@ -1540,10 +1540,10 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
       feed_publish_operation op;
       op.publisher = "alice";
-      op.exchange_rate = price( asset(1000000, STEEM_SYMBOL), asset(1000000, SBD1_SYMBOL )); // 1000 STEEM : 1 SBD
+      op.exchange_rate = price( asset(1000000, SOPHIATX_SYMBOL), asset(1000000, SBD1_SYMBOL )); // 1000 SOPHIATX : 1 SBD
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
@@ -1562,7 +1562,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       op.publisher = "bob";
       tx.sign( alice_private_key, db->get_chain_id() );
 
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
 
@@ -1571,7 +1571,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, STEEM_SYMBOL ));
+      op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, SOPHIATX_SYMBOL ));
       op.publisher = "alice";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -1610,7 +1610,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       signed_transaction tx;
       tx.operations.push_back( acc_create );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -1645,7 +1645,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.clear();
       tx.signatures.clear();
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( request );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -1656,7 +1656,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       BOOST_TEST_MESSAGE( "Recovering bob's account with original owner auth and new secret" );
 
-      generate_blocks( db->head_block_time() + STEEM_OWNER_UPDATE_LIMIT );
+      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_UPDATE_LIMIT );
 
       recover_account_operation recover;
       recover.account_to_recover = "bob";
@@ -1667,7 +1667,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( recover );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "new_key" ), db->get_chain_id() );
@@ -1691,7 +1691,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       BOOST_TEST_MESSAGE( "Testing failure when bob does not have new authority" );
 
-      generate_blocks( db->head_block_time() + STEEM_OWNER_UPDATE_LIMIT + fc::seconds( STEEM_BLOCK_INTERVAL ) );
+      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_UPDATE_LIMIT + fc::seconds( SOPHIATX_BLOCK_INTERVAL ) );
 
       recover.new_owner_authority = authority( 1, generate_private_key( "idontknow" ).get_public_key(), 1 );
 
@@ -1701,7 +1701,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.operations.push_back( recover );
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "idontknow" ), db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner2 = db->get< account_authority_object, by_account >("bob").owner;
       BOOST_REQUIRE( owner2 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
 
@@ -1713,12 +1713,12 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.clear();
       tx.signatures.clear();
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( recover );
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
       tx.sign( generate_private_key( "idontknow" ), db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner3 = db->get< account_authority_object, by_account >("bob").owner;
       BOOST_REQUIRE( owner3 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
 
@@ -1755,12 +1755,12 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       BOOST_REQUIRE( req_itr->account_to_recover == "bob" );
       BOOST_REQUIRE( req_itr->new_owner_authority == authority( 1, generate_private_key( "expire" ).get_public_key(), 1 ) );
-      BOOST_REQUIRE( req_itr->expires == db->head_block_time() + STEEM_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD );
+      BOOST_REQUIRE( req_itr->expires == db->head_block_time() + SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD );
       auto expires = req_itr->expires;
       ++req_itr;
       BOOST_REQUIRE( req_itr == request_idx.end() );
 
-      generate_blocks( time_point_sec( expires - STEEM_BLOCK_INTERVAL ), true );
+      generate_blocks( time_point_sec( expires - SOPHIATX_BLOCK_INTERVAL ), true );
 
       const auto& new_request_idx = db->get_index< account_recovery_request_index >().indices();
       BOOST_REQUIRE( new_request_idx.begin() != new_request_idx.end() );
@@ -1779,7 +1779,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.set_expiration( db->head_block_time() );
       tx.sign( generate_private_key( "expire" ), db->get_chain_id() );
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner5 = db->get< account_authority_object, by_account >("bob").owner;
       BOOST_REQUIRE( owner5 == authority( 1, generate_private_key( "foo bar" ).get_public_key(), 1 ) );
 
@@ -1791,11 +1791,11 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( acc_update );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( db->head_block_time() + ( STEEM_OWNER_AUTH_RECOVERY_PERIOD - STEEM_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD ) );
+      generate_blocks( db->head_block_time() + ( SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD - SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD ) );
       generate_block();
 
       request.new_owner_authority = authority( 1, generate_private_key( "last key" ).get_public_key(), 1 );
@@ -1804,7 +1804,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( request );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -1815,10 +1815,10 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( recover );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "last key" ), db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner6 = db->get< account_authority_object, by_account >("bob").owner;
       BOOST_REQUIRE( owner6 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
 
@@ -1828,7 +1828,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( recover );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
       tx.sign( generate_private_key( "last key" ), db->get_chain_id() );
       db->push_transaction( tx, 0 );
@@ -1854,7 +1854,7 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
 
          signed_transaction tx;
          tx.operations.push_back( op );
-         tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+         tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          tx.sign( alice_private_key, db->get_chain_id() );
          db->push_transaction( tx, 0 );
       };
@@ -1868,14 +1868,14 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
 
          signed_transaction tx;
          tx.operations.push_back( op );
-         tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+         tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          tx.sign( recent_owner_key, db->get_chain_id() );
          // only Alice -> throw
-         STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+         SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
          tx.signatures.clear();
          tx.sign( new_owner_key, db->get_chain_id() );
          // only Sam -> throw
-         STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+         SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
          tx.sign( recent_owner_key, db->get_chain_id() );
          // Alice+Sam -> OK
          db->push_transaction( tx, 0 );
@@ -1890,7 +1890,7 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
 
          signed_transaction tx;
          tx.operations.push_back( op );
-         tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+         tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          tx.sign( recovery_account_key, db->get_chain_id() );
          db->push_transaction( tx, 0 );
       };
@@ -1903,31 +1903,31 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
 
          signed_transaction tx;
          tx.operations.push_back( op );
-         tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+         tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          tx.sign( old_private_key, db->get_chain_id() );
          db->push_transaction( tx, 0 );
       };
 
       // if either/both users do not exist, we shouldn't allow it
-      STEEM_REQUIRE_THROW( change_recovery_account("alice", "nobody"), fc::exception );
-      STEEM_REQUIRE_THROW( change_recovery_account("haxer", "sam"   ), fc::exception );
-      STEEM_REQUIRE_THROW( change_recovery_account("haxer", "nobody"), fc::exception );
+      SOPHIATX_REQUIRE_THROW( change_recovery_account("alice", "nobody"), fc::exception );
+      SOPHIATX_REQUIRE_THROW( change_recovery_account("haxer", "sam"   ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( change_recovery_account("haxer", "nobody"), fc::exception );
       change_recovery_account("alice", "sam");
 
       fc::ecc::private_key alice_priv1 = fc::ecc::private_key::regenerate( fc::sha256::hash( "alice_k1" ) );
       fc::ecc::private_key alice_priv2 = fc::ecc::private_key::regenerate( fc::sha256::hash( "alice_k2" ) );
       public_key_type alice_pub1 = public_key_type( alice_priv1.get_public_key() );
 
-      generate_blocks( db->head_block_time() + STEEM_OWNER_AUTH_RECOVERY_PERIOD - fc::seconds( STEEM_BLOCK_INTERVAL ), true );
+      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD - fc::seconds( SOPHIATX_BLOCK_INTERVAL ), true );
       // cannot request account recovery until recovery account is approved
-      STEEM_REQUIRE_THROW( request_account_recovery( "sam", sam_private_key, "alice", alice_pub1 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( request_account_recovery( "sam", sam_private_key, "alice", alice_pub1 ), fc::exception );
       generate_blocks(1);
       // cannot finish account recovery until requested
-      STEEM_REQUIRE_THROW( recover_account( "alice", alice_priv1, alice_private_key ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( recover_account( "alice", alice_priv1, alice_private_key ), fc::exception );
       // do the request
       request_account_recovery( "sam", sam_private_key, "alice", alice_pub1 );
       // can't recover with the current owner key
-      STEEM_REQUIRE_THROW( recover_account( "alice", alice_priv1, alice_private_key ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( recover_account( "alice", alice_priv1, alice_private_key ), fc::exception );
       // unless we change it!
       change_owner( "alice", alice_private_key, public_key_type( alice_priv2.get_public_key() ) );
       recover_account( "alice", alice_priv1, alice_private_key );
@@ -1944,7 +1944,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
       escrow_transfer_operation op;
       op.from = "alice";
       op.to = "bob";
-      op.steem_amount = ASSET( "1.000000 SPHTX" );
+      op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
       op.fee = ASSET( "0.100000 SPHTX" );
@@ -1953,37 +1953,37 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
       op.ratification_deadline = db->head_block_time() + 100;
       op.escrow_expiration = db->head_block_time() + 200;
 
-      BOOST_TEST_MESSAGE( "--- failure when steem symbol != STEEM" );
-      op.steem_amount.symbol = SBD1_SYMBOL;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      BOOST_TEST_MESSAGE( "--- failure when sophiatx symbol != SOPHIATX" );
+      op.sophiatx_amount.symbol = SBD1_SYMBOL;
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
-      BOOST_TEST_MESSAGE( "--- failure when fee symbol != SBD and fee symbol != STEEM" );
-      op.steem_amount.symbol = STEEM_SYMBOL;
+      BOOST_TEST_MESSAGE( "--- failure when fee symbol != SBD and fee symbol != SOPHIATX" );
+      op.sophiatx_amount.symbol = SOPHIATX_SYMBOL;
       op.escrow_fee.symbol = VESTS_SYMBOL;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when sbd == 0 " );
-      op.escrow_fee.symbol = STEEM_SYMBOL;
-      op.steem_amount.amount = 0;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      op.escrow_fee.symbol = SOPHIATX_SYMBOL;
+      op.sophiatx_amount.amount = 0;
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
-      BOOST_TEST_MESSAGE( "--- failure when steem < 0" );
-      op.steem_amount.amount = -100;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      BOOST_TEST_MESSAGE( "--- failure when sophiatx < 0" );
+      op.sophiatx_amount.amount = -100;
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when fee < 0" );
-      op.steem_amount.amount = 1000;
+      op.sophiatx_amount.amount = 1000;
       op.escrow_fee.amount = -100;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when ratification deadline == escrow expiration" );
       op.escrow_fee.amount = 100;
       op.ratification_deadline = op.escrow_expiration;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when ratification deadline > escrow expiration" );
       op.ratification_deadline = op.escrow_expiration + 100;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- success" );
       op.ratification_deadline = op.escrow_expiration - 100;
@@ -2001,7 +2001,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_authorities )
       escrow_transfer_operation op;
       op.from = "alice";
       op.to = "bob";
-      op.steem_amount = ASSET( "1.000000 SPHTX" );
+      op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
       op.escrow_fee = ASSET( "0.100000 SPHTX" );
@@ -2036,7 +2036,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       escrow_transfer_operation op;
       op.from = "alice";
       op.to = "bob";
-      op.steem_amount = ASSET( "1.000000 SPHTX" );
+      op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
       op.agent = "sam";
       op.escrow_fee = ASSET( "0.100000 SPHTX" );
@@ -2046,25 +2046,25 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       op.escrow_expiration = db->head_block_time() + 200;
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
 
       BOOST_TEST_MESSAGE( "--- falure when from cannot cover amount + fee" );
-      op.steem_amount.amount = 10000000;
+      op.sophiatx_amount.amount = 10000000;
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when ratification deadline is in the past" );
-      op.steem_amount.amount = 1000000;
+      op.sophiatx_amount.amount = 1000000;
       op.ratification_deadline = db->head_block_time() - 200;
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when expiration is in the past" );
       op.escrow_expiration = db->head_block_time() - 100;
@@ -2072,7 +2072,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- success" );
       op.ratification_deadline = db->head_block_time() + 100;
@@ -2082,9 +2082,9 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
-      auto alice_steem_balance = alice.balance - op.steem_amount - op.escrow_fee;
-      auto bob_steem_balance = bob.balance;
-      auto sam_steem_balance = sam.balance;
+      auto alice_sophiatx_balance = alice.balance - op.sophiatx_amount - op.escrow_fee;
+      auto bob_sophiatx_balance = bob.balance;
+      auto sam_sophiatx_balance = sam.balance;
 
       db->push_transaction( tx, 0 );
 
@@ -2096,14 +2096,14 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       BOOST_REQUIRE( escrow.agent == op.agent );
       BOOST_REQUIRE( escrow.ratification_deadline == op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == op.steem_amount );
+      BOOST_REQUIRE( escrow.sophiatx_balance == op.sophiatx_amount );
       BOOST_REQUIRE( escrow.pending_fee == op.escrow_fee );
       BOOST_REQUIRE( !escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
       BOOST_REQUIRE( !escrow.disputed );
-      BOOST_REQUIRE( alice.balance.amount == alice_steem_balance.amount - 100000 );
-      BOOST_REQUIRE( bob.balance == bob_steem_balance );
-      BOOST_REQUIRE( sam.balance == sam_steem_balance );
+      BOOST_REQUIRE( alice.balance.amount == alice_sophiatx_balance.amount - 100000 );
+      BOOST_REQUIRE( bob.balance == bob_sophiatx_balance );
+      BOOST_REQUIRE( sam.balance == sam_sophiatx_balance );
 
       validate_database();
    }
@@ -2127,7 +2127,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_validate )
 
       BOOST_TEST_MESSAGE( "--- failure when who is not to or agent" );
       op.who = "dave";
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- success when who is to" );
       op.who = op.to;
@@ -2191,7 +2191,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
-      et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
       et_op.json_meta = "";
@@ -2200,7 +2200,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       signed_transaction tx;
       tx.operations.push_back( et_op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
       tx.operations.clear();
@@ -2218,7 +2218,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when agent does not match escrow" );
@@ -2230,7 +2230,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success approving to" );
@@ -2249,7 +2249,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       BOOST_REQUIRE( escrow.agent == "sam" );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == ASSET( "1.000000 SPHTX" ) );
+      BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
       BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.100000 SPHTX" ) );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
@@ -2259,15 +2259,15 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       BOOST_TEST_MESSAGE( "--- failure on repeat approval" );
       tx.signatures.clear();
 
-      tx.set_expiration( db->head_block_time() + STEEM_BLOCK_INTERVAL );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_BLOCK_INTERVAL );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == "bob" );
       BOOST_REQUIRE( escrow.agent == "sam" );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == ASSET( "1.000000 SPHTX" ) );
+      BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
       BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.100000 SPHTX" ) );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
@@ -2282,13 +2282,13 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == "bob" );
       BOOST_REQUIRE( escrow.agent == "sam" );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == ASSET( "1.000000 SPHTX" ) );
+      BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
       BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.100000 SPHTX" ) );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
@@ -2305,7 +2305,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( alice.balance == ASSET( "10.000000 SPHTX" ) );
       validate_database();
 
@@ -2317,9 +2317,9 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
 
-      STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.900000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.910000 SPHTX" ) );
       validate_database();
 
@@ -2330,7 +2330,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.ratification_deadline = db->head_block_time() + 100;
       et_op.escrow_expiration = db->head_block_time() + 200;
       tx.operations.push_back( et_op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -2342,9 +2342,9 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
 
-      STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.800000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.810000 SPHTX" ) );
       validate_database();
 
@@ -2355,7 +2355,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.ratification_deadline = db->head_block_time() + 100;
       et_op.escrow_expiration = db->head_block_time() + 200;
       tx.operations.push_back( et_op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -2366,9 +2366,9 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
 
-      STEEM_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.710000 SPHTX" ) );
       validate_database();
 
@@ -2379,7 +2379,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.ratification_deadline = db->head_block_time() + 100;
       et_op.escrow_expiration = db->head_block_time() + 200;
       tx.operations.push_back( et_op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -2403,7 +2403,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
          BOOST_REQUIRE( escrow.agent == "sam" );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-         BOOST_REQUIRE( escrow.steem_balance == ASSET( "1.000000 SPHTX" ) );
+         BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.to_approved );
          BOOST_REQUIRE( escrow.agent_approved );
@@ -2416,14 +2416,14 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       BOOST_TEST_MESSAGE( "--- ratification expiration does not remove an approved escrow" );
 
-      generate_blocks( et_op.ratification_deadline + STEEM_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
       {
          const auto& escrow = db->get_escrow( op.from, op.escrow_id );
          BOOST_REQUIRE( escrow.to == "bob" );
          BOOST_REQUIRE( escrow.agent == "sam" );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-         BOOST_REQUIRE( escrow.steem_balance == ASSET( "1.000000 SPHTX" ) );
+         BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.to_approved );
          BOOST_REQUIRE( escrow.agent_approved );
@@ -2449,7 +2449,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_validate )
 
       BOOST_TEST_MESSAGE( "failure when who is not from or to" );
       op.who = "sam";
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "success" );
       op.who = "alice";
@@ -2508,11 +2508,11 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
-      et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
-      et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
+      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
 
       escrow_approve_operation ea_b_op;
       ea_b_op.from = "alice";
@@ -2525,7 +2525,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       signed_transaction tx;
       tx.operations.push_back( et_op );
       tx.operations.push_back( ea_b_op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
@@ -2543,14 +2543,14 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
       BOOST_REQUIRE( escrow.to == "bob" );
       BOOST_REQUIRE( escrow.agent == "sam" );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
+      BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
       BOOST_REQUIRE( escrow.pending_fee == et_op.escrow_fee );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( !escrow.agent_approved );
@@ -2578,13 +2578,13 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == "bob" );
       BOOST_REQUIRE( escrow.agent == "sam" );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
+      BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
       BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( escrow.agent_approved );
@@ -2599,13 +2599,13 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == "bob" );
       BOOST_REQUIRE( escrow.agent == "sam" );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-      BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
+      BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
       BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
       BOOST_REQUIRE( escrow.to_approved );
       BOOST_REQUIRE( escrow.agent_approved );
@@ -2619,9 +2619,9 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.signatures.clear();
       op.agent = "sam";
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       {
          const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
@@ -2629,7 +2629,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
          BOOST_REQUIRE( escrow.agent == "sam" );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-         BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
+         BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
          BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.to_approved );
          BOOST_REQUIRE( escrow.agent_approved );
@@ -2639,8 +2639,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       BOOST_TEST_MESSAGE( "--- success disputing escrow" );
       et_op.escrow_id = 1;
-      et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
+      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
       ea_b_op.escrow_id = et_op.escrow_id;
       ea_s_op.escrow_id = et_op.escrow_id;
 
@@ -2667,7 +2667,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
          BOOST_REQUIRE( escrow.agent == "sam" );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-         BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
+         BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
          BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.to_approved );
          BOOST_REQUIRE( escrow.agent_approved );
@@ -2681,7 +2681,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       op.who = "bob";
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       {
          const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
@@ -2689,7 +2689,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
          BOOST_REQUIRE( escrow.agent == "sam" );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
-         BOOST_REQUIRE( escrow.steem_balance == et_op.steem_amount );
+         BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
          BOOST_REQUIRE( escrow.pending_fee == ASSET( "0.000000 SPHTX" ) );
          BOOST_REQUIRE( escrow.to_approved );
          BOOST_REQUIRE( escrow.agent_approved );
@@ -2712,21 +2712,21 @@ BOOST_AUTO_TEST_CASE( escrow_release_validate )
       op.receiver = "bob";
 
 
-      BOOST_TEST_MESSAGE( "--- failure when steem < 0" );
-      op.steem_amount.amount = -1;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      BOOST_TEST_MESSAGE( "--- failure when sophiatx < 0" );
+      op.sophiatx_amount.amount = -1;
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
-      BOOST_TEST_MESSAGE( "--- failure when steem == 0 and sbd == 0" );
-      op.steem_amount.amount = 0;
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      BOOST_TEST_MESSAGE( "--- failure when sophiatx == 0 and sbd == 0" );
+      op.sophiatx_amount.amount = 0;
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
-      BOOST_TEST_MESSAGE( "--- failure when steem is not steem symbol" );
-      op.steem_amount = ASSET( "1.000000 SBD" );
-      STEEM_REQUIRE_THROW( op.validate(), fc::exception );
+      BOOST_TEST_MESSAGE( "--- failure when sophiatx is not sophiatx symbol" );
+      op.sophiatx_amount = ASSET( "1.000000 SBD" );
+      SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success" );
-      op.steem_amount.symbol = STEEM_SYMBOL;
+      op.sophiatx_amount.symbol = SOPHIATX_SYMBOL;
       op.validate();
    }
    FC_LOG_AND_RETHROW()
@@ -2784,16 +2784,16 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       et_op.from = "alice";
       et_op.to = "bob";
       et_op.agent = "sam";
-      et_op.steem_amount = ASSET( "1.000000 SPHTX" );
+      et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
-      et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
+      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
 
       signed_transaction tx;
       tx.operations.push_back( et_op );
 
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
@@ -2806,12 +2806,12 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.from;
       op.fee = ASSET( "0.100000 SPHTX" );
       op.receiver = et_op.to;
-      op.steem_amount = ASSET( "0.100000 SPHTX" );
+      op.sophiatx_amount = ASSET( "0.100000 SPHTX" );
 
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       escrow_approve_operation ea_b_op;
       ea_b_op.fee = ASSET( "0.100000 SPHTX" );
@@ -2839,7 +2839,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE("--- failure when 'agent' attempts to release non-disputed escrow to 'from' " );
@@ -2848,7 +2848,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'agent' attempt to release non-disputed escrow to not 'to' or 'from'" );
@@ -2857,7 +2857,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when other attempts to release non-disputed escrow to 'to'" );
@@ -2867,7 +2867,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE("--- failure when other attempts to release non-disputed escrow to 'from' " );
@@ -2876,7 +2876,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when other attempt to release non-disputed escrow to not 'to' or 'from'" );
@@ -2885,7 +2885,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attemtps to release non-disputed escrow to 'to'" );
@@ -2895,7 +2895,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE("--- failure when 'to' attempts to release non-dispured escrow to 'agent' " );
@@ -2904,7 +2904,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release non-disputed escrow to not 'from'" );
@@ -2913,7 +2913,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success release non-disputed escrow to 'to' from 'from'" );
@@ -2924,7 +2924,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).steem_balance == ASSET( "0.900000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).sophiatx_balance == ASSET( "0.900000 SPHTX" ) );
       BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.900000 SPHTX" ) );
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed escrow to 'from'" );
@@ -2934,7 +2934,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE("--- failure when 'from' attempts to release non-disputed escrow to 'agent'" );
@@ -2943,7 +2943,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed escrow to not 'from'" );
@@ -2952,7 +2952,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success release non-disputed escrow to 'from' from 'to'" );
@@ -2963,26 +2963,26 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).steem_balance == ASSET( "0.800000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).sophiatx_balance == ASSET( "0.800000 SPHTX" ) );
       BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.900000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- failure when releasing more sbd than available" );
-      op.steem_amount = ASSET( "1.000000 SPHTX" );
+      op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
 
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
-      BOOST_TEST_MESSAGE( "--- failure when releasing less steem than available" );
-      op.steem_amount = ASSET( "0.000000 SPHTX" );
+      BOOST_TEST_MESSAGE( "--- failure when releasing less sophiatx than available" );
+      op.sophiatx_amount = ASSET( "0.000000 SPHTX" );
 
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release disputed escrow" );
@@ -3002,10 +3002,10 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.from = et_op.from;
       op.receiver = et_op.from;
       op.who = et_op.to;
-      op.steem_amount = ASSET( "0.100000 SPHTX" );
+      op.sophiatx_amount = ASSET( "0.100000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release disputed escrow" );
@@ -3014,7 +3014,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.from;
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when releasing disputed escrow to an account not 'to' or 'from'" );
@@ -3023,7 +3023,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = "dave";
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when agent does not match escrow" );
@@ -3032,7 +3032,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.from;
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success releasing disputed escrow with agent to 'to'" );
@@ -3044,7 +3044,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "1.000000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.700000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.700000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- success releasing disputed escrow with agent to 'from'" );
@@ -3056,7 +3056,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.800000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.600000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.600000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release disputed expired escrow" );
@@ -3066,9 +3066,9 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.from;
       op.who = et_op.to;
       tx.operations.push_back( op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release disputed expired escrow" );
@@ -3077,7 +3077,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.from;
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success releasing disputed expired escrow with agent" );
@@ -3089,26 +3089,26 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.900000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.910000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.500000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.500000 SPHTX" ) );
 
       BOOST_TEST_MESSAGE( "--- success deleting escrow when balances are both zero" );
       tx.clear();
-      op.steem_amount = ASSET( "0.500000 SPHTX" );
+      op.sophiatx_amount = ASSET( "0.500000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.410000 SPHTX" ) );
-      STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
 
 
       tx.clear();
-      et_op.ratification_deadline = db->head_block_time() + STEEM_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * STEEM_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
+      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
       tx.operations.push_back( et_op );
       tx.operations.push_back( ea_b_op );
       tx.operations.push_back( ea_s_op );
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       tx.sign( bob_private_key, db->get_chain_id() );
       tx.sign( sam_private_key, db->get_chain_id() );
@@ -3120,10 +3120,10 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = et_op.to;
       op.who = et_op.agent;
-      op.steem_amount = ASSET( "0.100000 SPHTX" );
+      op.sophiatx_amount = ASSET( "0.100000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'agent' attempts to release non-disputed expired escrow to 'from'" );
@@ -3131,7 +3131,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.from;
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'agent' attempt to release non-disputed expired escrow to not 'to' or 'from'" );
@@ -3139,7 +3139,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = "dave";
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release non-dispured expired escrow to 'agent'" );
@@ -3148,7 +3148,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.agent;
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release non-disputed expired escrow to not 'from' or 'to'" );
@@ -3156,7 +3156,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = "dave";
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success release non-disputed expired escrow to 'to' from 'to'" );
@@ -3167,7 +3167,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.910000 SPHTX" ));
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.900000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.900000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- success release non-disputed expired escrow to 'from' from 'to'" );
@@ -3178,7 +3178,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.300000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.310000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.800000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.800000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed expired escrow to 'agent'" );
@@ -3187,7 +3187,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.agent;
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed expired escrow to not 'from' or 'to'" );
@@ -3195,7 +3195,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = "dave";
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
       BOOST_TEST_MESSAGE( "--- success release non-disputed expired escrow to 'to' from 'from'" );
@@ -3207,7 +3207,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.910000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.700000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.700000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- success release non-disputed expired escrow to 'from' from 'from'" );
@@ -3219,18 +3219,18 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.200000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.210000 SPHTX" ));
-      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).steem_balance == ASSET( "0.600000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.600000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- success deleting escrow when balances are zero on non-disputed escrow" );
       tx.clear();
-      op.steem_amount = ASSET( "0.600000 SPHTX" );
+      op.sophiatx_amount = ASSET( "0.600000 SPHTX" );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.710000 SPHTX" ));
-      STEEM_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
    }
    FC_LOG_AND_RETHROW()
 }
@@ -3252,11 +3252,11 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
-      op.props.account_creation_fee = asset(STEEM_MIN_ACCOUNT_CREATION_FEE + 10, STEEM_SYMBOL) ;
-      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.account_creation_fee = asset(SOPHIATX_MIN_ACCOUNT_CREATION_FEE + 10, SOPHIATX_SYMBOL) ;
+      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
@@ -3265,34 +3265,34 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "--- failure when signing key is not present" );
       witness_set_properties_operation prop_op;
       prop_op.owner = "alice";
-      STEEM_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
+      SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
       BOOST_TEST_MESSAGE( "--- failure when setting account_creation_fee with incorrect symbol" );
       prop_op.props[ "key" ] = fc::raw::pack_to_vector( signing_key.get_public_key() );
       prop_op.props[ "account_creation_fee" ] = fc::raw::pack_to_vector( ASSET( "2.000000 SBD" ) );
-      STEEM_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
+      SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
-      BOOST_TEST_MESSAGE( "--- failure when setting maximum_block_size below STEEM_MIN_BLOCK_SIZE_LIMIT" );
+      BOOST_TEST_MESSAGE( "--- failure when setting maximum_block_size below SOPHIATX_MIN_BLOCK_SIZE_LIMIT" );
       prop_op.props.erase( "account_creation_fee" );
-      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( STEEM_MIN_BLOCK_SIZE_LIMIT - 1 );
-      STEEM_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
+      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( SOPHIATX_MIN_BLOCK_SIZE_LIMIT - 1 );
+      SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
-      BOOST_TEST_MESSAGE( "--- failure when setting new sbd_exchange_rate with SBD / STEEM" );
+      BOOST_TEST_MESSAGE( "--- failure when setting new sbd_exchange_rate with SBD / SOPHIATX" );
       prop_op.props.erase( "exchange_rates" );
       vector<price> vpt;
       vpt.push_back(price( ASSET( "1.000000 SPHTX" ), ASSET( "10.000000 SBD1" ) ));
       prop_op.props[ "exchange_rates" ] = fc::raw::pack_to_vector( vpt );
-      STEEM_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
+      SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
       BOOST_TEST_MESSAGE( "--- failure when setting new url with length of zero" );
       prop_op.props.erase( "url" );
       prop_op.props[ "url" ] = fc::raw::pack_to_vector( "" );
-      STEEM_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
+      SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
       BOOST_TEST_MESSAGE( "--- failure when setting new url with non UTF-8 character" );
       prop_op.props[ "url" ].clear();
       prop_op.props[ "url" ] = fc::raw::pack_to_vector( "\xE0\x80\x80" );
-      STEEM_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
+      SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
    }
    FC_LOG_AND_RETHROW()
@@ -3333,7 +3333,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_authorities )
       op.get_required_active_authorities( auths );
       BOOST_REQUIRE( auths == expected );
 
-      expected_keys.push_back( authority( 1, STEEM_NULL_ACCOUNT, 1 ) );
+      expected_keys.push_back( authority( 1, SOPHIATX_NULL_ACCOUNT, 1 ) );
       op.get_required_authorities( key_auths );
       BOOST_REQUIRE( key_auths == expected_keys );
 
@@ -3357,11 +3357,11 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
-      op.props.account_creation_fee = asset(STEEM_MIN_ACCOUNT_CREATION_FEE + 10, STEEM_SYMBOL) ;
-      op.props.maximum_block_size = STEEM_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.account_creation_fee = asset(SOPHIATX_MIN_ACCOUNT_CREATION_FEE + 10, SOPHIATX_SYMBOL) ;
+      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
@@ -3382,12 +3382,12 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
 
       // Setting maximum_block_size
       prop_op.props.erase( "account_creation_fee" );
-      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( STEEM_MIN_BLOCK_SIZE_LIMIT + 1 );
+      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 1 );
       tx.clear();
       tx.operations.push_back( prop_op );
       tx.sign( signing_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
-      BOOST_REQUIRE( alice_witness.props.maximum_block_size == STEEM_MIN_BLOCK_SIZE_LIMIT + 1 );
+      BOOST_REQUIRE( alice_witness.props.maximum_block_size == SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 1 );
 
       // Setting new sbd_exchange_rate
       prop_op.props.erase( "new_signing_key" );
@@ -3447,7 +3447,7 @@ BOOST_AUTO_TEST_CASE( application_create )
       op.validate();
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
@@ -3493,7 +3493,7 @@ BOOST_AUTO_TEST_CASE( application_update )
          op.fee = ASSET( "0.100000 SPHTX" );
          op.validate();
          signed_transaction tx;
-         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
          tx.sign(alice_private_key, db->get_chain_id());
          db->push_transaction(tx, 0);
@@ -3512,7 +3512,7 @@ BOOST_AUTO_TEST_CASE( application_update )
       op.validate();
 
       signed_transaction tx;
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3551,7 +3551,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
          op.metadata = "Random metadata";
          op.validate();
          signed_transaction tx;
-         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
          tx.sign(alice_private_key, db->get_chain_id());
          db->push_transaction(tx, 0);
@@ -3566,7 +3566,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
       op.validate();
 
       signed_transaction tx;
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3598,7 +3598,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
          op.metadata = "Random metadata";
          op.validate();
          signed_transaction tx;
-         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
          tx.sign(alice_private_key, db->get_chain_id());
          db->push_transaction(tx, 0);
@@ -3615,7 +3615,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       op.validate();
 
       signed_transaction tx;
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3646,7 +3646,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       op_cancel.validate();
 
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op_cancel);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3678,7 +3678,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
          op.metadata = "Random metadata";
          op.validate();
          signed_transaction tx;
-         tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+         tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
          tx.sign(alice_private_key, db->get_chain_id());
          db->push_transaction(tx, 0);
@@ -3695,7 +3695,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       op.validate();
 
       signed_transaction tx;
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3714,7 +3714,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       op_d.validate();
 
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op_d);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3744,10 +3744,10 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
       transfer_from_promotion_pool_operation op;
       op.transfer_to = "alice";
-      op.amount = asset(1000000, STEEM_SYMBOL);
+      op.amount = asset(1000000, SOPHIATX_SYMBOL);
 
       signed_transaction tx;
-      tx.set_expiration( db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
 
@@ -3757,7 +3757,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
       generate_block();
 
-      op.amount = asset(100000, STEEM_SYMBOL);
+      op.amount = asset(100000, SOPHIATX_SYMBOL);
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
@@ -3771,7 +3771,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( priv_key, db->get_chain_id() );
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
    }
    FC_LOG_AND_RETHROW()
@@ -3792,7 +3792,7 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       sponsor_op.is_sponsoring = true;
 
       signed_transaction tx;
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3805,7 +3805,7 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       t_op.amount = ASSET("0.500000 SPHTX");
       t_op.fee = ASSET("0.100000 SPHTX");
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(t_op);
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3820,7 +3820,7 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
 
       sponsor_op.is_sponsoring = false;
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3828,14 +3828,14 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       generate_block();
 
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(t_op);
       tx.sign(bob_private_key, db->get_chain_id());
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       sponsor_op.is_sponsoring = true;
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
@@ -3844,17 +3844,17 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       sponsor_op.sponsor = "";
       sponsor_op.is_sponsoring = false;
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
       generate_block();
 
       tx.clear();
-      tx.set_expiration(db->head_block_time() + STEEM_MAX_TIME_UNTIL_EXPIRATION);
+      tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(t_op);
       tx.sign(bob_private_key, db->get_chain_id());
-      STEEM_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
    }
    FC_LOG_AND_RETHROW()

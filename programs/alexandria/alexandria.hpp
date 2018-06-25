@@ -1,5 +1,5 @@
-#ifndef STEEM_ALEXANDRIA_HPP
-#define STEEM_ALEXANDRIA_HPP
+#ifndef SOPHIATX_ALEXANDRIA_HPP
+#define SOPHIATX_ALEXANDRIA_HPP
 
 namespace {
 
@@ -87,6 +87,5 @@ extern "C" {
    bool decrypt_memo(const char *memo, const char *private_key, const char *public_key, char *decrypted_memo);
 }
 
-} //
-
-#endif //STEEM_ALEXANDRIA_HPP
+#endif //SOPHIATX_ALEXANDRIA_HPP
+}

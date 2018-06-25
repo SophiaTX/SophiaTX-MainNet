@@ -9,11 +9,11 @@
 
 #pragma once
 
-#include <steem/protocol/version.hpp>
+#include <sophiatx/protocol/version.hpp>
 #include <set>
 
 #ifdef IS_TEST_NET
-#define STEEM_NUM_HARDFORKS 0
+#define SOPHIATX_NUM_HARDFORKS 0
 #else
-#define STEEM_NUM_HARDFORKS 0
+#define SOPHIATX_NUM_HARDFORKS 0
 #endif
