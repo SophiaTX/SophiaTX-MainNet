@@ -42,10 +42,10 @@
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-#define SOPHIATX_INIT_PUBLIC_KEY_STR             "STM8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
+#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
 #define SOPHIATX_CHAIN_ID_NAME ""
 #define SOPHIATX_CHAIN_ID fc::sha256()
-#define SOPHIATX_ADDRESS_PREFIX                  "STM"
+#define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
 #define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1524563000))
 #define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1524563200))
