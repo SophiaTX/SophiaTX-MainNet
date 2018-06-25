@@ -153,14 +153,6 @@ class wallet_api
        */
       vector< account_name_type > list_accounts(const string& lowerbound, uint32_t limit);
 
-      /** Returns the block chain's rapidly-changing properties.
-       * The returned object contains information that changes every block interval
-       * such as the head block number, the next witness, etc.
-       * @see \c get_global_properties() for less-frequently changing properties
-       * @returns the dynamic global properties
-       */
-      condenser_api::extended_dynamic_global_properties get_dynamic_global_properties() const;
-
       /** Returns information about the given account.
        *
        * @param account_name the name of the account to provide information about
@@ -644,25 +636,15 @@ class wallet_api
        */
       annotated_signed_transaction transfer_to_vesting(string from, string to, asset amount, bool broadcast = false);
 
-   /**
-    *  @param from       - the account that initiated the transfer
-    *  @param request_id - an unique ID assigned by from account, the id is used to cancel the operation and can be reused after the transfer completes
-    *  @param to         - the account getting the transfer
-    *  @param amount     - the amount of assets to be transfered
-    *  @param memo A memo for the transactionm, encrypted with the to account's public memo key
-    *  @param broadcast true if you wish to broadcast the transaction
-    */
-      annotated_signed_transaction transfer_from_savings( string from, uint32_t request_id, string to, asset amount, string memo, bool broadcast = false );
 
-
-   /**
-    * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
-    *
-    * @param from The account the VESTS are withdrawn from
-    * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
-    *    withdrawn and deposited back as SOPHIATX. i.e. "10.000000 VESTS"
-    * @param broadcast true if you wish to broadcast the transaction
-    */
+      /**
+       * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
+       *
+       * @param from The account the VESTS are withdrawn from
+       * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
+       *    withdrawn and deposited back as SOPHIATX. i.e. "10.000000 VESTS"
+       * @param broadcast true if you wish to broadcast the transaction
+       */
       annotated_signed_transaction withdraw_vesting( string from, asset vesting_shares, bool broadcast = false );
 
       /**
@@ -823,6 +805,13 @@ class wallet_api
        */
       vector< condenser_api::api_application_buying_object >  get_application_buyings(string name, string search_type, uint32_t count);
 
+     /**
+      * Get all app objects
+      * @param names - array of names of applications
+      * @return array of application objects
+      */
+      vector< condenser_api::api_application_object >  get_applications(vector<string> names);
+
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
@@ -928,6 +917,8 @@ FC_API( sophiatx::wallet::wallet_api,
         (get_feed_history)
         (get_account_history)
         (get_state)
+        (get_application_buyings)
+        (get_applications)
 
         /// transaction api
         (create_account)
@@ -964,7 +955,6 @@ FC_API( sophiatx::wallet::wallet_api,
         (delete_application)
         (buy_application)
         (cancel_application_buying)
-        (get_application_buyings)
 
         /// helper api
         (get_prototype_operation)

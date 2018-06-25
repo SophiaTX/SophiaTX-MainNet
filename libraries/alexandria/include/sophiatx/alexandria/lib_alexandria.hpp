@@ -85,28 +85,6 @@ class alexandria_api
        */
       vector< account_name_type > get_active_witnesses()const;
 
-      /** Lists all accounts registered in the blockchain.
-       * This returns a list of all account names and their account ids, sorted by account name.
-       *
-       * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all accounts,
-       * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
-       * the last account name returned as the \c lowerbound for the next \c list_accounts() call.
-       *
-       * @param lowerbound the name of the first account to return.  If the named account does not exist,
-       *                   the list will start at the account that comes after \c lowerbound
-       * @param limit the maximum number of accounts to return (max: 1000)
-       * @returns a list of accounts mapping account names to account ids
-       */
-      vector< account_name_type > list_accounts(const string& lowerbound, uint32_t limit);
-
-      /** Returns the block chain's rapidly-changing properties.
-       * The returned object contains information that changes every block interval
-       * such as the head block number, the next witness, etc.
-       * @see \c get_global_properties() for less-frequently changing properties
-       * @returns the dynamic global properties
-       */
-      condenser_api::extended_dynamic_global_properties get_dynamic_global_properties() const;
-
       /** Returns information about the given account.
        *
        * @param account_name the name of the account to provide information about
@@ -406,6 +384,13 @@ class alexandria_api
        * @return signle transaction with all the operations
        */
       signed_transaction create_simple_transaction(operation op) const;
+
+      /**
+      * Get all app objects
+      * @param names - array of names of applications
+      * @return array of application objects
+      */
+      vector< condenser_api::api_application_object >  get_applications(vector<string> names);
 };
 
 } }
@@ -425,6 +410,8 @@ FC_API( sophiatx::wallet::alexandria_api,
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
+        (get_application_buyings)
+        (get_applications)
 
         /// transaction api
         (create_account)
@@ -442,7 +429,6 @@ FC_API( sophiatx::wallet::alexandria_api,
         (delete_application)
         (buy_application)
         (cancel_application_buying)
-        (get_application_buyings)
 
         /// helper api
         (serialize_transaction)
