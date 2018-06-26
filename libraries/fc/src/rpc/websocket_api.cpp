@@ -130,6 +130,7 @@ std::string websocket_api_connection::on_message(
                if( call.id )
                {
                   auto reply = fc::json::to_string( response( *call.id, result ) );
+                  wdump((reply));
                   if( send_message )
                      _connection.send_message( reply );
                   return reply;
