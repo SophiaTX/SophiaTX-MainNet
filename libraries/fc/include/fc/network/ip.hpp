@@ -19,6 +19,7 @@ namespace fc {
 
         friend bool operator==( const address& a, const address& b );
         friend bool operator!=( const address& a, const address& b );
+		friend bool operator<(const address& a, const address& b);
 
         /**
          *  @return true if the ip is in the following ranges:
