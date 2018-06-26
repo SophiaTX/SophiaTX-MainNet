@@ -1,5 +1,5 @@
 .idea
-libraries/manifest/steem_manifest/__pycache__/
+libraries/manifest/sophiatx_manifest/__pycache__/
 cmake-build-debug
 CMakeCache.txt
 CMakeFiles
