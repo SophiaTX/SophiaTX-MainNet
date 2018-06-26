@@ -648,5 +648,10 @@ operation alexandria_api::delete_account(string account_name) {
    }FC_CAPTURE_AND_RETHROW( (account_name))
 }
 
+vector<condenser_api::api_application_object> alexandria_api::get_applications(vector<string> names) {
+   try{
+      return my->_remote_api->get_applications(names);
+   }FC_CAPTURE_AND_RETHROW((names))
+}
 } } // sophiatx::wallet
 

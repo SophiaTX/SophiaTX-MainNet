@@ -1960,5 +1960,11 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, boo
    }FC_CAPTURE_AND_RETHROW( (account_name)(broadcast))
 }
 
+vector<condenser_api::api_application_object> wallet_api::get_applications(vector<string> names) {
+   try{
+      return my->_remote_api->get_applications(names);
+   }FC_CAPTURE_AND_RETHROW((names))
+}
+
 } } // sophiatx::wallet
 
