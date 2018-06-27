@@ -702,5 +702,23 @@ bool alexandria_api::verify_signature(digest_type digest, public_key_type pub_ke
       return  false;
    }FC_CAPTURE_AND_RETHROW((digest)(pub_key)(signature))
 }
+
+key_pair alexandria_api::generate_key_pair() const {
+   private_key_type priv_key = fc::ecc::private_key::generate();
+   key_pair kp;
+   kp.pub_key = priv_key.get_public_key();
+   kp.wif_priv_key = key_to_wif(priv_key);
+   return kp;
+}
+
+key_pair alexandria_api::generate_key_pair_from_brain_key(string brain_key) const {
+   fc::sha512 h = fc::sha512::hash(brain_key + " 0");
+   auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
+   key_pair kp;
+   kp.pub_key = priv_key.get_public_key();
+   kp.wif_priv_key = key_to_wif(priv_key);
+   return kp;
+}
+
 } } // sophiatx::wallet
 

@@ -24,6 +24,12 @@ struct brain_key_info
    string               wif_priv_key;
 };
 
+struct key_pair
+{
+   public_key_type      pub_key;
+   string               wif_priv_key;
+};
+
 enum authority_type
 {
    owner,
@@ -242,7 +248,7 @@ class alexandria_api
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
        * @param amount The funds being transferred. i.e. "100.000 sophiatx"
-       * @param memo A memo for the transactionm, encrypted with the to account's public memo key
+       * @param memo A memo for the transaction, encrypted with the to account's public memo key
        * @param broadcast true if you wish to broadcast the transaction
        */
       operation transfer(string from, string to, asset amount, string memo);
@@ -354,7 +360,7 @@ class alexandria_api
       operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
 
       /**
-       * Get all recevied custom jsons and data.
+       * Get all received custom jsons and data.
        * @param app_id Application ID
        * @param account_name Name of the relevant (sender/recipient) account
        * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
@@ -403,11 +409,16 @@ class alexandria_api
       annotated_signed_transaction send_and_sign_transaction(signed_transaction tx, string pk);
 
       bool verify_signature(digest_type digest, public_key_type pub_key, fc::ecc::compact_signature signature) const;
+
+      key_pair generate_key_pair() const;
+
+      key_pair generate_key_pair_from_brain_key(string brain_key) const;
 };
 
 } }
 
 FC_REFLECT_ENUM( sophiatx::wallet::authority_type, (owner)(active) )
+FC_REFLECT( sophiatx::wallet::key_pair, (pub_key)(wif_priv_key) )
 
 FC_API( sophiatx::wallet::alexandria_api,
         /// wallet api
@@ -462,5 +473,7 @@ FC_API( sophiatx::wallet::alexandria_api,
         (send_and_sign_operation)
         (send_and_sign_transaction)
         (verify_signature)
+        (generate_key_pair)
+        (generate_key_pair_from_brain_key)
       )
 
