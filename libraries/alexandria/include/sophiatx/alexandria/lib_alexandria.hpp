@@ -57,7 +57,7 @@ class alexandria_api
       /** Returns info such as client version, git version of graphene/fc, version of boost, openssl.
        * @returns compile time info and client and dependencies versions
        */
-      variant_object                      about() const;
+      variant_object                      about();
 
       /** Returns the information about a block
        *
@@ -374,14 +374,14 @@ class alexandria_api
       /**
        * Creating single operation form vector of operations
        * @param op_vec Vector of operations that should be in this transaction
-       * @return signle transaction with all the operations
+       * @return single transaction with all the operations
        */
       signed_transaction create_transaction(vector<operation> op_vec) const;
 
       /**
        * Creating single operation form operation
        * @param op operation that should be in this transaction
-       * @return signle transaction with all the operations
+       * @return single transaction with all the operations
        */
       signed_transaction create_simple_transaction(operation op) const;
 
@@ -391,6 +391,18 @@ class alexandria_api
       * @return array of application objects
       */
       vector< condenser_api::api_application_object >  get_applications(vector<string> names);
+
+      digest_type get_transaction_digest(signed_transaction tx);
+
+      signed_transaction add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const;
+
+      fc::ecc::compact_signature sign_digest(digest_type digest, string pk) const;
+
+      annotated_signed_transaction send_and_sign_operation(operation op, string pk);
+
+      annotated_signed_transaction send_and_sign_transaction(signed_transaction tx, string pk);
+
+      bool verify_signature(digest_type digest, public_key_type pub_key, fc::ecc::compact_signature signature) const;
 };
 
 } }
@@ -442,5 +454,13 @@ FC_API( sophiatx::wallet::alexandria_api,
         (make_custom_json_operation)
         (make_custom_binary_operation)
         (get_received_documents)
+
+        ///local api
+        (get_transaction_digest)
+        (add_signature)
+        (sign_digest)
+        (send_and_sign_operation)
+        (send_and_sign_transaction)
+        (verify_signature)
       )
 

@@ -82,7 +82,7 @@ public:
       return result;
    }
 
-   variant_object about() const
+   variant_object about()
    {
       string client_version( sophiatx::utilities::git_revision_description );
       const size_t pos = client_version.find( '/' );
@@ -119,6 +119,7 @@ public:
          result["server_sophiatx_revision"] = v.sophiatx_revision;
          result["server_fc_revision"] = v.fc_revision;
          result["chain_id"] = v.chain_id;
+         _chain_id = fc::sha256(v.chain_id);
       }
       catch( fc::exception& )
       {
@@ -208,7 +209,7 @@ public:
 
    fc::api< remote_node_api >              _remote_api;
    uint32_t                                _tx_expiration_seconds = 30;
-
+   chain_id_type                           _chain_id;
 
 #ifdef __unix__
    mode_t                  _old_umask;
@@ -251,7 +252,7 @@ variant alexandria_api::info()
    return my->info();
 }
 
-variant_object alexandria_api::about() const
+variant_object alexandria_api::about()
 {
     return my->about();
 }
@@ -652,6 +653,54 @@ vector<condenser_api::api_application_object> alexandria_api::get_applications(v
    try{
       return my->_remote_api->get_applications(names);
    }FC_CAPTURE_AND_RETHROW((names))
+}
+
+digest_type alexandria_api::get_transaction_digest(signed_transaction tx) {
+   try{
+      if(my->_chain_id == fc::sha256())
+      {
+         auto v = my->_remote_api->get_version();
+         my->_chain_id = fc::sha256(v.chain_id);
+      }
+      return tx.sig_digest(my->_chain_id);
+   }FC_CAPTURE_AND_RETHROW((tx))
+}
+
+signed_transaction alexandria_api::add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const {
+   try{
+      tx.signatures.push_back(signature);
+      return  tx;
+   }FC_CAPTURE_AND_RETHROW((tx)(signature))
+}
+
+fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, string pk) const {
+   try{
+      auto priv_key = *sophiatx::utilities::wif_to_key(pk);
+      return priv_key.sign_compact(digest);
+   }FC_CAPTURE_AND_RETHROW((digest)(pk))
+}
+
+annotated_signed_transaction alexandria_api::send_and_sign_operation(operation op, string pk) {
+   try{
+      auto tx = create_simple_transaction(op);
+      broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
+   }FC_CAPTURE_AND_RETHROW((op)(pk))
+}
+
+annotated_signed_transaction alexandria_api::send_and_sign_transaction(signed_transaction tx, string pk){
+   try{
+      broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
+   }FC_CAPTURE_AND_RETHROW((tx)(pk))
+}
+
+bool alexandria_api::verify_signature(digest_type digest, public_key_type pub_key,
+                                      fc::ecc::compact_signature signature) const {
+   try{
+      if(pub_key == fc::ecc::public_key(signature, digest)) {
+         return true;
+      }
+      return  false;
+   }FC_CAPTURE_AND_RETHROW((digest)(pub_key)(signature))
 }
 } } // sophiatx::wallet
 
