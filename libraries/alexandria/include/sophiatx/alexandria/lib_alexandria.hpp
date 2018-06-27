@@ -398,20 +398,63 @@ class alexandria_api
       */
       vector< condenser_api::api_application_object >  get_applications(vector<string> names);
 
+      /**
+       * Calculates digest of provided transaction
+       * @param tx - transaction to be digested
+       * @return transaction digest
+       */
       digest_type get_transaction_digest(signed_transaction tx);
 
+      /**
+       * Adds signature to transaction
+       * @param tx - transaction to be signed
+       * @param signature - signature that will be add to transaction
+       * @return signed transaction
+       */
       signed_transaction add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const;
 
+      /**
+       * Sign digest with providet private key
+       * @param digest - digest fo transaction
+       * @param pk - private key for signing (in WIF format)
+       * @return signature of digest
+       */
       fc::ecc::compact_signature sign_digest(digest_type digest, string pk) const;
 
+      /**
+       * This function will create transaction of this operation, sign it with key and broadcast to node
+       * @param op - operation to be send
+       * @param pk - private key for signing
+       */
       annotated_signed_transaction send_and_sign_operation(operation op, string pk);
 
+      /**
+       * This function will sign and broadcast transaction
+       * @param tx - transaction to be send
+       * @param pk - private key for signing
+       */
       annotated_signed_transaction send_and_sign_transaction(signed_transaction tx, string pk);
 
+      /**
+       * Verify signature
+       * @param digest - digest corresponding to signature
+       * @param pub_key - public key corresponding to private_key, that signed digest
+       * @param signature - signature to be verified
+       * @return true if is velid
+       */
       bool verify_signature(digest_type digest, public_key_type pub_key, fc::ecc::compact_signature signature) const;
 
+      /**
+       * Generates key pair
+       * @return pair of keys
+       */
       key_pair generate_key_pair() const;
 
+      /**
+       * Generates key pair based on brain key
+       * @param brain_key - brain key for generating key pair
+       * @return pair of keys
+       */
       key_pair generate_key_pair_from_brain_key(string brain_key) const;
 };
 
