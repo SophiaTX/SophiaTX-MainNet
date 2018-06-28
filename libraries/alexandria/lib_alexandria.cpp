@@ -30,7 +30,7 @@
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/smart_ref_impl.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 using sophiatx::plugins::condenser_api::legacy_asset;
 
@@ -216,11 +216,11 @@ public:
 #endif
 };
 
-} } } // sophiatx::wallet::detail
+} } } // sophiatx::alexandria::detail
 
 
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 alexandria_api::alexandria_api(fc::api< remote_node_api > rapi)
    : my(new detail::alexandria_api_impl(*this, rapi))
@@ -720,5 +720,5 @@ key_pair alexandria_api::generate_key_pair_from_brain_key(string brain_key) cons
    return kp;
 }
 
-} } // sophiatx::wallet
+} } // sophiatx::alexandria
 

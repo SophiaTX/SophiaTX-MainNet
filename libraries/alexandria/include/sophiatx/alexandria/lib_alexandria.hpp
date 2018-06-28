@@ -9,7 +9,7 @@
 #include <fc/crypto/base58.hpp>
 #include <fc/api.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 using namespace std;
 
@@ -46,7 +46,7 @@ class alexandria_api
       alexandria_api( fc::api< remote_node_api > rapi );
       virtual ~alexandria_api();
 
-      /** Returns a list of all commands supported by the wallet API.
+      /** Returns a list of all commands supported by the alexandria API.
        *
        * This lists each command, along with its arguments and return types.
        * For more detailed help on a single command, use \c get_help()
@@ -123,8 +123,8 @@ class alexandria_api
       /**
        * This method is used by faucets to create new accounts for other users which must
        * provide their desired keys. The resulting account may not be controllable by this
-       * wallet. There is a fee associated with account creation that is paid by the creator.
-       * The current account creation fee can be found with the 'info' wallet command.
+       * alexandria. There is a fee associated with account creation that is paid by the creator.
+       * The current account creation fee can be found with the 'info' alexandria command.
        *
        * @param creator The account creating the new account
        * @param newname The name of the new account
@@ -278,7 +278,7 @@ class alexandria_api
       /**
       *  This method will create new application object. There is a fee associated with account creation
       *  that is paid by the creator. The current account creation fee can be found with the
-      *  'info' wallet command.
+      *  'info' alexandria command.
       *
       *  @param author The account creating the new application
       *  @param app_name The unique name for new application
@@ -440,7 +440,7 @@ class alexandria_api
        * @param digest - digest corresponding to signature
        * @param pub_key - public key corresponding to private_key, that signed digest
        * @param signature - signature to be verified
-       * @return true if is velid
+       * @return true if is valid
        */
       bool verify_signature(digest_type digest, public_key_type pub_key, fc::ecc::compact_signature signature) const;
 
@@ -460,11 +460,11 @@ class alexandria_api
 
 } }
 
-FC_REFLECT_ENUM( sophiatx::wallet::authority_type, (owner)(active) )
-FC_REFLECT( sophiatx::wallet::key_pair, (pub_key)(wif_priv_key) )
+FC_REFLECT_ENUM( sophiatx::alexandria::authority_type, (owner)(active) )
+FC_REFLECT( sophiatx::alexandria::key_pair, (pub_key)(wif_priv_key) )
 
-FC_API( sophiatx::wallet::alexandria_api,
-        /// wallet api
+FC_API( sophiatx::alexandria::alexandria_api,
+        /// alexandria api
         (help)(gethelp)
         (about)
 

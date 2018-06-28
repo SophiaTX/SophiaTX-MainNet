@@ -1,7 +1,7 @@
 #pragma once
 #include <sophiatx/plugins/condenser_api/condenser_api.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 using std::vector;
 using fc::variant;
@@ -17,7 +17,7 @@ using namespace plugins::market_history;
 using namespace plugins::witness;*/
 
 /**
- * This is a dummy API so that the wallet can create properly formatted API calls
+ * This is a dummy API so that the alexandria can create properly formatted API calls
  */
 struct remote_node_api
 {
@@ -71,7 +71,7 @@ struct remote_node_api
 
 } }
 
-FC_API( sophiatx::wallet::remote_node_api,
+FC_API( sophiatx::alexandria::remote_node_api,
         (get_version)
         (get_state)
         (get_active_witnesses)

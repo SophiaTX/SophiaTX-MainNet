@@ -24,10 +24,10 @@
 #pragma once
 
 // This file contains various reflection methods that are used to
-// support the wallet, e.g. allow specifying operations by name
+// support the alexandria, e.g. allow specifying operations by name
 // instead of ID.
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 struct static_variant_map
 {
@@ -119,4 +119,4 @@ static_variant_map create_static_variant_map()
    return vtor.m;
 }
 
-} } // namespace sophiatx::wallet
+} } // namespace sophiatx::alexandria

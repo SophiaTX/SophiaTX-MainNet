@@ -56,7 +56,7 @@
 
 using namespace sophiatx::utilities;
 using namespace sophiatx::chain;
-using namespace sophiatx::wallet;
+using namespace sophiatx::alexandria;
 using namespace std;
 namespace bpo = boost::program_options;
 
@@ -68,9 +68,9 @@ int main( int argc, char** argv )
          opts.add_options()
          ("help,h", "Print this help message and exit.")
          ("server-rpc-endpoint,s", bpo::value<string>()->implicit_value("ws://127.0.0.1:8090"), "Server websocket RPC endpoint")
-         ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:8091"), "Endpoint for wallet websocket RPC to listen on")
-         ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for wallet HTTP RPC to listen on")
-         ("daemon,d", "Run the wallet in daemon mode" );
+         ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:8091"), "Endpoint for alexandria websocket RPC to listen on")
+         ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for alexandria HTTP RPC to listen on")
+         ("daemon,d", "Run the alexandria in daemon mode" );
 
       bpo::variables_map options;
 
@@ -113,7 +113,7 @@ int main( int argc, char** argv )
       auto con  = client.connect( ws_server );
       auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
 
-      auto remote_api = apic->get_remote_api< sophiatx::wallet::remote_node_api >( 0, "condenser_api" );
+      auto remote_api = apic->get_remote_api< sophiatx::alexandria::remote_node_api >( 0, "condenser_api" );
 
       auto alex_apiptr = std::make_shared<alexandria_api>( remote_api );
 
