@@ -242,11 +242,6 @@ vector< account_name_type > alexandria_api::get_active_witnesses()const {
    return my->_remote_api->get_active_witnesses();
 }
 
-string alexandria_api::serialize_transaction( signed_transaction tx )const
-{
-   return fc::to_hex(fc::raw::pack_to_vector(tx));
-}
-
 variant alexandria_api::info()
 {
    return my->info();
@@ -718,6 +713,68 @@ key_pair alexandria_api::generate_key_pair_from_brain_key(string brain_key) cons
    kp.pub_key = priv_key.get_public_key();
    kp.wif_priv_key = key_to_wif(priv_key);
    return kp;
+}
+
+public_key_type alexandria_api::get_public_key(string private_key) const {
+   try{
+      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+      return priv_key.get_public_key();
+   }FC_CAPTURE_AND_RETHROW((private_key))
+}
+
+std::vector<char> alexandria_api::from_base58(string data) const {
+   return fc::from_base58(data);
+}
+
+string alexandria_api::to_base58(std::vector<char> data) const {
+   return fc::to_base58(data);
+}
+
+string alexandria_api::encrypt_data(string data, public_key_type public_key, string private_key) const {
+   try {
+      memo_data m;
+
+      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+
+      m.nonce = fc::time_point::now().time_since_epoch().count();
+
+      auto shared_secret = priv_key.get_shared_secret( public_key );
+
+      fc::sha512::encoder enc;
+      fc::raw::pack( enc, m.nonce );
+      fc::raw::pack( enc, shared_secret );
+      auto encrypt_key = enc.result();
+
+      m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(data) );
+      m.check = fc::sha256::hash( encrypt_key )._hash[0];
+      return string(m);
+   } FC_CAPTURE_AND_RETHROW((data)(public_key)(private_key))
+}
+
+string alexandria_api::decrypt_data(string data, public_key_type public_key, string private_key) const {
+   try {
+      auto m = memo_data::from_string( data );
+
+      FC_ASSERT(m , "Can not parse input!");
+
+      fc::sha512 shared_secret;
+      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+
+      shared_secret = priv_key.get_shared_secret(public_key);
+
+      fc::sha512::encoder enc;
+      fc::raw::pack(enc, m->nonce);
+      fc::raw::pack(enc, shared_secret);
+      auto encryption_key = enc.result();
+
+      uint64_t check = fc::sha256::hash(encryption_key)._hash[ 0 ];
+
+      FC_ASSERT(check == m->check, "Checksum does not match!");
+
+      vector<char> decrypted = fc::aes_decrypt(encryption_key, m->encrypted);
+      return fc::raw::unpack_from_vector<std::string>(decrypted);
+
+   } FC_CAPTURE_AND_RETHROW((data)(public_key)(private_key))
 }
 
 } } // sophiatx::alexandria

@@ -36,6 +36,31 @@ enum authority_type
    active
 };
 
+struct memo_data {
+
+   static fc::optional<memo_data> from_string( string str ) {
+      try {
+         if( str.size() > sizeof(memo_data)) {
+            auto data = fc::from_base58( str );
+            auto m  = fc::raw::unpack_from_vector<memo_data>( data );
+            FC_ASSERT( string(m) == str );
+            return m;
+         }
+      } catch ( ... ) {}
+      return fc::optional<memo_data>();
+   }
+
+   int64_t         nonce = 0;
+   uint64_t        check = 0;
+   vector<char>    encrypted;
+
+   operator string()const {
+      auto data = fc::raw::pack_to_vector(*this);
+      auto base58 = fc::to_base58( data );
+      return base58;
+   }
+};
+
 namespace detail {
 class alexandria_api_impl;
 }
@@ -108,17 +133,6 @@ class alexandria_api
        * @returns a multi-line string suitable for displaying on a terminal
        */
       string  gethelp(const string& method)const;
-
-      /** Converts a signed_transaction in JSON form to its binary representation.
-       *
-       * TODO: I don't see a broadcast_transaction() function, do we need one?
-       *
-       * @param tx the transaction to serialize
-       * @returns the binary form of the transaction.  It will not be hex encoded,
-       *          this returns a raw string that may have null characters embedded
-       *          in it
-       */
-      string serialize_transaction(signed_transaction tx) const;
 
       /**
        * This method is used by faucets to create new accounts for other users which must
@@ -456,12 +470,54 @@ class alexandria_api
        * @return pair of keys
        */
       key_pair generate_key_pair_from_brain_key(string brain_key) const;
+
+      /**
+       * Returns public key to provided private key
+       * @param private_key
+       * @return
+       */
+      public_key_type get_public_key(string private_key) const;
+
+      /**
+       * Decode data to base58
+       * @param data - data to decode
+       * @return
+       */
+      std::vector<char> from_base58(string data) const;
+
+      /**
+       * Encode data to base58
+       * @param data - data to encode
+       * @return
+       */
+      string to_base58(std::vector<char> data) const;
+
+      /**
+       * Encrypt data
+       * @param data - data to encrypt
+       * @param public_key - public key of recipient
+       * @param private_key - private key of sender
+       * @return encrypted data
+       */
+      string encrypt_data(string data, public_key_type public_key, string private_key) const;
+
+      /**
+       * Decrypt data
+       * @param data - data to decrypt
+       * @param public_key - public key of sender
+       * @param private_key - private key of recipient
+       * @return decrypted data
+       */
+      string decrypt_data(string data, public_key_type public_key, string private_key) const;
+
+
 };
 
 } }
 
 FC_REFLECT_ENUM( sophiatx::alexandria::authority_type, (owner)(active) )
 FC_REFLECT( sophiatx::alexandria::key_pair, (pub_key)(wif_priv_key) )
+FC_REFLECT( sophiatx::alexandria::memo_data, (nonce)(check)(encrypted) )
 
 FC_API( sophiatx::alexandria::alexandria_api,
         /// alexandria api
@@ -478,6 +534,9 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (get_feed_history)
         (get_application_buyings)
         (get_applications)
+        (get_received_documents)
+        (get_active_witnesses)
+        (get_transaction)
 
         /// transaction api
         (create_account)
@@ -496,18 +555,13 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (buy_application)
         (cancel_application_buying)
 
+        (make_custom_json_operation)
+        (make_custom_binary_operation)
+
         /// helper api
-        (serialize_transaction)
         (broadcast_transaction)
         (create_transaction)
         (create_simple_transaction)
-
-        (get_active_witnesses)
-        (get_transaction)
-
-        (make_custom_json_operation)
-        (make_custom_binary_operation)
-        (get_received_documents)
 
         ///local api
         (get_transaction_digest)
@@ -518,5 +572,10 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (verify_signature)
         (generate_key_pair)
         (generate_key_pair_from_brain_key)
+        (get_public_key)
+        (from_base58)
+        (to_base58)
+        (encrypt_data)
+        (decrypt_data)
       )
 
