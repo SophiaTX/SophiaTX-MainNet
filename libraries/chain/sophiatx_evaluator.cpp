@@ -228,7 +228,7 @@ void verify_authority_accounts_exist(
 }
 
 void account_create_evaluator::do_apply( const account_create_operation& o )
-{try{
+{
    const auto& creator = _db.get_account( o.creator );
 
    std::string new_account_name_s = sophiatx::protocol::account_name_type::make_random_fixed_string(o.name_seed);
@@ -278,7 +278,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       _db.adjust_balance(new_account, excess_fee);
       _db.adjust_balance(creator, -excess_fee);
    }
-}FC_LOG_AND_RETHROW()}
+}
 
 
 void account_update_evaluator::do_apply( const account_update_operation& o )

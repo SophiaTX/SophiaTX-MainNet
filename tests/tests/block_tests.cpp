@@ -267,7 +267,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
 
       auto alice_id = db1.get_account( AN("alice") ).id;
-      BOOST_CHECK( db1.get(alice_id).name == "alice" );
+      BOOST_CHECK( db1.get(alice_id).name == AN("alice") );
 
       b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       db1.push_block(b);
@@ -283,8 +283,8 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       db1.push_block(b);
 
-      BOOST_CHECK( db1.get(alice_id).name == "alice");
-      BOOST_CHECK( db2.get(alice_id).name == "alice");
+      BOOST_CHECK( db1.get(alice_id).name == AN("alice"));
+      BOOST_CHECK( db2.get(alice_id).name == AN("alice"));
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -325,7 +325,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       trx = decltype(trx)();
       transfer_operation t;
       t.from = SOPHIATX_INIT_MINER_NAME;
-      t.to = "alice";
+      t.to = AN("alice");
       t.amount = asset(500,SOPHIATX_SYMBOL);
       t.fee = asset(100000, SOPHIATX_SYMBOL);
       trx.operations.push_back(t);
@@ -340,8 +340,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       SOPHIATX_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
       SOPHIATX_CHECK_THROW(PUSH_TX( db2, trx, skip_sigs ), fc::exception);
-      BOOST_CHECK_EQUAL(db1.get_balance( "alice", SOPHIATX_SYMBOL ).amount.value, 500);
-      BOOST_CHECK_EQUAL(db2.get_balance( "alice", SOPHIATX_SYMBOL ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db1.get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db2.get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE( tapos )
 
       transfer_operation t;
       t.from = SOPHIATX_INIT_MINER_NAME;
-      t.to = "alice";
+      t.to = AN("alice");
       t.amount = asset(50,SOPHIATX_SYMBOL);
       trx.operations.push_back(t);
       trx.set_expiration( db1.head_block_time() + fc::seconds(2) );
@@ -409,17 +409,17 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
 {
    try
    {
-      idump((db->get_account(AN("initminer"))));
+      idump((db->get_account("initminer")));
       ACTORS( (alice)(bob) );
 
       generate_block();
 
       BOOST_TEST_MESSAGE( "Create transaction" );
 
-      transfer( SOPHIATX_INIT_MINER_NAME, "alice", asset( 1000000, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, AN("alice"), asset( 1000000, SOPHIATX_SYMBOL ) );
       transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.fee = asset(100000, SOPHIATX_SYMBOL);
       op.amount = asset(1000,SOPHIATX_SYMBOL);
       signed_transaction tx;
@@ -483,7 +483,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
 
    transfer_operation t;
    t.from = SOPHIATX_INIT_MINER_NAME;
-   t.to = "bob";
+   t.to = AN("bob");
    t.fee = ASSET( "0.100000 SPHTX" );
    t.amount = asset(amount*2,SOPHIATX_SYMBOL);
    trx.operations.push_back(t);
@@ -493,7 +493,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    db->push_transaction(trx, ~0);
 
    trx.operations.clear();
-   t.from = "bob";
+   t.from = AN("bob");
    t.to = SOPHIATX_INIT_MINER_NAME;
    t.amount = asset(amount,SOPHIATX_SYMBOL);
    trx.operations.push_back(t);
@@ -540,9 +540,9 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, clean_database_fixture )
       transaction tx;
       signed_transaction ptx;
 
-      db->get_account(AN( SOPHIATX_INIT_MINER_NAME ));
+      db->get_account( SOPHIATX_INIT_MINER_NAME );
       // transfer from committee account to Sam account
-      transfer( SOPHIATX_INIT_MINER_NAME, "sam", asset( 100000, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, AN("sam"), asset( 100000, SOPHIATX_SYMBOL ) );
 
       generate_block(skip_flags);
 
@@ -756,9 +756,9 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
       {
          account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-         fund( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-         vest( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-         witness_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+         fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
       }
 
       validate_database();

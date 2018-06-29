@@ -389,7 +389,7 @@ void database_fixture::fund(
    {
       db_plugin->debug_update( [=]( database& db)
       {
-         db.modify( db.get_account( AN(account_name) ), [&]( account_object& a )
+         db.modify( db.get_account( account_name ), [&]( account_object& a )
          {
             if( amount.symbol == SOPHIATX_SYMBOL )
                a.balance += amount;
@@ -489,7 +489,7 @@ void database_fixture::set_witness_props( const flat_map< string, vector< char >
    for( size_t i = 1; i < 8; i++ )
    {
       witness_set_properties_operation op;
-      op.owner = SOPHIATX_INIT_MINER_NAME + fc::to_string( i );
+      op.owner = AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i ));
       op.props = props;
 
       if( op.props.find( "key" ) == op.props.end() )

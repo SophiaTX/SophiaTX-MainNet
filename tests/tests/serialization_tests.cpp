@@ -75,8 +75,8 @@ BOOST_AUTO_TEST_CASE( serialization_raw_test )
    try {
       ACTORS( (alice)(bob) )
       transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.amount = asset(100,SOPHIATX_SYMBOL);
 
       trx.operations.push_back( op );
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE( serialization_json_test )
    try {
       ACTORS( (alice)(bob) )
       transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.amount = asset(100,SOPHIATX_SYMBOL);
 
       fc::variant test(op.amount);
@@ -531,15 +531,15 @@ BOOST_AUTO_TEST_CASE( legacy_signed_transaction )
 
    signed_transaction tx;
    transfer_operation op;
-   op.from = "alice";
-   op.to = "bob";
+   op.from = AN("alice");
+   op.to = AN("bob");
    op.amount = asset( 50, SOPHIATX_SYMBOL );
    tx.ref_block_num = 4000;
    tx.ref_block_prefix = 4000000000;
    tx.expiration = fc::time_point_sec( 1514764800 );
    tx.operations.push_back( op );
 
-   signed_transaction tx2 = signed_transaction( fc::json::from_string( "{\"ref_block_num\":4000,\"ref_block_prefix\":4000000000,\"expiration\":\"2018-01-01T00:00:00\",\"operations\":[[\"transfer\",{\"from\":\"alice\",\"to\":\"bob\",\"amount\":\"0.000050 SPHTX\"}]],\"extensions\":[],\"signatures\":[\"\"]}" ).as< legacy_signed_transaction >() );
+   signed_transaction tx2 = signed_transaction( fc::json::from_string( "{\"ref_block_num\":4000,\"ref_block_prefix\":4000000000,\"expiration\":\"2018-01-01T00:00:00\",\"operations\":[[\"transfer\",{\"from\":\"3CTX5kVeSbUCDb8DS3gpx87qa6wB\",\"to\":\"4MNkc6AEAmUEJgLgZaKZEhi38yTF\",\"amount\":\"0.000050 SPHTX\"}]],\"extensions\":[],\"signatures\":[\"\"]}" ).as< legacy_signed_transaction >() );
 
    BOOST_REQUIRE( tx.id() == tx2.id() );
 }
