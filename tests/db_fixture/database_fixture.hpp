@@ -64,6 +64,9 @@ extern uint32_t ( SOPHIATX_TESTING_GENESIS_TIMESTAMP );
          << req_throw_info << std::endl;                  \
 }*/
 
+#define AN( name)                                         \
+   sophiatx::protocol::make_random_fixed_string( name )
+
 #define SOPHIATX_REQUIRE_THROW( expr, exc_type )          \
    BOOST_REQUIRE_THROW( expr, exc_type );
 
@@ -125,7 +128,7 @@ extern uint32_t ( SOPHIATX_TESTING_GENESIS_TIMESTAMP );
 
 #define GET_ACTOR(name) \
    fc::ecc::private_key name ## _private_key = generate_private_key(BOOST_PP_STRINGIZE(name)); \
-   const account_object& name = get_account(BOOST_PP_STRINGIZE(name)); \
+   const account_object& name = get_account(AN(BOOST_PP_STRINGIZE(name))); \
    account_id_type name ## _id = name.id; \
    (void)name ##_id
 

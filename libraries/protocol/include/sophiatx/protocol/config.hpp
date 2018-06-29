@@ -208,7 +208,7 @@
 #define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
 #define SOPHIATX_FEED_HISTORY_WINDOW             (12*7) // 3.5 days
 #define SOPHIATX_MAX_FEED_AGE_SECONDS            (60*60*24*7) // 7 days
-#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/3) /// protects the network from conversions before price has been established
+#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/5) /// protects the network from conversions before price has been established
 
 #define SOPHIATX_MIN_UNDO_HISTORY                10
 #define SOPHIATX_MAX_UNDO_HISTORY                10000
@@ -235,7 +235,7 @@
 /// Represents the current witnesses
 #define SOPHIATX_MINER_ACCOUNT                   "miners"
 /// Represents the canonical account with NO authority (nobody can access funds in null account)
-#define SOPHIATX_NULL_ACCOUNT                    "null"
+#define SOPHIATX_NULL_ACCOUNT                    "none"
 /// Represents the canonical account with WILDCARD authority (anybody can access funds in temp account)
 #define SOPHIATX_TEMP_ACCOUNT                    "temp"
 /// Represents the canonical account for specifying you will vote for directly (as opposed to a proxy)

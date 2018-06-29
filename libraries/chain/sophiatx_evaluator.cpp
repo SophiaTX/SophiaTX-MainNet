@@ -231,6 +231,9 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 {
    const auto& creator = _db.get_account( o.creator );
 
+   std::string new_account_name_s = sophiatx::protocol::make_random_fixed_string(o.name_seed);
+   account_name_type new_account_name = new_account_name_s;
+
    const auto& props = _db.get_dynamic_global_properties();
 
    FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
@@ -241,13 +244,13 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
               ("f", required_fee ) ("p", o.fee) );
 
    asset excess_fee = o.fee - required_fee;
-   verify_authority_accounts_exist( _db, o.owner, o.new_account_name, authority::owner );
-   verify_authority_accounts_exist( _db, o.active, o.new_account_name, authority::active );
+   verify_authority_accounts_exist( _db, o.owner, new_account_name, authority::owner );
+   verify_authority_accounts_exist( _db, o.active, new_account_name, authority::active );
 
 
    const auto& new_account = _db.create< account_object >( [&]( account_object& acc )
    {
-      acc.name = o.new_account_name;
+      acc.name = new_account_name;
       acc.memo_key = o.memo_key;
       acc.created = props.time;
       acc.mined = false;
@@ -262,7 +265,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    _db.create< account_authority_object >( [&]( account_authority_object& auth )
    {
-      auth.account = o.new_account_name;
+      auth.account = new_account_name;
       auth.owner = o.owner;
       auth.active = o.active;
       auth.last_owner_update = fc::time_point_sec::min();

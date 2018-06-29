@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_CASE( account_create_authorities )
       BOOST_TEST_MESSAGE( "Testing: account_create_authorities" );
 
       account_create_operation op;
-      op.creator = "alice";
-      op.new_account_name = "bob";
+      op.creator = AN("alice");
+      op.name_seed = "bob";
 
       flat_set< account_name_type > auths;
       flat_set< account_name_type > expected;
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE( account_create_authorities )
       BOOST_REQUIRE( auths == expected );
 
       BOOST_TEST_MESSAGE( "--- Testing active authority" );
-      expected.insert( "alice" );
+      expected.insert( AN("alice") );
       op.get_required_active_authorities( auths );
       BOOST_REQUIRE( auths == expected );
 
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       account_create_operation op;
 
       op.fee = ASSET( "0.100000 SPHTX" );
-      op.new_account_name = "alice";
+      op.name_seed = "alice";
       op.creator = SOPHIATX_INIT_MINER_NAME;
       op.owner = authority( 1, priv_key.get_public_key(), 1 );
       op.active = authority( 2, priv_key.get_public_key(), 2 );
@@ -97,10 +97,10 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       db->push_transaction( tx, 0 );
 
 
-      const account_object& acct = db->get_account( "alice" );
-      const account_authority_object& acct_auth = db->get< account_authority_object, by_account >( "alice" );
+      const account_object& acct = db->get_account( AN("alice") );
+      const account_authority_object& acct_auth = db->get< account_authority_object, by_account >( AN("alice") );
 
-      BOOST_REQUIRE( acct.name == "alice" );
+      BOOST_REQUIRE( acct.name == AN("alice") );
       BOOST_REQUIRE( acct_auth.owner == authority( 1, priv_key.get_public_key(), 1 ) );
       BOOST_REQUIRE( acct_auth.active == authority( 2, priv_key.get_public_key(), 2 ) );
       BOOST_REQUIRE( acct.memo_key == priv_key.get_public_key() );
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_TEST_MESSAGE( "--- Test failure of duplicate account creation" );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
-      BOOST_REQUIRE( acct.name == "alice" );
+      BOOST_REQUIRE( acct.name == AN("alice") );
       BOOST_REQUIRE( acct_auth.owner == authority( 1, priv_key.get_public_key(), 1 ) );
       BOOST_REQUIRE( acct_auth.active == authority( 2, priv_key.get_public_key(), 2 ) );
       BOOST_REQUIRE( acct.memo_key == priv_key.get_public_key() );
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       tx.signatures.clear();
       tx.operations.clear();
       op.fee = asset( db->get_account( SOPHIATX_INIT_MINER_NAME ).balance.amount + 1, SOPHIATX_SYMBOL );
-      op.new_account_name = "bob";
+      op.name_seed = "bob";
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -174,10 +174,10 @@ BOOST_AUTO_TEST_CASE( account_update_validate )
       ACTORS( (alice) )
 
       account_update_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       op.active = authority();
       op.active->weight_threshold = 1;
-      op.active->add_authorities( "abcdefghijklmnopq", 1 );
+      op.active->add_authorities( AN("abcdefghijklmnopq"), 1 );
 
       try
       {
@@ -207,13 +207,13 @@ BOOST_AUTO_TEST_CASE( account_update_authorities )
       ACTORS( (alice)(bob) )
       private_key_type active_key = generate_private_key( "new_key" );
 
-      db->modify( db->get< account_authority_object, by_account >( "alice" ), [&]( account_authority_object& a )
+      db->modify( db->get< account_authority_object, by_account >( AN("alice") ), [&]( account_authority_object& a )
       {
          a.active = authority( 1, active_key.get_public_key(), 1 );
       });
 
       account_update_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       op.json_metadata = "{\"success\":true}";
 
       signed_transaction tx;
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       BOOST_TEST_MESSAGE( "--- Test normal update" );
 
       account_update_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       op.owner = authority( 1, new_private_key.get_public_key(), 1 );
       op.active = authority( 2, new_private_key.get_public_key(), 2 );
       op.memo_key = new_private_key.get_public_key();
@@ -305,10 +305,10 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      const account_object& acct = db->get_account( "alice" );
-      const account_authority_object& acct_auth = db->get< account_authority_object, by_account >( "alice" );
+      const account_object& acct = db->get_account( AN("alice") );
+      const account_authority_object& acct_auth = db->get< account_authority_object, by_account >( AN("alice") );
 
-      BOOST_REQUIRE( acct.name == "alice" );
+      BOOST_REQUIRE( acct.name == AN("alice") );
       BOOST_REQUIRE( acct_auth.owner == authority( 1, new_private_key.get_public_key(), 1 ) );
       BOOST_REQUIRE( acct_auth.active == authority( 2, new_private_key.get_public_key(), 2 ) );
       BOOST_REQUIRE( acct.memo_key == new_private_key.get_public_key() );
@@ -326,7 +326,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when updating a non-existent account" );
       tx.operations.clear();
       tx.signatures.clear();
-      op.account = "bob";
+      op.account = AN("bob");
       tx.operations.push_back( op );
       tx.sign( new_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception )
@@ -336,7 +336,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when account authority does not exist" );
       tx.clear();
       op = account_update_operation();
-      op.account = "alice";
+      op.account = AN("alice");
       op.active = authority();
       op.active->weight_threshold = 1;
       op.active->add_authorities( "dave", 1 );
@@ -355,13 +355,13 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       BOOST_TEST_MESSAGE( "Testing: account_delete_apply" );
 
       ACTORS( (alice)(bob) )
-      const auto& alice_auth = db->get< account_authority_object, by_account >( "alice" );
-      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
+      const auto& alice_auth = db->get< account_authority_object, by_account >( AN("alice") );
+      const auto& bob_auth = db->get< account_authority_object, by_account >( AN("bob") );
 
       BOOST_TEST_MESSAGE( "--- Test normal delete" );
 
       account_delete_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       authority a(1, public_key_type(), 1);
 
       signed_transaction tx;
@@ -372,8 +372,8 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
 
       validate_database();
 
-      const auto& new_alice = db->get_account( "alice" );
-      const auto& new_alice_auth = db->get< account_authority_object, by_account >( "alice" );
+      const auto& new_alice = db->get_account( AN("alice") );
+      const auto& new_alice_auth = db->get< account_authority_object, by_account >( AN("alice") );
       BOOST_REQUIRE( new_alice_auth.owner == a );
       BOOST_REQUIRE( new_alice_auth.active == a );
       BOOST_REQUIRE( new_alice.memo_key == public_key_type() );
@@ -382,7 +382,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when deleting account without owner authorities");
       tx.operations.clear();
       tx.signatures.clear();
-      op.account = "bob";
+      op.account = AN("bob");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -392,7 +392,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when account does not exist" );
       tx.clear();
       op = account_delete_operation();
-      op.account = "alice2";
+      op.account = AN("alice2");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -418,13 +418,13 @@ BOOST_AUTO_TEST_CASE( transfer_authorities )
    try
    {
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000000 );
+      fund( AN("alice"), 10000000 );
 
       BOOST_TEST_MESSAGE( "Testing: transfer_authorities" );
 
       transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.fee = asset(100000, SOPHIATX_SYMBOL);
       op.amount = ASSET( "2.500 SPHTX" );
 
@@ -466,11 +466,11 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       // Sam shouldn't be able to add or remove signatures to get the transaction to process multiple times.
 
       ACTORS( (alice)(bob)(sam)(corp) )
-      fund( "corp", 10000000 );
+      fund( AN("corp"), 10000000 );
 
       account_update_operation update_op;
-      update_op.account = "corp";
-      update_op.active = authority( 2, "alice", 1, "bob", 1, "sam", 1 );
+      update_op.account = AN("corp");
+      update_op.active = authority( 2, AN("alice"), 1, AN("bob"), 1, AN("sam"), 1 );
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -483,8 +483,8 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       tx.signatures.clear();
 
       transfer_operation transfer_op;
-      transfer_op.from = "corp";
-      transfer_op.to = "sam";
+      transfer_op.from = AN("corp");
+      transfer_op.to = AN("sam");
       transfer_op.fee = ASSET( "0.100000 SPHTX" );
       transfer_op.amount = ASSET( "1.000000 SPHTX" );
 
@@ -519,7 +519,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       BOOST_TEST_MESSAGE( "Testing: transfer_apply" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", 10200000 );
+      fund( AN("alice"), 10200000 );
 
       BOOST_REQUIRE( alice.balance.amount.value == ASSET( "10.200000 SPHTX" ).amount.value );
       BOOST_REQUIRE( bob.balance.amount.value == ASSET(" 0.000000 SPHTX" ).amount.value );
@@ -527,8 +527,8 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       signed_transaction tx;
       transfer_operation op;
 
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.fee = ASSET( "0.100000 SPHTX" );
       op.amount = ASSET( "5.000000 SPHTX" );
 
@@ -545,8 +545,8 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       BOOST_TEST_MESSAGE( "--- Generating a block" );
       generate_block();
 
-      const auto& new_alice = db->get_account( "alice" );
-      const auto& new_bob = db->get_account( "bob" );
+      const auto& new_alice = db->get_account( AN("alice") );
+      const auto& new_bob = db->get_account( AN("bob") );
 
       BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "5.100000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "5.110000 SPHTX" ).amount.value );
       BOOST_REQUIRE( new_bob.balance.amount.value == ASSET( "5.000000 SPHTX" ).amount.value );
@@ -596,13 +596,13 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_authorities )
    try
    {
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000000 );
+      fund( AN("alice"), 10000000 );
 
       BOOST_TEST_MESSAGE( "Testing: transfer_to_vesting_authorities" );
 
       transfer_to_vesting_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.amount = ASSET( "2.500 SPHTX" );
 
       signed_transaction tx;
@@ -641,7 +641,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
       BOOST_TEST_MESSAGE( "Testing: transfer_to_vesting_apply" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000000 );
+      fund( AN("alice"), 10000000 );
 
       const auto& gpo = db->get_dynamic_global_properties();
 
@@ -651,7 +651,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
       auto bob_shares = bob.vesting_shares;
 
       transfer_to_vesting_operation op;
-      op.from = "alice";
+      op.from = AN("alice");
       op.to = "";
       op.amount = ASSET( "7.500000 SPHTX" );
 
@@ -687,12 +687,12 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_authorities )
       BOOST_TEST_MESSAGE( "Testing: withdraw_vesting_authorities" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", 10000000 );
-      vest( "alice", 10000000 );
+      fund( AN("alice"), 10000000 );
+      vest( AN("alice"), 10000000 );
 
-      const auto& new_alice = db->get_account("alice");
+      const auto& new_alice = db->get_account(AN("alice"));
       withdraw_vesting_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       op.vesting_shares = ASSET( "1.000000 VESTS" );
 
       signed_transaction tx;
@@ -729,18 +729,18 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       ACTORS( (alice) )
       generate_block();
-      fund( "alice", 10000000 );
-      vest( "alice", ASSET( "10.000000 SPHTX" ) );
+      fund( AN("alice"), 10000000 );
+      vest( AN("alice"), ASSET( "10.000000 SPHTX" ) );
       generate_block();
 
 
       BOOST_TEST_MESSAGE( "--- Test withdraw of existing VESTS" );
 
       {
-      const auto& alice = db->get_account( "alice" );
+      const auto& alice = db->get_account( AN("alice") );
 
       withdraw_vesting_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       op.vesting_shares = asset( alice.vesting_shares.amount / 2, VESTS_SYMBOL );
 
       auto old_vesting_shares = alice.vesting_shares;
@@ -827,14 +827,14 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
 
       withdraw_vesting_operation op;
       signed_transaction tx;
-      op.account = "alice";
+      op.account = AN("alice");
       op.vesting_shares = ASSET( "0.000000 VESTS" );
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).vesting_withdraw_rate == ASSET( "0.000000 VESTS" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).vesting_withdraw_rate == ASSET( "0.000000 VESTS" ) );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -858,13 +858,13 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
-      vest("alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
+      vest(AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
       witness_update_operation op;
-      op.owner = "alice";
+      op.owner = AN("alice");
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
@@ -908,15 +908,15 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_update_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest("alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest(AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness" );
 
       witness_update_operation op;
-      op.owner = "alice";
+      op.owner = AN("alice");
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
@@ -929,9 +929,9 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
 
       db->push_transaction( tx, 0 );
 
-      const witness_object& alice_witness = db->get_witness( "alice" );
+      const witness_object& alice_witness = db->get_witness( AN("alice") );
 
-      BOOST_REQUIRE( alice_witness.owner == "alice" );
+      BOOST_REQUIRE( alice_witness.owner == AN("alice") );
       BOOST_REQUIRE( alice_witness.created == db->head_block_time() );
       BOOST_REQUIRE( to_string( alice_witness.url ) == op.url );
       BOOST_REQUIRE( alice_witness.signing_key == op.block_signing_key );
@@ -957,7 +957,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( alice_witness.owner == "alice" );
+      BOOST_REQUIRE( alice_witness.owner == AN("alice") );
       BOOST_REQUIRE( alice_witness.created == db->head_block_time() );
       BOOST_REQUIRE( to_string( alice_witness.url ) == "bar.foo" );
       BOOST_REQUIRE( alice_witness.signing_key == op.block_signing_key );
@@ -977,7 +977,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
 
       tx.signatures.clear();
       tx.operations.clear();
-      op.owner = "bob";
+      op.owner = AN("bob");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -1005,14 +1005,14 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
 
       ACTORS( (alice)(bob)(sam) )
 
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
       private_key_type alice_witness_key = generate_private_key( "alice_witness" );
-      witness_create( "alice", alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 0 );
+      witness_create( AN("alice"), alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 0 );
 
       account_witness_vote_operation op;
-      op.account = "bob";
-      op.witness = "alice";
+      op.account = AN("bob");
+      op.witness = AN("alice");
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -1039,7 +1039,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
       db->push_transaction( tx, 0 );
 
       BOOST_TEST_MESSAGE( "--- Test failure with proxy signature" );
-      proxy( "bob", "sam" );
+      proxy( AN("bob"), AN("sam") );
       tx.signatures.clear();
       tx.sign( sam_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
@@ -1056,21 +1056,21 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_TEST_MESSAGE( "Testing: account_witness_vote_apply" );
 
       ACTORS( (alice)(bob)(sam) )
-      fund( "alice" , 5000000 );
-      vest( "alice", 5000000 );
-      fund( "sam", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( "sam", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice") , 5000000 );
+      vest( AN("alice"), 5000000 );
+      fund( AN("sam"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("sam"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
 
       private_key_type sam_witness_key = generate_private_key( "sam_key" );
-      witness_create( "sam", sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
-      const witness_object& sam_witness = db->get_witness( "sam" );
+      witness_create( AN("sam"), sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
+      const witness_object& sam_witness = db->get_witness( AN("sam") );
 
       const auto& witness_vote_idx = db->get_index< witness_vote_index >().indices().get< by_witness_account >();
 
       BOOST_TEST_MESSAGE( "--- Test normal vote" );
       account_witness_vote_operation op;
-      op.account = "alice";
-      op.witness = "sam";
+      op.account = AN("alice");
+      op.witness = AN("sam");
       op.approve = true;
 
       signed_transaction tx;
@@ -1102,11 +1102,11 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_REQUIRE( witness_vote_idx.find( std::make_tuple( sam_witness.owner, alice.name ) ) == witness_vote_idx.end() );
 
       BOOST_TEST_MESSAGE( "--- Test proxied vote" );
-      proxy( "alice", "bob" );
+      proxy( AN("alice"), AN("bob") );
       tx.operations.clear();
       tx.signatures.clear();
       op.approve = true;
-      op.account = "bob";
+      op.account = AN("bob");
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
@@ -1119,7 +1119,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_TEST_MESSAGE( "--- Test vote from a proxied account" );
       tx.operations.clear();
       tx.signatures.clear();
-      op.account = "alice";
+      op.account = AN("alice");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
@@ -1131,7 +1131,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_TEST_MESSAGE( "--- Test revoke proxied vote" );
       tx.operations.clear();
       tx.signatures.clear();
-      op.account = "bob";
+      op.account = AN("bob");
       op.approve = false;
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
@@ -1145,7 +1145,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when voting for a non-existent account" );
       tx.operations.clear();
       tx.signatures.clear();
-      op.witness = "dave";
+      op.witness = AN("dave");
       op.approve = true;
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
@@ -1156,7 +1156,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when voting for an account that is not a witness" );
       tx.operations.clear();
       tx.signatures.clear();
-      op.witness = "alice";
+      op.witness = AN("alice");
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
@@ -1186,8 +1186,8 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_authorities )
       ACTORS( (alice)(bob) )
 
       account_witness_proxy_operation op;
-      op.account = "bob";
-      op.proxy = "alice";
+      op.account = AN("bob");
+      op.proxy = AN("alice");
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -1230,21 +1230,21 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       BOOST_TEST_MESSAGE( "Testing: account_witness_proxy_apply" );
 
       ACTORS( (alice)(bob)(sam)(dave) )
-      fund( "alice", 1000000 );
-      vest( "alice", 1000000 );
-      fund( "bob", 3000000 );
-      vest( "bob", 3000000 );
-      fund( "sam", 5000000 );
-      vest( "sam", 5000000 );
-      fund( "dave", 7000000 );
-      vest( "dave", 7000000 );
+      fund( AN("alice"), 1000000 );
+      vest( AN("alice"), 1000000 );
+      fund( AN("bob"), 3000000 );
+      vest( AN("bob"), 3000000 );
+      fund( AN("sam"), 5000000 );
+      vest( AN("sam"), 5000000 );
+      fund( AN("dave"), 7000000 );
+      vest( AN("dave"), 7000000 );
 
       BOOST_TEST_MESSAGE( "--- Test setting proxy to another account from self." );
       // bob -> alice
 
       account_witness_proxy_operation op;
-      op.account = "bob";
-      op.proxy = "alice";
+      op.account = AN("bob");
+      op.proxy = AN("alice");
 
       signed_transaction tx;
       tx.operations.push_back( op );
@@ -1253,9 +1253,9 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       db->push_transaction( tx, 0 );
 
-      const auto& new_bob = db->get_account("bob");
-      const auto& new_alice = db->get_account("alice");
-      BOOST_REQUIRE( new_bob.proxy == "alice" );
+      const auto& new_bob = db->get_account(AN("bob"));
+      const auto& new_alice = db->get_account(AN("alice"));
+      BOOST_REQUIRE( new_bob.proxy == AN("alice") );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_alice.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total() == new_bob.total_balance() );
@@ -1266,14 +1266,14 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.proxy = "sam";
+      op.proxy = AN("sam");
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
-      const auto& new_sam = db->get_account("sam");
+      const auto& new_sam = db->get_account(AN("sam"));
 
-      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxy == AN("sam") );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
@@ -1284,7 +1284,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
-      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxy == AN("sam") );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_sam.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.total_balance());
@@ -1295,17 +1295,17 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.proxy = "dave";
-      op.account = "sam";
+      op.proxy = AN("dave");
+      op.account = AN("sam");
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
-      const auto& new_dave = db->get_account("dave");
+      const auto& new_dave = db->get_account(AN("dave"));
 
-      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxy == AN("sam") );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_sam.proxy == "dave" );
+      BOOST_REQUIRE( new_sam.proxy == AN("dave") );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_bob.total_balance() );
       BOOST_REQUIRE( new_dave.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_bob.total_balance() ) );
@@ -1319,18 +1319,18 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.proxy = "sam";
-      op.account = "alice";
+      op.proxy = AN("sam");
+      op.account = AN("alice");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( new_alice.proxy == "sam" );
+      BOOST_REQUIRE( new_alice.proxy == AN("sam") );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_bob.proxy == "sam" );
+      BOOST_REQUIRE( new_bob.proxy == AN("sam") );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_sam.proxy == "dave" );
+      BOOST_REQUIRE( new_sam.proxy == AN("dave") );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == ( new_bob.total_balance() + new_alice.total_balance() ) );
       BOOST_REQUIRE( new_dave.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_bob.total_balance() + new_alice.total_balance() ) );
@@ -1342,17 +1342,17 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.operations.clear();
       tx.signatures.clear();
       op.proxy = SOPHIATX_PROXY_TO_SELF_ACCOUNT;
-      op.account = "bob";
+      op.account = AN("bob");
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( new_alice.proxy == "sam" );
+      BOOST_REQUIRE( new_alice.proxy == AN("sam") );
       BOOST_REQUIRE( new_alice.proxied_vsf_votes_total().value == 0 );
       BOOST_REQUIRE( new_bob.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_bob.proxied_vsf_votes_total().value == 0 );
-      BOOST_REQUIRE( new_sam.proxy == "dave" );
+      BOOST_REQUIRE( new_sam.proxy == AN("dave") );
       BOOST_REQUIRE( new_sam.proxied_vsf_votes_total() == new_alice.total_balance() );
       BOOST_REQUIRE( new_dave.proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT );
       BOOST_REQUIRE( new_dave.proxied_vsf_votes_total() == ( new_sam.total_balance() + new_alice.total_balance() ) );
@@ -1360,7 +1360,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       BOOST_TEST_MESSAGE( "--- Test votes are transferred when a proxy is added" );
       account_witness_vote_operation vote;
-      vote.account= "bob";
+      vote.account= AN("bob");
       vote.witness = SOPHIATX_INIT_MINER_NAME;
       tx.operations.clear();
       tx.signatures.clear();
@@ -1371,8 +1371,8 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.account = "alice";
-      op.proxy = "bob";
+      op.account = AN("alice");
+      op.proxy = AN("bob");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
@@ -1398,8 +1398,8 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 /*BOOST_AUTO_TEST_CASE( custom_authorities )
 {
    custom_operation op;
-   op.required_auths.insert( "alice" );
-   op.required_auths.insert( "bob" );
+   op.required_auths.insert( AN("alice") );
+   op.required_auths.insert( AN("bob") );
 
    flat_set< account_name_type > auths;
    flat_set< account_name_type > expected;
@@ -1410,8 +1410,8 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
    op.get_required_posting_authorities( auths );
    BOOST_REQUIRE( auths == expected );
 
-   expected.insert( "alice" );
-   expected.insert( "bob" );
+   expected.insert( AN("alice") );
+   expected.insert( AN("bob") );
    op.get_required_active_authorities( auths );
    BOOST_REQUIRE( auths == expected );
 }
@@ -1419,7 +1419,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
 BOOST_AUTO_TEST_CASE( custom_json_authorities )
 {
    custom_json_operation op;
-   op.required_auths.insert( "alice" );
+   op.required_auths.insert( AN("alice") );
 
    flat_set< account_name_type > auths;
    flat_set< account_name_type > expected;
@@ -1427,13 +1427,13 @@ BOOST_AUTO_TEST_CASE( custom_json_authorities )
    op.get_required_owner_authorities( auths );
    BOOST_REQUIRE( auths == expected );
 
-   expected.insert( "alice" );
+   expected.insert( AN("alice") );
    op.get_required_active_authorities( auths );
    BOOST_REQUIRE( auths == expected );
 
    auths.clear();
    expected.clear();
-   expected.insert( "bob" );
+   expected.insert( AN("bob") );
    op.get_required_posting_authorities( auths );
    BOOST_REQUIRE( auths == expected );
 }
@@ -1443,33 +1443,33 @@ BOOST_AUTO_TEST_CASE( custom_binary_authorities )
    ACTORS( (alice) )
 
    custom_binary_operation op;
-   op.required_owner_auths.insert( "alice" );
-   op.required_active_auths.insert( "bob" );
-   op.required_posting_auths.insert( "sam" );
-   op.required_auths.push_back( db->get< account_authority_object, by_account >( "alice" ).posting );
+   op.required_owner_auths.insert( AN("alice") );
+   op.required_active_auths.insert( AN("bob") );
+   op.required_posting_auths.insert( AN("sam") );
+   op.required_auths.push_back( db->get< account_authority_object, by_account >( AN("alice") ).posting );
 
    flat_set< account_name_type > acc_auths;
    flat_set< account_name_type > acc_expected;
    vector< authority > auths;
    vector< authority > expected;
 
-   acc_expected.insert( "alice" );
+   acc_expected.insert( AN("alice") );
    op.get_required_owner_authorities( acc_auths );
    BOOST_REQUIRE( acc_auths == acc_expected );
 
    acc_auths.clear();
    acc_expected.clear();
-   acc_expected.insert( "bob" );
+   acc_expected.insert( AN("bob") );
    op.get_required_active_authorities( acc_auths );
    BOOST_REQUIRE( acc_auths == acc_expected );
 
    acc_auths.clear();
    acc_expected.clear();
-   acc_expected.insert( "sam" );
+   acc_expected.insert( AN("sam") );
    op.get_required_posting_authorities( acc_auths );
    BOOST_REQUIRE( acc_auths == acc_expected );
 
-   expected.push_back( db->get< account_authority_object, by_account >( "alice" ).posting );
+   expected.push_back( db->get< account_authority_object, by_account >( AN("alice") ).posting );
    op.get_required_authorities( auths );
    BOOST_REQUIRE( auths == expected );
 }*/
@@ -1490,12 +1490,12 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_authorities" );
 
       ACTORS( (alice)(bob) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest("alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
-      witness_create( "alice", alice_private_key, "foo.bar", alice_private_key.get_public_key(), 0 );
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest(AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 0 );
 
       feed_publish_operation op;
-      op.publisher = "alice";
+      op.publisher = AN("alice");
       op.exchange_rate = price( ASSET( "1.000000 SBD1" ), ASSET( "1.000000 SPHTX" ) );
 
       signed_transaction tx;
@@ -1533,13 +1533,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
-      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( "alice", alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
+      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
 
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
       feed_publish_operation op;
-      op.publisher = "alice";
+      op.publisher = AN("alice");
       op.exchange_rate = price( asset(1000000, SOPHIATX_SYMBOL), asset(1000000, SBD1_SYMBOL )); // 1000 SOPHIATX : 1 SBD
 
       signed_transaction tx;
@@ -1549,7 +1549,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
 
       db->push_transaction( tx, 0 );
 
-      witness_object& alice_witness = const_cast< witness_object& >( db->get_witness( "alice" ) );
+      witness_object& alice_witness = const_cast< witness_object& >( db->get_witness( AN("alice") ) );
 
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].rate == op.exchange_rate );
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].last_change == db->head_block_time() );
@@ -1559,7 +1559,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.publisher = "bob";
+      op.publisher = AN("bob");
       tx.sign( alice_private_key, db->get_chain_id() );
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -1572,13 +1572,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       tx.operations.clear();
       tx.signatures.clear();
       op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, SOPHIATX_SYMBOL ));
-      op.publisher = "alice";
+      op.publisher = AN("alice");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
 
       db->push_transaction( tx, 0 );
 
-      alice_witness = const_cast< witness_object& >( db->get_witness( "alice" ) );
+      alice_witness = const_cast< witness_object& >( db->get_witness( AN("alice") ) );
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].rate == op.exchange_rate );
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates[SBD1_SYMBOL].last_change == db->head_block_time() );
       validate_database();
@@ -1594,14 +1594,14 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       BOOST_TEST_MESSAGE( "Testing: account recovery" );
 
       ACTORS( (alice) );
-      fund( "alice", 10000000 );
+      fund( AN("alice"), 10000000 );
 
       BOOST_TEST_MESSAGE( "Creating account bob with alice" );
 
       account_create_operation acc_create;
       acc_create.fee = ASSET( "10.000000 SPHTX" );
-      acc_create.creator = "alice";
-      acc_create.new_account_name = "bob";
+      acc_create.creator = AN("alice");
+      acc_create.name_seed = "bob";
       acc_create.owner = authority( 1, generate_private_key( "bob_owner" ).get_public_key(), 1 );
       acc_create.active = authority( 1, generate_private_key( "bob_active" ).get_public_key(), 1 );
       acc_create.memo_key = generate_private_key( "bob_memo" ).get_public_key();
@@ -1614,14 +1614,14 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      const auto& bob_auth = db->get< account_authority_object, by_account >( "bob" );
+      const auto& bob_auth = db->get< account_authority_object, by_account >( AN("bob") );
       BOOST_REQUIRE( bob_auth.owner == acc_create.owner );
 
 
       BOOST_TEST_MESSAGE( "Changing bob's owner authority" );
 
       account_update_operation acc_update;
-      acc_update.account = "bob";
+      acc_update.account = AN("bob");
       acc_update.owner = authority( 1, generate_private_key( "bad_key" ).get_public_key(), 1 );
       acc_update.memo_key = acc_create.memo_key;
       acc_update.json_metadata = "";
@@ -1639,8 +1639,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       BOOST_TEST_MESSAGE( "Creating recover request for bob with alice" );
 
       request_account_recovery_operation request;
-      request.recovery_account = "alice";
-      request.account_to_recover = "bob";
+      request.recovery_account = AN("alice");
+      request.account_to_recover = AN("bob");
       request.new_owner_authority = authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 );
 
       tx.operations.clear();
@@ -1659,7 +1659,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       generate_blocks( db->head_block_time() + SOPHIATX_OWNER_UPDATE_LIMIT );
 
       recover_account_operation recover;
-      recover.account_to_recover = "bob";
+      recover.account_to_recover = AN("bob");
       recover.new_owner_authority = request.new_owner_authority;
       recover.recent_owner_authority = acc_create.owner;
 
@@ -1672,7 +1672,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "new_key" ), db->get_chain_id() );
       db->push_transaction( tx, 0 );
-      const auto& owner1 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner1 = db->get< account_authority_object, by_account >(AN("bob")).owner;
 
       BOOST_REQUIRE( owner1 == recover.new_owner_authority );
 
@@ -1702,7 +1702,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "idontknow" ), db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
-      const auto& owner2 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner2 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner2 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
 
 
@@ -1719,7 +1719,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
       tx.sign( generate_private_key( "idontknow" ), db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
-      const auto& owner3 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner3 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner3 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
 
 
@@ -1736,7 +1736,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      const auto& owner4 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner4 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner4 == recover.new_owner_authority );
 
       BOOST_TEST_MESSAGE( "Creating a recovery request that will expire" );
@@ -1753,7 +1753,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       const auto& request_idx = db->get_index< account_recovery_request_index >().indices();
       auto req_itr = request_idx.begin();
 
-      BOOST_REQUIRE( req_itr->account_to_recover == "bob" );
+      BOOST_REQUIRE( req_itr->account_to_recover == AN("bob") );
       BOOST_REQUIRE( req_itr->new_owner_authority == authority( 1, generate_private_key( "expire" ).get_public_key(), 1 ) );
       BOOST_REQUIRE( req_itr->expires == db->head_block_time() + SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD );
       auto expires = req_itr->expires;
@@ -1780,7 +1780,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "expire" ), db->get_chain_id() );
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
-      const auto& owner5 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner5 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner5 == authority( 1, generate_private_key( "foo bar" ).get_public_key(), 1 ) );
 
       BOOST_TEST_MESSAGE( "Expiring owner authority history" );
@@ -1819,7 +1819,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
       tx.sign( generate_private_key( "last key" ), db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
-      const auto& owner6 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner6 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner6 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
 
       recover.recent_owner_authority = authority( 1, generate_private_key( "foo bar" ).get_public_key(), 1 );
@@ -1832,7 +1832,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
       tx.sign( generate_private_key( "last key" ), db->get_chain_id() );
       db->push_transaction( tx, 0 );
-      const auto& owner7 = db->get< account_authority_object, by_account >("bob").owner;
+      const auto& owner7 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner7 == authority( 1, generate_private_key( "last key" ).get_public_key(), 1 ) );
    }
    FC_LOG_AND_RETHROW()
@@ -1909,10 +1909,10 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
       };
 
       // if either/both users do not exist, we shouldn't allow it
-      SOPHIATX_REQUIRE_THROW( change_recovery_account("alice", "nobody"), fc::exception );
-      SOPHIATX_REQUIRE_THROW( change_recovery_account("haxer", "sam"   ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( change_recovery_account(AN("alice"), "nobody"), fc::exception );
+      SOPHIATX_REQUIRE_THROW( change_recovery_account("haxer", AN("sam")   ), fc::exception );
       SOPHIATX_REQUIRE_THROW( change_recovery_account("haxer", "nobody"), fc::exception );
-      change_recovery_account("alice", "sam");
+      change_recovery_account(AN("alice"), AN("sam"));
 
       fc::ecc::private_key alice_priv1 = fc::ecc::private_key::regenerate( fc::sha256::hash( "alice_k1" ) );
       fc::ecc::private_key alice_priv2 = fc::ecc::private_key::regenerate( fc::sha256::hash( "alice_k2" ) );
@@ -1920,17 +1920,17 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
 
       generate_blocks( db->head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD - fc::seconds( SOPHIATX_BLOCK_INTERVAL ), true );
       // cannot request account recovery until recovery account is approved
-      SOPHIATX_REQUIRE_THROW( request_account_recovery( "sam", sam_private_key, "alice", alice_pub1 ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( request_account_recovery( AN("sam"), sam_private_key, AN("alice"), alice_pub1 ), fc::exception );
       generate_blocks(1);
       // cannot finish account recovery until requested
-      SOPHIATX_REQUIRE_THROW( recover_account( "alice", alice_priv1, alice_private_key ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( recover_account( AN("alice"), alice_priv1, alice_private_key ), fc::exception );
       // do the request
-      request_account_recovery( "sam", sam_private_key, "alice", alice_pub1 );
+      request_account_recovery( AN("sam"), sam_private_key, AN("alice"), alice_pub1 );
       // can't recover with the current owner key
-      SOPHIATX_REQUIRE_THROW( recover_account( "alice", alice_priv1, alice_private_key ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( recover_account( AN("alice"), alice_priv1, alice_private_key ), fc::exception );
       // unless we change it!
-      change_owner( "alice", alice_private_key, public_key_type( alice_priv2.get_public_key() ) );
-      recover_account( "alice", alice_priv1, alice_private_key );
+      change_owner( AN("alice"), alice_private_key, public_key_type( alice_priv2.get_public_key() ) );
+      recover_account( AN("alice"), alice_priv1, alice_private_key );
    }
    FC_LOG_AND_RETHROW()
 }
@@ -1942,11 +1942,11 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
       BOOST_TEST_MESSAGE( "Testing: escrow_transfer_validate" );
 
       escrow_transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
-      op.agent = "sam";
+      op.agent = AN("sam");
       op.fee = ASSET( "0.100000 SPHTX" );
       op.escrow_fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
@@ -1999,11 +1999,11 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_authorities )
       BOOST_TEST_MESSAGE( "Testing: escrow_transfer_authorities" );
 
       escrow_transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
-      op.agent = "sam";
+      op.agent = AN("sam");
       op.escrow_fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
       op.ratification_deadline = db->head_block_time() + 100;
@@ -2017,7 +2017,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_authorities )
 
 
       op.get_required_active_authorities( auths );
-      expected.insert( "alice" );
+      expected.insert( AN("alice") );
       BOOST_REQUIRE( auths == expected );
    }
    FC_LOG_AND_RETHROW()
@@ -2031,14 +2031,14 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
 
       ACTORS( (alice)(bob)(sam) )
 
-      fund( "alice", 10000000 );
+      fund( AN("alice"), 10000000 );
 
       escrow_transfer_operation op;
-      op.from = "alice";
-      op.to = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
       op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       op.escrow_id = 0;
-      op.agent = "sam";
+      op.agent = AN("sam");
       op.escrow_fee = ASSET( "0.100000 SPHTX" );
       op.fee = ASSET( "0.100000 SPHTX" );
       op.json_meta = "";
@@ -2118,15 +2118,15 @@ BOOST_AUTO_TEST_CASE( escrow_approve_validate )
 
       escrow_approve_operation op;
 
-      op.from = "alice";
-      op.to = "bob";
-      op.agent = "sam";
-      op.who = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.agent = AN("sam");
+      op.who = AN("bob");
       op.escrow_id = 0;
       op.approve = true;
 
       BOOST_TEST_MESSAGE( "--- failure when who is not to or agent" );
-      op.who = "dave";
+      op.who = AN("dave");
       SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- success when who is to" );
@@ -2148,10 +2148,10 @@ BOOST_AUTO_TEST_CASE( escrow_approve_authorities )
 
       escrow_approve_operation op;
 
-      op.from = "alice";
-      op.to = "bob";
-      op.agent = "sam";
-      op.who = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.agent = AN("sam");
+      op.who = AN("bob");
       op.escrow_id = 0;
       op.approve = true;
 
@@ -2162,15 +2162,15 @@ BOOST_AUTO_TEST_CASE( escrow_approve_authorities )
       BOOST_REQUIRE( auths == expected );
 
       op.get_required_active_authorities( auths );
-      expected.insert( "bob" );
+      expected.insert( AN("bob") );
       BOOST_REQUIRE( auths == expected );
 
       expected.clear();
       auths.clear();
 
-      op.who = "sam";
+      op.who = AN("sam");
       op.get_required_active_authorities( auths );
-      expected.insert( "sam" );
+      expected.insert( AN("sam") );
       BOOST_REQUIRE( auths == expected );
    }
    FC_LOG_AND_RETHROW()
@@ -2182,15 +2182,15 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
    {
       BOOST_TEST_MESSAGE( "Testing: escrow_approve_apply" );
       ACTORS( (alice)(bob)(sam)(dave) )
-      fund( "alice", 10100000 );
-      fund( "bob", 1000000 );
-      fund( "sam", 1000000 );
+      fund( AN("alice"), 10100000 );
+      fund( AN("bob"), 1000000 );
+      fund( AN("sam"), 1000000 );
 
 
       escrow_transfer_operation et_op;
-      et_op.from = "alice";
-      et_op.to = "bob";
-      et_op.agent = "sam";
+      et_op.from = AN("alice");
+      et_op.to = AN("bob");
+      et_op.agent = AN("sam");
       et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
@@ -2209,11 +2209,11 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       BOOST_TEST_MESSAGE( "---failure when to does not match escrow" );
       escrow_approve_operation op;
-      op.from = "alice";
+      op.from = AN("alice");
       op.fee = ASSET( "0.100000 SPHTX" );
-      op.to = "dave";
-      op.agent = "sam";
-      op.who = "dave";
+      op.to = AN("dave");
+      op.agent = AN("sam");
+      op.who = AN("dave");
       op.approve = true;
 
       tx.operations.push_back( op );
@@ -2222,8 +2222,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
 
       BOOST_TEST_MESSAGE( "--- failure when agent does not match escrow" );
-      op.to = "bob";
-      op.agent = "dave";
+      op.to = AN("bob");
+      op.agent = AN("dave");
 
       tx.operations.clear();
       tx.signatures.clear();
@@ -2234,8 +2234,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
 
       BOOST_TEST_MESSAGE( "--- success approving to" );
-      op.agent = "sam";
-      op.who = "bob";
+      op.agent = AN("sam");
+      op.who = AN("bob");
 
       tx.operations.clear();
       tx.signatures.clear();
@@ -2245,8 +2245,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       db->push_transaction( tx, 0 );
 
       auto& escrow = db->get_escrow( op.from, op.escrow_id );
-      BOOST_REQUIRE( escrow.to == "bob" );
-      BOOST_REQUIRE( escrow.agent == "sam" );
+      BOOST_REQUIRE( escrow.to == AN("bob") );
+      BOOST_REQUIRE( escrow.agent == AN("sam") );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
@@ -2263,8 +2263,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
-      BOOST_REQUIRE( escrow.to == "bob" );
-      BOOST_REQUIRE( escrow.agent == "sam" );
+      BOOST_REQUIRE( escrow.to == AN("bob") );
+      BOOST_REQUIRE( escrow.agent == AN("sam") );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
@@ -2284,8 +2284,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
-      BOOST_REQUIRE( escrow.to == "bob" );
-      BOOST_REQUIRE( escrow.agent == "sam" );
+      BOOST_REQUIRE( escrow.to == AN("bob") );
+      BOOST_REQUIRE( escrow.agent == AN("sam") );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
@@ -2320,7 +2320,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.900000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.910000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.900000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.910000 SPHTX" ) );
       validate_database();
 
 
@@ -2345,7 +2345,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.800000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.810000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.800000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.810000 SPHTX" ) );
       validate_database();
 
 
@@ -2369,7 +2369,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.710000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.710000 SPHTX" ) );
       validate_database();
 
 
@@ -2399,8 +2399,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       {
          const auto& escrow = db->get_escrow( op.from, op.escrow_id );
-         BOOST_REQUIRE( escrow.to == "bob" );
-         BOOST_REQUIRE( escrow.agent == "sam" );
+         BOOST_REQUIRE( escrow.to == AN("bob") );
+         BOOST_REQUIRE( escrow.agent == AN("sam") );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
          BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
@@ -2410,7 +2410,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
          BOOST_REQUIRE( !escrow.disputed );
       }
 
-      BOOST_REQUIRE( db->get_account( "sam" ).balance.amount == et_op.escrow_fee.amount + 700000);
+      BOOST_REQUIRE( db->get_account( AN("sam") ).balance.amount == et_op.escrow_fee.amount + 700000);
       validate_database();
 
 
@@ -2419,8 +2419,8 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
       {
          const auto& escrow = db->get_escrow( op.from, op.escrow_id );
-         BOOST_REQUIRE( escrow.to == "bob" );
-         BOOST_REQUIRE( escrow.agent == "sam" );
+         BOOST_REQUIRE( escrow.to == AN("bob") );
+         BOOST_REQUIRE( escrow.agent == AN("sam") );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
          BOOST_REQUIRE( escrow.sophiatx_balance == ASSET( "1.000000 SPHTX" ) );
@@ -2430,7 +2430,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
          BOOST_REQUIRE( !escrow.disputed );
       }
 
-      BOOST_REQUIRE( db->get_account( "sam" ).balance.amount == et_op.escrow_fee.amount + 700000 );
+      BOOST_REQUIRE( db->get_account( AN("sam") ).balance.amount == et_op.escrow_fee.amount + 700000 );
       validate_database();
    }
    FC_LOG_AND_RETHROW()
@@ -2442,20 +2442,20 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_validate )
    {
       BOOST_TEST_MESSAGE( "Testing: escrow_dispute_validate" );
       escrow_dispute_operation op;
-      op.from = "alice";
-      op.to = "bob";
-      op.agent = "alice";
-      op.who = "alice";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.agent = AN("alice");
+      op.who = AN("alice");
 
       BOOST_TEST_MESSAGE( "failure when who is not from or to" );
-      op.who = "sam";
+      op.who = AN("sam");
       SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "success" );
-      op.who = "alice";
+      op.who = AN("alice");
       op.validate();
 
-      op.who = "bob";
+      op.who = AN("bob");
       op.validate();
    }
    FC_LOG_AND_RETHROW()
@@ -2467,9 +2467,9 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_authorities )
    {
       BOOST_TEST_MESSAGE( "Testing: escrow_dispute_authorities" );
       escrow_dispute_operation op;
-      op.from = "alice";
-      op.to = "bob";
-      op.who = "alice";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.who = AN("alice");
 
       flat_set< account_name_type > auths;
       flat_set< account_name_type > expected;
@@ -2478,14 +2478,14 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_authorities )
       BOOST_REQUIRE( auths == expected );
 
       op.get_required_active_authorities( auths );
-      expected.insert( "alice" );
+      expected.insert( AN("alice") );
       BOOST_REQUIRE( auths == expected );
 
       auths.clear();
       expected.clear();
-      op.who = "bob";
+      op.who = AN("bob");
       op.get_required_active_authorities( auths );
-      expected.insert( "bob" );
+      expected.insert( AN("bob") );
       BOOST_REQUIRE( auths == expected );
    }
    FC_LOG_AND_RETHROW()
@@ -2498,16 +2498,16 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       BOOST_TEST_MESSAGE( "Testing: escrow_dispute_apply" );
 
       ACTORS( (alice)(bob)(sam)(dave) )
-      fund( "alice", 10000000 );
-      fund( "bob", 200000 );
-      fund( "sam", 100000 );
+      fund( AN("alice"), 10000000 );
+      fund( AN("bob"), 200000 );
+      fund( AN("sam"), 100000 );
 
 
 
       escrow_transfer_operation et_op;
-      et_op.from = "alice";
-      et_op.to = "bob";
-      et_op.agent = "sam";
+      et_op.from = AN("alice");
+      et_op.to = AN("bob");
+      et_op.agent = AN("sam");
       et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
@@ -2515,10 +2515,10 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
 
       escrow_approve_operation ea_b_op;
-      ea_b_op.from = "alice";
-      ea_b_op.to = "bob";
-      ea_b_op.agent = "sam";
-      ea_b_op.who = "bob";
+      ea_b_op.from = AN("alice");
+      ea_b_op.to = AN("bob");
+      ea_b_op.agent = AN("sam");
+      ea_b_op.who = AN("bob");
       ea_b_op.fee = ASSET( "0.100000 SPHTX" );
       ea_b_op.approve = true;
 
@@ -2533,10 +2533,10 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when escrow has not been approved" );
       escrow_dispute_operation op;
-      op.from = "alice";
-      op.to = "bob";
-      op.agent = "sam";
-      op.who = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.agent = AN("sam");
+      op.who = AN("bob");
       op.fee = ASSET( "0.100000 SPHTX" );
 
       tx.operations.clear();
@@ -2546,8 +2546,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
-      BOOST_REQUIRE( escrow.to == "bob" );
-      BOOST_REQUIRE( escrow.agent == "sam" );
+      BOOST_REQUIRE( escrow.to == AN("bob") );
+      BOOST_REQUIRE( escrow.agent == AN("sam") );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
@@ -2559,10 +2559,10 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when to does not match escrow" );
       escrow_approve_operation ea_s_op;
-      ea_s_op.from = "alice";
-      ea_s_op.to = "bob";
-      ea_s_op.agent = "sam";
-      ea_s_op.who = "sam";
+      ea_s_op.from = AN("alice");
+      ea_s_op.to = AN("bob");
+      ea_s_op.agent = AN("sam");
+      ea_s_op.who = AN("sam");
       ea_s_op.fee = ASSET("0.100000 SPHTX");
       ea_s_op.approve = true;
 
@@ -2572,16 +2572,16 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      op.to = "dave";
-      op.who = "alice";
+      op.to = AN("dave");
+      op.who = AN("alice");
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
-      BOOST_REQUIRE( escrow.to == "bob" );
-      BOOST_REQUIRE( escrow.agent == "sam" );
+      BOOST_REQUIRE( escrow.to == AN("bob") );
+      BOOST_REQUIRE( escrow.agent == AN("sam") );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
@@ -2592,17 +2592,17 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
 
       BOOST_TEST_MESSAGE( "--- failure when agent does not match escrow" );
-      op.to = "bob";
-      op.who = "alice";
-      op.agent = "dave";
+      op.to = AN("bob");
+      op.who = AN("alice");
+      op.agent = AN("dave");
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
-      BOOST_REQUIRE( escrow.to == "bob" );
-      BOOST_REQUIRE( escrow.agent == "sam" );
+      BOOST_REQUIRE( escrow.to == AN("bob") );
+      BOOST_REQUIRE( escrow.agent == AN("sam") );
       BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
       BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
       BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
@@ -2617,7 +2617,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.agent = "sam";
+      op.agent = AN("sam");
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.sign( alice_private_key, db->get_chain_id() );
@@ -2625,8 +2625,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       {
          const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
-         BOOST_REQUIRE( escrow.to == "bob" );
-         BOOST_REQUIRE( escrow.agent == "sam" );
+         BOOST_REQUIRE( escrow.to == AN("bob") );
+         BOOST_REQUIRE( escrow.agent == AN("sam") );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
          BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
@@ -2663,8 +2663,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       {
          const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
-         BOOST_REQUIRE( escrow.to == "bob" );
-         BOOST_REQUIRE( escrow.agent == "sam" );
+         BOOST_REQUIRE( escrow.to == AN("bob") );
+         BOOST_REQUIRE( escrow.agent == AN("sam") );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
          BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
@@ -2678,15 +2678,15 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       BOOST_TEST_MESSAGE( "--- failure when escrow is already under dispute" );
       tx.operations.clear();
       tx.signatures.clear();
-      op.who = "bob";
+      op.who = AN("bob");
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       {
          const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
-         BOOST_REQUIRE( escrow.to == "bob" );
-         BOOST_REQUIRE( escrow.agent == "sam" );
+         BOOST_REQUIRE( escrow.to == AN("bob") );
+         BOOST_REQUIRE( escrow.agent == AN("sam") );
          BOOST_REQUIRE( escrow.ratification_deadline == et_op.ratification_deadline );
          BOOST_REQUIRE( escrow.escrow_expiration == et_op.escrow_expiration );
          BOOST_REQUIRE( escrow.sophiatx_balance == et_op.sophiatx_amount );
@@ -2705,11 +2705,11 @@ BOOST_AUTO_TEST_CASE( escrow_release_validate )
    {
       BOOST_TEST_MESSAGE( "Testing: escrow release validate" );
       escrow_release_operation op;
-      op.from = "alice";
-      op.to = "bob";
-      op.who = "alice";
-      op.agent = "sam";
-      op.receiver = "bob";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.who = AN("alice");
+      op.agent = AN("sam");
+      op.receiver = AN("bob");
 
 
       BOOST_TEST_MESSAGE( "--- failure when sophiatx < 0" );
@@ -2738,9 +2738,9 @@ BOOST_AUTO_TEST_CASE( escrow_release_authorities )
    {
       BOOST_TEST_MESSAGE( "Testing: escrow_release_authorities" );
       escrow_release_operation op;
-      op.from = "alice";
-      op.to = "bob";
-      op.who = "alice";
+      op.from = AN("alice");
+      op.to = AN("bob");
+      op.who = AN("alice");
 
       flat_set< account_name_type > auths;
       flat_set< account_name_type > expected;
@@ -2748,21 +2748,21 @@ BOOST_AUTO_TEST_CASE( escrow_release_authorities )
       op.get_required_owner_authorities( auths );
       BOOST_REQUIRE( auths == expected );
 
-      expected.insert( "alice" );
+      expected.insert( AN("alice") );
       op.get_required_active_authorities( auths );
       BOOST_REQUIRE( auths == expected );
 
-      op.who = "bob";
+      op.who = AN("bob");
       auths.clear();
       expected.clear();
-      expected.insert( "bob" );
+      expected.insert( AN("bob") );
       op.get_required_active_authorities( auths );
       BOOST_REQUIRE( auths == expected );
 
-      op.who = "sam";
+      op.who = AN("sam");
       auths.clear();
       expected.clear();
-      expected.insert( "sam" );
+      expected.insert( AN("sam") );
       op.get_required_active_authorities( auths );
       BOOST_REQUIRE( auths == expected );
    }
@@ -2776,14 +2776,14 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       BOOST_TEST_MESSAGE( "Testing: escrow_release_apply" );
 
       ACTORS( (alice)(bob)(sam)(dave) )
-      fund( "alice", 10000000 );
-      fund( "bob", 1000000);
-      fund( "sam", 1000000);
+      fund( AN("alice"), 10000000 );
+      fund( AN("bob"), 1000000);
+      fund( AN("sam"), 1000000);
 
       escrow_transfer_operation et_op;
-      et_op.from = "alice";
-      et_op.to = "bob";
-      et_op.agent = "sam";
+      et_op.from = AN("alice");
+      et_op.to = AN("bob");
+      et_op.agent = AN("sam");
       et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
@@ -2815,17 +2815,17 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       escrow_approve_operation ea_b_op;
       ea_b_op.fee = ASSET( "0.100000 SPHTX" );
-      ea_b_op.from = "alice";
-      ea_b_op.to = "bob";
-      ea_b_op.agent = "sam";
-      ea_b_op.who = "bob";
+      ea_b_op.from = AN("alice");
+      ea_b_op.to = AN("bob");
+      ea_b_op.agent = AN("sam");
+      ea_b_op.who = AN("bob");
 
       escrow_approve_operation ea_s_op;
       ea_s_op.fee = ASSET( "0.100000 SPHTX" );
-      ea_s_op.from = "alice";
-      ea_s_op.to = "bob";
-      ea_s_op.agent = "sam";
-      ea_s_op.who = "sam";
+      ea_s_op.from = AN("alice");
+      ea_s_op.to = AN("bob");
+      ea_s_op.agent = AN("sam");
+      ea_s_op.who = AN("sam");
 
       tx.clear();
       tx.operations.push_back( ea_b_op );
@@ -2852,7 +2852,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'agent' attempt to release non-disputed escrow to not 'to' or 'from'" );
-      op.receiver = "dave";
+      op.receiver = AN("dave");
 
       tx.clear();
       tx.operations.push_back( op );
@@ -2862,7 +2862,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when other attempts to release non-disputed escrow to 'to'" );
       op.receiver = et_op.to;
-      op.who = "dave";
+      op.who = AN("dave");
 
       tx.clear();
       tx.operations.push_back( op );
@@ -2880,7 +2880,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       BOOST_TEST_MESSAGE( "--- failure when other attempt to release non-disputed escrow to not 'to' or 'from'" );
-      op.receiver = "dave";
+      op.receiver = AN("dave");
 
       tx.clear();
       tx.operations.push_back( op );
@@ -2908,7 +2908,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release non-disputed escrow to not 'from'" );
-      op.receiver = "dave";
+      op.receiver = AN("dave");
 
       tx.clear();
       tx.operations.push_back( op );
@@ -2925,7 +2925,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).sophiatx_balance == ASSET( "0.900000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.900000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance == ASSET( "8.900000 SPHTX" ) );
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed escrow to 'from'" );
       op.receiver = et_op.from;
@@ -2947,7 +2947,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed escrow to not 'from'" );
-      op.receiver = "dave";
+      op.receiver = AN("dave");
 
       tx.clear();
       tx.operations.push_back( op );
@@ -2964,7 +2964,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).sophiatx_balance == ASSET( "0.800000 SPHTX" ) );
-      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "0.900000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("bob") ).balance == ASSET( "0.900000 SPHTX" ) );
 
 
       BOOST_TEST_MESSAGE( "--- failure when releasing more sbd than available" );
@@ -2987,10 +2987,10 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release disputed escrow" );
       escrow_dispute_operation ed_op;
-      ed_op.from = "alice";
-      ed_op.to = "bob";
-      ed_op.agent = "sam";
-      ed_op.who = "alice";
+      ed_op.from = AN("alice");
+      ed_op.to = AN("bob");
+      ed_op.agent = AN("sam");
+      ed_op.who = AN("alice");
       ed_op.fee = ASSET( "0.100000 SPHTX" );
 
       tx.clear();
@@ -3020,7 +3020,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       BOOST_TEST_MESSAGE( "--- failure when releasing disputed escrow to an account not 'to' or 'from'" );
       tx.clear();
       op.who = et_op.agent;
-      op.receiver = "dave";
+      op.receiver = AN("dave");
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -3028,7 +3028,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when agent does not match escrow" );
       tx.clear();
-      op.who = "dave";
+      op.who = AN("dave");
       op.receiver = et_op.from;
       tx.operations.push_back( op );
       tx.sign( dave_private_key, db->get_chain_id() );
@@ -3043,7 +3043,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance == ASSET( "1.000000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("bob") ).balance == ASSET( "1.000000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.700000 SPHTX" ) );
 
 
@@ -3055,7 +3055,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "8.800000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance == ASSET( "8.800000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.600000 SPHTX" ) );
 
 
@@ -3088,7 +3088,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.900000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.910000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.900000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.910000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.500000 SPHTX" ) );
 
       BOOST_TEST_MESSAGE( "--- success deleting escrow when balances are both zero" );
@@ -3098,7 +3098,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( sam_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "9.410000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.410000 SPHTX" ) );
       SOPHIATX_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
 
 
@@ -3136,7 +3136,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when 'agent' attempt to release non-disputed expired escrow to not 'to' or 'from'" );
       tx.clear();
-      op.receiver = "dave";
+      op.receiver = AN("dave");
       tx.operations.push_back( op );
       tx.sign( sam_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -3153,7 +3153,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when 'to' attempts to release non-disputed expired escrow to not 'from' or 'to'" );
       tx.clear();
-      op.receiver = "dave";
+      op.receiver = AN("dave");
       tx.operations.push_back( op );
       tx.sign( bob_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -3166,7 +3166,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.910000 SPHTX" ));
+      BOOST_REQUIRE( db->get_account( AN("bob") ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( AN("bob") ).balance < ASSET( "0.910000 SPHTX" ));
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.900000 SPHTX" ) );
 
 
@@ -3177,7 +3177,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( bob_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.300000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.310000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.300000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.310000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.800000 SPHTX" ) );
 
 
@@ -3192,7 +3192,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       BOOST_TEST_MESSAGE( "--- failure when 'from' attempts to release non-disputed expired escrow to not 'from' or 'to'" );
       tx.clear();
-      op.receiver = "dave";
+      op.receiver = AN("dave");
       tx.operations.push_back( op );
       tx.sign( alice_private_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -3206,7 +3206,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
 
-      BOOST_REQUIRE( db->get_account( "bob" ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( "bob" ).balance < ASSET( "0.910000 SPHTX" ) );
+      BOOST_REQUIRE( db->get_account( AN("bob") ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( AN("bob") ).balance < ASSET( "0.910000 SPHTX" ) );
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.700000 SPHTX" ) );
 
 
@@ -3218,7 +3218,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       db->push_transaction( tx, 0 );
 
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.200000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.210000 SPHTX" ));
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.200000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.210000 SPHTX" ));
       BOOST_REQUIRE( db->get_escrow( et_op.from, et_op.escrow_id ).sophiatx_balance == ASSET( "0.600000 SPHTX" ) );
 
 
@@ -3229,7 +3229,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.sign( alice_private_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_account( "alice" ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( "alice" ).balance < ASSET( "8.710000 SPHTX" ));
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.710000 SPHTX" ));
       SOPHIATX_REQUIRE_THROW( db->get_escrow( et_op.from, et_op.escrow_id ), fc::exception );
    }
    FC_LOG_AND_RETHROW()
@@ -3243,12 +3243,12 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
-      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE  );
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
+      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE  );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
-      op.owner = "alice";
+      op.owner = AN("alice");
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
@@ -3264,7 +3264,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
 
       BOOST_TEST_MESSAGE( "--- failure when signing key is not present" );
       witness_set_properties_operation prop_op;
-      prop_op.owner = "alice";
+      prop_op.owner = AN("alice");
       SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
       BOOST_TEST_MESSAGE( "--- failure when setting account_creation_fee with incorrect symbol" );
@@ -3305,7 +3305,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_authorities" );
 
       witness_set_properties_operation op;
-      op.owner = "alice";
+      op.owner = AN("alice");
       op.props[ "key" ] = fc::raw::pack_to_vector( generate_private_key( "key" ).get_public_key() );
 
       flat_set< account_name_type > auths;
@@ -3348,12 +3348,12 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_apply" );
 
       ACTORS( (alice) )
-      fund( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
-      vest( "alice", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
+      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
-      op.owner = "alice";
+      op.owner = AN("alice");
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
@@ -3369,9 +3369,9 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "--- Test setting runtime parameters" );
 
       // Setting account_creation_fee
-      const witness_object& alice_witness = db->get_witness( "alice" );
+      const witness_object& alice_witness = db->get_witness( AN("alice") );
       witness_set_properties_operation prop_op;
-      prop_op.owner = "alice";
+      prop_op.owner = AN("alice");
       prop_op.props[ "key" ] = fc::raw::pack_to_vector( signing_key.get_public_key() );
       prop_op.props[ "account_creation_fee" ] = fc::raw::pack_to_vector( ASSET( "2.000000 SPHTX" ) );
       tx.clear();
@@ -3432,10 +3432,10 @@ BOOST_AUTO_TEST_CASE( application_create )
       BOOST_TEST_MESSAGE( "Testing: application_create_apply" );
 
       ACTORS( (alice) )
-      fund("alice", 1000000);
+      fund(AN("alice"), 1000000);
 
       application_create_operation op;
-      op.author = "alice";
+      op.author = AN("alice");
       op.name = "test_app";
       op.fee = ASSET( "0.100000 SPHTX" );
       op.price_param = static_cast<uint8_t >(time_based);
@@ -3455,7 +3455,7 @@ BOOST_AUTO_TEST_CASE( application_create )
       const application_object& app = db->get_application( "test_app" );
 
       BOOST_REQUIRE( app.name == "test_app" );
-      BOOST_REQUIRE( app.author == "alice" );
+      BOOST_REQUIRE( app.author == AN("alice") );
       BOOST_REQUIRE( app.metadata == "Random metadata" );
       BOOST_REQUIRE( app.url == "www.sophiatx.com" );
       BOOST_REQUIRE( app.price_param == time_based );
@@ -3466,7 +3466,7 @@ BOOST_AUTO_TEST_CASE( application_create )
       BOOST_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- Test failure of application creation without authorities" );
-      op.author = "bob";
+      op.author = AN("bob");
       op.name = "test_app2";
       tx.operations.push_back( op );
 
@@ -3481,11 +3481,11 @@ BOOST_AUTO_TEST_CASE( application_update )
    {
       //Creating test app
       ACTORS( (alice)(bob) )
-      fund("alice", 1000000);
+      fund(AN("alice"), 1000000);
 
       {
          application_create_operation op;
-         op.author = "alice";
+         op.author = AN("alice");
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
          op.url = "www.sophiatx.com";
@@ -3503,10 +3503,10 @@ BOOST_AUTO_TEST_CASE( application_update )
       BOOST_TEST_MESSAGE( "--- Test normal application update" );
       application_update_operation op;
       op.name = "test_app";
-      op.author = "alice";
+      op.author = AN("alice");
       op.fee = ASSET( "0.100000 SPHTX" );
       op.price_param = static_cast<uint8_t >(permanent);
-      op.new_author = "bob";
+      op.new_author = AN("bob");
       op.metadata = "New metadata";
       op.url = "www.sophiatx.com/update";
       op.validate();
@@ -3520,7 +3520,7 @@ BOOST_AUTO_TEST_CASE( application_update )
       const application_object& app = db->get_application( "test_app" );
 
       BOOST_REQUIRE( app.name == "test_app" );
-      BOOST_REQUIRE( app.author == "bob" );
+      BOOST_REQUIRE( app.author == AN("bob") );
       BOOST_REQUIRE( app.metadata == "New metadata" );
       BOOST_REQUIRE( app.url == "www.sophiatx.com/update" );
       BOOST_REQUIRE( app.price_param == permanent );
@@ -3539,11 +3539,11 @@ BOOST_AUTO_TEST_CASE( application_delete )
    {
       //Creating test app
       ACTORS( (alice) )
-      fund("alice", 1000000);
+      fund(AN("alice"), 1000000);
 
       {
          application_create_operation op;
-         op.author = "alice";
+         op.author = AN("alice");
          op.fee = ASSET( "0.100000 SPHTX" );
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
@@ -3562,7 +3562,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
       application_delete_operation op;
       op.fee = ASSET( "0.100000 SPHTX" );
       op.name = "test_app";
-      op.author = "alice";
+      op.author = AN("alice");
       op.validate();
 
       signed_transaction tx;
@@ -3585,12 +3585,12 @@ BOOST_AUTO_TEST_CASE( application_buy )
    {
       //Creating test app
       ACTORS( (alice)(bob) )
-      fund("bob", 1000000);
-      fund("alice", 1000000);
+      fund(AN("bob"), 1000000);
+      fund(AN("alice"), 1000000);
 
       {
          application_create_operation op;
-         op.author = "alice";
+         op.author = AN("alice");
          op.fee = ASSET( "0.100000 SPHTX" );
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
@@ -3611,7 +3611,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       buy_application_operation op;
       op.fee = ASSET( "0.100000 SPHTX" );
       op.app_id = app.id._id;
-      op.buyer = "bob";
+      op.buyer = AN("bob");
       op.validate();
 
       signed_transaction tx;
@@ -3620,10 +3620,10 @@ BOOST_AUTO_TEST_CASE( application_buy )
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
 
-      const auto& app_buy = db->get_application_buying( "bob", app.id._id );
+      const auto& app_buy = db->get_application_buying( AN("bob"), app.id._id );
 
       BOOST_REQUIRE( app_buy.app_id == app.id );
-      BOOST_REQUIRE( app_buy.buyer == "bob" );
+      BOOST_REQUIRE( app_buy.buyer == AN("bob") );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test application rebuying" );
@@ -3641,8 +3641,8 @@ BOOST_AUTO_TEST_CASE( application_buy )
       cancel_application_buying_operation op_cancel;
       op_cancel.fee = ASSET( "0.100000 SPHTX" );
       op_cancel.app_id = app.id._id;
-      op_cancel.buyer = "bob";
-      op_cancel.app_owner = "alice";
+      op_cancel.buyer = AN("bob");
+      op_cancel.app_owner = AN("alice");
       op_cancel.validate();
 
       tx.clear();
@@ -3651,7 +3651,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       tx.sign(alice_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
 
-      BOOST_REQUIRE_THROW( db->get_application_buying( "bob", app.id._id ), fc::exception );
+      BOOST_REQUIRE_THROW( db->get_application_buying( AN("bob"), app.id._id ), fc::exception );
 
       validate_database();
 
@@ -3665,12 +3665,12 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
    {
       //Creating test app
       ACTORS( (alice)(bob) )
-      fund("bob", 1000000);
-      fund("alice", 1000000);
+      fund(AN("bob"), 1000000);
+      fund(AN("alice"), 1000000);
 
       {
          application_create_operation op;
-         op.author = "alice";
+         op.author = AN("alice");
          op.fee = ASSET( "0.100000 SPHTX" );
          op.name = "test_app";
          op.price_param = static_cast<uint8_t >(time_based);
@@ -3691,7 +3691,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       buy_application_operation op;
       op.fee = ASSET( "0.100000 SPHTX" );
       op.app_id = app.id._id;
-      op.buyer = "bob";
+      op.buyer = AN("bob");
       op.validate();
 
       signed_transaction tx;
@@ -3700,17 +3700,17 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       tx.sign(bob_private_key, db->get_chain_id());
       db->push_transaction(tx, 0);
 
-      const auto& app_buy = db->get_application_buying( "bob", app.id._id );
+      const auto& app_buy = db->get_application_buying( AN("bob"), app.id._id );
 
       BOOST_REQUIRE( app_buy.app_id == app.id );
-      BOOST_REQUIRE( app_buy.buyer == "bob" );
+      BOOST_REQUIRE( app_buy.buyer == AN("bob") );
       validate_database();
 
       BOOST_TEST_MESSAGE( "--- Test normal application delete" );
       application_delete_operation op_d;
       op_d.fee = ASSET( "0.100000 SPHTX" );
       op_d.name = "test_app";
-      op_d.author = "alice";
+      op_d.author = AN("alice");
       op_d.validate();
 
       tx.clear();
@@ -3722,7 +3722,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       BOOST_REQUIRE_THROW( db->get_application( "test_app" ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- Test application buy object deleting" );
-      BOOST_REQUIRE_THROW( db->get_application_buying( "bob", app.id._id ), fc::exception );
+      BOOST_REQUIRE_THROW( db->get_application_buying( AN("bob"), app.id._id ), fc::exception );
 
       validate_database();
 
@@ -3739,11 +3739,11 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
       generate_block();
       generate_block();
-      const auto& new_alice = db->get_account( "alice" );
+      const auto& new_alice = db->get_account( AN("alice") );
 
 
       transfer_from_promotion_pool_operation op;
-      op.transfer_to = "alice";
+      op.transfer_to = AN("alice");
       op.amount = asset(1000000, SOPHIATX_SYMBOL);
 
       signed_transaction tx;
@@ -3782,13 +3782,13 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
    try{
       BOOST_TEST_MESSAGE("Testing: sponsor_fees");
       ACTORS((alice)(bob)(cecil));
-      fund("alice", 100000000);
-      fund("bob",   1000000);
+      fund(AN("alice"), 100000000);
+      fund(AN("bob"),   1000000);
 
       generate_block();
       sponsor_fees_operation sponsor_op;
-      sponsor_op.sponsor = "alice";
-      sponsor_op.sponsored = "bob";
+      sponsor_op.sponsor = AN("alice");
+      sponsor_op.sponsored = AN("bob");
       sponsor_op.is_sponsoring = true;
 
       signed_transaction tx;
@@ -3800,8 +3800,8 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       generate_block();
 
       transfer_operation t_op;
-      t_op.from = "bob";
-      t_op.to = "cecil";
+      t_op.from = AN("bob");
+      t_op.to = AN("cecil");
       t_op.amount = ASSET("0.500000 SPHTX");
       t_op.fee = ASSET("0.100000 SPHTX");
       tx.clear();
@@ -3812,9 +3812,9 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
 
       generate_block();
 
-      const auto& new_alice = db->get_account( "alice" );
-      const auto& new_bob = db->get_account( "bob" );
-      const auto& new_cecil = db->get_account( "cecil" );
+      const auto& new_alice = db->get_account( AN("alice") );
+      const auto& new_bob = db->get_account( AN("bob") );
+      const auto& new_cecil = db->get_account( AN("cecil") );
 
       BOOST_REQUIRE( new_alice.balance.amount.value == ASSET( "99.900000 SPHTX" ).amount.value && new_bob.balance.amount.value == ASSET( "0.500000 SPHTX" ).amount.value && new_cecil.balance.amount.value == ASSET( "0.500000 SPHTX" ).amount.value);
 

@@ -9,15 +9,17 @@
 
 namespace sophiatx { namespace protocol {
 
+   std::string make_random_fixed_string(std::string seed);
+
 
    struct account_create_operation : public base_operation
    {
       account_name_type creator;
-      account_name_type new_account_name;
+      std::string        name_seed;
       authority         owner;
       authority         active;
       public_key_type   memo_key;
-      string            json_metadata;
+      std::string       json_metadata;
 
       account_name_type get_fee_payer()const { return creator;} ;
       asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);} ; //<the account creation fee is set by witnesses...
@@ -822,7 +824,7 @@ FC_REFLECT( sophiatx::protocol::chain_properties,
 
 FC_REFLECT_DERIVED( sophiatx::protocol::account_create_operation, (sophiatx::protocol::base_operation),
             (creator)
-            (new_account_name)
+            (name_seed)
             (owner)
             (active)
             (memo_key)
