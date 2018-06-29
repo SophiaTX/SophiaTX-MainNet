@@ -164,7 +164,6 @@ class alexandria_api
        * @param owner New public owner key for the account
        * @param active New public active key for the account
        * @param memo New public memo key for the account
-       * @param broadcast true if you wish to broadcast the transaction
        */
       operation update_account( string accountname,
                                          string json_meta,
@@ -212,7 +211,6 @@ class alexandria_api
        * @param url A URL containing some information about the witness.  The empty string makes it remain the same.
        * @param block_signing_key The new block signing public key.  The empty string disables block production.
        * @param props The chain properties the witness is voting on.
-       * @param broadcast true if you wish to broadcast the transaction.
        */
       operation update_witness(string witness_name,
                                 string url,
@@ -262,9 +260,7 @@ class alexandria_api
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
        * @param amount The funds being transferred. i.e. "100.000 sophiatx"
-       * @param memo A memo for the transaction, encrypted with the to account's public memo key
-       * @param broadcast true if you wish to broadcast the transaction
-       */
+       * @param memo A memo for the transaction, encrypted with the to account's public memo key       */
       operation transfer(string from, string to, asset amount, string memo);
 
       /**
@@ -276,7 +272,7 @@ class alexandria_api
        * @param to The account getting the VESTS
        * @param amount The amount of sophiatx to vest i.e. "100.00 sophiatx"
        */
-      operation transfer_to_vesting(string from, string to, asset amoun);
+      operation transfer_to_vesting(string from, string to, asset amount);
 
         /**
         * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
