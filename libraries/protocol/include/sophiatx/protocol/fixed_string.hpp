@@ -2,6 +2,8 @@
 
 #include <fc/uint128.hpp>
 #include <fc/io/raw_fwd.hpp>
+#include <fc/crypto/base58.hpp>
+#include <fc/crypto/ripemd160.hpp>
 
 #include <boost/endian/conversion.hpp>
 
@@ -73,10 +75,14 @@ class fixed_string_impl
       fixed_string_impl( const std::string& str )
       {
          Storage d;
-         if( str.size() <= sizeof(d) )
-            memcpy( (char*)&d, str.c_str(), str.size() );
+
+         char bytes[fc::ripemd160::data_size()];
+         auto count = fc::from_base58(str, bytes, fc::ripemd160::data_size());
+
+         if( count <= sizeof(d) )
+            memcpy( (char*)&d, bytes, count );
          else
-            memcpy( (char*)&d, str.c_str(), sizeof(d) );
+            memcpy( (char*)&d, bytes, sizeof(d) );
 
          data = boost::endian::big_to_native( d );
       }
@@ -84,10 +90,12 @@ class fixed_string_impl
       operator std::string()const
       {
          Storage d = boost::endian::native_to_big( data );
-         size_t s = strnlen( (const char*)&d, sizeof(d) );
-         const char* self = (const char*)&d;
+         //size_t s = strnlen( (const char*)&d, sizeof(d) );
+         std::vector<char> self ((const char*)&d, (const char*)&d +  fc::ripemd160::data_size());
+         //const char* self = (const char*)&d;
 
-         return std::string( self, self + s );
+         std::string ret = fc::to_base58(self);
+         return ret;
       }
 
       uint32_t size()const
@@ -126,7 +134,17 @@ class fixed_string_impl
       friend bool operator == ( const fixed_string_impl& a, const fixed_string_impl& b ) { return a.data == b.data; }
       friend bool operator != ( const fixed_string_impl& a, const fixed_string_impl& b ) { return a.data != b.data; }
 
+
+      static std::string make_random_fixed_string(std::string seed)
+      {
+         auto hash = fc::ripemd160::hash(seed);
+         std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
+         std::string ret = fc::to_base58(bytes);
+         return ret;
+      }
+
       Storage data;
+
 };
 
 // These storage types work with memory layout and should be used instead of a custom template.

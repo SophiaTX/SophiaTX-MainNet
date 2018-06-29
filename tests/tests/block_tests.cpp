@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       //*
       signed_transaction trx;
       account_create_operation cop;
-      cop.new_account_name = "alice";
+      cop.name_seed = "alice";
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
 
       auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
 
-      auto alice_id = db1.get_account( "alice" ).id;
+      auto alice_id = db1.get_account( AN("alice") ).id;
       BOOST_CHECK( db1.get(alice_id).name == "alice" );
 
       b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       signed_transaction trx;
       account_create_operation cop;
-      cop.new_account_name = "alice";
+      cop.name_seed = "alice";
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       trx.set_reference_block( db1.head_block_id() );
 
       account_create_operation cop;
-      cop.new_account_name = "alice";
+      cop.name_seed = "alice";
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
@@ -409,7 +409,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
 {
    try
    {
-      idump((db->get_account("initminer")));
+      idump((db->get_account(AN("initminer"))));
       ACTORS( (alice)(bob) );
 
       generate_block();
@@ -540,7 +540,7 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, clean_database_fixture )
       transaction tx;
       signed_transaction ptx;
 
-      db->get_account( SOPHIATX_INIT_MINER_NAME );
+      db->get_account(AN( SOPHIATX_INIT_MINER_NAME ));
       // transfer from committee account to Sam account
       transfer( SOPHIATX_INIT_MINER_NAME, "sam", asset( 100000, SOPHIATX_SYMBOL ) );
 

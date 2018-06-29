@@ -130,7 +130,8 @@ public:
 
    condenser_api::api_account_object get_account( string account_name ) const
    {
-      auto accounts = _remote_api->get_accounts( { account_name } );
+      string decoded_name = account_name_type::make_random_fixed_string(account_name);
+      auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
       return accounts.front();
    }
@@ -313,7 +314,7 @@ condenser_api::api_feed_history_object alexandria_api::get_feed_history(asset_sy
 }
 
 operation alexandria_api::create_account( string creator,
-                                      string new_account_name,
+                                      string name_seed,
                                       string json_meta,
                                       public_key_type owner,
                                       public_key_type active,
@@ -322,7 +323,7 @@ operation alexandria_api::create_account( string creator,
 
    account_create_operation op;
    op.creator = creator;
-   op.new_account_name = new_account_name;
+   op.name_seed = name_seed;
    op.owner = authority( 1, owner, 1 );
    op.active = authority( 1, active, 1 );
    op.memo_key = memo;
@@ -330,7 +331,7 @@ operation alexandria_api::create_account( string creator,
    op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
 
    return op;
-} FC_CAPTURE_AND_RETHROW( (creator)(new_account_name)(json_meta)(owner)(active)(memo)) }
+} FC_CAPTURE_AND_RETHROW( (creator)(name_seed)(json_meta)(owner)(active)(memo)) }
 
 vector< database_api::api_owner_authority_history_object > alexandria_api::get_owner_history( string account )const
 {

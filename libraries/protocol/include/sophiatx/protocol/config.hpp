@@ -235,7 +235,7 @@
 /// Represents the current witnesses
 #define SOPHIATX_MINER_ACCOUNT                   "miners"
 /// Represents the canonical account with NO authority (nobody can access funds in null account)
-#define SOPHIATX_NULL_ACCOUNT                    "null"
+#define SOPHIATX_NULL_ACCOUNT                    "none"
 /// Represents the canonical account with WILDCARD authority (anybody can access funds in temp account)
 #define SOPHIATX_TEMP_ACCOUNT                    "temp"
 /// Represents the canonical account for specifying you will vote for directly (as opposed to a proxy)

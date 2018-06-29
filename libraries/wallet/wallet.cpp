@@ -321,11 +321,16 @@ public:
       return result;
    }
 
-   condenser_api::api_account_object get_account( string account_name ) const
+   condenser_api::api_account_object get_account( string account_name_or_seed ) const
    {
-      auto accounts = _remote_api->get_accounts( { account_name } );
+
+      auto accounts = _remote_api->get_accounts( { account_name_or_seed, get_account_name_from_seed(account_name_or_seed) } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
       return accounts.front();
+   }
+
+   string get_account_name_from_seed(string seed) const{
+      return account_name_type::make_random_fixed_string(seed);
    }
 
    string get_wallet_filename() const { return _wallet_filename; }
@@ -477,7 +482,7 @@ public:
          account_create_operation account_create_op;
 
          account_create_op.creator = creator_account_name;
-         account_create_op.new_account_name = account_name;
+         account_create_op.name_seed = account_name;
 //         account_create_op.fee = _remote_api->get_chain_properties().account_creation_fee;
          account_create_op.owner = authority(1, owner_pubkey, 1);
          account_create_op.active = authority(1, active_pubkey, 1);
@@ -740,13 +745,6 @@ public:
       return m;
    }
 
-   operation get_prototype_operation( string operation_name )
-   {
-      auto it = _prototype_ops.find( operation_name );
-      if( it == _prototype_ops.end() )
-         FC_THROW("Unsupported operation: \"${operation_name}\"", ("operation_name", operation_name));
-      return it->second;
-   }
 
    string                                  _wallet_filename;
    wallet_data                             _wallet;
@@ -819,10 +817,6 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
    return result;
 }
 
-vector< account_name_type > wallet_api::list_accounts(const string& lowerbound, uint32_t limit)
-{
-   return my->_remote_api->lookup_accounts( lowerbound, limit );
-}
 
 vector< account_name_type > wallet_api::get_active_witnesses()const {
    return my->_remote_api->get_active_witnesses();
@@ -858,10 +852,6 @@ brain_key_info wallet_api::suggest_brain_key()const
    return result;
 }
 
-string wallet_api::serialize_transaction( signed_transaction tx )const
-{
-   return fc::to_hex(fc::raw::pack_to_vector(tx));
-}
 
 string wallet_api::get_wallet_filename() const
 {
@@ -935,9 +925,6 @@ annotated_signed_transaction wallet_api::sign_transaction(signed_transaction tx,
    return my->sign_transaction( tx, broadcast);
 } FC_CAPTURE_AND_RETHROW( (tx) ) }
 
-operation wallet_api::get_prototype_operation(string operation_name) {
-   return my->get_prototype_operation( operation_name );
-}
 
 string wallet_api::help()const
 {
@@ -1044,8 +1031,8 @@ string wallet_api::get_private_key( public_key_type pubkey )const
    return key_to_wif( my->get_private_key( pubkey ) );
 }
 
-pair<public_key_type,string> wallet_api::get_private_key_from_password( string account, string role, string password )const {
-   auto seed = account + role + password;
+pair<public_key_type,string> wallet_api::get_private_key_from_password( string account, string password )const {
+   auto seed = account + password;
    FC_ASSERT( seed.size() );
    auto secret = fc::sha256::hash( seed.c_str(), seed.size() );
    auto priv = fc::ecc::private_key::regenerate( secret );
@@ -1062,7 +1049,7 @@ condenser_api::api_feed_history_object wallet_api::get_feed_history(asset_symbol
  * wallet.
  */
 annotated_signed_transaction wallet_api::create_account_with_keys( string creator,
-                                      string new_account_name,
+                                      string name_seed,
                                       string json_meta,
                                       public_key_type owner,
                                       public_key_type active,
@@ -1072,7 +1059,7 @@ annotated_signed_transaction wallet_api::create_account_with_keys( string creato
    FC_ASSERT( !is_locked() );
    account_create_operation op;
    op.creator = creator;
-   op.new_account_name = new_account_name;
+   op.name_seed = name_seed;
    op.owner = authority( 1, owner, 1 );
    op.active = authority( 1, active, 1 );
    op.memo_key = memo;
@@ -1084,7 +1071,7 @@ annotated_signed_transaction wallet_api::create_account_with_keys( string creato
    tx.validate();
 
    return my->sign_transaction( tx, broadcast );
-} FC_CAPTURE_AND_RETHROW( (creator)(new_account_name)(json_meta)(owner)(active)(memo)(broadcast) ) }
+} FC_CAPTURE_AND_RETHROW( (creator)(name_seed)(json_meta)(owner)(active)(memo)(broadcast) ) }
 
 annotated_signed_transaction wallet_api::request_account_recovery( string recovery_account, string account_to_recover, authority new_authority, bool broadcast )
 {
@@ -1391,7 +1378,7 @@ annotated_signed_transaction wallet_api::update_account_memo_key( string account
  *  This method will genrate new owner, active, and memo keys for the new account which
  *  will be controlable by this wallet.
  */
-annotated_signed_transaction wallet_api::create_account( string creator, string new_account_name, string json_meta, bool broadcast )
+annotated_signed_transaction wallet_api::create_account( string creator, string name_seed, string json_meta, bool broadcast )
 { try {
    FC_ASSERT( !is_locked() );
    auto owner = suggest_brain_key();
@@ -1400,8 +1387,8 @@ annotated_signed_transaction wallet_api::create_account( string creator, string 
    import_key( owner.wif_priv_key );
    import_key( active.wif_priv_key );
    import_key( memo.wif_priv_key );
-   return create_account_with_keys( creator, new_account_name, json_meta, owner.pub_key, active.pub_key, memo.pub_key, broadcast );
-} FC_CAPTURE_AND_RETHROW( (creator)(new_account_name)(json_meta) ) }
+   return create_account_with_keys( creator, name_seed, json_meta, owner.pub_key, active.pub_key, memo.pub_key, broadcast );
+} FC_CAPTURE_AND_RETHROW( (creator)(name_seed)(json_meta) ) }
 
 
 annotated_signed_transaction wallet_api::update_witness( string witness_account_name,
@@ -1760,16 +1747,6 @@ map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_his
    return result;
 }
 
-condenser_api::state wallet_api::get_state( string url ) {
-   return my->_remote_api->get_state( url );
-}
-
-
-
-void wallet_api::set_transaction_expiration(uint32_t seconds)
-{
-   my->set_transaction_expiration(seconds);
-}
 
 annotated_signed_transaction wallet_api::get_transaction( transaction_id_type id )const {
    return my->_remote_api->get_transaction( id );
@@ -1965,6 +1942,19 @@ vector<condenser_api::api_application_object> wallet_api::get_applications(vecto
       return my->_remote_api->get_applications(names);
    }FC_CAPTURE_AND_RETHROW((names))
 }
+
+string wallet_api::encode_to_base58(string what){
+   return fc::to_base58(what.c_str(), what.size());
+}
+
+vector<char> wallet_api::decode_from_base58(string what){
+   return fc::from_base58(what);
+}
+
+string wallet_api::get_account_name_from_seed(string seed){
+   return my->get_account_name_from_seed(seed);
+}
+
 
 } } // sophiatx::wallet
 

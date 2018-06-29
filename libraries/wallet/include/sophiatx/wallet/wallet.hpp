@@ -130,28 +130,9 @@ class wallet_api
       vector< account_name_type > get_active_witnesses()const;
 
       /**
-       * Returns the state info associated with the URL
-       */
-      condenser_api::state get_state( string url );
-
-      /**
        *  Gets the account information for all accounts for which this wallet has a private key
        */
       vector< condenser_api::api_account_object > list_my_accounts();
-
-      /** Lists all accounts registered in the blockchain.
-       * This returns a list of all account names and their account ids, sorted by account name.
-       *
-       * Use the \c lowerbound and limit parameters to page through the list.  To retrieve all accounts,
-       * start by setting \c lowerbound to the empty string \c "", and then each iteration, pass
-       * the last account name returned as the \c lowerbound for the next \c list_accounts() call.
-       *
-       * @param lowerbound the name of the first account to return.  If the named account does not exist,
-       *                   the list will start at the account that comes after \c lowerbound
-       * @param limit the maximum number of accounts to return (max: 1000)
-       * @returns a list of accounts mapping account names to account ids
-       */
-      vector< account_name_type > list_accounts(const string& lowerbound, uint32_t limit);
 
       /** Returns information about the given account.
        *
@@ -181,7 +162,7 @@ class wallet_api
        *  @param password - the password to be used at key generation
        *  @return public key corresponding to generated private key, and private key in WIF format.
        */
-      pair<public_key_type,string>  get_private_key_from_password( string account, string role, string password )const;
+      pair<public_key_type,string>  get_private_key_from_password( string account, string password )const;
 
 
       /**
@@ -322,11 +303,11 @@ class wallet_api
        *  'info' wallet command.
        *
        *  @param creator The account creating the new account
-       *  @param new_account_name The name of the new account
+       *  @param seed The seed used to generate the name of the new account
        *  @param json_meta JSON Metadata associated with the new account
        *  @param broadcast true if you wish to broadcast the transaction
        */
-      annotated_signed_transaction create_account( string creator, string new_account_name, string json_meta, bool broadcast );
+      annotated_signed_transaction create_account( string creator, string seed, string json_meta, bool broadcast );
 
       /**
        * This method is used by faucets to create new accounts for other users which must
@@ -667,24 +648,6 @@ class wallet_api
        */
       annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false);
 
-      /** Returns an uninitialized object representing a given blockchain operation.
-       *
-       * This returns a default-initialized object of the given type; it can be used
-       * during early development of the wallet when we don't yet have custom commands for
-       * creating all of the operations the blockchain supports.
-       *
-       * Any operation the blockchain supports can be created using the transaction builder's
-       * \c add_operation_to_builder_transaction() , but to do that from the CLI you need to
-       * know what the JSON form of the operation looks like.  This will give you a template
-       * you can fill in.  It's better than nothing.
-       *
-       * @param operation_type the type of operation to return, must be one of the
-       *                       operations defined in `sophiatx/chain/operations.hpp`
-       *                       (e.g., "global_parameters_update_operation")
-       * @return a default-constructed operation of the given type
-       */
-      operation get_prototype_operation(string operation_type);
-
       /**
        * Sets the amount of time in the future until a transaction expires.
        */
@@ -869,6 +832,9 @@ class wallet_api
 
       annotated_signed_transaction sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast);
 
+      string encode_to_base58(string what);
+      vector<char> decode_from_base58(string what);
+      string get_account_name_from_seed(string seed);
 };
 
 struct plain_keys {
@@ -908,7 +874,6 @@ FC_API( sophiatx::wallet::wallet_api,
         /// query api
         (info)
         (list_my_accounts)
-        (list_accounts)
         (list_witnesses)
         (get_witness)
         (get_account)
@@ -916,7 +881,6 @@ FC_API( sophiatx::wallet::wallet_api,
         (get_ops_in_block)
         (get_feed_history)
         (get_account_history)
-        (get_state)
         (get_application_buyings)
         (get_applications)
 
@@ -943,7 +907,6 @@ FC_API( sophiatx::wallet::wallet_api,
         (transfer_to_vesting)
         (withdraw_vesting)
         (publish_feed)
-        (set_transaction_expiration)
         (request_account_recovery)
         (recover_account)
         (change_recovery_account)
@@ -956,10 +919,6 @@ FC_API( sophiatx::wallet::wallet_api,
         (buy_application)
         (cancel_application_buying)
 
-        /// helper api
-        (get_prototype_operation)
-        (serialize_transaction)
-        (sign_transaction)
 
         (get_active_witnesses)
         (get_transaction)
@@ -967,6 +926,9 @@ FC_API( sophiatx::wallet::wallet_api,
         (send_custom_json_document)
         (send_custom_binary_document)
         (get_received_documents)
+
+
+        (encode_to_base58)(decode_from_base58)(get_account_name_from_seed)
       )
 
 FC_REFLECT( sophiatx::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )

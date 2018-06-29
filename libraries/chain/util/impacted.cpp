@@ -27,7 +27,11 @@ struct get_impacted_account_visitor
    // ops
    void operator()( const account_create_operation& op )
    {
-      _impacted.insert( op.new_account_name );
+
+      auto hash = fc::ripemd160::hash(op.name_seed);
+      std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
+      account_name_type new_account_name = fc::to_base58(bytes);
+      _impacted.insert( new_account_name );
       _impacted.insert( op.creator );
    }
 

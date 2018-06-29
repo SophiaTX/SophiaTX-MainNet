@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( account_create_authorities )
 
       account_create_operation op;
       op.creator = "alice";
-      op.new_account_name = "bob";
+      op.name_seed = "bob";
 
       flat_set< account_name_type > auths;
       flat_set< account_name_type > expected;
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       account_create_operation op;
 
       op.fee = ASSET( "0.100000 SPHTX" );
-      op.new_account_name = "alice";
+      op.name_seed = "alice";
       op.creator = SOPHIATX_INIT_MINER_NAME;
       op.owner = authority( 1, priv_key.get_public_key(), 1 );
       op.active = authority( 2, priv_key.get_public_key(), 2 );
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       tx.signatures.clear();
       tx.operations.clear();
       op.fee = asset( db->get_account( SOPHIATX_INIT_MINER_NAME ).balance.amount + 1, SOPHIATX_SYMBOL );
-      op.new_account_name = "bob";
+      op.name_seed = "bob";
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
@@ -1601,7 +1601,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       account_create_operation acc_create;
       acc_create.fee = ASSET( "10.000000 SPHTX" );
       acc_create.creator = "alice";
-      acc_create.new_account_name = "bob";
+      acc_create.name_seed = "bob";
       acc_create.owner = authority( 1, generate_private_key( "bob_owner" ).get_public_key(), 1 );
       acc_create.active = authority( 1, generate_private_key( "bob_active" ).get_public_key(), 1 );
       acc_create.memo_key = generate_private_key( "bob_memo" ).get_public_key();

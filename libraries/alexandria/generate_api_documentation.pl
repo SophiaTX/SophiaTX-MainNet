@@ -13,10 +13,10 @@ my $outFile = new IO::File($outputFileName, "w")
 my $fileHeader = <<'END';
 /** GENERATED FILE **/
 #include <set>
-#include <sophiatx/wallet/api_documentation.hpp>
-#include <sophiatx/wallet/wallet.hpp>
+#include <sophiatx/alexandria/api_documentation.hpp>
+#include <sophiatx/alexandria/lib_alexandria.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
    namespace detail
    {
       struct api_method_name_collector_visitor
@@ -38,7 +38,7 @@ $outFile->print($fileHeader);
 
 for my $class (@{$doxydocs->{classes}})
 {
-  if ($class->{name} eq 'sophiatx::wallet::wallet_api')
+  if ($class->{name} eq 'sophiatx::alexandria::alexandria_api')
   {
     for my $member (@{$class->{public_methods}->{members}})
     {
@@ -74,7 +74,7 @@ END
 }
 
 my $fileFooter = <<'END';
-      fc::api<wallet_api> tmp;
+      fc::api<alexandria_api> tmp;
       detail::api_method_name_collector_visitor visitor;
       tmp->visit(visitor);
       for (auto iter = method_descriptions.begin(); iter != method_descriptions.end();)
@@ -84,7 +84,7 @@ my $fileFooter = <<'END';
           ++iter;
    }
 
-} } // end namespace sophiatx::wallet
+} } // end namespace sophiatx::alexandria
 END
 $outFile->print($fileFooter);
 $outFile->close();
