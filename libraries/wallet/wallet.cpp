@@ -330,7 +330,7 @@ public:
    }
 
    string get_account_name_from_seed(string seed) const{
-      return account_name_type::make_random_fixed_string(seed);
+      return make_random_fixed_string(seed);
    }
 
    string get_wallet_filename() const { return _wallet_filename; }

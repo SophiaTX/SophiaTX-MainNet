@@ -7,6 +7,14 @@
 
 namespace sophiatx { namespace protocol {
 
+   std::string make_random_fixed_string(std::string seed)
+   {
+      auto hash = fc::ripemd160::hash(seed);
+      std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
+      std::string ret = fc::to_base58(bytes);
+      return ret;
+   }
+
    void account_create_operation::validate() const
    {
       //validate_account_name( name_seed );

@@ -130,7 +130,7 @@ public:
 
    condenser_api::api_account_object get_account( string account_name ) const
    {
-      string decoded_name = account_name_type::make_random_fixed_string(account_name);
+      string decoded_name = make_random_fixed_string(account_name);
       auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
       return accounts.front();

@@ -9,6 +9,8 @@
 
 namespace sophiatx { namespace protocol {
 
+   std::string make_random_fixed_string(std::string seed);
+
 
    struct account_create_operation : public base_operation
    {

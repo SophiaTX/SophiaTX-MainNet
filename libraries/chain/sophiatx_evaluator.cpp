@@ -231,7 +231,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 {
    const auto& creator = _db.get_account( o.creator );
 
-   std::string new_account_name_s = sophiatx::protocol::account_name_type::make_random_fixed_string(o.name_seed);
+   std::string new_account_name_s = sophiatx::protocol::make_random_fixed_string(o.name_seed);
    account_name_type new_account_name = new_account_name_s;
 
    const auto& props = _db.get_dynamic_global_properties();

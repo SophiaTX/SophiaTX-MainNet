@@ -65,7 +65,7 @@ extern uint32_t ( SOPHIATX_TESTING_GENESIS_TIMESTAMP );
 }*/
 
 #define AN( name)                                         \
-   sophiatx::protocol::account_name_type::make_random_fixed_string( name )
+   sophiatx::protocol::make_random_fixed_string( name )
 
 #define SOPHIATX_REQUIRE_THROW( expr, exc_type )          \
    BOOST_REQUIRE_THROW( expr, exc_type );

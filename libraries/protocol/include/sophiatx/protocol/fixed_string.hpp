@@ -134,15 +134,6 @@ class fixed_string_impl
       friend bool operator == ( const fixed_string_impl& a, const fixed_string_impl& b ) { return a.data == b.data; }
       friend bool operator != ( const fixed_string_impl& a, const fixed_string_impl& b ) { return a.data != b.data; }
 
-
-      static std::string make_random_fixed_string(std::string seed)
-      {
-         auto hash = fc::ripemd160::hash(seed);
-         std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
-         std::string ret = fc::to_base58(bytes);
-         return ret;
-      }
-
       Storage data;
 
 };
