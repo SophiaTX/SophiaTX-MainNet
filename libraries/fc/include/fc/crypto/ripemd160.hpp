@@ -18,7 +18,7 @@ class ripemd160
     explicit operator string()const;
 
     char*    data()const;
-    static size_t data_size() { return 160/8; }
+    static constexpr size_t data_size() { return 160/8; }
 
     static ripemd160 hash( const fc::sha512& h );
     static ripemd160 hash( const fc::sha256& h );
