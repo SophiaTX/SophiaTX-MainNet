@@ -781,7 +781,7 @@ string alexandria_api::decrypt_data(string data, public_key_type public_key, str
 bool alexandria_api::account_exist(string account_name) const {
    try {
       string decoded_name = make_random_fixed_string(account_name);
-      auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
+      auto accounts = my->_remote_api->get_accounts( { account_name, decoded_name } );
 
       if( !accounts.empty())
       {
