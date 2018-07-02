@@ -8,6 +8,7 @@
 #include <fc/real128.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/api.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api.hpp>
 
 namespace sophiatx { namespace alexandria {
 
@@ -506,6 +507,79 @@ class alexandria_api
        */
       string decrypt_data(string data, public_key_type public_key, string private_key) const;
 
+      /**
+       * Check if account account exists
+       * @param account_name - name of the account
+       * @return returns true if account exists
+       */
+      bool account_exist(string account_name) const;
+
+      /**
+      *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
+      *  returns operations in the range [from-limit, from]
+      *
+      *  @param account - account whose history will be returned
+      *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
+      *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
+      */
+      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
+
+      /**
+       * Returns active authority for given account
+       * @param account_name - account name
+       */
+      authority get_active_authority(string account_name) const;
+
+      /**
+       * Returns owner authority for given account
+       * @param account_name
+       */
+      authority get_owner_authority(string account_name) const;
+
+      /**
+       * Returns memo key for given account
+       * @param account_name
+        */
+      public_key_type get_memo_key(string account_name) const;
+
+      /**
+       * Returns current balance for given account
+       * @param account_name
+       */
+      int64_t get_account_balance(string account_name) const;
+
+      /**
+       * Returns vestig balance for given account
+       * @param account_name
+       */
+      int64_t get_vesting_balance(string account_name) const;
+
+      /**
+       * Creates simple authority object from provided public key
+       * @param pub_key
+       */
+      authority create_simple_authority(public_key_type pub_key) const;
+
+      /**
+       * Creates simple multisig authority object from provided public key
+       * @param pub_keys - vector of public keys
+       * @param required_signatures  - number of required signatures
+       * @return
+       */
+      authority create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const;
+
+      /**
+       * Creates simple managed authority from provided account_name
+       * @param managing_account
+       */
+      authority create_simple_managed_authority(string managing_account) const;
+
+      /**
+       * Creates simple multisig managed authority from provided account_name
+       * @param managing_accounts - vector of accounts
+       * @param required_signatures - number of required signatures
+       */
+      authority create_simple_multisig_managed_authority(vector<string> managing_accounts, uint32_t required_signatures) const;
 
 };
 
@@ -524,7 +598,6 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (info)
         (list_witnesses)
         (get_witness)
-        (get_account)
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
@@ -533,6 +606,20 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (get_received_documents)
         (get_active_witnesses)
         (get_transaction)
+
+        ///account api
+        (account_exist)
+        (get_account)
+        (get_account_history)
+        (get_active_authority)
+        (get_owner_authority)
+        (get_memo_key)
+        (get_account_balance)
+        (get_vesting_balance)
+        (create_simple_authority)
+        (create_simple_multisig_authority)
+        (create_simple_managed_authority)
+        (create_simple_multisig_managed_authority)
 
         /// transaction api
         (create_account)

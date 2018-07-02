@@ -777,5 +777,94 @@ string alexandria_api::decrypt_data(string data, public_key_type public_key, str
    } FC_CAPTURE_AND_RETHROW((data)(public_key)(private_key))
 }
 
+bool alexandria_api::account_exist(string account_name) const {
+   try {
+      auto accounts = my->_remote_api->get_accounts( { account_name } );
+
+      if( !accounts.empty())
+      {
+         return true;
+      }
+      else{
+         return false;
+      }
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+
+authority alexandria_api::get_active_authority(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.active;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+authority alexandria_api::get_owner_authority(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.owner;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+public_key_type alexandria_api::get_memo_key(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.memo_key;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+int64_t alexandria_api::get_account_balance(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.balance.amount.value;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+int64_t alexandria_api::get_vesting_balance(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.vesting_shares.amount.value;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+authority alexandria_api::create_simple_authority(public_key_type pub_key) const {
+   return authority(1, pub_key, 1);
+}
+
+authority alexandria_api::create_simple_managed_authority(string managing_account) const {
+   return authority(1, managing_account, 1);
+}
+
+map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+   auto result = my->_remote_api->get_account_history( account, from, limit );
+   for( auto& item : result ) {
+      if( item.second.op.which() == condenser_api::legacy_operation::tag<condenser_api::legacy_transfer_operation>::value )
+         auto& top = item.second.op.get<condenser_api::legacy_transfer_operation>();
+   }
+   return result;
+}
+
+authority
+alexandria_api::create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const {
+   authority auth;
+   auth.weight_threshold = required_signatures;
+   for(const auto& key : pub_keys)
+   {
+      auth.add_authority(key, 1);
+   }
+   return auth;
+}
+
+authority alexandria_api::create_simple_multisig_managed_authority(vector<string> managing_accounts,
+                                                                   uint32_t required_signatures) const {
+   authority auth;
+   auth.weight_threshold = required_signatures;
+   for(const auto& account : managing_accounts)
+   {
+      auth.add_authority(account, 1);
+   }
+   return auth;
+}
+
 } } // sophiatx::alexandria
 
