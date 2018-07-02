@@ -28,7 +28,7 @@ pipeline {
         sh 'make install'
         dir('install') {
             dir('lib') {
-                sh 'strip -s *' //strip symbols
+                sh 'strip -s libalexandria.so' //strip symbols
                 sh 'tar -czf libalexandria libalexandria.so alexandria.hpp' //create tar file
                 archiveArtifacts '*.gz'
             }
