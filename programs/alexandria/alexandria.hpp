@@ -1,6 +1,12 @@
 #ifndef SOPHIATX_ALEXANDRIA_HPP
 #define SOPHIATX_ALEXANDRIA_HPP
 
+#ifdef _WIN32
+#define ALEXANDRIA_EXPORT __declspec(dllexport)
+#else
+#define ALEXANDRIA_EXPORT
+#endif
+
 namespace {
 
 extern "C" {
@@ -11,7 +17,7 @@ extern "C" {
     * @param public_key - return parameter of size 53
     * @return - true if operation is successful
     */
-   bool generate_private_key(char *private_key, char *public_key);
+   ALEXANDRIA_EXPORT bool generate_private_key(char *private_key, char *public_key);
 
    /**
     * Returns public_key for given private_key
@@ -19,7 +25,7 @@ extern "C" {
     * @param public_key - return paramter public key derived from private_key
     * @return - true if operation is successful
     */
-   bool get_public_key(const char *private_key, char *public_key);
+   ALEXANDRIA_EXPORT bool get_public_key(const char *private_key, char *public_key);
 
    /**
     * Generates new private/public key pair from brian key.​
@@ -28,7 +34,7 @@ extern "C" {
     * @param public_key - return parameter of size 53
     * @return - true if operation is successful
     */
-   bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, char *public_key);
+   ALEXANDRIA_EXPORT bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, char *public_key);
 
    /**
     * Creates digest of JSON formatted transaction
@@ -37,7 +43,7 @@ extern "C" {
     * @param digest - returned digest of transaction (size 64)
     * @return - true if operation is successful
     */
-   bool get_transaction_digest(const char *transaction, const char *chain_id, char *digest);
+   ALEXANDRIA_EXPORT bool get_transaction_digest(const char *transaction, const char *chain_id, char *digest);
 
    /**
     * Creates signature for provided digest
@@ -46,7 +52,7 @@ extern "C" {
     * @param signed_digest - returned signature (size 130)
     * @return - true if operation is successful
     */
-   bool sign_digest(const char *digest, const char *private_key, char *signed_digest);
+    ALEXANDRIA_EXPORT bool sign_digest(const char *digest, const char *private_key, char *signed_digest);
 
    /**
     * Adds signature to JSON formatted transaction
@@ -55,7 +61,7 @@ extern "C" {
     * @param signed_tx - returned signed transaction (size variable, depends on size of transaction on input_
     * @return - true if operation is successful
     */
-   bool add_signature(const char *transaction, const char *signature, char *signed_tx);
+    ALEXANDRIA_EXPORT bool add_signature(const char *transaction, const char *signature, char *signed_tx);
 
    /**
     * Function for verifying signature base on digest and public key
@@ -64,7 +70,7 @@ extern "C" {
     * @param signed_digest - digest singed by private_key
     * @return - true if signature is correct
     */
-   bool verify_signature(const char *digest, const char *public_key, const char *signed_digest);
+    ALEXANDRIA_EXPORT bool verify_signature(const char *digest, const char *public_key, const char *signed_digest);
 
    /**
    *  Returns the encrypted memo
@@ -74,7 +80,7 @@ extern "C" {
    * @param encrypted_memo - return value of encrypted memo
    * @return - true if signature is correct
    */
-   bool encrypt_memo(const char *memo, const char *private_key, const char *public_key, char *encrypted_memo);
+   ALEXANDRIA_EXPORT bool encrypt_memo(const char *memo, const char *private_key, const char *public_key, char *encrypted_memo);
 
    /**
     * Returns the decrypted memo if possible given private keys
@@ -84,7 +90,7 @@ extern "C" {
     * @param decrypted_memo - decrypted memo
     * @return - true if signature is correct
     */
-   bool decrypt_memo(const char *memo, const char *private_key, const char *public_key, char *decrypted_memo);
+    ALEXANDRIA_EXPORT bool decrypt_memo(const char *memo, const char *private_key, const char *public_key, char *decrypted_memo);
 }
 
 #endif //SOPHIATX_ALEXANDRIA_HPP
