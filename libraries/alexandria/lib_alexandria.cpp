@@ -780,7 +780,8 @@ string alexandria_api::decrypt_data(string data, public_key_type public_key, str
 
 bool alexandria_api::account_exist(string account_name) const {
    try {
-      auto accounts = my->_remote_api->get_accounts( { account_name } );
+      string decoded_name = make_random_fixed_string(account_name);
+      auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
 
       if( !accounts.empty())
       {
@@ -833,7 +834,8 @@ authority alexandria_api::create_simple_authority(public_key_type pub_key) const
 }
 
 authority alexandria_api::create_simple_managed_authority(string managing_account) const {
-   return authority(1, managing_account, 1);
+   string decoded_name = make_random_fixed_string(account_name);
+   return authority(1, decoded_name, 1);
 }
 
 map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
@@ -862,7 +864,8 @@ authority alexandria_api::create_simple_multisig_managed_authority(vector<string
    auth.weight_threshold = required_signatures;
    for(const auto& account : managing_accounts)
    {
-      auth.add_authority(account, 1);
+      string decoded_name = make_random_fixed_string(account);
+      auth.add_authority(decoded_name, 1);
    }
    return auth;
 }
