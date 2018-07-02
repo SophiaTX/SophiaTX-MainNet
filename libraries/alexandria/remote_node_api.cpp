@@ -1,6 +1,6 @@
 #include<sophiatx/alexandria/remote_node_api.hpp>
 
-namespace sophiatx { namespace wallet{
+namespace sophiatx { namespace alexandria{
 
 // This class exists only to provide method signature information to fc::api, not to execute calls.
 

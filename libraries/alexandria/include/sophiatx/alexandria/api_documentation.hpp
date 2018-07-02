@@ -31,7 +31,7 @@
 
 #include <fc/exception/exception.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
    struct method_description
    {
@@ -74,4 +74,4 @@ namespace sophiatx { namespace wallet {
       }
    };
 
-} } // end namespace sophiatx::wallet
+} } // end namespace sophiatx::alexandria

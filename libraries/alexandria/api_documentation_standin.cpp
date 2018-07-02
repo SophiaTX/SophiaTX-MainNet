@@ -24,9 +24,9 @@
 #include <iomanip>
 #include <boost/algorithm/string/join.hpp>
 #include <sophiatx/alexandria/lib_alexandria.hpp>
-#include <sophiatx/alexandria//api_documentation.hpp>
+#include <sophiatx/alexandria/api_documentation.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
    namespace detail {
       namespace
       {
@@ -88,4 +88,4 @@ namespace sophiatx { namespace wallet {
                 std::inserter(method_descriptions, method_descriptions.end()));
    }
 
-} } // end namespace sophiatx::wallet
+} } // end namespace sophiatx::alexandria

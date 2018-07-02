@@ -30,7 +30,7 @@
 #include <fc/thread/scoped_lock.hpp>
 #include <fc/smart_ref_impl.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 using sophiatx::plugins::condenser_api::legacy_asset;
 
@@ -82,7 +82,7 @@ public:
       return result;
    }
 
-   variant_object about() const
+   variant_object about()
    {
       string client_version( sophiatx::utilities::git_revision_description );
       const size_t pos = client_version.find( '/' );
@@ -119,6 +119,7 @@ public:
          result["server_sophiatx_revision"] = v.sophiatx_revision;
          result["server_fc_revision"] = v.fc_revision;
          result["chain_id"] = v.chain_id;
+         _chain_id = fc::sha256(v.chain_id);
       }
       catch( fc::exception& )
       {
@@ -209,18 +210,18 @@ public:
 
    fc::api< remote_node_api >              _remote_api;
    uint32_t                                _tx_expiration_seconds = 30;
-
+   chain_id_type                           _chain_id;
 
 #ifdef __unix__
    mode_t                  _old_umask;
 #endif
 };
 
-} } } // sophiatx::wallet::detail
+} } } // sophiatx::alexandria::detail
 
 
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 alexandria_api::alexandria_api(fc::api< remote_node_api > rapi)
    : my(new detail::alexandria_api_impl(*this, rapi))
@@ -242,17 +243,12 @@ vector< account_name_type > alexandria_api::get_active_witnesses()const {
    return my->_remote_api->get_active_witnesses();
 }
 
-string alexandria_api::serialize_transaction( signed_transaction tx )const
-{
-   return fc::to_hex(fc::raw::pack_to_vector(tx));
-}
-
 variant alexandria_api::info()
 {
    return my->info();
 }
 
-variant_object alexandria_api::about() const
+variant_object alexandria_api::about()
 {
     return my->about();
 }
@@ -654,5 +650,225 @@ vector<condenser_api::api_application_object> alexandria_api::get_applications(v
       return my->_remote_api->get_applications(names);
    }FC_CAPTURE_AND_RETHROW((names))
 }
-} } // sophiatx::wallet
+
+digest_type alexandria_api::get_transaction_digest(signed_transaction tx) {
+   try{
+      if(my->_chain_id == fc::sha256())
+      {
+         auto v = my->_remote_api->get_version();
+         my->_chain_id = fc::sha256(v.chain_id);
+      }
+      return tx.sig_digest(my->_chain_id);
+   }FC_CAPTURE_AND_RETHROW((tx))
+}
+
+signed_transaction alexandria_api::add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const {
+   try{
+      tx.signatures.push_back(signature);
+      return  tx;
+   }FC_CAPTURE_AND_RETHROW((tx)(signature))
+}
+
+fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, string pk) const {
+   try{
+      auto priv_key = *sophiatx::utilities::wif_to_key(pk);
+      return priv_key.sign_compact(digest);
+   }FC_CAPTURE_AND_RETHROW((digest)(pk))
+}
+
+annotated_signed_transaction alexandria_api::send_and_sign_operation(operation op, string pk) {
+   try{
+      auto tx = create_simple_transaction(op);
+      broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
+   }FC_CAPTURE_AND_RETHROW((op)(pk))
+}
+
+annotated_signed_transaction alexandria_api::send_and_sign_transaction(signed_transaction tx, string pk){
+   try{
+      broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
+   }FC_CAPTURE_AND_RETHROW((tx)(pk))
+}
+
+bool alexandria_api::verify_signature(digest_type digest, public_key_type pub_key,
+                                      fc::ecc::compact_signature signature) const {
+   try{
+      if(pub_key == fc::ecc::public_key(signature, digest)) {
+         return true;
+      }
+      return  false;
+   }FC_CAPTURE_AND_RETHROW((digest)(pub_key)(signature))
+}
+
+key_pair alexandria_api::generate_key_pair() const {
+   private_key_type priv_key = fc::ecc::private_key::generate();
+   key_pair kp;
+   kp.pub_key = priv_key.get_public_key();
+   kp.wif_priv_key = key_to_wif(priv_key);
+   return kp;
+}
+
+key_pair alexandria_api::generate_key_pair_from_brain_key(string brain_key) const {
+   fc::sha512 h = fc::sha512::hash(brain_key + " 0");
+   auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
+   key_pair kp;
+   kp.pub_key = priv_key.get_public_key();
+   kp.wif_priv_key = key_to_wif(priv_key);
+   return kp;
+}
+
+public_key_type alexandria_api::get_public_key(string private_key) const {
+   try{
+      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+      return priv_key.get_public_key();
+   }FC_CAPTURE_AND_RETHROW((private_key))
+}
+
+std::vector<char> alexandria_api::from_base58(string data) const {
+   return fc::from_base58(data);
+}
+
+string alexandria_api::to_base58(std::vector<char> data) const {
+   return fc::to_base58(data);
+}
+
+string alexandria_api::encrypt_data(string data, public_key_type public_key, string private_key) const {
+   try {
+      memo_data m;
+
+      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+
+      m.nonce = fc::time_point::now().time_since_epoch().count();
+
+      auto shared_secret = priv_key.get_shared_secret( public_key );
+
+      fc::sha512::encoder enc;
+      fc::raw::pack( enc, m.nonce );
+      fc::raw::pack( enc, shared_secret );
+      auto encrypt_key = enc.result();
+
+      m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(data) );
+      m.check = fc::sha256::hash( encrypt_key )._hash[0];
+      return string(m);
+   } FC_CAPTURE_AND_RETHROW((data)(public_key)(private_key))
+}
+
+string alexandria_api::decrypt_data(string data, public_key_type public_key, string private_key) const {
+   try {
+      auto m = memo_data::from_string( data );
+
+      FC_ASSERT(m , "Can not parse input!");
+
+      fc::sha512 shared_secret;
+      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+
+      shared_secret = priv_key.get_shared_secret(public_key);
+
+      fc::sha512::encoder enc;
+      fc::raw::pack(enc, m->nonce);
+      fc::raw::pack(enc, shared_secret);
+      auto encryption_key = enc.result();
+
+      uint64_t check = fc::sha256::hash(encryption_key)._hash[ 0 ];
+
+      FC_ASSERT(check == m->check, "Checksum does not match!");
+
+      vector<char> decrypted = fc::aes_decrypt(encryption_key, m->encrypted);
+      return fc::raw::unpack_from_vector<std::string>(decrypted);
+
+   } FC_CAPTURE_AND_RETHROW((data)(public_key)(private_key))
+}
+
+bool alexandria_api::account_exist(string account_name) const {
+   try {
+      string decoded_name = make_random_fixed_string(account_name);
+      auto accounts = my->_remote_api->get_accounts( { account_name, decoded_name } );
+
+      if( !accounts.empty())
+      {
+         return true;
+      }
+      else{
+         return false;
+      }
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+
+authority alexandria_api::get_active_authority(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.active;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+authority alexandria_api::get_owner_authority(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.owner;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+public_key_type alexandria_api::get_memo_key(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.memo_key;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+int64_t alexandria_api::get_account_balance(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.balance.amount.value;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+int64_t alexandria_api::get_vesting_balance(string account_name) const {
+   try {
+      auto account =  get_account(account_name);
+      return account.vesting_shares.amount.value;
+   } FC_CAPTURE_AND_RETHROW((account_name))
+}
+
+authority alexandria_api::create_simple_authority(public_key_type pub_key) const {
+   return authority(1, pub_key, 1);
+}
+
+authority alexandria_api::create_simple_managed_authority(string managing_account) const {
+   string decoded_name = make_random_fixed_string(managing_account);
+   return authority(1, decoded_name, 1);
+}
+
+map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+   auto result = my->_remote_api->get_account_history( account, from, limit );
+   for( auto& item : result ) {
+      if( item.second.op.which() == condenser_api::legacy_operation::tag<condenser_api::legacy_transfer_operation>::value )
+         auto& top = item.second.op.get<condenser_api::legacy_transfer_operation>();
+   }
+   return result;
+}
+
+authority
+alexandria_api::create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const {
+   authority auth;
+   auth.weight_threshold = required_signatures;
+   for(const auto& key : pub_keys)
+   {
+      auth.add_authority(key, 1);
+   }
+   return auth;
+}
+
+authority alexandria_api::create_simple_multisig_managed_authority(vector<string> managing_accounts,
+                                                                   uint32_t required_signatures) const {
+   authority auth;
+   auth.weight_threshold = required_signatures;
+   for(const auto& account : managing_accounts)
+   {
+      string decoded_name = make_random_fixed_string(account);
+      auth.add_authority(decoded_name, 1);
+   }
+   return auth;
+}
+
+} } // sophiatx::alexandria
 
