@@ -142,14 +142,14 @@ class alexandria_api
        * The current account creation fee can be found with the 'info' alexandria command.
        *
        * @param creator The account creating the new account
-       * @param newname The name of the new account
+       * @param seed The seed to generate the new account name
        * @param json_meta JSON Metadata associated with the new account
        * @param owner public owner key of the new account
        * @param active public active key of the new account
        * @param memo public memo key of the new account
        */
       operation create_account( string creator,
-                                string newname,
+                                string seed,
                                 string json_meta,
                                 public_key_type owner,
                                 public_key_type active,

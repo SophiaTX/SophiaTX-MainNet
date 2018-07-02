@@ -9,10 +9,6 @@ condenser_api::get_version_return remote_node_api::get_version()
    FC_ASSERT( false );
 }
 
-condenser_api::state remote_node_api::get_state( string )
-{
-   FC_ASSERT( false );
-}
 
 vector< account_name_type > remote_node_api::get_active_witnesses()
 {
@@ -94,10 +90,6 @@ vector< optional< condenser_api::api_account_object > > remote_node_api::lookup_
    FC_ASSERT( false );
 }
 
-vector< account_name_type > remote_node_api::lookup_accounts( account_name_type, uint32_t )
-{
-   FC_ASSERT( false );
-}
 
 uint64_t remote_node_api::get_account_count()
 {

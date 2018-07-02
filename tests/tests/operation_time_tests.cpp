@@ -30,16 +30,16 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
    try
    {
       ACTORS( (alice) )
-      fund( "alice", 100000000 );
-      vest( "alice", 100000000 );
+      fund( AN("alice"), 100000000 );
+      vest( AN("alice"), 100000000 );
 
-      const auto& new_alice = db->get_account( "alice" );
+      const auto& new_alice = db->get_account( AN("alice") );
 
       BOOST_TEST_MESSAGE( "Setting up withdrawal" );
 
       signed_transaction tx;
       withdraw_vesting_operation op;
-      op.account = "alice";
+      op.account = AN("alice");
       op.vesting_shares = asset( new_alice.vesting_shares.amount / 2, VESTS_SYMBOL );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       BOOST_TEST_MESSAGE( "Generating block up to first withdrawal" );
       generate_blocks( next_withdrawal - ( SOPHIATX_BLOCK_INTERVAL / 2 ), true);
 
-      BOOST_REQUIRE( db->get_account( "alice" ).vesting_shares.amount.value == vesting_shares.amount.value );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).vesting_shares.amount.value == vesting_shares.amount.value );
 
       BOOST_TEST_MESSAGE( "Generating block to cause withdrawal" );
       generate_block();
@@ -63,33 +63,33 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       auto fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
       auto gpo = db->get_dynamic_global_properties();
 
-      BOOST_REQUIRE( db->get_account( "alice" ).vesting_shares.amount.value == ( vesting_shares - withdraw_rate ).amount.value );
-      BOOST_REQUIRE( ( withdraw_rate ).amount.value - db->get_account( "alice" ).balance.amount.value <= 1 ); // Check a range due to differences in the share price
-      BOOST_REQUIRE( fill_op.from_account == "alice" );
-      BOOST_REQUIRE( fill_op.to_account == "alice" );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).vesting_shares.amount.value == ( vesting_shares - withdraw_rate ).amount.value );
+      BOOST_REQUIRE( ( withdraw_rate ).amount.value - db->get_account( AN("alice") ).balance.amount.value <= 1 ); // Check a range due to differences in the share price
+      BOOST_REQUIRE( fill_op.from_account == AN("alice") );
+      BOOST_REQUIRE( fill_op.to_account == AN("alice") );
       BOOST_REQUIRE( fill_op.withdrawn.amount.value == withdraw_rate.amount.value );
       BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
       validate_database();
 
       BOOST_TEST_MESSAGE( "Generating the rest of the blocks in the withdrawal" );
 
-      vesting_shares = db->get_account( "alice" ).vesting_shares;
-      auto balance = db->get_account( "alice" ).balance;
-      auto old_next_vesting = db->get_account( "alice" ).next_vesting_withdrawal;
+      vesting_shares = db->get_account( AN("alice") ).vesting_shares;
+      auto balance = db->get_account( AN("alice") ).balance;
+      auto old_next_vesting = db->get_account( AN("alice") ).next_vesting_withdrawal;
 
       for( int i = 1; i < SOPHIATX_VESTING_WITHDRAW_INTERVALS - 1; i++ )
       {
          generate_blocks( db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS );
 
-         const auto& alice = db->get_account( "alice" );
+         const auto& alice = db->get_account( AN("alice") );
 
          gpo = db->get_dynamic_global_properties();
          fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
 
          BOOST_REQUIRE( alice.vesting_shares.amount.value == ( vesting_shares - withdraw_rate ).amount.value );
          BOOST_REQUIRE( balance.amount.value + ( withdraw_rate ).amount.value - alice.balance.amount.value <= 1 );
-         BOOST_REQUIRE( fill_op.from_account == "alice" );
-         BOOST_REQUIRE( fill_op.to_account == "alice" );
+         BOOST_REQUIRE( fill_op.from_account == AN("alice") );
+         BOOST_REQUIRE( fill_op.to_account == AN("alice") );
          BOOST_REQUIRE( fill_op.withdrawn.amount.value == withdraw_rate.amount.value );
          BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
 
@@ -112,9 +112,9 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
          fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
          gpo = db->get_dynamic_global_properties();
 
-         BOOST_REQUIRE( db->get_account( "alice" ).next_vesting_withdrawal.sec_since_epoch() == ( old_next_vesting + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS ).sec_since_epoch() );
-         BOOST_REQUIRE( fill_op.from_account == "alice" );
-         BOOST_REQUIRE( fill_op.to_account == "alice" );
+         BOOST_REQUIRE( db->get_account( AN("alice") ).next_vesting_withdrawal.sec_since_epoch() == ( old_next_vesting + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS ).sec_since_epoch() );
+         BOOST_REQUIRE( fill_op.from_account == AN("alice") );
+         BOOST_REQUIRE( fill_op.to_account == AN("alice") );
          BOOST_REQUIRE( fill_op.withdrawn.amount.value == withdraw_rate.amount.value );
          BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
 
@@ -122,9 +122,9 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
          gpo = db->get_dynamic_global_properties();
          fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
 
-         BOOST_REQUIRE( db->get_account( "alice" ).next_vesting_withdrawal.sec_since_epoch() == fc::time_point_sec::maximum().sec_since_epoch() );
-         BOOST_REQUIRE( fill_op.to_account == "alice" );
-         BOOST_REQUIRE( fill_op.from_account == "alice" );
+         BOOST_REQUIRE( db->get_account( AN("alice") ).next_vesting_withdrawal.sec_since_epoch() == fc::time_point_sec::maximum().sec_since_epoch() );
+         BOOST_REQUIRE( fill_op.to_account == AN("alice") );
+         BOOST_REQUIRE( fill_op.from_account == AN("alice") );
          BOOST_REQUIRE( fill_op.withdrawn.amount.value == to_withdraw.amount.value % withdraw_rate.amount.value );
          BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
 
@@ -134,16 +134,16 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       {
          generate_blocks( db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS, true );
 
-         BOOST_REQUIRE( db->get_account( "alice" ).next_vesting_withdrawal.sec_since_epoch() == fc::time_point_sec::maximum().sec_since_epoch() );
+         BOOST_REQUIRE( db->get_account( AN("alice") ).next_vesting_withdrawal.sec_since_epoch() == fc::time_point_sec::maximum().sec_since_epoch() );
 
          fill_op = get_last_operations( 1 )[0].get< fill_vesting_withdraw_operation >();
-         BOOST_REQUIRE( fill_op.from_account == "alice" );
-         BOOST_REQUIRE( fill_op.to_account == "alice" );
+         BOOST_REQUIRE( fill_op.from_account == AN("alice") );
+         BOOST_REQUIRE( fill_op.to_account == AN("alice") );
          BOOST_REQUIRE( fill_op.withdrawn.amount.value == withdraw_rate.amount.value );
          BOOST_REQUIRE( std::abs( fill_op.deposited.amount.value - fill_op.withdrawn.amount.value ) <= 1 );
       }
 
-      BOOST_REQUIRE( db->get_account( "alice" ).vesting_shares.amount.value == ( original_vesting - op.vesting_shares ).amount.value );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).vesting_shares.amount.value == ( original_vesting - op.vesting_shares ).amount.value );
    }
    FC_LOG_AND_RETHROW()
 }
@@ -161,13 +161,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       generate_blocks( 30 / SOPHIATX_BLOCK_INTERVAL );
 
       vector< string > accounts;
-      accounts.push_back( "alice0" );
-      accounts.push_back( "alice1" );
-      accounts.push_back( "alice2" );
-      accounts.push_back( "alice3" );
-      accounts.push_back( "alice4" );
-      accounts.push_back( "alice5" );
-      accounts.push_back( "alice6" );
+      accounts.push_back( AN("alice0") );
+      accounts.push_back( AN("alice1") );
+      accounts.push_back( AN("alice2") );
+      accounts.push_back( AN("alice3") );
+      accounts.push_back( AN("alice4") );
+      accounts.push_back( AN("alice5") );
+      accounts.push_back( AN("alice6") );
 
       vector< private_key_type > keys;
       keys.push_back( alice0_private_key );
@@ -256,8 +256,8 @@ BOOST_AUTO_TEST_CASE( interests )
    try{
       ACTORS( (alice)(bob) )
       generate_block();
-      fund("alice", 100000000);
-      fund("bob",  1000000000);
+      fund(AN("alice"), 100000000);
+      fund(AN("bob"),  1000000000);
 
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
@@ -265,11 +265,11 @@ BOOST_AUTO_TEST_CASE( interests )
 
 
 
-      auto interest_op = get_last_operations( 1, "bob" )[0].get< interest_operation >();
-      BOOST_REQUIRE( interest_op.owner == "bob" );
+      auto interest_op = get_last_operations( 1, AN("bob") )[0].get< interest_operation >();
+      BOOST_REQUIRE( interest_op.owner == AN("bob") );
       BOOST_REQUIRE( interest_op.interest.amount.value == expected_interest );
       //DUMP(db->get_account( "alice" ).balance.amount);
-      BOOST_REQUIRE( db->get_account( "alice" ).balance.amount.value >= 100000000 + expected_interest/10  && db->get_account( "alice" ).balance.amount.value <= 100000000 + 2*expected_interest/10);
+      BOOST_REQUIRE( db->get_account( AN("alice") ).balance.amount.value >= 100000000 + expected_interest/10  && db->get_account( AN("alice") ).balance.amount.value <= 100000000 + 2*expected_interest/10);
       validate_database();
 
    }FC_LOG_AND_RETHROW()
@@ -281,13 +281,13 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
    try{
       BOOST_TEST_MESSAGE( "Testing: witness_increase_vesting" );
       ACTORS( (alice)(bob) )
-      fund( "alice", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( "alice", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       private_key_type signing_key = generate_private_key( "new_key" );
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness" );
       witness_update_operation op;
-      op.owner = "alice";
+      op.owner = AN("alice");
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
@@ -300,14 +300,14 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       db->push_transaction( tx, 0 );
 
-      const witness_object& alice_witness = db->get_witness( "alice" );
+      const witness_object& alice_witness = db->get_witness( AN("alice") );
 
-      BOOST_REQUIRE( alice_witness.owner == "alice" );
+      BOOST_REQUIRE( alice_witness.owner == AN("alice") );
 
       generate_block();
 
       withdraw_vesting_operation wop;
-      wop.account = "alice";
+      wop.account = AN(AN("alice"));
       wop.vesting_shares = ASSET("1000.000000 SPHTX");
 
       tx.clear();
@@ -322,12 +322,12 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       generate_blocks( SOPHIATX_BLOCKS_PER_DAY * 1);
 
-      fund( "bob", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( "bob", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("bob"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("bob"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness shall fail due to insufficient funds" );
-      op.owner = "bob";
+      op.owner = AN("bob");
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
@@ -340,7 +340,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
-      vest( "bob", SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("bob"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 
       tx.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -349,9 +349,9 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       db->push_transaction( tx, 0 );
 
-      const witness_object& bob_witness = db->get_witness( "bob" );
+      const witness_object& bob_witness = db->get_witness( AN("bob") );
 
-      BOOST_REQUIRE( bob_witness.owner == "bob" );
+      BOOST_REQUIRE( bob_witness.owner == AN("bob") );
 
 
    }FC_LOG_AND_RETHROW()
@@ -456,7 +456,7 @@ BOOST_AUTO_TEST_CASE( clear_null_account )
       BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_vesting_balance == ASSET( "0.000000 VESTS" ) );
       BOOST_REQUIRE( db->get_account( SOPHIATX_NULL_ACCOUNT ).reward_vesting_sophiatx == ASSET( "0.000 TESTS" ) );
       BOOST_REQUIRE( db->get_account( "alice" ).balance == ASSET( "2.000 TESTS" ) );
-      BOOST_REQUIRE( db->get_account( "alice" ).sbd_balance == ASSET( "3.000 TBD" ) );
+      BOOST_REQUIRE( db->get_account( AN("alice") ).sbd_balance == ASSET( "3.000 TBD" ) );
    }
    FC_LOG_AND_RETHROW()*/
 }

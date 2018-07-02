@@ -19,7 +19,8 @@ bool sign_state::signed_by( const public_key_type& k )
 bool sign_state::check_authority( string id )
 {
    if( approved_by.find(id) != approved_by.end() ) return true;
-   return check_authority( get_active(id) );
+   const auto& a = get_active(id);
+   return check_authority( a );
 }
 
 bool sign_state::check_authority( const authority& auth, uint32_t depth )

@@ -94,7 +94,10 @@ struct post_operation_visitor
 
    void operator()( const account_create_operation& op )const
    {
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.new_account_name );
+      auto hash = fc::ripemd160::hash(op.name_seed);
+      std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
+      account_name_type new_account_name = fc::to_base58(bytes);
+      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( new_account_name );
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 

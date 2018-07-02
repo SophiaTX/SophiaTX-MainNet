@@ -22,7 +22,6 @@ using namespace plugins::witness;*/
 struct remote_node_api
 {
    condenser_api::get_version_return get_version();
-   condenser_api::state get_state( string );
    vector< account_name_type > get_active_witnesses();
    optional< block_header > get_block_header( uint32_t );
    optional< database_api::api_signed_block_object > get_block( uint32_t );
@@ -39,7 +38,6 @@ struct remote_node_api
    vector< condenser_api::extended_account > get_accounts( vector< account_name_type > );
    vector< account_id_type > get_account_references( account_id_type account_id );
    vector< optional< condenser_api::api_account_object > > lookup_account_names( vector< account_name_type > );
-   vector< account_name_type > lookup_accounts( account_name_type, uint32_t );
    uint64_t get_account_count();
    vector< database_api::api_owner_authority_history_object > get_owner_history( account_name_type );
    optional< database_api::api_account_recovery_request_object > get_recovery_request( account_name_type );
@@ -73,7 +71,6 @@ struct remote_node_api
 
 FC_API( sophiatx::wallet::remote_node_api,
         (get_version)
-        (get_state)
         (get_active_witnesses)
         (get_block_header)
         (get_block)
@@ -90,7 +87,6 @@ FC_API( sophiatx::wallet::remote_node_api,
         (get_accounts)
         (get_account_references)
         (lookup_account_names)
-        (lookup_accounts)
         (get_account_count)
         (get_owner_history)
         (get_recovery_request)
