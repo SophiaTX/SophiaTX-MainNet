@@ -29,7 +29,7 @@ pipeline {
         dir('install') {
             dir('lib') {
                 sh 'strip -s *' //strip symbols
-                sh 'tar -czf ${ARCHIVE_NAME} libalexandria.so alexandria.hpp' //create tar file
+                sh 'tar -czf libalexandria libalexandria.so alexandria.hpp' //create tar file
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
