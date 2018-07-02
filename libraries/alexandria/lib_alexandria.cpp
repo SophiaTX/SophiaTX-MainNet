@@ -834,7 +834,7 @@ authority alexandria_api::create_simple_authority(public_key_type pub_key) const
 }
 
 authority alexandria_api::create_simple_managed_authority(string managing_account) const {
-   string decoded_name = make_random_fixed_string(account_name);
+   string decoded_name = make_random_fixed_string(managing_account);
    return authority(1, decoded_name, 1);
 }
 
