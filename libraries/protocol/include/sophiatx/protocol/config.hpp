@@ -85,8 +85,8 @@
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( 0 )
 #else
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 250000 )
-#define SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 500000 )
-#define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 10
+#define SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 300000 )
+#define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 96 //January 1
 #endif //PRIVATE_NET
 
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
@@ -105,11 +105,11 @@
 #define SOPHIATX_NUM_INIT_MINERS                 1
 #define SOPHIATX_INIT_TIME                       (fc::time_point_sec());
 
-#define SOPHIATX_MAX_WITNESSES                   21
+#define SOPHIATX_MAX_WITNESSES                   51
 
-#define SOPHIATX_MAX_VOTED_WITNESSES_HF0         19
+#define SOPHIATX_MAX_VOTED_WITNESSES_HF0         47
 #define SOPHIATX_MAX_MINER_WITNESSES_HF0         0
-#define SOPHIATX_MAX_RUNNER_WITNESSES_HF0        2
+#define SOPHIATX_MAX_RUNNER_WITNESSES_HF0        4
 
 
 
@@ -208,7 +208,7 @@
 #define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
 #define SOPHIATX_FEED_HISTORY_WINDOW             (12*7) // 3.5 days
 #define SOPHIATX_MAX_FEED_AGE_SECONDS            (60*60*24*7) // 7 days
-#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/5) /// protects the network from conversions before price has been established
+#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #define SOPHIATX_MIN_UNDO_HISTORY                10
 #define SOPHIATX_MAX_UNDO_HISTORY                10000

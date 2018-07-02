@@ -2281,11 +2281,8 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
 #ifndef PRIVATE_NET
-      if( head_block_num() % SOPHIATX_BLOCKS_PER_DAY && head_block_num() <= SOPHIATX_BLOCKS_PER_DAY * SOPHIATX_WITNESS_VESTING_INCREASE_DAYS){
-         uint64_t total_increase = SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE;
-         uint64_t increase_per_day = total_increase / SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
-         share_type next_requirement = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + ( head_block_num() / SOPHIATX_BLOCKS_PER_DAY ) * increase_per_day;
-         dgp.witness_required_vesting = asset(next_requirement, VESTS_SYMBOL);
+      if( head_block_num() >= SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY){
+         dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
       }
 #endif
    } );

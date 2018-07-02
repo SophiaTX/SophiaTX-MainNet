@@ -858,8 +858,8 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
-      vest(AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
+      vest(AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -908,8 +908,8 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_update_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest(AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest(AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -1005,8 +1005,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
 
       ACTORS( (alice)(bob)(sam) )
 
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
       private_key_type alice_witness_key = generate_private_key( "alice_witness" );
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 0 );
 
@@ -1058,8 +1058,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       ACTORS( (alice)(bob)(sam) )
       fund( AN("alice") , 5000000 );
       vest( AN("alice"), 5000000 );
-      fund( AN("sam"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("sam"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
 
       private_key_type sam_witness_key = generate_private_key( "sam_key" );
       witness_create( AN("sam"), sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
@@ -1490,8 +1490,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_authorities" );
 
       ACTORS( (alice)(bob) )
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest(AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest(AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 0 );
 
       feed_publish_operation op;
@@ -1533,8 +1533,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
-      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
+      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
 
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
@@ -3243,8 +3243,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
-      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE  );
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
+      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE  );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3348,8 +3348,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
-      vest( AN("alice"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
+      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3735,7 +3735,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
    try{
       BOOST_TEST_MESSAGE("Testing: withdraw_from_promotion_pool");
 
-      ACTORS( (alice) );
+      ACTORS( (alice)(bob) );
 
       generate_block();
       generate_block();
@@ -3743,28 +3743,28 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
 
       transfer_from_promotion_pool_operation op;
-      op.transfer_to = AN("alice");
-      op.amount = asset(1000000, SOPHIATX_SYMBOL);
+      op.transfer_to = AN("bob");
+      op.amount = asset(10000000, SOPHIATX_SYMBOL);
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
 
-      db->push_transaction( tx, 0 ); //not enough in the pool
+      db->push_transaction( tx, 0 );
 
-      BOOST_REQUIRE( db->get_economic_model().get_available_promotion_pool(db->head_block_num()) == 0);
+      BOOST_REQUIRE( db->get_economic_model().get_available_promotion_pool(db->head_block_num()) == ASSET( "0.000000 SPHTX" ).amount.value);
 
       generate_block();
 
-      op.amount = asset(100000, SOPHIATX_SYMBOL);
+      op.amount = asset(1000000, SOPHIATX_SYMBOL);
+      op.transfer_to = AN("alice");
       tx.clear();
       tx.operations.push_back( op );
       tx.sign( init_account_priv_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
 
-      //shall be arount ~0.36
-      BOOST_REQUIRE( new_alice.balance.amount.value > ASSET( "0.100000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "1.000000 SPHTX" ).amount.value );
+      BOOST_REQUIRE( new_alice.balance.amount == ASSET( "0.057077 SPHTX" ).amount || new_alice.balance.amount == ASSET( "0.057078 SPHTX" ).amount  );
 
       private_key_type priv_key = generate_private_key( "alice" );
 
