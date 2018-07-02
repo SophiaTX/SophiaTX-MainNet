@@ -27,6 +27,11 @@ pipeline {
      steps {
         sh 'make install'
         dir('install') {
+            dir('lib') {
+                sh 'strip -s libalexandria.so' //strip symbols
+                sh 'tar -czf libalexandria.tar.gz libalexandria.so alexandria.hpp' //create tar file
+                archiveArtifacts '*.gz'
+            }
           dir('bin') {
               sh 'strip -s *' //strip symbols
               sh 'rm -f test*' //remove test binaries
