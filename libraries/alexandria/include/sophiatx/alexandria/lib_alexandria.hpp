@@ -8,8 +8,9 @@
 #include <fc/real128.hpp>
 #include <fc/crypto/base58.hpp>
 #include <fc/api.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api.hpp>
 
-namespace sophiatx { namespace wallet {
+namespace sophiatx { namespace alexandria {
 
 using namespace std;
 
@@ -24,10 +25,41 @@ struct brain_key_info
    string               wif_priv_key;
 };
 
+struct key_pair
+{
+   public_key_type      pub_key;
+   string               wif_priv_key;
+};
+
 enum authority_type
 {
    owner,
    active
+};
+
+struct memo_data {
+
+   static fc::optional<memo_data> from_string( string str ) {
+      try {
+         if( str.size() > sizeof(memo_data)) {
+            auto data = fc::from_base58( str );
+            auto m  = fc::raw::unpack_from_vector<memo_data>( data );
+            FC_ASSERT( string(m) == str );
+            return m;
+         }
+      } catch ( ... ) {}
+      return fc::optional<memo_data>();
+   }
+
+   int64_t         nonce = 0;
+   uint64_t        check = 0;
+   vector<char>    encrypted;
+
+   operator string()const {
+      auto data = fc::raw::pack_to_vector(*this);
+      auto base58 = fc::to_base58( data );
+      return base58;
+   }
 };
 
 namespace detail {
@@ -40,7 +72,7 @@ class alexandria_api
       alexandria_api( fc::api< remote_node_api > rapi );
       virtual ~alexandria_api();
 
-      /** Returns a list of all commands supported by the wallet API.
+      /** Returns a list of all commands supported by the alexandria API.
        *
        * This lists each command, along with its arguments and return types.
        * For more detailed help on a single command, use \c get_help()
@@ -57,7 +89,7 @@ class alexandria_api
       /** Returns info such as client version, git version of graphene/fc, version of boost, openssl.
        * @returns compile time info and client and dependencies versions
        */
-      variant_object                      about() const;
+      variant_object                      about();
 
       /** Returns the information about a block
        *
@@ -78,7 +110,7 @@ class alexandria_api
        *
        * @returns Price feed history data on the blockchain
        */
-      condenser_api::api_feed_history_object get_feed_history( asset_symbol_type symbol)const;
+      condenser_api::api_feed_history_object get_feed_history( string symbol)const;
 
       /**
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)
@@ -103,22 +135,11 @@ class alexandria_api
        */
       string  gethelp(const string& method)const;
 
-      /** Converts a signed_transaction in JSON form to its binary representation.
-       *
-       * TODO: I don't see a broadcast_transaction() function, do we need one?
-       *
-       * @param tx the transaction to serialize
-       * @returns the binary form of the transaction.  It will not be hex encoded,
-       *          this returns a raw string that may have null characters embedded
-       *          in it
-       */
-      string serialize_transaction(signed_transaction tx) const;
-
       /**
        * This method is used by faucets to create new accounts for other users which must
        * provide their desired keys. The resulting account may not be controllable by this
-       * wallet. There is a fee associated with account creation that is paid by the creator.
-       * The current account creation fee can be found with the 'info' wallet command.
+       * alexandria. There is a fee associated with account creation that is paid by the creator.
+       * The current account creation fee can be found with the 'info' alexandria command.
        *
        * @param creator The account creating the new account
        * @param seed The seed to generate the new account name
@@ -144,7 +165,6 @@ class alexandria_api
        * @param owner New public owner key for the account
        * @param active New public active key for the account
        * @param memo New public memo key for the account
-       * @param broadcast true if you wish to broadcast the transaction
        */
       operation update_account( string accountname,
                                          string json_meta,
@@ -192,7 +212,6 @@ class alexandria_api
        * @param url A URL containing some information about the witness.  The empty string makes it remain the same.
        * @param block_signing_key The new block signing public key.  The empty string disables block production.
        * @param props The chain properties the witness is voting on.
-       * @param broadcast true if you wish to broadcast the transaction.
        */
       operation update_witness(string witness_name,
                                 string url,
@@ -242,9 +261,7 @@ class alexandria_api
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
        * @param amount The funds being transferred. i.e. "100.000 sophiatx"
-       * @param memo A memo for the transactionm, encrypted with the to account's public memo key
-       * @param broadcast true if you wish to broadcast the transaction
-       */
+       * @param memo A memo for the transaction, encrypted with the to account's public memo key       */
       operation transfer(string from, string to, asset amount, string memo);
 
       /**
@@ -256,7 +273,7 @@ class alexandria_api
        * @param to The account getting the VESTS
        * @param amount The amount of sophiatx to vest i.e. "100.00 sophiatx"
        */
-      operation transfer_to_vesting(string from, string to, asset amoun);
+      operation transfer_to_vesting(string from, string to, asset amount);
 
         /**
         * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
@@ -272,7 +289,7 @@ class alexandria_api
       /**
       *  This method will create new application object. There is a fee associated with account creation
       *  that is paid by the creator. The current account creation fee can be found with the
-      *  'info' wallet command.
+      *  'info' alexandria command.
       *
       *  @param author The account creating the new application
       *  @param app_name The unique name for new application
@@ -354,7 +371,7 @@ class alexandria_api
       operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
 
       /**
-       * Get all recevied custom jsons and data.
+       * Get all received custom jsons and data.
        * @param app_id Application ID
        * @param account_name Name of the relevant (sender/recipient) account
        * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
@@ -374,14 +391,14 @@ class alexandria_api
       /**
        * Creating single operation form vector of operations
        * @param op_vec Vector of operations that should be in this transaction
-       * @return signle transaction with all the operations
+       * @return single transaction with all the operations
        */
       signed_transaction create_transaction(vector<operation> op_vec) const;
 
       /**
        * Creating single operation form operation
        * @param op operation that should be in this transaction
-       * @return signle transaction with all the operations
+       * @return single transaction with all the operations
        */
       signed_transaction create_simple_transaction(operation op) const;
 
@@ -391,14 +408,189 @@ class alexandria_api
       * @return array of application objects
       */
       vector< condenser_api::api_application_object >  get_applications(vector<string> names);
+
+      /**
+       * Calculates digest of provided transaction
+       * @param tx - transaction to be digested
+       * @return transaction digest
+       */
+      digest_type get_transaction_digest(signed_transaction tx);
+
+      /**
+       * Adds signature to transaction
+       * @param tx - transaction to be signed
+       * @param signature - signature that will be add to transaction
+       * @return signed transaction
+       */
+      signed_transaction add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const;
+
+      /**
+       * Sign digest with providet private key
+       * @param digest - digest fo transaction
+       * @param pk - private key for signing (in WIF format)
+       * @return signature of digest
+       */
+      fc::ecc::compact_signature sign_digest(digest_type digest, string pk) const;
+
+      /**
+       * This function will create transaction of this operation, sign it with key and broadcast to node
+       * @param op - operation to be send
+       * @param pk - private key for signing
+       */
+      annotated_signed_transaction send_and_sign_operation(operation op, string pk);
+
+      /**
+       * This function will sign and broadcast transaction
+       * @param tx - transaction to be send
+       * @param pk - private key for signing
+       */
+      annotated_signed_transaction send_and_sign_transaction(signed_transaction tx, string pk);
+
+      /**
+       * Verify signature
+       * @param digest - digest corresponding to signature
+       * @param pub_key - public key corresponding to private_key, that signed digest
+       * @param signature - signature to be verified
+       * @return true if is valid
+       */
+      bool verify_signature(digest_type digest, public_key_type pub_key, fc::ecc::compact_signature signature) const;
+
+      /**
+       * Generates key pair
+       * @return pair of keys
+       */
+      key_pair generate_key_pair() const;
+
+      /**
+       * Generates key pair based on brain key
+       * @param brain_key - brain key for generating key pair
+       * @return pair of keys
+       */
+      key_pair generate_key_pair_from_brain_key(string brain_key) const;
+
+      /**
+       * Returns public key to provided private key
+       * @param private_key
+       * @return
+       */
+      public_key_type get_public_key(string private_key) const;
+
+      /**
+       * Decode data to base58
+       * @param data - data to decode
+       * @return
+       */
+      std::vector<char> from_base58(string data) const;
+
+      /**
+       * Encode data to base58
+       * @param data - data to encode
+       * @return
+       */
+      string to_base58(std::vector<char> data) const;
+
+      /**
+       * Encrypt data
+       * @param data - data to encrypt
+       * @param public_key - public key of recipient
+       * @param private_key - private key of sender
+       * @return encrypted data
+       */
+      string encrypt_data(string data, public_key_type public_key, string private_key) const;
+
+      /**
+       * Decrypt data
+       * @param data - data to decrypt
+       * @param public_key - public key of sender
+       * @param private_key - private key of recipient
+       * @return decrypted data
+       */
+      string decrypt_data(string data, public_key_type public_key, string private_key) const;
+
+      /**
+       * Check if account account exists
+       * @param account_name - name of the account
+       * @return returns true if account exists
+       */
+      bool account_exist(string account_name) const;
+
+      /**
+      *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
+      *  returns operations in the range [from-limit, from]
+      *
+      *  @param account - account whose history will be returned
+      *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
+      *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
+      */
+      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
+
+      /**
+       * Returns active authority for given account
+       * @param account_name - account name
+       */
+      authority get_active_authority(string account_name) const;
+
+      /**
+       * Returns owner authority for given account
+       * @param account_name
+       */
+      authority get_owner_authority(string account_name) const;
+
+      /**
+       * Returns memo key for given account
+       * @param account_name
+        */
+      public_key_type get_memo_key(string account_name) const;
+
+      /**
+       * Returns current balance for given account
+       * @param account_name
+       */
+      int64_t get_account_balance(string account_name) const;
+
+      /**
+       * Returns vestig balance for given account
+       * @param account_name
+       */
+      int64_t get_vesting_balance(string account_name) const;
+
+      /**
+       * Creates simple authority object from provided public key
+       * @param pub_key
+       */
+      authority create_simple_authority(public_key_type pub_key) const;
+
+      /**
+       * Creates simple multisig authority object from provided public key
+       * @param pub_keys - vector of public keys
+       * @param required_signatures  - number of required signatures
+       * @return
+       */
+      authority create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const;
+
+      /**
+       * Creates simple managed authority from provided account_name
+       * @param managing_account
+       */
+      authority create_simple_managed_authority(string managing_account) const;
+
+      /**
+       * Creates simple multisig managed authority from provided account_name
+       * @param managing_accounts - vector of accounts
+       * @param required_signatures - number of required signatures
+       */
+      authority create_simple_multisig_managed_authority(vector<string> managing_accounts, uint32_t required_signatures) const;
+
 };
 
 } }
 
-FC_REFLECT_ENUM( sophiatx::wallet::authority_type, (owner)(active) )
+FC_REFLECT_ENUM( sophiatx::alexandria::authority_type, (owner)(active) )
+FC_REFLECT( sophiatx::alexandria::key_pair, (pub_key)(wif_priv_key) )
+FC_REFLECT( sophiatx::alexandria::memo_data, (nonce)(check)(encrypted) )
 
-FC_API( sophiatx::wallet::alexandria_api,
-        /// wallet api
+FC_API( sophiatx::alexandria::alexandria_api,
+        /// alexandria api
         (help)(gethelp)
         (about)
 
@@ -406,12 +598,28 @@ FC_API( sophiatx::wallet::alexandria_api,
         (info)
         (list_witnesses)
         (get_witness)
-        (get_account)
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
         (get_application_buyings)
         (get_applications)
+        (get_received_documents)
+        (get_active_witnesses)
+        (get_transaction)
+
+        ///account api
+        (account_exist)
+        (get_account)
+        (get_account_history)
+        (get_active_authority)
+        (get_owner_authority)
+        (get_memo_key)
+        (get_account_balance)
+        (get_vesting_balance)
+        (create_simple_authority)
+        (create_simple_multisig_authority)
+        (create_simple_managed_authority)
+        (create_simple_multisig_managed_authority)
 
         /// transaction api
         (create_account)
@@ -430,17 +638,27 @@ FC_API( sophiatx::wallet::alexandria_api,
         (buy_application)
         (cancel_application_buying)
 
+        (make_custom_json_operation)
+        (make_custom_binary_operation)
+
         /// helper api
-        (serialize_transaction)
         (broadcast_transaction)
         (create_transaction)
         (create_simple_transaction)
 
-        (get_active_witnesses)
-        (get_transaction)
-
-        (make_custom_json_operation)
-        (make_custom_binary_operation)
-        (get_received_documents)
+        ///local api
+        (get_transaction_digest)
+        (add_signature)
+        (sign_digest)
+        (send_and_sign_operation)
+        (send_and_sign_transaction)
+        (verify_signature)
+        (generate_key_pair)
+        (generate_key_pair_from_brain_key)
+        (get_public_key)
+        (from_base58)
+        (to_base58)
+        (encrypt_data)
+        (decrypt_data)
       )
 

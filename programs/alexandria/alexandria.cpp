@@ -36,8 +36,6 @@ struct memo_data {
       return fc::optional<memo_data>();
    }
 
-   public_key_type from;
-   public_key_type to;
    int64_t         nonce = 0;
    uint64_t        check = 0;
    vector<char>    encrypted;
@@ -182,16 +180,13 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
 
          auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
 
-         m.from = priv_key.get_public_key();
-
          fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
          public_key_type pub_key;
          fc::from_variant( v, pub_key );
 
-         m.to = pub_key;
          m.nonce = fc::time_point::now().time_since_epoch().count();
 
-         auto shared_secret = priv_key.get_shared_secret( m.to );
+         auto shared_secret = priv_key.get_shared_secret( pub_key );
 
          fc::sha512::encoder enc;
          fc::raw::pack( enc, m.nonce );
@@ -248,4 +243,4 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
 
 } //
 
-FC_REFLECT( memo_data, (from)(to)(nonce)(check)(encrypted) )
+FC_REFLECT( memo_data, (nonce)(check)(encrypted) )

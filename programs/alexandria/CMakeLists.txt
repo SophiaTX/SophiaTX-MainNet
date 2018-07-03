@@ -1,4 +1,5 @@
 add_library( alexandria SHARED alexandria.cpp alexandria.hpp )
+
 if( UNIX AND NOT APPLE )
     set(rt_library rt )
 endif()
@@ -25,7 +26,7 @@ if( CLANG_TIDY_EXE )
 endif( CLANG_TIDY_EXE )
 
 
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 
 install( TARGETS
         alexandria
