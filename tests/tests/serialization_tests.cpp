@@ -258,7 +258,7 @@ void old_pack_symbol(vector<char>& v, asset_symbol_type sym)
    else if( sym == SBD1_SYMBOL )
    {
       v.push_back('U' ); v.push_back('S' ); v.push_back('D' ); v.push_back('\0'  );
-      v.push_back('\0'  ); v.push_back('\0'); v.push_back('\0');
+      v.push_back('\0'  ); v.push_back('\0'); v.push_back('\0'); v.push_back('\0');
       // 03 54 42 44 00 00 00 00
    }
    else if( sym == VESTS_SYMBOL )
@@ -350,8 +350,8 @@ BOOST_AUTO_TEST_CASE( asset_raw_test )
             vector<char> v_old;
             old_pack_asset( v_old, a );
             vector<char> v_cur = fc::raw::pack_to_vector(a);
-             ilog( "${a} : ${d}", ("a", a)("d", hex_bytes( v_old )) );
-             ilog( "${a} : ${d}", ("a", a)("d", hex_bytes( v_cur )) );
+            // ilog( "${a} : ${d}", ("a", a)("d", hex_bytes( v_old )) );
+            // ilog( "${a} : ${d}", ("a", a)("d", hex_bytes( v_cur )) );
             BOOST_CHECK( v_cur == v_old );
 
             // check raw::unpack() works
