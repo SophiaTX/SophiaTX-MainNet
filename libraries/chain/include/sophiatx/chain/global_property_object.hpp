@@ -69,6 +69,9 @@ namespace sophiatx { namespace chain {
 
          uint32_t last_irreversible_block_num = 0;
 
+         chain_id_type chain_id;
+         time_point_sec genesis_time;
+
 #ifdef SOPHIATX_ENABLE_SMT
          asset smt_creation_fee = asset( 1000000, SBD_SYMBOL );
 #endif

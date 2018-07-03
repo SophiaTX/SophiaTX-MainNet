@@ -1,3 +1,6 @@
+#file(GLOB HEADERS "include/sophiatx/egenesis/*.hpp")
+
+
 add_library( sophiatx_egenesis_none
 egenesis_none.cpp
 include/sophiatx/egenesis/egenesis.hpp
@@ -14,7 +17,6 @@ embed_genesis.cpp
 target_link_libraries( embed_genesis sophiatx_protocol sophiatx_chain sophiatx_egenesis_none fc )
 
 set( embed_genesis_args
--t "${CMAKE_CURRENT_SOURCE_DIR}/egenesis_brief.cpp.tmpl---${CMAKE_CURRENT_BINARY_DIR}/egenesis_brief.cpp"
 -t "${CMAKE_CURRENT_SOURCE_DIR}/egenesis_full.cpp.tmpl---${CMAKE_CURRENT_BINARY_DIR}/egenesis_full.cpp"
 )
 
@@ -29,27 +31,17 @@ MESSAGE( STATUS "embed_genesis_args: " ${embed_genesis_args} )
 
 add_custom_command(
 OUTPUT
-"${CMAKE_CURRENT_BINARY_DIR}/egenesis_brief.cpp"
 "${CMAKE_CURRENT_BINARY_DIR}/egenesis_full.cpp"
 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMAND embed_genesis ${embed_genesis_args}
 DEPENDS
 "${SOPHIATX_EGENESIS_JSON}"
-"${CMAKE_CURRENT_SOURCE_DIR}/egenesis_brief.cpp.tmpl"
 "${CMAKE_CURRENT_SOURCE_DIR}/egenesis_full.cpp.tmpl"
 embed_genesis )
 
-add_library( sophiatx_egenesis_brief "${CMAKE_CURRENT_BINARY_DIR}/egenesis_brief.cpp" include/sophiatx/egenesis/egenesis.hpp )
 add_library( sophiatx_egenesis_full  "${CMAKE_CURRENT_BINARY_DIR}/egenesis_full.cpp" include/sophiatx/egenesis/egenesis.hpp )
-add_library( sophiatx_egenesis_sophiatx "${CMAKE_CURRENT_SOURCE_DIR}/egenesis_sophiatx.cpp" include/sophiatx/egenesis/egenesis.hpp )
 
-target_link_libraries( sophiatx_egenesis_brief sophiatx_protocol sophiatx_chain fc )
 target_link_libraries( sophiatx_egenesis_full sophiatx_protocol sophiatx_chain fc )
-target_link_libraries( sophiatx_egenesis_sophiatx sophiatx_protocol sophiatx_chain fc )
 
-target_include_directories( sophiatx_egenesis_brief
-PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-target_include_directories( sophiatx_egenesis_full
-PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-target_include_directories( sophiatx_egenesis_sophiatx
-PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+target_include_directories( sophiatx_egenesis_full PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+

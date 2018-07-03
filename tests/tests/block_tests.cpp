@@ -48,12 +48,13 @@ BOOST_AUTO_TEST_SUITE(block_tests)
 
 void open_test_database( database& db, const fc::path& dir )
 {
+   genesis_state_type gen;
+   gen.genesis_time = fc::time_point::now();
    database::open_args args;
    args.data_dir = dir;
    args.shared_mem_dir = dir;
-   args.initial_supply = INITIAL_TEST_SUPPLY;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
-   db.open( args );
+   db.open( args, gen );
 }
 
 BOOST_AUTO_TEST_CASE( generate_empty_blocks )

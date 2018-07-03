@@ -40,40 +40,36 @@ namespace sophiatx { namespace egenesis {
 
 using namespace sophiatx::chain;
 
-static const char genesis_json_array[10][40+1] =
+static const char genesis_json_array[6][40+1] =
 {
-"{\"initial_public_key\":\"SPH8Xg6cEbqPCY8jr",
-"WFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu\",\"i",
-"nitial_balace\":0,\"initial_timestamp\":\"20",
-"18-04-24T09:43:20\",\"initial_accounts\":[{",
-"\"name\":\"39G5rptNiqnDiVPWp3nnQoN2xrnb\",\"k",
-"ey\":\"SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivw",
-"wmLDDgqQCQeAk7jedu\",\"balance\":\"350000000",
-"000000\"}],\"initial_chain_id\":\"0000000000",
-"0000000000000000000000000000000000000000",
-"00000000000000\"}"
+"{\n   \"initial_public_key\" : \"SPH8Xg6cEbq",
+"PCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7je",
+"du\",\n   \"initial_balace\" : 3500000000000",
+"00,\n   \"initial_accounts\" : [],\n   \"gene",
+"sis_time\" : \"2018-07-03T14:00:00\",\n   \"i",
+"nitial_chain_id\" : \"\"\n}\n"
 };
 
 chain_id_type get_egenesis_chain_id()
 {
-   return chain_id_type( "5d6b053442862941c967f81edfe5a97630c545a06cb94a0a33c19ae6ca3c5bf6" );
+   return chain_id_type( "7ec0065f701f7cc8257296d5408105d49333d5ea03cf167dda73bbd64b83146c" );
 }
 
 void compute_egenesis_json( std::string& result )
 {
-   result.reserve( 376 );
+   result.reserve( 224 );
    result.resize(0);
-   for( size_t i=0; i<10-1; i++ )
+   for( size_t i=0; i<6-1; i++ )
    {
       result.append( genesis_json_array[i], 40 );
    }
-   result.append( std::string( genesis_json_array[ 10-1 ] ) );
+   result.append( std::string( genesis_json_array[ 6-1 ] ) );
    return;
 }
 
 fc::sha256 get_egenesis_json_hash()
 {
-   return fc::sha256( "5d6b053442862941c967f81edfe5a97630c545a06cb94a0a33c19ae6ca3c5bf6" );
+   return fc::sha256( "7ec0065f701f7cc8257296d5408105d49333d5ea03cf167dda73bbd64b83146c" );
 }
 
 } }

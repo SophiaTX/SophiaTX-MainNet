@@ -55,14 +55,11 @@ struct genesis_state_type {
    public_key_type                          initial_public_key = SOPHIATX_INIT_PUBLIC_KEY;
    share_type                               initial_balace = SOPHIATX_INIT_SUPPLY;
 
-   time_point_sec                           initial_timestamp = SOPHIATX_GENESIS_TIME;
    vector<initial_account_type>             initial_accounts;
 
 
-   /**
-    * Temporary, will be moved elsewhere.
-    */
-   chain_id_type                            initial_chain_id = SOPHIATX_CHAIN_ID;
+   chain_id_type                            initial_chain_id;
+   time_point_sec                           genesis_time;
 
    /**
     * Get the chain_id corresponding to this genesis state.
@@ -76,4 +73,4 @@ struct genesis_state_type {
 
 FC_REFLECT(sophiatx::chain::genesis_state_type::initial_account_type, (name)(key)(balance))
 
-FC_REFLECT(sophiatx::chain::genesis_state_type, (initial_public_key)(initial_balace)(initial_timestamp)(initial_accounts)(initial_chain_id))
+FC_REFLECT(sophiatx::chain::genesis_state_type, (initial_public_key)(initial_balace)(initial_accounts)(initial_chain_id)(genesis_time))

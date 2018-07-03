@@ -85,7 +85,6 @@ database_impl::database_impl( database& self )
 database::database()
    : _my( new database_impl(*this) )
 {
-   set_chain_id( SOPHIATX_CHAIN_ID_NAME );
 }
 
 database::~database()
@@ -93,7 +92,7 @@ database::~database()
    clear_pending();
 }
 
-void database::open( const open_args& args )
+void database::open( const open_args& args, const genesis_state_type& genesis )
 {
    try
    {
@@ -106,7 +105,7 @@ void database::open( const open_args& args )
       if( !find< dynamic_global_property_object >() )
          with_write_lock( [&]()
          {
-            init_genesis( args.initial_supply );
+            init_genesis( genesis );
          });
 
       _block_log.open( args.data_dir / "block_log" );
@@ -150,7 +149,7 @@ void database::open( const open_args& args )
    FC_CAPTURE_LOG_AND_RETHROW( (args.data_dir)(args.shared_mem_dir)(args.shared_file_size) )
 }
 
-uint32_t database::reindex( const open_args& args )
+uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis )
 {
    bool reindex_success = false;
    uint32_t last_block_number = 0; // result
@@ -165,7 +164,7 @@ uint32_t database::reindex( const open_args& args )
 
       ilog( "Reindexing Blockchain" );
       wipe( args.data_dir, args.shared_mem_dir, false );
-      open( args );
+      open( args, genesis );
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
       auto start = fc::time_point::now();
@@ -379,12 +378,12 @@ std::vector< block_id_type > database::get_block_ids_on_fork( block_id_type head
 
 chain_id_type database::get_chain_id() const
 {
-   return sophiatx_chain_id;
+   return get_dynamic_global_properties().chain_id;
 }
 
-void database::set_chain_id( const std::string& _chain_id_name )
+time_point_sec database::get_genesis_time()const
 {
-   sophiatx_chain_id = generate_chain_id( _chain_id_name );
+   return get_dynamic_global_properties().genesis_time;
 }
 
 const witness_object& database::get_witness( const account_name_type& name ) const
@@ -1567,7 +1566,7 @@ void database::init_schema()
    return;*/
 }
 
-void database::init_genesis( uint64_t init_supply )
+void database::init_genesis( genesis_state_type genesis )
 {
    try
    {
@@ -1582,8 +1581,9 @@ void database::init_genesis( uint64_t init_supply )
          uint32_t old_flags;
       } inhibitor(*this);
 
+      share_type total_initial_balance = 0;
       // Create blockchain accounts
-      public_key_type      init_public_key(SOPHIATX_INIT_PUBLIC_KEY);
+      public_key_type      init_public_key = genesis.initial_public_key;
 
       create< account_object >( [&]( account_object& a )
       {
@@ -1618,46 +1618,66 @@ void database::init_genesis( uint64_t init_supply )
          auth.active.weight_threshold = 0;
       });
 
-      for( int i = 0; i < SOPHIATX_NUM_INIT_MINERS; ++i )
-      {
+      total_initial_balance += genesis.initial_balace;
+      create< account_object >( [&]( account_object& a )
+                                {
+                                     a.name = SOPHIATX_INIT_MINER_NAME;
+                                     a.memo_key = init_public_key;
+                                     a.balance  = asset( genesis.initial_balace, SOPHIATX_SYMBOL );
+                                     a.holdings_considered_for_interests = a.balance.amount * 2;
+                                } );
+
+      create< account_authority_object >( [&]( account_authority_object& auth )
+                                          {
+                                               auth.account = SOPHIATX_INIT_MINER_NAME;
+                                               auth.owner.add_authority( init_public_key, 1 );
+                                               auth.owner.weight_threshold = 1;
+                                               auth.active  = auth.owner;
+                                          });
+
+      create< witness_object >( [&]( witness_object& w )
+                                {
+                                     w.owner        = SOPHIATX_INIT_MINER_NAME;
+                                     w.signing_key  = init_public_key;
+                                     w.schedule = witness_object::top19;
+                                } );
+
+      for( const auto &acc: genesis.initial_accounts) {
+         total_initial_balance += acc.balance;
          create< account_object >( [&]( account_object& a )
-         {
-            a.name = SOPHIATX_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
-            a.memo_key = init_public_key;
-            a.balance  = asset( i ? 0 : init_supply, SOPHIATX_SYMBOL );
-            a.holdings_considered_for_interests = a.balance.amount * 2;
-         } );
+                                   {
+                                        a.name = acc.name;
+                                        a.memo_key = acc.key;
+                                        a.balance  = asset( acc.balance, SOPHIATX_SYMBOL );
+                                        a.holdings_considered_for_interests = a.balance.amount * 2;
+                                   } );
 
          create< account_authority_object >( [&]( account_authority_object& auth )
-         {
-            auth.account = SOPHIATX_INIT_MINER_NAME + ( i ? fc::to_string( i ) : std::string() );
-            auth.owner.add_authority( init_public_key, 1 );
-            auth.owner.weight_threshold = 1;
-            auth.active  = auth.owner;
-         });
-
-         create< witness_object >( [&]( witness_object& w )
-         {
-            w.owner        = SOPHIATX_INIT_MINER_NAME + ( i ? fc::to_string(i) : std::string() );
-            w.signing_key  = init_public_key;
-            w.schedule = witness_object::top19;
-         } );
+                                   {
+                                        auth.account = acc.name;
+                                        auth.owner.add_authority( acc.key, 1 );
+                                        auth.owner.weight_threshold = 1;
+                                        auth.active  = auth.owner;
+                                   });
       }
+
 
       create< dynamic_global_property_object >( [&]( dynamic_global_property_object& p )
       {
          p.current_witness = SOPHIATX_INIT_MINER_NAME;
-         p.time = SOPHIATX_GENESIS_TIME;
+         p.time = genesis.genesis_time;
          p.recent_slots_filled = fc::uint128::max_value();
          p.participation_count = 128;
-         p.current_supply = asset( init_supply, SOPHIATX_SYMBOL );
+         p.current_supply = asset( total_initial_balance, SOPHIATX_SYMBOL );
          p.maximum_block_size = SOPHIATX_MAX_BLOCK_SIZE;
          p.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+         p.genesis_time = genesis.genesis_time;
+         p.chain_id = genesis.compute_chain_id();
       } );
 
       create< economic_model_object >( [&]( economic_model_object& e )
                                                 {
-                                                    e.init_economics(init_supply, SOPHIATX_TOTAL_SUPPLY);
+                                                    e.init_economics(total_initial_balance, SOPHIATX_TOTAL_SUPPLY);
                                                 } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD1_SYMBOL;});
@@ -1670,7 +1690,7 @@ void database::init_genesis( uint64_t init_supply )
          create< block_summary_object >( [&]( block_summary_object& ) {});
       create< hardfork_property_object >( [&](hardfork_property_object& hpo )
       {
-         hpo.processed_hardforks.push_back( SOPHIATX_GENESIS_TIME );
+         hpo.processed_hardforks.push_back( genesis.genesis_time );
       } );
 
       // Create witness scheduler
@@ -2580,7 +2600,7 @@ asset database::get_balance( const account_object& a, asset_symbol_type symbol )
 
 void database::init_hardforks()
 {
-   _hardfork_times[ 0 ] = fc::time_point_sec( SOPHIATX_GENESIS_TIME );
+   _hardfork_times[ 0 ] = fc::time_point_sec( get_genesis_time() );
    _hardfork_versions[ 0 ] = hardfork_version( 0, 0 );
 
    const auto& hardforks = get_hardfork_property_object();

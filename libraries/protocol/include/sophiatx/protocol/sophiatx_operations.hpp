@@ -283,7 +283,6 @@ namespace sophiatx { namespace protocol {
 
       void validate()const
       {
-
          FC_ASSERT( account_creation_fee.amount >= SOPHIATX_MIN_ACCOUNT_CREATION_FEE);
          FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT);
          for (const auto&i : price_feeds){

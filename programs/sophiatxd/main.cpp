@@ -57,7 +57,6 @@ void info()
       std::cerr << "            STARTING SOPHIATX NETWORK\n\n";
       std::cerr << "------------------------------------------------------\n";
       std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
-      std::cerr << "chain id: " << std::string( SOPHIATX_CHAIN_ID ) << "\n";
       std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
       std::cerr << "------------------------------------------------------\n";
 #endif
