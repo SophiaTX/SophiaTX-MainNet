@@ -110,7 +110,7 @@ class alexandria_api
        *
        * @returns Price feed history data on the blockchain
        */
-      condenser_api::api_feed_history_object get_feed_history( asset_symbol_type symbol)const;
+      condenser_api::api_feed_history_object get_feed_history( string symbol)const;
 
       /**
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)

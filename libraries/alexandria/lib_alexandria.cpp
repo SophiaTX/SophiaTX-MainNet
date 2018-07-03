@@ -305,8 +305,8 @@ alexandria_api::get_result_formatters() const
    return my->get_result_formatters();
 }
 
-condenser_api::api_feed_history_object alexandria_api::get_feed_history(asset_symbol_type symbol)const {
-   return my->_remote_api->get_feed_history(symbol);
+condenser_api::api_feed_history_object alexandria_api::get_feed_history(string symbol)const {
+   return my->_remote_api->get_feed_history(asset_symbol_type::from_string(symbol));
 }
 
 operation alexandria_api::create_account( string creator,
