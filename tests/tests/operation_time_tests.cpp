@@ -280,7 +280,6 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       ACTORS( (alice)(bob) )
       fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      DUMP(db->get_account(AN("alice")));
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -321,7 +320,6 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       generate_blocks( SOPHIATX_BLOCKS_PER_DAY * 1);
 
-      DUMP(db->get_account(AN("bob")));
 
       fund( AN("bob"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( AN("bob"), (SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE - 1000) );

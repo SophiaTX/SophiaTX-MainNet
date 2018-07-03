@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
    {
       BOOST_TEST_MESSAGE( "Testing: account_create_apply" );
 
-      set_price_feed( price( ASSET( "1.000000 SBD1" ), ASSET( "1.000000 SPHTX" ) ) );
+      set_price_feed( price( ASSET( "1.000000 USD" ), ASSET( "1.000000 SPHTX" ) ) );
 
       signed_transaction tx;
       private_key_type priv_key = generate_private_key( "alice" );
@@ -1496,7 +1496,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
 
       feed_publish_operation op;
       op.publisher = AN("alice");
-      op.exchange_rate = price( ASSET( "1.000000 SBD1" ), ASSET( "1.000000 SPHTX" ) );
+      op.exchange_rate = price( ASSET( "1.000000 USD" ), ASSET( "1.000000 SPHTX" ) );
 
       signed_transaction tx;
       tx.operations.push_back( op );
@@ -3280,7 +3280,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "--- failure when setting new sbd_exchange_rate with SBD / SOPHIATX" );
       prop_op.props.erase( "exchange_rates" );
       vector<price> vpt;
-      vpt.push_back(price( ASSET( "1.000000 SPHTX" ), ASSET( "10.000000 SBD1" ) ));
+      vpt.push_back(price( ASSET( "1.000000 SPHTX" ), ASSET( "10.000000 USD" ) ));
       prop_op.props[ "exchange_rates" ] = fc::raw::pack_to_vector( vpt );
       SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
@@ -3394,13 +3394,13 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       prop_op.props[ "key" ].clear();
       prop_op.props[ "key" ] = fc::raw::pack_to_vector( signing_key.get_public_key() );
       vector<price> myfeeds;
-      myfeeds.push_back(price( ASSET(" 1.000000 SBD1" ), ASSET( "100.000000 SPHTX" ) ));
+      myfeeds.push_back(price( ASSET(" 1.000000 USD" ), ASSET( "100.000000 SPHTX" ) ));
       prop_op.props[ "exchange_rates" ] = fc::raw::pack_to_vector( myfeeds );
       tx.clear();
       tx.operations.push_back( prop_op );
       tx.sign( signing_key, db->get_chain_id() );
       db->push_transaction( tx, 0 );
-      BOOST_REQUIRE( alice_witness.submitted_exchange_rates.at(SBD1_SYMBOL).rate == price( ASSET( "1.000000 SBD1" ), ASSET( "100.000000 SPHTX" ) ) );
+      BOOST_REQUIRE( alice_witness.submitted_exchange_rates.at(SBD1_SYMBOL).rate == price( ASSET( "1.000000 USD" ), ASSET( "100.000000 SPHTX" ) ) );
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates.at(SBD1_SYMBOL).last_change == db->head_block_time() );
 
       // Setting new url
