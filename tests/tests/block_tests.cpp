@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_SUITE(block_tests)
 void open_test_database( database& db, const fc::path& dir )
 {
    genesis_state_type gen;
-   gen.genesis_time = fc::time_point::now();
+   gen.genesis_time = fc::time_point_sec(1530644400);
    database::open_args args;
    args.data_dir = dir;
    args.shared_mem_dir = dir;
