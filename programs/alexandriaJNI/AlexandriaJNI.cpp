@@ -22,61 +22,76 @@ using namespace sophiatx::protocol;
 using namespace fc::ecc;
 using namespace std;
 
-// struct memo_data {
+struct Java_AlexandriaJNI_memo_data {
 
-//    static fc::optional<memo_data> from_string( string str ) {
-//       try {
-//          if( str.size() > sizeof(memo_data)) {
-//             auto data = fc::from_base58( str );
-//             auto m  = fc::raw::unpack_from_vector<memo_data>( data );
-//             FC_ASSERT( string(m) == str );
-//             return m;
-//          }
-//       } catch ( ... ) {}
-//       return fc::optional<memo_data>();
-//    }
+   static fc::optional<Java_AlexandriaJNI_memo_data> from_string( string str ) {
+      try {
+         if( str.size() > sizeof(Java_AlexandriaJNI_memo_data)) {
+            auto data = fc::from_base58( str );
+            auto m  = fc::raw::unpack_from_vector<Java_AlexandriaJNI_memo_data>( data );
+            FC_ASSERT( string(m) == str );
+            return m;
+         }
+      } catch ( ... ) {}
+      return fc::optional<Java_AlexandriaJNI_memo_data>();
+   }
 
-//    int64_t         nonce = 0;
-//    uint64_t        check = 0;
-//    vector<char>    encrypted;
+   int64_t         nonce = 0;
+   uint64_t        check = 0;
+   vector<char>    encrypted;
 
-//    operator string()const {
-//       auto data = fc::raw::pack_to_vector(*this);
-//       auto base58 = fc::to_base58( data );
-//       return base58;
-//    }
-// };
+   operator string()const {
+      auto data = fc::raw::pack_to_vector(*this);
+      auto base58 = fc::to_base58( data );
+      return base58;
+   }
+};
 
+JNIEXPORT jobjectArray JNICALL Java_AlexandriaJNI_generateKeyPair(JNIEnv *env, jobject) {
+   jobjectArray ret;
+   ret = static_cast<jobjectArray>(env->NewObjectArray(2, env->FindClass("java/lang/String"), env->NewStringUTF("")));
 
-// bool generate_private_key(char *private_key, char *public_key) {
-//    try {
-//       private_key_type priv_key = fc::ecc::private_key::generate();
-//       public_key_type pub_key = priv_key.get_public_key();
-//       strcpy(private_key, key_to_wif(priv_key).c_str());
-//       auto public_key_str = fc::json::to_string(pub_key);
-//       strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
-//       return true;
-//    } catch (const fc::exception& e) {
-//       return false;
-//    }
-// }
+   try {
+      private_key_type priv_key = fc::ecc::private_key::generate();
+      public_key_type pub_key = priv_key.get_public_key();
+      auto public_key_str = fc::json::to_string(pub_key);
 
-// bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, char *public_key) {
-//    if(brain_key) {
-//       try {
-//          fc::sha512 h = fc::sha512::hash(string(brain_key) + " 0");
-//          auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
-//          public_key_type pub_key = priv_key.get_public_key();
-//          strcpy(private_key, key_to_wif(priv_key).c_str());
-//          auto public_key_str = fc::json::to_string(pub_key);
-//          strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
-//          return true;
-//       } catch (const fc::exception& e) {
-//          return false;
-//       }
-//    }
-//    return false;
-// }
+      env->SetObjectArrayElement(ret, 1, env->NewStringUTF(key_to_wif(priv_key).c_str()));
+      env->SetObjectArrayElement(ret, 0, env->NewStringUTF(public_key_str.substr(1, public_key_str.size() - 2).c_str()));
+      return ret;
+
+    } catch (const fc::exception& e) {
+       return ret;
+    }
+}
+
+JNIEXPORT jobjectArray JNICALL Java_AlexandriaJNI_generateKeyPairFromBrainKey(JNIEnv *env, jobject,
+                                                                              jstring inJNIStrBrainKey) {
+
+   const char *brain_key = env->GetStringUTFChars(inJNIStrBrainKey, NULL);
+   jobjectArray ret;
+   ret = static_cast<jobjectArray>(env->NewObjectArray(2, env->FindClass("java/lang/String"), env->NewStringUTF("")));
+
+   if (brain_key == NULL) {
+      return ret;
+   }
+
+   try {
+      fc::sha512 h = fc::sha512::hash(string(brain_key) + " 0");
+      auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
+      public_key_type pub_key = priv_key.get_public_key();
+      auto public_key_str = fc::json::to_string(pub_key);
+
+      env->SetObjectArrayElement(ret, 1, env->NewStringUTF(key_to_wif(priv_key).c_str()));
+      env->SetObjectArrayElement(ret, 0, env->NewStringUTF(public_key_str.substr(1, public_key_str.size() - 2).c_str()));
+      env->ReleaseStringUTFChars(inJNIStrBrainKey, brain_key);
+      return ret;
+   } catch (const fc::exception& e) {
+      env->ReleaseStringUTFChars(inJNIStrBrainKey, brain_key);
+      return ret;
+   }
+
+}
 
 JNIEXPORT jstring JNICALL Java_AlexandriaJNI_getPublicKey(JNIEnv *env, jobject, jstring inJNIStrPrivateKey) {
    const char *private_key = env->GetStringUTFChars(inJNIStrPrivateKey, NULL);
@@ -156,120 +171,208 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_signDigest(JNIEnv *env, jobject, js
     }
  }
 
-// bool add_signature(const char *transaction, const char *signature, char *signed_tx) {
-//    if(transaction && signature) {
-//       try {
-//          string tx_str(transaction);
-//          fc::variant v = fc::json::from_string( tx_str, fc::json::strict_parser );
-//          signed_transaction stx;
-//          fc::from_variant( v, stx );
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_addSignature(JNIEnv *env, jobject, jstring inJNIStrTransaction,
+                                                        jstring inJNIStrSignature) {
 
-//          compact_signature sig;
-//          fc::from_hex( string(signature), (char*)sig.begin(), sizeof(compact_signature) );
+   const char *transaction = env->GetStringUTFChars(inJNIStrTransaction, NULL);
+   if (transaction == NULL) {
+      return NULL;
+   }
 
-//          stx.signatures.push_back(sig);
-//          strcpy(signed_tx, fc::json::to_string(stx).c_str());
-//          return true;
+   const char *signature = env->GetStringUTFChars(inJNIStrSignature, NULL);
+   if (signature == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrTransaction, transaction);
+      return NULL;
+   }
 
-//       } catch (const fc::exception& e) {
-//          return false;
-//       }
-//    }
-//    return false;
-// }
+    try {
+       string tx_str(transaction);
+       fc::variant v = fc::json::from_string( tx_str, fc::json::strict_parser );
+       signed_transaction stx;
+       fc::from_variant( v, stx );
 
-// bool verify_signature(const char *digest, const char *public_key, const char *signed_digest) {
-//    if(digest && public_key && signed_digest) {
-//       try {
-//          fc::sha256 dig(string(digest, strlen(digest)));
+       compact_signature sig;
+       fc::from_hex( string(signature), (char*)sig.begin(), sizeof(compact_signature) );
 
-//          fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-//          public_key_type pub_key;
-//          fc::from_variant( v, pub_key );
+       stx.signatures.push_back(sig);
 
-//          compact_signature sig;
-//          fc::from_hex( string(signed_digest), (char*)sig.begin(), sizeof(compact_signature) );
+       env->ReleaseStringUTFChars(inJNIStrTransaction, transaction);
+       env->ReleaseStringUTFChars(inJNIStrSignature, signature);
+       return env->NewStringUTF(fc::json::to_string(stx).c_str());
 
-//          if(pub_key == fc::ecc::public_key(sig, dig)) {
-//             return true;
-//          }
+    } catch (const fc::exception& e) {
+       env->ReleaseStringUTFChars(inJNIStrTransaction, transaction);
+       env->ReleaseStringUTFChars(inJNIStrSignature, signature);
+       return NULL;
+    }
+ }
 
-//       } catch (const fc::exception& e) {
-//          return false;
-//       }
-//    }
-//    return false;
-// }
+JNIEXPORT jboolean JNICALL Java_AlexandriaJNI_verifySignature(JNIEnv *env, jobject, jstring inJNIStrDigest,
+                                                              jstring inJNIStrPublicKey, jstring inJNIStrSignature) {
 
+   const char *digest = env->GetStringUTFChars(inJNIStrDigest, NULL);
+   if (digest == NULL) {
+      return static_cast<jboolean>(false);
+   }
 
-// bool encrypt_memo(const char *memo, const char *private_key, const char *public_key, char *encrypted_memo) {
-//    if(memo && private_key && public_key) {
-//       try {
-//          memo_data m;
+   const char *public_key = env->GetStringUTFChars(inJNIStrPublicKey, NULL);
+   if (public_key == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrDigest, digest);
+      return static_cast<jboolean>(false);
+   }
 
-//          auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
+   const char *signed_digest = env->GetStringUTFChars(inJNIStrSignature, NULL);
+   if (signed_digest == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrDigest, digest);
+      env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+      return static_cast<jboolean>(false);
+   }
 
-//          fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-//          public_key_type pub_key;
-//          fc::from_variant( v, pub_key );
+    try {
+       fc::sha256 dig(string(digest, strlen(digest)));
 
-//          m.nonce = fc::time_point::now().time_since_epoch().count();
+       fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+       public_key_type pub_key;
+       fc::from_variant( v, pub_key );
 
-//          auto shared_secret = priv_key.get_shared_secret( pub_key );
+       compact_signature sig;
+       fc::from_hex( string(signed_digest), (char*)sig.begin(), sizeof(compact_signature) );
 
-//          fc::sha512::encoder enc;
-//          fc::raw::pack( enc, m.nonce );
-//          fc::raw::pack( enc, shared_secret );
-//          auto encrypt_key = enc.result();
+       env->ReleaseStringUTFChars(inJNIStrDigest, digest);
+       env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+       env->ReleaseStringUTFChars(inJNIStrSignature, signed_digest);
 
-//          m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(string(memo)) );
-//          m.check = fc::sha256::hash( encrypt_key )._hash[0];
-//          strcpy(encrypted_memo, string(m).c_str());
-//          return true;
+       if(pub_key == fc::ecc::public_key(sig, dig)) {
+          return static_cast<jboolean>(true);
+       }
 
-//       } catch (const fc::exception& e) {
-//          return false;
-//       }
-//    }
-//    return false;
-// }
+    } catch (const fc::exception& e) {
+       env->ReleaseStringUTFChars(inJNIStrDigest, digest);
+       env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+       env->ReleaseStringUTFChars(inJNIStrSignature, signed_digest);
+       return static_cast<jboolean>(false);
+    }
+   return static_cast<jboolean>(false);
+ }
 
-// bool decrypt_memo(const char *memo, const char *private_key, const char* public_key, char *decrypted_memo) {
-//    if(memo && private_key) {
-//       try {
-//          string str_memo(memo);
-//          auto m = memo_data::from_string( str_memo );
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_encryptMemo(JNIEnv *env, jobject, jstring inJNIStrMemo,
+                                                         jstring inJNIStrPrivateKey, jstring inJNIStrPublicKey) {
 
-//          if( m ) {
-//             fc::sha512 shared_secret;
-//             auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
+   const char *memo = env->GetStringUTFChars(inJNIStrMemo, NULL);
+   if (memo == NULL) {
+      return NULL;
+   }
 
-//             fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-//             public_key_type pub_key;
-//             fc::from_variant( v, pub_key );
+   const char *private_key = env->GetStringUTFChars(inJNIStrPrivateKey, NULL);
+   if (private_key == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+      return NULL;
+   }
 
-//             shared_secret = priv_key.get_shared_secret(pub_key);
+   const char *public_key = env->GetStringUTFChars(inJNIStrPublicKey, NULL);
+   if (public_key == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+      env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+      return NULL;
+   }
 
-//             fc::sha512::encoder enc;
-//             fc::raw::pack( enc, m->nonce );
-//             fc::raw::pack( enc, shared_secret );
-//             auto encryption_key = enc.result();
+    try {
+       Java_AlexandriaJNI_memo_data m;
 
-//             uint64_t check = fc::sha256::hash( encryption_key )._hash[0];
-//             if( check != m->check ) return false;
+       auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
 
-//             vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
-//             strcpy(decrypted_memo, fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
+       fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+       public_key_type pub_key;
+       fc::from_variant( v, pub_key );
 
-//             return true;
-//          }
-//       } catch (const fc::exception& e) {
-//          return false;
-//       }
-//    }
-//    return false;
-// }
+       m.nonce = fc::time_point::now().time_since_epoch().count();
 
-//} //
+       auto shared_secret = priv_key.get_shared_secret( pub_key );
 
-// FC_REFLECT( memo_data, (nonce)(check)(encrypted) )
+       fc::sha512::encoder enc;
+       fc::raw::pack( enc, m.nonce );
+       fc::raw::pack( enc, shared_secret );
+       auto encrypt_key = enc.result();
+
+       m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(string(memo)) );
+       m.check = fc::sha256::hash( encrypt_key )._hash[0];
+
+       env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+       env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+       env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+
+       return env->NewStringUTF(string(m).c_str());
+
+    } catch (const fc::exception& e) {
+       env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+       env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+       env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+       return NULL;
+    }
+ }
+
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo(JNIEnv *env, jobject, jstring inJNIStrMemo,
+                                                           jstring inJNIStrPrivateKey, jstring inJNIStrPublicKey) {
+
+   const char *memo = env->GetStringUTFChars(inJNIStrMemo, NULL);
+   if (memo == NULL) {
+      return NULL;
+   }
+
+   const char *private_key = env->GetStringUTFChars(inJNIStrPrivateKey, NULL);
+   if (private_key == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+      return NULL;
+   }
+
+   const char *public_key = env->GetStringUTFChars(inJNIStrPublicKey, NULL);
+   if (public_key == NULL) {
+      env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+      env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+      return NULL;
+   }
+
+    try {
+       string str_memo(memo);
+       auto m = Java_AlexandriaJNI_memo_data::from_string( str_memo );
+
+       if( m ) {
+          fc::sha512 shared_secret;
+          auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
+
+          fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+          public_key_type pub_key;
+          fc::from_variant( v, pub_key );
+
+          shared_secret = priv_key.get_shared_secret(pub_key);
+
+          fc::sha512::encoder enc;
+          fc::raw::pack( enc, m->nonce );
+          fc::raw::pack( enc, shared_secret );
+          auto encryption_key = enc.result();
+
+          uint64_t check = fc::sha256::hash( encryption_key )._hash[0];
+          if( check != m->check ) {
+             env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+             env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+             env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+             return NULL;
+          }
+
+          vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
+
+          env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+          env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+          env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+
+          return env->NewStringUTF(fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
+       }
+    } catch (const fc::exception& e) {
+       env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+       env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+       env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+       return NULL;
+    }
+ }
+
+FC_REFLECT( Java_AlexandriaJNI_memo_data, (nonce)(check)(encrypted) )

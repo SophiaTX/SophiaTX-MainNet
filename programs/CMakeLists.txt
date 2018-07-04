@@ -8,6 +8,8 @@ add_subdirectory( alexandria_deamon )
 
 if(BUILD_PIC)
     add_subdirectory( alexandria )
-    add_subdirectory( alexandriaJNI )
+    if(JNI_FOUND)
+        add_subdirectory( alexandriaJNI )
+    endif(JNI_FOUND)
 endif(BUILD_PIC)
 

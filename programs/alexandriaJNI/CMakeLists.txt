@@ -1,5 +1,4 @@
 #find_package(Java REQUIRED)
-find_package(JNI REQUIRED)
 include(UseJava)
 
 #enable_testing()
@@ -20,6 +19,7 @@ include(UseJava)
 #        -jni AlexandriaJNI
 #        DEPENDS AlexandriaJNI
 #)
+
 
 # generate libalexandriaJNIb
 #include_directories(${JNI_INCLUDE_DIRS} ${_classDir} ${_stubDir})
