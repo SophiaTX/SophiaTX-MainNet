@@ -23,6 +23,7 @@ void economic_model_object::init_economics(share_type _init_supply, share_type _
    initial_promotion_pool = promotion_pool;
    init_supply = _init_supply;
    total_supply = _total_supply;
+   coinbase_block_reward = mining_pool_from_coinbase / SOPHIATX_COINBASE_BLOCKS;
 }
 
 share_type economic_model_object::get_mining_reward(uint32_t block_number)const{
@@ -35,10 +36,11 @@ share_type economic_model_object::get_mining_reward(uint32_t block_number)const{
 }
 
 share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, uint32_t nominator, uint32_t denominator){
-   uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number+1;
    //mining reward consist of coinbase reward, which uniformly distributes mining pool among SOPHIATX_COINBASE_BLOCKS rewards,
    // and fees rewards, where each block is rewarded one 1/(SOPHIATX_BLOCKS_PER_DAY * 7) of the current pool.
-   share_type reward_from_coinbase = mining_pool_from_coinbase / blocks_to_coinbase_end;
+   if( block_number <= SOPHIATX_INTEREST_DELAY )
+      return 0;
+   share_type reward_from_coinbase = coinbase_block_reward;
    reward_from_coinbase = (reward_from_coinbase * nominator) / denominator;
    reward_from_coinbase = std::min(reward_from_coinbase, mining_pool_from_coinbase);
 
