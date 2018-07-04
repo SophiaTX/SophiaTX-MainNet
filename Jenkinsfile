@@ -28,8 +28,8 @@ pipeline {
         sh 'make install'
         dir('install') {
             dir('lib') {
-                sh 'strip -s libalexandria.so' //strip symbols
-                sh 'tar -czf libalexandria.tar.gz libalexandria.so alexandria.hpp' //create tar file
+                sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp' //create tar file
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
