@@ -94,7 +94,7 @@ bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, 
 }
 
 bool get_transaction_digest(const char *transaction, const char *chain_id, char *digest) {
-   if(transaction) {
+   if(transaction && chain_id) {
       try {
          string tx_str(transaction);
          fc::variant v = fc::json::from_string( tx_str, fc::json::strict_parser );
@@ -140,7 +140,7 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
 
          stx.signatures.push_back(sig);
          strcpy(signed_tx, fc::json::to_string(stx).c_str());
-         return true;
+         return true;private_key
 
       } catch (const fc::exception& e) {
          return false;
