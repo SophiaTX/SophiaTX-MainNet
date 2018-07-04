@@ -1,10 +1,14 @@
 #include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/genesis_state.hpp>
 
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 
 #include <sophiatx/utilities/benchmark_dumper.hpp>
 
+#include <sophiatx/egenesis/egenesis.hpp>
+
 #include <fc/string.hpp>
+#include <fc/io/fstream.hpp>
 
 #include <boost/asio.hpp>
 #include <boost/optional.hpp>
@@ -77,6 +81,7 @@ class chain_plugin_impl
       uint32_t                         stop_replay_at = 0;
       uint32_t                         benchmark_interval = 0;
       uint32_t                         flush_interval = 0;
+      genesis_state_type               genesis;
       flat_map<uint32_t,block_id_type> loaded_checkpoints;
 
       int16_t                       write_lock_hold_time;
@@ -282,6 +287,7 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
    cfg.add_options()
          ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"),
             "the location of the chain shared memory files (absolute path or relative to application data dir)")
+         ("genesis-json", bpo::value<string>(), "genesis file in JSON format")
          ("shared-file-size", bpo::value<string>()->default_value("24G"), "Size of the shared memory file. Default: 24G. If running a full node, increase this value to 200G.")
          ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(0),
             "A 2 precision percentage (0-10000) that defines the threshold for when to autoscale the shared memory file. Setting this to 0 disables autoscaling. Recommended value for consensus node is 9500 (95%). Full node is 9900 (99%)" )
@@ -325,6 +331,30 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    if( options.count( "shared-file-scale-rate" ) )
       my->shared_file_scale_rate = options.at( "shared-file-scale-rate" ).as< uint16_t >();
 
+   auto initial_state = [&] {
+        if( options.count("genesis-json") )
+        {
+           std::string genesis_str;
+           fc::read_file_contents( options.at("genesis-json").as<boost::filesystem::path>(), genesis_str );
+           genesis_state_type genesis = fc::json::from_string( genesis_str ).as<genesis_state_type>();
+           genesis.initial_chain_id = fc::sha256::hash( genesis_str);
+
+           return genesis;
+        }
+        else
+        {
+           std::string egenesis_json;
+           sophiatx::egenesis::compute_egenesis_json( egenesis_json );
+           FC_ASSERT( egenesis_json != "" );
+           FC_ASSERT( sophiatx::egenesis::get_egenesis_json_hash() == fc::sha256::hash( egenesis_json ) );
+           auto genesis = fc::json::from_string( egenesis_json ).as<genesis_state_type>();
+           genesis.initial_chain_id = fc::sha256::hash( egenesis_json );
+
+           return genesis;
+        }
+   };
+
+
    my->replay              = options.at( "replay-blockchain").as<bool>();
    my->resync              = options.at( "resync-blockchain").as<bool>();
    my->stop_replay_at      =
@@ -334,6 +364,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    my->check_locks         = options.at( "check-locks" ).as< bool >();
    my->validate_invariants = options.at( "validate-database-invariants" ).as<bool>();
    my->dump_memory_details = options.at( "dump-memory-details" ).as<bool>();
+   my->genesis             = initial_state();
    if( options.count( "flush-state-interval" ) )
       my->flush_interval = options.at( "flush-state-interval" ).as<uint32_t>();
    else
@@ -397,7 +428,6 @@ void chain_plugin::plugin_startup()
    database::open_args db_open_args;
    db_open_args.data_dir = app().data_dir() / "blockchain";
    db_open_args.shared_mem_dir = my->shared_memory_dir;
-   db_open_args.initial_supply = SOPHIATX_INIT_SUPPLY;
    db_open_args.shared_file_size = my->shared_memory_size;
    db_open_args.shared_file_full_threshold = my->shared_file_full_threshold;
    db_open_args.shared_file_scale_rate = my->shared_file_scale_rate;
@@ -442,7 +472,7 @@ void chain_plugin::plugin_startup()
       ilog("Replaying blockchain on user request.");
       uint32_t last_block_number = 0;
       db_open_args.benchmark = sophiatx::chain::database::TBenchmark(my->benchmark_interval, benchmark_lambda);
-      last_block_number = my->db.reindex( db_open_args );
+      last_block_number = my->db.reindex( db_open_args, my->genesis );
 
       if( my->benchmark_interval > 0 )
       {
@@ -470,7 +500,7 @@ void chain_plugin::plugin_startup()
       {
          ilog("Opening shared memory from ${path}", ("path",my->shared_memory_dir.generic_string()));
 
-         my->db.open( db_open_args );
+         my->db.open( db_open_args, my->genesis );
 
          if( dump_memory_details )
             dumper.dump( true, get_indexes_memory_details );
@@ -481,12 +511,12 @@ void chain_plugin::plugin_startup()
 
          try
          {
-            my->db.reindex( db_open_args );
+            my->db.reindex( db_open_args, my->genesis );
          }
          catch( sophiatx::chain::block_log_exception& )
          {
             wlog( "Error opening block log. Having to resync from network..." );
-            my->db.open( db_open_args );
+            my->db.open( db_open_args, my->genesis );
          }
       }
    }

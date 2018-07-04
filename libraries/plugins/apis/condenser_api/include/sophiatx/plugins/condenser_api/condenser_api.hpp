@@ -63,8 +63,8 @@ struct api_account_object
       json_metadata( a.json_metadata ),
       voting_proxy( a.voting_proxy ),
       balance( legacy_asset::from_asset( a.balance ) ),
-      vesting_shares( legacy_asset::from_asset( a.vesting_shares ) ),
       sponsoring_account(a.sponsoring_account),
+      vesting_shares( legacy_asset::from_asset( a.vesting_shares ) ),
       vesting_withdraw_rate( legacy_asset::from_asset( a.vesting_withdraw_rate ) ),
       to_withdraw( a.to_withdraw )
    {
@@ -128,8 +128,9 @@ struct extended_dynamic_global_properties
       current_aslot( o.current_aslot ),
       recent_slots_filled( o.recent_slots_filled ),
       participation_count( o.participation_count ),
-      last_irreversible_block_num( o.last_irreversible_block_num ),
-      witness_required_vesting( legacy_asset::from_asset( o.witness_required_vesting ) )
+      witness_required_vesting( legacy_asset::from_asset( o.witness_required_vesting ) ),
+      last_irreversible_block_num( o.last_irreversible_block_num )
+
    {}
 
    uint32_t          head_block_number = 0;

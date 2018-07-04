@@ -90,9 +90,9 @@ void economic_model_object::add_fee(share_type fee) {
 }
 
 share_type economic_model_object::get_available_promotion_pool(uint32_t block_number) const{
-   uint32_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number;
+   uint128_t blocks_to_coinbase_end = SOPHIATX_COINBASE_BLOCKS - block_number;
    //share_type locked_pool = promotion_pool_per_day * blocks_to_coinbase_end / SOPHIATX_BLOCKS_PER_DAY;
-   share_type locked_pool = (((initial_promotion_pool * 65536) / SOPHIATX_COINBASE_BLOCKS) * blocks_to_coinbase_end ) / 65536;
+   share_type locked_pool = (((((uint128_t)initial_promotion_pool.value * (uint128_t)262144) / (uint128_t)SOPHIATX_COINBASE_BLOCKS) * blocks_to_coinbase_end ) / (uint128_t)262144).to_uint64();
    FC_ASSERT(promotion_pool >= locked_pool);
    return promotion_pool - locked_pool;
 }

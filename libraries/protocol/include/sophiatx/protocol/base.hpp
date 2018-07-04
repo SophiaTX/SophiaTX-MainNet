@@ -25,7 +25,7 @@ namespace sophiatx { namespace protocol {
             return asset(100000, SBD3_SYMBOL);
          if(in_symbol == SBD4_SYMBOL ) //CNY
             return asset(640000, SBD4_SYMBOL);
-         if(in_symbol == SBD5_SYMBOL ) //CNY
+         if(in_symbol == SBD5_SYMBOL ) //GBP
             return asset(75000, SBD5_SYMBOL);
          return asset(100000, SOPHIATX_SYMBOL);
       };

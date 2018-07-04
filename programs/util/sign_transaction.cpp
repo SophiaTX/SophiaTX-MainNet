@@ -43,8 +43,6 @@ int main(int argc, char** argv, char** envp)
 {
    fc::sha256 chainId;
 
-   chainId = SOPHIATX_CHAIN_ID;
-
    const size_t chainIdLen = strlen(CHAIN_ID_PARAM);
 
    if(argc > 1 && !strncmp(argv[1], CHAIN_ID_PARAM, chainIdLen))

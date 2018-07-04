@@ -43,12 +43,10 @@
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
-#define SOPHIATX_CHAIN_ID_NAME ""
-#define SOPHIATX_CHAIN_ID fc::sha256()
 #define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
 #define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1524563000))
-#define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1524563200))
+#//define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1524563200))
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*30) /// 30 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24*14) /// 2 weeks
@@ -85,8 +83,8 @@
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( 0 )
 #else
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 250000 )
-#define SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 500000 )
-#define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 10
+#define SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 300000 )
+#define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 96 //January 1
 #endif //PRIVATE_NET
 
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
@@ -105,15 +103,15 @@
 #define SOPHIATX_NUM_INIT_MINERS                 1
 #define SOPHIATX_INIT_TIME                       (fc::time_point_sec());
 
-#define SOPHIATX_MAX_WITNESSES                   21
+#define SOPHIATX_MAX_WITNESSES                   51
 
-#define SOPHIATX_MAX_VOTED_WITNESSES_HF0         19
+#define SOPHIATX_MAX_VOTED_WITNESSES_HF0         47
 #define SOPHIATX_MAX_MINER_WITNESSES_HF0         0
-#define SOPHIATX_MAX_RUNNER_WITNESSES_HF0        2
+#define SOPHIATX_MAX_RUNNER_WITNESSES_HF0        4
 
 
 
-#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     17 // 17 of the 21 dpos witnesses (20 elected and 1 virtual time) required for hardfork. This guarantees 75% participation on all subsequent rounds.
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define SOPHIATX_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
 #define SOPHIATX_MAX_PROXY_RECURSION_DEPTH       4
@@ -208,7 +206,7 @@
 #define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
 #define SOPHIATX_FEED_HISTORY_WINDOW             (12*7) // 3.5 days
 #define SOPHIATX_MAX_FEED_AGE_SECONDS            (60*60*24*7) // 7 days
-#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/5) /// protects the network from conversions before price has been established
+#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #define SOPHIATX_MIN_UNDO_HISTORY                10
 #define SOPHIATX_MAX_UNDO_HISTORY                10000

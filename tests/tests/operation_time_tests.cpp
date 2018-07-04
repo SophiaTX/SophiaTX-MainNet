@@ -184,8 +184,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       // Upgrade accounts to witnesses
       for( int i = 0; i < 7; i++ )
       {
-         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE, SOPHIATX_SYMBOL ) );
-         vest( accounts[i], SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE);
+         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, SOPHIATX_SYMBOL ) );
+         vest( accounts[i], SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
          witness_create( accounts[i], keys[i], "foo.bar", keys[i].get_public_key(), 0 );
 
 
@@ -261,14 +261,11 @@ BOOST_AUTO_TEST_CASE( interests )
 
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
-      uint64_t expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (SOPHIATX_COINBASE_BLOCKS / 10000) / 7;
-
-
+      share_type expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (SOPHIATX_COINBASE_BLOCKS / 10000) / 7;
 
       auto interest_op = get_last_operations( 1, AN("bob") )[0].get< interest_operation >();
       BOOST_REQUIRE( interest_op.owner == AN("bob") );
-      BOOST_REQUIRE( interest_op.interest.amount.value == expected_interest );
-      //DUMP(db->get_account( "alice" ).balance.amount);
+      BOOST_REQUIRE( interest_op.interest.amount == expected_interest || interest_op.interest.amount == expected_interest + 1 ); //leave some space for rounding
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance.amount.value >= 100000000 + expected_interest/10  && db->get_account( AN("alice") ).balance.amount.value <= 100000000 + 2*expected_interest/10);
       validate_database();
 
@@ -283,6 +280,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       ACTORS( (alice)(bob) )
       fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+
       private_key_type signing_key = generate_private_key( "new_key" );
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness" );
@@ -322,8 +320,9 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       generate_blocks( SOPHIATX_BLOCKS_PER_DAY * 1);
 
-      fund( AN("bob"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("bob"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+
+      fund( AN("bob"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("bob"), (SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE - 1000) );
 
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness shall fail due to insufficient funds" );
@@ -340,7 +339,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
-      vest( AN("bob"), SOPHIATX_WITNESS_REQUIRED_VESTING_BALANCE - SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("bob"), 1000 );
 
       tx.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );

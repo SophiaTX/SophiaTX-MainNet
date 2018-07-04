@@ -58,6 +58,7 @@ namespace fc
    }
 }
 
+
 namespace sophiatx { namespace protocol {
 
 /**
@@ -70,7 +71,7 @@ class fixed_string_impl
 {
    public:
       fixed_string_impl(){}
-      fixed_string_impl( const fixed_string_impl& c ) : data( c.data ){}
+      fixed_string_impl( const fixed_string_impl& c ) : data( c.data ), _size (c._size){}
       fixed_string_impl( const char* str ) : fixed_string_impl( std::string( str ) ) {}
       fixed_string_impl( const std::string& str )
       {
@@ -80,9 +81,10 @@ class fixed_string_impl
          auto count = fc::from_base58(str, bytes, fc::ripemd160::data_size());
 
          if( count <= sizeof(d) )
-            memcpy( (char*)&d, bytes, count );
+            _size = count;
          else
-            memcpy( (char*)&d, bytes, sizeof(d) );
+            _size = sizeof(d);
+         memcpy( (char*)&d, bytes, _size );
 
          data = boost::endian::big_to_native( d );
       }
@@ -90,19 +92,17 @@ class fixed_string_impl
       operator std::string()const
       {
          Storage d = boost::endian::native_to_big( data );
-         //size_t s = strnlen( (const char*)&d, sizeof(d) );
-         std::vector<char> self ((const char*)&d, (const char*)&d +  fc::ripemd160::data_size());
-         //const char* self = (const char*)&d;
 
-         std::string ret = fc::to_base58(self);
+         std::vector<char> _self ((const char*)&d, (const char*)&d +  _size);
+
+         std::string ret = fc::to_base58(_self);
          return ret;
       }
 
       uint32_t size()const
       {
-         Storage d = boost::endian::native_to_big( data );
+         return _size;
 
-         return strnlen( (const char*)&d, sizeof(d) );
       }
 
       uint32_t length()const { return size(); }
@@ -110,6 +110,7 @@ class fixed_string_impl
       fixed_string_impl& operator = ( const fixed_string_impl& str )
       {
          data = str.data;
+         _size = str._size;
          return *this;
       }
 
@@ -135,6 +136,7 @@ class fixed_string_impl
       friend bool operator != ( const fixed_string_impl& a, const fixed_string_impl& b ) { return a.data != b.data; }
 
       Storage data;
+      uint32_t _size=0;
 
 };
 

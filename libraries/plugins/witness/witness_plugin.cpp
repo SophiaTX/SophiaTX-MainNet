@@ -254,9 +254,10 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::block_production_loop()
    {
-      if( fc::time_point::now() < fc::time_point(SOPHIATX_GENESIS_TIME) )
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      if( fc::time_point::now() < fc::time_point(db.get_genesis_time()) )
       {
-         wlog( "waiting until genesis time to produce block: ${t}", ("t",SOPHIATX_GENESIS_TIME) );
+         wlog( "waiting until genesis time to produce block: ${t}", ("t", db.get_genesis_time()) );
          schedule_production_loop();
          return block_production_condition::wait_for_genesis;
       }
