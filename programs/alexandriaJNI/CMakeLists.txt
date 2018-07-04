@@ -23,8 +23,12 @@ include(UseJava)
 
 # generate libalexandriaJNIb
 #include_directories(${JNI_INCLUDE_DIRS} ${_classDir} ${_stubDir})
-include_directories(${JNI_INCLUDE_DIRS} )
+include_directories(${JNI_INCLUDE_DIRS})
+
 add_library(alexandriaJNI MODULE AlexandriaJNI.cpp AlexandriaJNI.h )
+
+set_target_properties(alexandriaJNI PROPERTIES PUBLIC_HEADER AlexandriaJNI.java)
+
 target_link_libraries(alexandriaJNI PRIVATE
         sophiatx_protocol sophiatx_utilities fc
         ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} ${JNI_LIBRARIES})
