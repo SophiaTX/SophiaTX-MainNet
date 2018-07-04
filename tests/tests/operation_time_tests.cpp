@@ -259,7 +259,7 @@ BOOST_AUTO_TEST_CASE( interests )
       fund(AN("alice"), 100000000);
       fund(AN("bob"),  1000000000);
 
-      generate_blocks( SOPHIATX_INTEREST_BLOCKS );
+      generate_blocks( SOPHIATX_INTEREST_DELAY );
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
       share_type expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (SOPHIATX_COINBASE_BLOCKS / 10000) / 7;
 
