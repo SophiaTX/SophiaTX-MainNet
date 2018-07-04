@@ -581,6 +581,13 @@ class alexandria_api
        */
       authority create_simple_multisig_managed_authority(vector<string> managing_accounts, uint32_t required_signatures) const;
 
+      /**
+       * Converts seed to new account name
+       * @param seed Seed
+       * @return new account name
+       */
+      string get_account_name_from_seed(string seed) const;
+
 };
 
 } }
@@ -608,6 +615,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (get_transaction)
 
         ///account api
+        (get_account_name_from_seed)
         (account_exist)
         (get_account)
         (get_account_history)

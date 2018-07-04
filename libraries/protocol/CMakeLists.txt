@@ -31,6 +31,10 @@ add_dependencies( sophiatx_protocol build_hardfork_hpp )
 target_link_libraries( sophiatx_protocol fc )
 target_include_directories( sophiatx_protocol
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
+if (USE_PCH)
+   cotire(sophiatx_protocol)
+endif(USE_PCH)
+
 
 if( CLANG_TIDY_EXE )
    set_target_properties(

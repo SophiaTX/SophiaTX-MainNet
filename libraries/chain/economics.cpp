@@ -67,7 +67,7 @@ share_type economic_model_object::withdraw_interests(share_type holding, uint32_
       if(holding == 0)
          return 0;
       share_type total_coinbase_for_period = share_type(std::min(uint64_t(interest_pool_from_coinbase.value),
-                                                                 (SOPHIATX_TOTAL_INTERESTS * SOPHIATX_INTEREST_BLOCKS /
+                                                                 (SOPHIATX_TOTAL_INTERESTS * period /
                                                                   SOPHIATX_COINBASE_BLOCKS)));
       share_type coinbase_reward = (uint128_t(holding.value) * uint128_t(total_coinbase_for_period.value) /
                                     uint128_t(accumulated_supply.value)).to_uint64();

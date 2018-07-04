@@ -870,5 +870,9 @@ authority alexandria_api::create_simple_multisig_managed_authority(vector<string
    return auth;
 }
 
+string alexandria_api::get_account_name_from_seed(string seed) const{
+   return make_random_fixed_string(seed);
+}
+
 } } // sophiatx::alexandria
 

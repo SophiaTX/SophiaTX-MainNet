@@ -37,6 +37,9 @@ endif()
 add_library( sophiatx_wallet wallet.cpp remote_node_api.cpp ${CMAKE_CURRENT_BINARY_DIR}/api_documentation.cpp ${HEADERS} )
 target_link_libraries( sophiatx_wallet PRIVATE graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities fc condenser_api_plugin ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 target_include_directories( sophiatx_wallet PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+if(USE_PCH)
+    cotire(sophiatx_wallet)
+endif(USE_PCH)
 
 if( CLANG_TIDY_EXE )
    set_target_properties(
