@@ -165,6 +165,13 @@ ENDIF(WIN32)
 
 FIND_PACKAGE(Boost 1.60 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
+find_package(JNI)
+if(JNI_FOUND)
+    MESSAGE(STATUS "JNI found, building libalexandriaJNI")
+else(JNI_FOUND)
+    MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
+endif(JNI_FOUND)
+
 
 if( WIN32 )
 

@@ -1,4 +1,4 @@
-add_library( alexandria SHARED alexandria.cpp alexandria.hpp )
+add_library( alexandria MODULE alexandria.cpp alexandria.hpp )
 
 if( UNIX AND NOT APPLE )
     set(rt_library rt )
