@@ -2061,18 +2061,22 @@ void database::process_interests() {
       share_type supply_increase = 0;
       uint64_t id = batch;
       while( const account_object *a = find_account(id)) {
-         share_type interest;
-         modify(econ, [ & ](economic_model_object &eo) {
-              interest = eo.withdraw_interests(a->holdings_considered_for_interests,
-                                               std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), block_no));
-         });
+         share_type interest = 0;
+
+         if(head_block_num() > SOPHIATX_INTEREST_DELAY) {
+            modify(econ, [ & ](economic_model_object &eo) {
+                 interest = eo.withdraw_interests(a->holdings_considered_for_interests,
+                                                  std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), head_block_num()));
+            });
+         }
 
          supply_increase += interest;
          modify(*a, [ & ](account_object &ao) {
               ao.balance.amount += interest;
               ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
          });
-         push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
+         if(interest > 0)
+            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
          id += SOPHIATX_INTEREST_BLOCKS;
       }
 

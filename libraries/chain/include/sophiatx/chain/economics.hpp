@@ -34,6 +34,7 @@ public:
    share_type initial_promotion_pool;
    share_type init_supply;
    share_type total_supply;
+   share_type coinbase_block_reward;
 
    typedef bip::allocator< economic_model_object, bip::managed_mapped_file::segment_manager >  allocator_type;
    typedef bip::allocator< std::pair< uint32_t, share_type >, bip::managed_mapped_file::segment_manager > historic_supply_allocator_type;
@@ -79,7 +80,8 @@ FC_REFLECT(sophiatx::chain::economic_model_object, (id)
            (initial_promotion_pool)
            (init_supply)
            (total_supply)
-      (historic_supply)
-      (accumulated_supply)
+           (historic_supply)
+           (accumulated_supply)
+           (coinbase_block_reward)
 )
 CHAINBASE_SET_INDEX_TYPE( sophiatx::chain::economic_model_object, sophiatx::chain::economic_model_index )

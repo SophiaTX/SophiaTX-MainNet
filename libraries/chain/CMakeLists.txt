@@ -25,6 +25,9 @@ add_library( sophiatx_chain
 target_link_libraries( sophiatx_chain sophiatx_protocol fc chainbase sophiatx_schema ${PATCH_MERGE_LIB} )
 target_include_directories( sophiatx_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
+if (USE_PCH)
+    cotire(sophiatx_chain)
+endif(USE_PCH)
 
 if( CLANG_TIDY_EXE )
    set_target_properties(

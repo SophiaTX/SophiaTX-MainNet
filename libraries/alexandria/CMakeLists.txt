@@ -37,6 +37,9 @@ endif()
 add_library( lib_alexandria lib_alexandria.cpp remote_node_api.cpp ${CMAKE_CURRENT_BINARY_DIR}/api_documentation.cpp ${HEADERS} )
 target_link_libraries( lib_alexandria PRIVATE graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities fc condenser_api_plugin ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
 target_include_directories( lib_alexandria PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+if (USE_PCH)
+    cotire(lib_alexandria)
+endif(USE_PCH)
 
 if( CLANG_TIDY_EXE )
    set_target_properties(
