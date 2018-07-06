@@ -26,7 +26,7 @@ IN THE SOFTWARE.
 
 # Whitepaper
 
-You can read the SophiaTX Whitepaper at [SophiaTX.io/SophiaTXWhitePaper.pdf](https://www.sophiatx.com/storage/web/SophiaTX_Whitepaper_v1.9.pdf).
+You can read the SophiaTX Whitepaper at [SophiaTXWhitePaper.pdf](https://www.sophiatx.com/storage/web/SophiaTX_Whitepaper_v1.9.pdf).
 
 # Quickstart
 
