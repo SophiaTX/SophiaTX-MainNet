@@ -90,44 +90,13 @@ will build out of the box without further effort:
     # optional
     make install  # defaults to /usr/local
 
-## Building on Ubuntu 14.04
+## Building Boost 1.60
 
-(It is strongly advised to use Ubuntu 16.04 LTS instead)
-
-Here are the required packages:
-
-    # Required packages
-    sudo apt-get install -y \
-        autoconf \
-        cmake3 \
-        g++ \
-        git \
-        libssl-dev \
-        libtool \
-        make \
-        pkg-config \
-        doxygen \
-        libncurses5-dev \
-        libreadline-dev \
-        libbz2-dev \
-        python-dev \
-        perl \
-        python3 \
-        python3-jinja2
-
-The Boost provided in the Ubuntu 14.04 package manager (Boost 1.55) is too old.
 SophiaTX requires Boost 1.58 (as in Ubuntu 16.04) and works with versions up to 1.60 (including).
 So building SophiaTX on Ubuntu 14.04 requires downloading and installing a more recent
 version of Boost.
 
-According to [this mailing list
-post](http://boost.2283326.n4.nabble.com/1-58-1-bugfix-release-necessary-td4674686.html),
-Boost 1.58 is not compatible with gcc 4.8 (the default C++ compiler for
-Ubuntu 14.04) when compiling in C++11 mode (which SophiaTX does).
-So we will use Boost 1.60.
-
 Here is how to build and install Boost 1.60 into your user's home directory
-(make sure you install all the packages above first):
 
     export BOOST_ROOT=$HOME/opt/boost_1_60_0
     URL='http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2/download'
@@ -139,17 +108,6 @@ Here is how to build and install Boost 1.60 into your user's home directory
     cd boost_1_60_0
     ./bootstrap.sh "--prefix=$BOOST_ROOT"
     ./b2 install
-
-Then the instructions are the same as for sophiatx:
-
-    git clone https://github.com/SophiaTX/SophiaTX
-    cd sophiatx
-    git checkout stable
-    git submodule update --init --recursive
-    mkdir build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    make -j$(nproc) sophiatxd
-    make -j$(nproc) cli_wallet
 
 ## Building on macOS X
 
@@ -224,7 +182,7 @@ This will only build `sophiatxd`.
 
 ## Building on Other Platforms
 
-- Windows build instructions do not yet exist.
+- Windows build instructions are available here https://github.com/SophiaTX/SophiaTX/wiki/Setting-up-Windows-build-enviroment
 
 - The developers normally compile with gcc and clang. These compilers should
   be well-supported.
