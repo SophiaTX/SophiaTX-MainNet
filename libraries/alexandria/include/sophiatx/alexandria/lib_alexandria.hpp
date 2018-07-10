@@ -588,6 +588,13 @@ class alexandria_api
        */
       string get_account_name_from_seed(string seed) const;
 
+      /**
+       * Returns set of public key (authorities) required for signing specific transaction
+       * @param tx - transaction for signing
+       * @param available_keys - set of available aythorities (public_keys)
+       */
+      set< public_key_type > get_required_signatures( signed_transaction tx, flat_set< public_key_type > available_keys ) const;
+
 };
 
 } }
@@ -613,6 +620,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (get_received_documents)
         (get_active_witnesses)
         (get_transaction)
+        (get_required_signatures)
 
         ///account api
         (get_account_name_from_seed)

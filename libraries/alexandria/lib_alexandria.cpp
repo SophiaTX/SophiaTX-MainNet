@@ -874,5 +874,11 @@ string alexandria_api::get_account_name_from_seed(string seed) const{
    return make_random_fixed_string(seed);
 }
 
+set<public_key_type> alexandria_api::get_required_signatures(signed_transaction tx, flat_set<public_key_type> available_keys) const {
+   try {
+      return my->_remote_api->get_required_signatures(tx, available_keys );
+   } FC_CAPTURE_AND_RETHROW((tx)(available_keys))
+}
+
 } } // sophiatx::alexandria
 
