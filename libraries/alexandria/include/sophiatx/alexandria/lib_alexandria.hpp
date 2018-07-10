@@ -591,9 +591,8 @@ class alexandria_api
       /**
        * Returns set of public key (authorities) required for signing specific transaction
        * @param tx - transaction for signing
-       * @param available_keys - set of available aythorities (public_keys)
        */
-      set< public_key_type > get_required_signatures( signed_transaction tx, flat_set< public_key_type > available_keys ) const;
+      set< public_key_type > get_required_signatures( signed_transaction tx) const;
 
 };
 
