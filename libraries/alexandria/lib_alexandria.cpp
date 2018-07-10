@@ -678,20 +678,14 @@ fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, strin
 
 annotated_signed_transaction alexandria_api::send_and_sign_operation(operation op, string pk) {
    try{
-      signed_transaction tx = create_simple_transaction(op);
-      auto digest = get_transaction_digest(tx);
-      auto signature = sign_digest(digest, pk);
-      tx = add_signature(tx, signature);
-      return broadcast_transaction(tx);
+       signed_transaction tx = create_simple_transaction(op);
+       return broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
    }FC_CAPTURE_AND_RETHROW((op)(pk))
 }
 
 annotated_signed_transaction alexandria_api::send_and_sign_transaction(signed_transaction tx, string pk){
    try{
-      auto digest = get_transaction_digest(tx);
-      auto signature = sign_digest(digest, pk);
-      auto tx_ = add_signature(tx, signature);
-      return broadcast_transaction(tx_);
+      return broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
    }FC_CAPTURE_AND_RETHROW((tx)(pk))
 }
 
