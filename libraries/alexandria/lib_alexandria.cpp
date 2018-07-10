@@ -678,7 +678,7 @@ fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, strin
 
 annotated_signed_transaction alexandria_api::send_and_sign_operation(operation op, string pk) {
    try{
-      auto tx = create_simple_transaction(op);
+      signed_transaction tx = create_simple_transaction(op);
       auto digest = get_transaction_digest(tx);
       auto signature = sign_digest(digest, pk);
       tx = add_signature(tx, signature);
