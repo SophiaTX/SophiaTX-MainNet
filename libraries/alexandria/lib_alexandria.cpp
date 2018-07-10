@@ -682,7 +682,7 @@ annotated_signed_transaction alexandria_api::send_and_sign_operation(operation o
       auto digest = get_transaction_digest(tx);
       auto signature = sign_digest(digest, pk);
       tx = add_signature(tx, signature);
-      broadcast_transaction(tx);
+      return broadcast_transaction(tx);
    }FC_CAPTURE_AND_RETHROW((op)(pk))
 }
 
@@ -691,7 +691,7 @@ annotated_signed_transaction alexandria_api::send_and_sign_transaction(signed_tr
       auto digest = get_transaction_digest(tx);
       auto signature = sign_digest(digest, pk);
       auto tx_ = add_signature(tx, signature);
-      broadcast_transaction(tx_);
+      return broadcast_transaction(tx_);
    }FC_CAPTURE_AND_RETHROW((tx)(pk))
 }
 
