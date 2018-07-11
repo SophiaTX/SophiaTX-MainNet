@@ -874,5 +874,76 @@ string alexandria_api::get_account_name_from_seed(string seed) const{
    return make_random_fixed_string(seed);
 }
 
+set<public_key_type> alexandria_api::get_required_signatures(signed_transaction tx) const {
+   try {
+      flat_set< account_name_type >   req_active_approvals;
+      flat_set< account_name_type >   req_owner_approvals;
+      vector< authority >  other_auths;
+
+      tx.get_required_authorities( req_active_approvals, req_owner_approvals, other_auths );
+
+      vector< account_name_type > v_approving_account_names;
+      std::merge(req_active_approvals.begin(), req_active_approvals.end(),
+                 req_owner_approvals.begin() , req_owner_approvals.end(),
+                 std::back_inserter( v_approving_account_names ) );
+
+      auto approving_account_objects = my->_remote_api->get_accounts( v_approving_account_names );
+      
+      FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
+
+      flat_map< string, condenser_api::api_account_object > approving_account_lut;
+      size_t i = 0;
+      for( const optional< condenser_api::api_account_object >& approving_acct : approving_account_objects )
+      {
+         if( !approving_acct.valid() )
+         {
+            wlog( "operation_get_required_auths said approval of non-existing account ${name} was needed",
+                  ("name", v_approving_account_names[i]) );
+            i++;
+            continue;
+         }
+         approving_account_lut[ approving_acct->name ] =  *approving_acct;
+         i++;
+      }
+
+      set<public_key_type> approving_key_set;
+      for( account_name_type& acct_name : req_active_approvals )
+      {
+         const auto it = approving_account_lut.find( acct_name );
+         if( it == approving_account_lut.end() )
+            continue;
+         const condenser_api::api_account_object& acct = it->second;
+         vector<public_key_type> v_approving_keys = acct.active.get_keys();
+         for( const public_key_type& approving_key : v_approving_keys )
+         {
+            approving_key_set.insert( approving_key );
+         }
+      }
+
+      for( const account_name_type& acct_name : req_owner_approvals )
+      {
+         const auto it = approving_account_lut.find( acct_name );
+         if( it == approving_account_lut.end() )
+            continue;
+         const condenser_api::api_account_object& acct = it->second;
+         vector<public_key_type> v_approving_keys = acct.owner.get_keys();
+         for( const public_key_type& approving_key : v_approving_keys )
+         {
+            approving_key_set.insert( approving_key );
+         }
+      }
+
+      for( const authority& a : other_auths )
+      {
+         for( const auto& k : a.key_auths )
+         {
+            approving_key_set.insert( k.first );
+         }
+      }
+
+      return approving_key_set;
+   } FC_CAPTURE_AND_RETHROW((tx))
+}
+
 } } // sophiatx::alexandria
 
