@@ -131,7 +131,7 @@
 #define SOPHIATX_POST_AVERAGE_WINDOW             (60*60*24u) // 1 day
 #define SOPHIATX_POST_WEIGHT_CONSTANT            (uint64_t(4*SOPHIATX_100_PERCENT) * (4*SOPHIATX_100_PERCENT))// (4*SOPHIATX_100_PERCENT) -> 2 posts per 1 days, average 1 every 12 hours
 
-#define SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES       30
+#define SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES       60
 
 #define SOPHIATX_100_PERCENT                     10000
 #define SOPHIATX_1_PERCENT                       (SOPHIATX_100_PERCENT/100)

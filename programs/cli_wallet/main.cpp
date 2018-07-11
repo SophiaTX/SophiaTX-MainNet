@@ -102,10 +102,8 @@ int main( int argc, char** argv )
 
       sophiatx::protocol::chain_id_type _sophiatx_chain_id;
 
-#ifdef IS_TEST_NET
       if( options.count("chain-id") )
             _sophiatx_chain_id = generate_chain_id( options["chain-id"].as< std::string >() );
-#endif
 
       fc::path data_dir;
       fc::logging_config cfg;
