@@ -530,6 +530,13 @@ public:
 
    annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
    {
+      //first, get the correct chain_id
+      if(sophiatx_chain_id == fc::sha256())
+      {
+         auto v = _remote_api->get_version();
+         sophiatx_chain_id = fc::sha256(v.chain_id);
+      }
+
       //set fees first
       class op_visitor{
       public:
