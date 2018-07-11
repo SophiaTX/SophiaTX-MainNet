@@ -157,7 +157,8 @@ int main( int argc, char** argv )
          _http_server->on_request(
             [&]( const fc::http::request& req, const fc::http::server::response& resp )
             {
-               resp.add_header("Access-Control-Allow-Origin", options.at( "rpc-http-cors" ).as<string>());
+               resp.add_header("Access-Control-Allow-Origin",
+                               options.count( "rpc-http-cors" ) ? options.at( "rpc-http-cors" ).as<string>() : "*");
                std::shared_ptr< fc::rpc::http_api_connection > conn =
                   std::make_shared< fc::rpc::http_api_connection>();
                conn->register_api( alex_api );
