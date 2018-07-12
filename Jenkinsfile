@@ -42,8 +42,8 @@ pipeline {
       }
     }
     stage('Create RPM') {
-      when {
-          agent 'suse'
+      agent {
+          label "suse"
       }
      steps {
         sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
