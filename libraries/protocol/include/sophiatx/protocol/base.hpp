@@ -18,16 +18,16 @@ namespace sophiatx { namespace protocol {
       virtual bool has_special_fee()const{return false;};
       virtual asset get_required_fee(asset_symbol_type in_symbol)const{
          if(in_symbol == SBD1_SYMBOL )//USD
-            return asset(100000, SBD1_SYMBOL);
+            return BASE_FEE_SBD1;
          if(in_symbol == SBD2_SYMBOL )//EUR
-            return asset(80000, SBD2_SYMBOL);
+            return BASE_FEE_SBD2;
          if(in_symbol == SBD3_SYMBOL ) //CHF
-            return asset(100000, SBD3_SYMBOL);
+            return BASE_FEE_SBD3;
          if(in_symbol == SBD4_SYMBOL ) //CNY
-            return asset(640000, SBD4_SYMBOL);
+            return BASE_FEE_SBD4;
          if(in_symbol == SBD5_SYMBOL ) //GBP
-            return asset(75000, SBD5_SYMBOL);
-         return asset(100000, SOPHIATX_SYMBOL);
+            return BASE_FEE_SBD5;
+         return BASE_FEE;
       };
 
       virtual bool is_virtual()const { return false; }

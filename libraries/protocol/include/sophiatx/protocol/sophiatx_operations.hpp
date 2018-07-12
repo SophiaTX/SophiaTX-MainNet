@@ -394,20 +394,20 @@ namespace sophiatx { namespace protocol {
 
 namespace{
 asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
-   asset base = asset(100000, SOPHIATX_SYMBOL);
+   asset base = BASE_SYMBOL;
    if(in_symbol == SBD1_SYMBOL )//USD
-      base = asset(100000, SBD1_SYMBOL);
+      base = BASE_SYMBOL_SBD1;
    if(in_symbol == SBD2_SYMBOL )//EUR
-      base = asset(80000, SBD2_SYMBOL);
+      base = BASE_SYMBOL_SBD2;
    if(in_symbol == SBD3_SYMBOL ) //CHF
-      base = asset(100000, SBD3_SYMBOL);
+      base = BASE_SYMBOL_SBD3;
    if(in_symbol == SBD4_SYMBOL ) //CNY
-      base = asset(640000, SBD4_SYMBOL);
-   if(in_symbol == SBD5_SYMBOL ) //CNY
-      base = asset(75000, SBD5_SYMBOL);
+      base = BASE_SYMBOL_SBD4;
+   if(in_symbol == SBD5_SYMBOL ) //GBP
+      base = BASE_SYMBOL_SBD15;
 
    //pay base fee + for every 1kB exceeding first 512 bytes
-   uint32_t size_multi = (payload_size + 511)/1024;
+   uint32_t size_multi = (payload_size + (SIZE_INCREASE_PER_FEE-SIZE_COVERED_IN_BASE_FEE-1))/SIZE_INCREASE_PER_FEE;
    return base * (1 + size_multi);
 };
 }

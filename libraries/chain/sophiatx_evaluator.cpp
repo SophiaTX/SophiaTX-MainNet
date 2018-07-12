@@ -71,7 +71,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 
    if( _db.is_producing() )
    {
-      FC_ASSERT( o.props.maximum_block_size <= SOPHIATX_SOFT_MAX_BLOCK_SIZE, "Max block size cannot be more than 2MiB" );
+      FC_ASSERT( o.props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE );
    }
 
    const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
@@ -151,6 +151,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    if( itr != o.props.end() )
    {
       fc::raw::unpack_from_vector( itr->second, props.maximum_block_size );
+      FC_ASSERT(props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE);
       max_block_changed = true;
    }
 
