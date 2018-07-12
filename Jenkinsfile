@@ -42,9 +42,9 @@ pipeline {
       }
     }
     stage('Create RPM') {
-      agent {
-          label "suse"
-      }
+      // when {
+      //     branch 'develop'
+      // }
      steps {
         sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
         dir('install') {
