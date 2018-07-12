@@ -3,6 +3,7 @@
 #include <sophiatx/protocol/types.hpp>
 #include <sophiatx/protocol/authority.hpp>
 #include <sophiatx/protocol/version.hpp>
+#include <sophiatx/protocol/config.hpp>
 
 #include <fc/time.hpp>
 
