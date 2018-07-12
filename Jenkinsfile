@@ -41,6 +41,24 @@ pipeline {
         }
       }
     }
+    stage('Create RPM') {
+      when {
+          branch 'develop'
+      }
+     steps {
+        sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
+        dir('install') {
+          dir('bin') {
+              sh 'mv *.gz sophiatx.tar.gz' //rename tar file
+              sh 'cp sophiatx.tar.gz /home/$USER/RPMBUILD/SOURCES' //copy file for rpm creation
+          }
+        }
+        sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
+        sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
+        sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
+        archiveArtifacts '*.rpm'
+      }
+    }
     stage('Clean WS') {
       steps {
         cleanWs()
@@ -68,6 +86,6 @@ def get_label_name() {
   if( "${env.BRANCH_NAME}" == 'develop' ) {
     return 'suse' 
   } else {
-    return 'linux'         
+    return 'linux'
   }
 }

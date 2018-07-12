@@ -366,6 +366,11 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo(JNIEnv *env, jobject,
           env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
 
           return env->NewStringUTF(fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
+       } else {
+          env->ReleaseStringUTFChars(inJNIStrMemo, memo);
+          env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
+          env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
+          return NULL;
        }
     } catch (const fc::exception& e) {
        env->ReleaseStringUTFChars(inJNIStrMemo, memo);
