@@ -42,6 +42,9 @@ pipeline {
       }
     }
     stage('Create RPM') {
+      // when {
+      //     branch 'develop'
+      // }
      steps {
         sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
         dir('install') {
@@ -52,7 +55,7 @@ pipeline {
         }
         sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
         sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
-        archiveArtifacts '/home/$USER/RPMBUILD/RPMS/*.rpm'
+        archiveArtifacts '/home/$USER/RPMBUILD/RPMS/x86_64/*.rpm'
       }
     }
     stage('Clean WS') {
