@@ -373,6 +373,7 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo(JNIEnv *env, jobject,
        env->ReleaseStringUTFChars(inJNIStrPublicKey, public_key);
        return NULL;
     }
+   return NULL;
  }
 
 FC_REFLECT( Java_AlexandriaJNI_memo_data, (nonce)(check)(encrypted) )

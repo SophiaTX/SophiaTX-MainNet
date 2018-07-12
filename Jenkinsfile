@@ -41,6 +41,20 @@ pipeline {
         }
       }
     }
+    stage('Create RPM') {
+     steps {
+        sh 'rm -rf ~/RPMBUILD/RPMS/*.rpm'
+        dir('install') {
+          dir('bin') {
+              sh 'mv *.gz sophiatx.tar.gz' //rename tar file
+              sh 'cp sophiatx.tar.gz ~/RPMBUILD/SOURCES' //copy file for rpm creation
+          }
+        }
+        sh 'cp ciscripts/sophiatx.spec ~/RPMBUILD/SPECS'
+        sh 'rpmbuild -ba ~/RPMBUILD/SPECS/sophiatx.spec'
+        archiveArtifacts '~/RPMBUILD/RPMS/*.rpm'
+      }
+    }
     stage('Clean WS') {
       steps {
         cleanWs()
@@ -65,9 +79,9 @@ def send_positive_slack_notification() {
 }
 
 def get_label_name() {
-  if( "${env.BRANCH_NAME}" == 'develop' ) {
+  // if( "${env.BRANCH_NAME}" == 'develop' ) {
     return 'suse' 
-  } else {
-    return 'linux'         
-  }
+  // } else {
+  //   return 'linux'
+  // }
 }
