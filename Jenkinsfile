@@ -42,9 +42,9 @@ pipeline {
       }
     }
     stage('Create RPM') {
-      // when {
-      //     branch 'develop'
-      // }
+      when {
+          branch 'develop'
+      }
      steps {
         sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
         dir('install') {
@@ -83,9 +83,9 @@ def send_positive_slack_notification() {
 }
 
 def get_label_name() {
-  // if( "${env.BRANCH_NAME}" == 'develop' ) {
+  if( "${env.BRANCH_NAME}" == 'develop' ) {
     return 'suse' 
-  // } else {
-  //   return 'linux'
-  // }
+  } else {
+    return 'linux'
+  }
 }
