@@ -90,11 +90,21 @@
 
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
 #define SOPHIATX_SYMBOL  ( sophiatx::protocol::asset_symbol_type( SOPHIATX_SYMBOL_SER ) )
-#define SBD1_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD1_SYMBOL_SER ) )
-#define SBD2_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD2_SYMBOL_SER ) )
-#define SBD3_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD3_SYMBOL_SER ) )
-#define SBD4_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD4_SYMBOL_SER ) )
-#define SBD5_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD5_SYMBOL_SER ) )
+#define SBD1_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD1_SYMBOL_SER ) ) //USD
+#define SBD2_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD2_SYMBOL_SER ) ) //EUR
+#define SBD3_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD3_SYMBOL_SER ) ) //CHF
+#define SBD4_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD4_SYMBOL_SER ) ) //CNY
+#define SBD5_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD5_SYMBOL_SER ) ) //GBP
+
+#define BASE_FEE       (asset(100000, SOPHIATX_SYMBOL))
+#define BASE_FEE_SBD1  (asset(100000, SBD1_SYMBOL))
+#define BASE_FEE_SBD2  (asset(80000, SBD2_SYMBOL))
+#define BASE_FEE_SBD3  (asset(100000, SBD3_SYMBOL))
+#define BASE_FEE_SBD4  (asset(640000, SBD4_SYMBOL))
+#define BASE_FEE_SBD5  (asset(75000, SBD5_SYMBOL))
+
+#define SIZE_COVERED_IN_BASE_FEE 1024
+#define SIZE_INCREASE_PER_FEE 2048
 
 #define SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( SOPHIATX_BLOCKCHAIN_VERSION ) )
 
@@ -117,10 +127,8 @@
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
 #define SOPHIATX_MAX_PROXY_RECURSION_DEPTH       4
 #define SOPHIATX_VESTING_WITHDRAW_INTERVALS      27
-#define SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS (60*60*24*7) /// 1 week per interval
-#define SOPHIATX_MAX_WITHDRAW_ROUTES             10
-#define SOPHIATX_SAVINGS_WITHDRAW_TIME        	(fc::days(3))
-#define SOPHIATX_SAVINGS_WITHDRAW_REQUEST_LIMIT  100
+#define SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS (60*60*24) /// 1 day per interval
+
 #define SOPHIATX_VOTE_REGENERATION_SECONDS       (5*60*60*24) // 5 day
 #define SOPHIATX_MAX_VOTE_CHANGES                5
 #define SOPHIATX_REVERSE_AUCTION_WINDOW_SECONDS  (60*30) /// 30 minutes
@@ -201,7 +209,7 @@
 #define SOPHIATX_MAX_TRANSACTION_SIZE            (1024*64)
 #define SOPHIATX_MIN_BLOCK_SIZE_LIMIT            (SOPHIATX_MAX_TRANSACTION_SIZE)
 #define SOPHIATX_MAX_BLOCK_SIZE                  (SOPHIATX_MAX_TRANSACTION_SIZE * SOPHIATX_BLOCK_INTERVAL*2000)
-#define SOPHIATX_SOFT_MAX_BLOCK_SIZE             (2*1024*1024)
+#define SOPHIATX_SOFT_MAX_BLOCK_SIZE             (20*1024*1024)
 #define SOPHIATX_MIN_BLOCK_SIZE                  115
 #define SOPHIATX_BLOCKS_PER_HOUR                 (60*60/SOPHIATX_BLOCK_INTERVAL)
 #define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
