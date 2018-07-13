@@ -874,6 +874,44 @@ string alexandria_api::get_account_name_from_seed(string seed) const{
    return make_random_fixed_string(seed);
 }
 
+asset alexandria_api::calculate_fee(operation op, asset_symbol_type symbol)const{
+   auto props = my->_remote_api->get_chain_properties();
+
+   if(op.which() == operation::tag<account_create_operation>::value){
+      return props.account_creation_fee;
+   }
+
+   class op_visitor{
+   public:
+      op_visitor(asset_symbol_type _symbol):symbol(_symbol){};
+      asset_symbol_type symbol;
+      typedef asset result_type;
+      result_type operator()(const base_operation& bop){
+         if(bop.has_special_fee())
+            return asset(0, SOPHIATX_SYMBOL);
+         asset req_fee = bop.get_required_fee(symbol);
+         FC_ASSERT(symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
+         return req_fee;
+      };
+   };
+   op_visitor op_v(symbol);
+
+   asset fee = op.visit(op_v);
+   //check if the symbol has current price feed
+   FC_ASSERT(fee.symbol == SOPHIATX_SYMBOL || fiat_to_sphtx(fee).symbol == SOPHIATX_SYMBOL, "no current feed for this symbol");
+
+   return fee;
+}
+
+asset alexandria_api::fiat_to_sphtx(asset fiat)const{
+   auto price = my->_remote_api->get_feed_history(fiat.symbol).current_median_price;
+   if(price.base.amount == 0 || price.quote.amount == 0)
+      return fiat;
+   if(price.base.symbol!= fiat.symbol && price.quote.symbol!=fiat.symbol)
+      return fiat;
+   return fiat * price;
+}
+
 set<public_key_type> alexandria_api::get_required_signatures(signed_transaction tx) const {
    try {
       flat_set< account_name_type >   req_active_approvals;

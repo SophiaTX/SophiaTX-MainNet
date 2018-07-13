@@ -249,7 +249,7 @@ struct api_feed_history_object
 {
    api_feed_history_object() {}
    api_feed_history_object( const database_api::api_feed_history_object& f ) :
-      current_median_history( f.current_median_history )
+      current_median_price( f.current_median_history )
    {
       for( auto& p : f.price_history )
       {
@@ -258,7 +258,7 @@ struct api_feed_history_object
    }
 
    feed_history_id_type   id;
-   legacy_price           current_median_history;
+   legacy_price           current_median_price;
    deque< legacy_price >  price_history;
 };
 
@@ -525,7 +525,7 @@ FC_REFLECT( sophiatx::plugins::condenser_api::api_witness_schedule_object,
 
 FC_REFLECT( sophiatx::plugins::condenser_api::api_feed_history_object,
              (id)
-             (current_median_history)
+             (current_median_price)
              (price_history)
           )
 

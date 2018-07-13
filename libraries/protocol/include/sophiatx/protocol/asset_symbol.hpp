@@ -33,7 +33,6 @@ namespace sophiatx { namespace protocol {
      asset_symbol_type(uint64_t v): value(v) {}
      asset_symbol_type(const asset_symbol_type& as){value = as.value;}
 
-
      static asset_symbol_type from_string( const std::string& str ){
         FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
        const char* c_str = str.c_str();
@@ -178,14 +177,13 @@ inline void unpack( Stream& s, sophiatx::protocol::asset_symbol_type& sym )
 }
 
 } // fc::raw
-
+*/
+namespace fc{
 inline void to_variant( const sophiatx::protocol::asset_symbol_type& sym, fc::variant& var )
 {
    try
    {
-      std::vector< variant > v( 2 );
-      v[0] = sym.decimals();
-      v[1] = sym.to_nai_string();
+      var = sym.to_string();
    } FC_CAPTURE_AND_RETHROW()
 }
 
@@ -193,12 +191,9 @@ inline void from_variant( const fc::variant& var, sophiatx::protocol::asset_symb
 {
    try
    {
-      auto v = var.as< std::vector< variant > >();
-      FC_ASSERT( v.size() == 2, "Expected tuple of length 2." );
+      sym = sophiatx::protocol::asset_symbol_type::from_string(var.as<std::string>());
 
-      sym = sophiatx::protocol::asset_symbol_type::from_nai_string( v[1].as< std::string >().c_str(), v[0].as< uint8_t >() );
    } FC_CAPTURE_AND_RETHROW()
 }
 
 } // fc
-*/

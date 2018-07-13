@@ -594,6 +594,21 @@ class alexandria_api
        */
       set< public_key_type > get_required_signatures( signed_transaction tx) const;
 
+
+      /**
+       * Returns a fee for the given operation
+       * @param op Operation to evaluate
+       * @param symbol Symbol of the fee paying currency
+       * @return fee
+       */
+       asset calculate_fee(operation op, asset_symbol_type symbol)const;
+
+       /**
+        * Converts the given amount of fiat to sphtx
+        * @param fiat The amount to be converted
+        * @return Amount of SPHTX if conversion is possible, or returns back fiat if not.
+        */
+       asset fiat_to_sphtx(asset fiat)const;
 };
 
 } }
@@ -660,6 +675,8 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (broadcast_transaction)
         (create_transaction)
         (create_simple_transaction)
+        (calculate_fee)
+        (fiat_to_sphtx)
 
         ///local api
         (get_transaction_digest)

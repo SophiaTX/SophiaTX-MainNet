@@ -459,7 +459,6 @@ const node_property_object& database::get_node_properties() const
 
 const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
-   return get< feed_history_object >();
       const auto& fh_idx = get_index<feed_history_index>().indices().get<by_symbol>();
       return *fh_idx.find(a);
 } FC_CAPTURE_AND_RETHROW() }
@@ -2110,14 +2109,14 @@ try {
       }
    }
 
-   for ( const auto& feeds: all_feeds){
-      if( feeds.second.size() >= SOPHIATX_MIN_FEEDS )
+   for ( const auto& feed: all_feeds){
+      if( feed.second.size() >= SOPHIATX_MIN_FEEDS )
       {
-         vector<price> f = feeds.second;
+         vector<price> f = feed.second;
          std::sort( f.begin(), f.end() );
          auto median_feed = f[f.size()/2];
 
-         modify(get_feed_history(feeds.first), [&](feed_history_object& fho )
+         modify(get_feed_history(feed.first), [&](feed_history_object& fho )
          {
             fho.price_history.push_back( median_feed );
             size_t sophiatx_feed_history_window = SOPHIATX_FEED_HISTORY_WINDOW;
