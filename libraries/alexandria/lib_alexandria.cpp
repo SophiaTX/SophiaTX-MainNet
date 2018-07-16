@@ -579,7 +579,7 @@ vector< condenser_api::api_operation_object > alexandria_api::get_account_histor
                    boost::bind(&ObjectMap::value_type::second,_1) );
    return ret;
 }
-#elif
+#else
 map< uint64_t, condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
       return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
