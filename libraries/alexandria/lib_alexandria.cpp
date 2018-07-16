@@ -699,6 +699,22 @@ signed_transaction alexandria_api::add_signature(signed_transaction tx, fc::ecc:
    }FC_CAPTURE_AND_RETHROW((tx)(signature))
 }
 
+operation alexandria_api::add_fee(operation op, asset fee)const {
+   class op_visitor{
+   public:
+      op_visitor(asset _fee):fee(_fee){};
+      asset fee;
+      typedef void result_type;
+      result_type operator()( base_operation& bop){
+         bop.fee = fee;
+      };
+   };
+   op_visitor op_v(fee);
+   operation ret = op;
+   ret.visit(op_v);
+   return ret;
+}
+
 fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, string pk) const {
    try{
       auto priv_key = *sophiatx::utilities::wif_to_key(pk);

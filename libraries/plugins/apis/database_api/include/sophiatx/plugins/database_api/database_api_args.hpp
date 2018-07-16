@@ -346,6 +346,8 @@ struct get_application_buyings_return
 typedef void_type get_promotion_pool_balance_args;
 typedef asset get_promotion_pool_balance_return;
 
+typedef void_type get_burned_balance_args;
+typedef asset get_burned_balance_return;
 #ifdef SOPHIATX_ENABLE_SMT
 typedef void_type get_smt_next_identifier_args;
 

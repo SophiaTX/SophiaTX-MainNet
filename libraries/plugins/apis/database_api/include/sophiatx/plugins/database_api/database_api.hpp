@@ -114,6 +114,11 @@ class database_api
           * This is used to get remaining promotion pool balance
           */
          (get_promotion_pool_balance)
+
+         /*
+          * Get amount of SPHTX burned
+          */
+         (get_burned_balance)
       )
 
    private:

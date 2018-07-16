@@ -415,6 +415,13 @@ class alexandria_api
       signed_transaction add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const;
 
       /**
+       * Add custom fee to the operation
+       * @param op Operation where the fee is added
+       * @param fee Fee to be added
+       */
+      operation add_fee(operation op, asset fee)const;
+
+      /**
        * Sign digest with providet private key
        * @param digest - digest fo transaction
        * @param pk - private key for signing (in WIF format)
@@ -704,6 +711,8 @@ FC_API( sophiatx::alexandria::alexandria_api,
         ///local api
         (get_transaction_digest)
         (add_signature)
+        (add_fee)
+
         (sign_digest)
         (send_and_sign_operation)
         (send_and_sign_transaction)
