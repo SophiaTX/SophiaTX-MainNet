@@ -97,11 +97,11 @@
 #define SBD5_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD5_SYMBOL_SER ) ) //GBP
 
 #define BASE_FEE       (asset(100000, SOPHIATX_SYMBOL))
-#define BASE_FEE_SBD1  (asset(100000, SBD1_SYMBOL))
-#define BASE_FEE_SBD2  (asset(80000, SBD2_SYMBOL))
-#define BASE_FEE_SBD3  (asset(100000, SBD3_SYMBOL))
-#define BASE_FEE_SBD4  (asset(640000, SBD4_SYMBOL))
-#define BASE_FEE_SBD5  (asset(75000, SBD5_SYMBOL))
+#define BASE_FEE_SBD1  (asset(100000, SBD1_SYMBOL)) //USD
+#define BASE_FEE_SBD2  (asset(80000,  SBD2_SYMBOL)) //EUR
+#define BASE_FEE_SBD3  (asset(100000, SBD3_SYMBOL)) //CHF
+#define BASE_FEE_SBD4  (asset(640000, SBD4_SYMBOL)) //CNY
+#define BASE_FEE_SBD5  (asset(75000,  SBD5_SYMBOL)) //GBP
 
 #define SIZE_COVERED_IN_BASE_FEE 1024
 #define SIZE_INCREASE_PER_FEE 2048

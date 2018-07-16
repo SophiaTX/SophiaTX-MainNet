@@ -370,16 +370,6 @@ class alexandria_api
        */
       operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
 
-      /**
-       * Get all received custom jsons and data.
-       * @param app_id Application ID
-       * @param account_name Name of the relevant (sender/recipient) account
-       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
-       * @param start Either timestamp in ISO format or index
-       * @param count Number of items to retrieve
-       * @return
-       */
-      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
       /**
        * Broadcast transaction to node
@@ -513,7 +503,29 @@ class alexandria_api
        * @return returns true if account exists
        */
       bool account_exist(string account_name) const;
+#ifdef ABAP_INTERFACE
+     /**
+      *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
+      *  returns operations in the range [from-limit, from]
+      *
+      *  @param account - account whose history will be returned
+      *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
+      *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
+      */
+      vector< condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
 
+      /**
+       * Get all received custom jsons and data.
+       * @param app_id Application ID
+       * @param account_name Name of the relevant (sender/recipient) account
+       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
+       * @param start Either timestamp in ISO format or index
+       * @param count Number of items to retrieve
+       * @return
+       */
+      vector< condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+
+#else
       /**
       *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
       *  returns operations in the range [from-limit, from]
@@ -524,6 +536,17 @@ class alexandria_api
       */
       map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
 
+      /**
+       * Get all received custom jsons and data.
+       * @param app_id Application ID
+       * @param account_name Name of the relevant (sender/recipient) account
+       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
+       * @param start Either timestamp in ISO format or index
+       * @param count Number of items to retrieve
+       * @return
+       */
+      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+#endif
       /**
        * Returns active authority for given account
        * @param account_name - account name
