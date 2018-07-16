@@ -557,11 +557,41 @@ operation alexandria_api::make_custom_binary_operation(uint32_t app_id, string f
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data))
 }
 
+#ifdef ABAP_INTERFACE
+vector< condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+   try{
+      typedef std::map< uint64_t, condenser_api::api_received_object > ObjectMap;
+      std::vector<condenser_api::api_received_object> ret;
+      ObjectMap from_api = my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      std::transform( from_api.begin(), from_api.end(),
+                   std::back_inserter(ret),
+                   boost::bind(&ObjectMap::value_type::second,_1) );
+      return ret;
+    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
+}
+
+vector< condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+   typedef std::map< uint32_t, condenser_api::api_operation_object > ObjectMap;
+   ObjectMap from_api = my->_remote_api->get_account_history( account, from, limit );
+   std::vector < condenser_api::api_operation_object > ret;
+   std::transform( from_api.begin(), from_api.end(),
+                   std::back_inserter(ret),
+                   boost::bind(&ObjectMap::value_type::second,_1) );
+   return ret;
+}
+#else
 map< uint64_t, condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
       return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
+
+map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+   auto result = my->_remote_api->get_account_history( account, from, limit );
+   return result;
+}
+#endif
+
 
 annotated_signed_transaction alexandria_api::broadcast_transaction(signed_transaction tx) const
 {
@@ -838,14 +868,7 @@ authority alexandria_api::create_simple_managed_authority(string managing_accoun
    return authority(1, decoded_name, 1);
 }
 
-map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
-   auto result = my->_remote_api->get_account_history( account, from, limit );
-   for( auto& item : result ) {
-      if( item.second.op.which() == condenser_api::legacy_operation::tag<condenser_api::legacy_transfer_operation>::value )
-         auto& top = item.second.op.get<condenser_api::legacy_transfer_operation>();
-   }
-   return result;
-}
+
 
 authority
 alexandria_api::create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const {

@@ -6,7 +6,7 @@ add_subdirectory( size_checker )
 add_subdirectory( util )
 add_subdirectory( alexandria_deamon )
 
-if(BUILD_PIC)
+if(BUILD_PIC AND (NOT ABAP_INTERFACE))
     add_subdirectory( alexandria )
     if(JNI_FOUND)
         add_subdirectory( alexandriaJNI )
