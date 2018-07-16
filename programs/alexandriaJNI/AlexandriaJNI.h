@@ -81,6 +81,22 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo
 
 /*
  * Class:     AlexandriaJNI
+ * Method:    publicKeyToString
+ * Signature: ([B)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_publicKeyToString
+      (JNIEnv *, jclass, jbyteArray);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    stringToPublicKey
+ * Signature: (Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_stringToPublicKey
+      (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     AlexandriaJNI
  * Method:    privateKeyToWif
  * Signature: ([B)Ljava/lang/String;
  */
