@@ -678,6 +678,7 @@ public:
          tx.sign( it->second, sophiatx_chain_id );
       }
 
+      elog("Transaction digest is: ${d}", ("d", tx.sig_digest(sophiatx_chain_id)));
       if( broadcast ) {
          try {
             auto result = _remote_api->broadcast_transaction_synchronous( tx );
