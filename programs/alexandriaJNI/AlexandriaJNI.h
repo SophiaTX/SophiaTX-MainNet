@@ -9,75 +9,123 @@ extern "C" {
 #endif
 /*
  * Class:     AlexandriaJNI
- * Method:    generateKeyPair
- * Signature: ()[Ljava/lang/String;
+ * Method:    generatePrivateKey
+ * Signature: ()[B
  */
-JNIEXPORT jobjectArray JNICALL Java_AlexandriaJNI_generateKeyPair
-      (JNIEnv *, jobject);
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_generatePrivateKey
+      (JNIEnv *, jclass);
 
 /*
  * Class:     AlexandriaJNI
- * Method:    generateKeyPairFromBrainKey
- * Signature: (Ljava/lang/String;)[Ljava/lang/String;
+ * Method:    generatePrivateKeyFromBrainKey
+ * Signature: (Ljava/lang/String;)[B
  */
-JNIEXPORT jobjectArray JNICALL Java_AlexandriaJNI_generateKeyPairFromBrainKey
-      (JNIEnv *, jobject, jstring);
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_generatePrivateKeyFromBrainKey
+      (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    getPublicKey
- * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ * Signature: ([B)[B
  */
-JNIEXPORT jstring JNICALL Java_AlexandriaJNI_getPublicKey
-      (JNIEnv *, jobject, jstring);
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_getPublicKey
+      (JNIEnv *, jclass, jbyteArray);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    getTransactionDigest
- * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ * Signature: (Ljava/lang/String;[B)[B
  */
-JNIEXPORT jstring JNICALL Java_AlexandriaJNI_getTransactionDigest
-      (JNIEnv *, jobject, jstring, jstring);
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_getTransactionDigest
+      (JNIEnv *, jclass, jstring, jbyteArray);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    signDigest
- * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ * Signature: ([B[B)[B
  */
-JNIEXPORT jstring JNICALL Java_AlexandriaJNI_signDigest
-      (JNIEnv *, jobject, jstring, jstring);
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_signDigest
+      (JNIEnv *, jclass, jbyteArray, jbyteArray);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    addSignature
- * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ * Signature: (Ljava/lang/String;[B)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_AlexandriaJNI_addSignature
-      (JNIEnv *, jobject, jstring, jstring);
+      (JNIEnv *, jclass, jstring, jbyteArray);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    verifySignature
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
+ * Signature: ([B[B[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_AlexandriaJNI_verifySignature
-      (JNIEnv *, jobject, jstring, jstring, jstring);
+      (JNIEnv *, jclass, jbyteArray, jbyteArray, jbyteArray);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    encryptMemo
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ * Signature: (Ljava/lang/String;[B[B)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_AlexandriaJNI_encryptMemo
-      (JNIEnv *, jobject, jstring, jstring, jstring);
+      (JNIEnv *, jclass, jstring, jbyteArray, jbyteArray);
 
 /*
  * Class:     AlexandriaJNI
  * Method:    decryptedMemo
- * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ * Signature: (Ljava/lang/String;[B[B)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo
-      (JNIEnv *, jobject, jstring, jstring, jstring);
+      (JNIEnv *, jclass, jstring, jbyteArray, jbyteArray);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    publicKeyToString
+ * Signature: ([B)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_publicKeyToString
+      (JNIEnv *, jclass, jbyteArray);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    stringToPublicKey
+ * Signature: (Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_stringToPublicKey
+      (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    privateKeyToWif
+ * Signature: ([B)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_privateKeyToWif
+      (JNIEnv *, jclass, jbyteArray);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    wifToPrivateKey
+ * Signature: (Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_wifToPrivateKey
+      (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    toBase58
+ * Signature: ([B)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_AlexandriaJNI_toBase58
+      (JNIEnv *, jclass, jbyteArray);
+
+/*
+ * Class:     AlexandriaJNI
+ * Method:    fromBase58
+ * Signature: (Ljava/lang/String;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_fromBase58
+      (JNIEnv *, jclass, jstring);
 
 #ifdef __cplusplus
 }
