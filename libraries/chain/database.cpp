@@ -2734,9 +2734,9 @@ void database::validate_invariants()const
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == SOPHIATX_TOTAL_SUPPLY, "difference is $diff", ("diff", SOPHIATX_TOTAL_SUPPLY -
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool) == SOPHIATX_TOTAL_SUPPLY, "difference is $diff", ("diff", SOPHIATX_TOTAL_SUPPLY -
                  (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool)));
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool)));
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );

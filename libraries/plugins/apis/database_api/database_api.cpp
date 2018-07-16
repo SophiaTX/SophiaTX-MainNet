@@ -46,6 +46,7 @@ class database_api_impl
          (list_applications)
          (get_application_buyings)
          (get_promotion_pool_balance)
+         (get_burned_balance)
       )
 
       template< typename ResultType >
@@ -684,6 +685,12 @@ DEFINE_API_IMPL( database_api_impl, get_promotion_pool_balance )
    return asset(_db.get_economic_model().get_available_promotion_pool(_db.head_block_num()), SOPHIATX_SYMBOL);
 }
 
+
+DEFINE_API_IMPL( database_api_impl, get_burned_balance )
+{
+   return asset(_db.get_economic_model().burn_pool, SOPHIATX_SYMBOL);
+}
+
 #ifdef SOPHIATX_ENABLE_SMT
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
@@ -730,6 +737,7 @@ DEFINE_READ_APIS( database_api,
    (list_applications)
    (get_application_buyings)
    (get_promotion_pool_balance)
+   (get_burned_balance)
 )
 
 } } } // sophiatx::plugins::database_api

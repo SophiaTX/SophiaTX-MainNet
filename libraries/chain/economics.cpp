@@ -60,6 +60,9 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
    historic_supply[generated_block%SOPHIATX_INTEREST_BLOCKS] = current_supply;
    accumulated_supply+=current_supply;
    //TODO_SOPHIATX - check invariants here.
+   //check that current_supply + all_pools = total supply. Already in database.cpp
+   //FC_ASSERT(mining_pool_from_coinbase + mining_pool_from_fees + interest_pool_from_coinbase + interest_pool_from_fees +
+   //                promotion_pool + current_supply + burn_pool== total_supply);
 }
 
 #define SOPHIATX_TOTAL_INTERESTS ((uint64_t(SOPHIATX_TOTAL_SUPPLY) - uint64_t(SOPHIATX_INIT_SUPPLY)) * uint64_t(SOPHIATX_INTEREST_POOL_PERCENTAGE) / uint64_t(SOPHIATX_100_PERCENT))
@@ -83,10 +86,13 @@ share_type economic_model_object::withdraw_interests(share_type holding, uint32_
 }
 
 void economic_model_object::add_fee(share_type fee) {
+   auto to_burn = fee * SOPHIATX_BURN_FEE_PERCENTAGE / SOPHIATX_100_PERCENT;
+   fee = fee - to_burn;
    auto to_mining_pool = fee * SOPHIATX_MINING_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
    auto to_promotion_pool = fee * SOPHIATX_PROMOTION_POOL_PERCENTAGE / SOPHIATX_100_PERCENT;
    mining_pool_from_fees += to_mining_pool;
    promotion_pool += to_promotion_pool;
+   burn_pool += to_burn;
    share_type to_interests = fee - to_mining_pool - to_promotion_pool;
    interest_pool_from_fees += to_interests;
 }
