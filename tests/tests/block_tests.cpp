@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(100000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, SOPHIATX_SYMBOL);
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1.get_chain_id() );
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(100000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -373,7 +373,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(100000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );

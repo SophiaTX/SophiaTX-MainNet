@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       account_create_operation op;
 
-      op.fee = ASSET( "0.100000 SPHTX" );
+      op.fee = ASSET( "0.050000 SPHTX" );
       op.name_seed = "alice";
       op.creator = SOPHIATX_INIT_MINER_NAME;
       op.owner = authority( 1, priv_key.get_public_key(), 1 );
@@ -99,6 +99,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       const account_object& acct = db->get_account( AN("alice") );
       const account_authority_object& acct_auth = db->get< account_authority_object, by_account >( AN("alice") );
+
 
       BOOST_REQUIRE( acct.name == AN("alice") );
       BOOST_REQUIRE( acct_auth.owner == authority( 1, priv_key.get_public_key(), 1 ) );

@@ -13,17 +13,10 @@
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
-#define SOPHIATX_CHAIN_ID_NAME "testnet"
-#define SOPHIATX_CHAIN_ID (fc::sha256::hash(SOPHIATX_CHAIN_ID_NAME))
 #define SOPHIATX_ADDRESS_PREFIX                  "TST"
-
-#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1451606400))
-#define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1451606400))
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60) /// 1 hr
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*3) /// 3 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24) /// 1 day
-#define SOPHIATX_UPVOTE_LOCKOUT_HF7              (fc::minutes(1))
-#define SOPHIATX_UPVOTE_LOCKOUT_HF17             (fc::minutes(5))
 
 
 #define SOPHIATX_MIN_ACCOUNT_CREATION_FEE          0
@@ -33,7 +26,9 @@
 #define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::seconds(0)
 #define SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 1
 
-#define SOPHIATX_INIT_SUPPLY                     (int64_t( 250 ) * int64_t( 1000000 ) * int64_t( 1000 ))
+#define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+#define SOPHIATX_INIT_SUPPLY                     (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+#define SOPHIATX_MIN_FEEDS                       1 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 /// Allows to limit number of total produced blocks.
 #define TESTNET_BLOCK_LIMIT                   (3000000)
@@ -42,18 +37,14 @@
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
+#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu"
 #define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
-#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1524563000))
-#//define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1524563200))
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*30) /// 30 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24*14) /// 2 weeks
-#define SOPHIATX_UPVOTE_LOCKOUT_HF7              (fc::minutes(1))
-#define SOPHIATX_UPVOTE_LOCKOUT_HF17             (fc::hours(12))
 
-#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE           100000
+#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE           50000
 
 #define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
 #define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
@@ -61,9 +52,12 @@
 
 #define SOPHIATX_INIT_SUPPLY                     int64_t(350000000000000)
 #define SOPHIATX_TOTAL_SUPPLY                    int64_t(500000000000000)
+#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #endif
 
+//#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1532512800))
+#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1531512800))
 #define SOPHIATX_BLOCK_INTERVAL                  3
 #define SOPHIATX_BLOCKS_PER_YEAR                 (365*24*60*60/SOPHIATX_BLOCK_INTERVAL)
 #define SOPHIATX_BLOCKS_PER_DAY                  (24*60*60/SOPHIATX_BLOCK_INTERVAL)
@@ -216,7 +210,6 @@
 #define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
 #define SOPHIATX_FEED_HISTORY_WINDOW             (12*7) // 3.5 days
 #define SOPHIATX_MAX_FEED_AGE_SECONDS            (60*60*24*7) // 7 days
-#define SOPHIATX_MIN_FEEDS                       1 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #define SOPHIATX_MIN_UNDO_HISTORY                10
 #define SOPHIATX_MAX_UNDO_HISTORY                10000

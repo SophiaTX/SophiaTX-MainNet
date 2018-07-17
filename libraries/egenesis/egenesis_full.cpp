@@ -42,9 +42,9 @@ using namespace sophiatx::chain;
 
 static const char genesis_json_array[13][40+1] =
 {
-"{\n   \"initial_public_key\" : \"SPH8Xg6cEbq",
-"PCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7je",
-"du\",\n   \"initial_balace\" : 3000000000000",
+"{\n   \"initial_public_key\" : \"SPH7VNqGPfH",
+"XVu7try6KqdxG1feVt3SDwgkXZYdw44jkWdrUNDB",
+"hY\",\n   \"initial_balace\" : 3000000000000",
 "00,\n   \"initial_accounts\" : [\n      {\n  ",
 "       \"name\":\"ejossev\",\n         \"key\":",
 " \"SPH8D8De3AFYZyc3vDfZSQogqSUAc7pbzqgYUu",
@@ -53,13 +53,13 @@ static const char genesis_json_array[13][40+1] =
 "name\":\"qryptos\",\n         \"key\": \"SPH8D8",
 "De3AFYZyc3vDfZSQogqSUAc7pbzqgYUuw5x6JBXN",
 "Dp5d4i5\",\n         \"balance\": 0\n      }\n",
-"   ],\n   \"genesis_time\" : \"2018-07-03T14",
+"   ],\n   \"genesis_time\" : \"2018-07-17T11",
 ":00:00\",\n   \"initial_chain_id\" : \"\"\n}\n"
 };
 
 chain_id_type get_egenesis_chain_id()
 {
-   return chain_id_type( "d2c8afc572ea2d7032e8db942bd59db36c91bc48d96ff59b68858f9a5f272f92" );
+   return chain_id_type( "250c06a66746d099bd0abcf7968c21b24c7f8cf3683ff53b52b4a6b1500d1d04" );
 }
 
 void compute_egenesis_json( std::string& result )
@@ -76,7 +76,7 @@ void compute_egenesis_json( std::string& result )
 
 fc::sha256 get_egenesis_json_hash()
 {
-   return fc::sha256( "d2c8afc572ea2d7032e8db942bd59db36c91bc48d96ff59b68858f9a5f272f92" );
+   return fc::sha256( "250c06a66746d099bd0abcf7968c21b24c7f8cf3683ff53b52b4a6b1500d1d04" );
 }
 
 } }
