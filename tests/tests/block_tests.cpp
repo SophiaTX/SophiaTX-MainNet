@@ -485,7 +485,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    transfer_operation t;
    t.from = SOPHIATX_INIT_MINER_NAME;
    t.to = AN("bob");
-   t.fee = ASSET( "0.050000 SPHTX" );
+   t.fee = ASSET( "0.100000 SPHTX" );
    t.amount = asset(amount*2,SOPHIATX_SYMBOL);
    trx.operations.push_back(t);
    trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
