@@ -1637,7 +1637,7 @@ void database::init_genesis( genesis_state_type genesis )
       create< witness_object >( [&]( witness_object& w )
                                 {
                                      w.owner        = SOPHIATX_INIT_MINER_NAME;
-                                     w.signing_key  = init_public_key;
+                                     w.signing_key  = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
                                      w.schedule = witness_object::top19;
                                 } );
 
