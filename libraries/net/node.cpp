@@ -1941,7 +1941,7 @@ namespace graphene { namespace net {
         }
         if ( !originating_peer->chain_id || *originating_peer->chain_id != _delegate->get_chain_id() )
         {
-            wlog("Received hello message from peer running a node for different blockchain.",
+            wlog("Received hello message from peer running a node for different blockchain; my chain: ${my_chain_id}, their chain: ${their_chain_id}",
                ("my_chain_id", _delegate->get_chain_id())("their_chain_id", originating_peer->chain_id) );
 
             std::ostringstream rejection_message;
