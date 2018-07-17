@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install'
+        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis.json'
         sh 'make -j4'
       }
     }
