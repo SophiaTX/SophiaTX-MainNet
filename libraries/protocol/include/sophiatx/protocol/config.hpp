@@ -37,7 +37,7 @@
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu"
+#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX"
 #define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days
