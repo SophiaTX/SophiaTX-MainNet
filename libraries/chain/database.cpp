@@ -460,7 +460,9 @@ const node_property_object& database::get_node_properties() const
 const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
       const auto& fh_idx = get_index<feed_history_index>().indices().get<by_symbol>();
-      return *fh_idx.find(a);
+      const auto fh_itr = fh_idx.find(a);
+      FC_ASSERT(fh_itr != fh_idx.end(), "Symbol history not found");
+      return *fh_itr;
 } FC_CAPTURE_AND_RETHROW() }
 
 const witness_schedule_object& database::get_witness_schedule_object()const
