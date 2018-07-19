@@ -824,11 +824,11 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
       auto accounts =  get_account( name );
       if(accounts.size() == 1) {
          result.emplace_back( accounts.front());
-      }
-
-      for(const auto& acc: accounts) {
-         if(acc.name == account_name_type(name)) {
-            result.emplace_back( acc);
+      } else {
+         for(const auto& acc: accounts) {
+            if(acc.name == account_name_type(name)) {
+               result.emplace_back( acc);
+            }
          }
       }
    }
@@ -1531,23 +1531,23 @@ string wallet_api::get_encrypted_memo( string from, string to, string memo ) {
 
        if(from_account.size() == 1) {
           m.from = from_account.front().memo_key;
-       }
-
-       for(const auto& acc: from_account) {
-          if(acc.name == account_name_type(from)) {
-             m.from = acc.memo_key;
+       } else {
+          for(const auto& acc: from_account) {
+             if(acc.name == account_name_type(from)) {
+                m.from = acc.memo_key;
+             }
           }
        }
        auto to_account   = get_account( to );
 
        if(from_account.size() == 1) {
           m.to = to_account.front().memo_key;
-       }
-
-       for(const auto& acc: from_account) {
-          if(acc.name == account_name_type(to)) {
-             m.to = acc.memo_key;
-          }
+       } else {
+          for(const auto& acc: from_account) {
+             if(acc.name == account_name_type(to)) {
+                m.to = acc.memo_key;
+             }
+         }
        }
 
        m.nonce = fc::time_point::now().time_since_epoch().count();
@@ -1576,11 +1576,11 @@ annotated_signed_transaction wallet_api::transfer(string from, string to, asset 
 
       if(acc_from.size() == 1) {
          check_memo( memo, acc_from.front() );
-      }
-
-      for(const auto& acc: acc_from) {
-         if(acc.name == account_name_type(to)) {
-            check_memo( memo, acc );
+      } else {
+         for(const auto& acc: acc_from) {
+            if(acc.name == account_name_type(to)) {
+               check_memo( memo, acc );
+            }
          }
       }
 
