@@ -9,6 +9,7 @@ pipeline {
   }
   environment {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    GENESIS_FILE = get_genesis_file_name()
   }
   agent { 
     label get_label_name()
@@ -16,13 +17,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-          if(${build_as_testnet})
-          {
-            sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis.json'
-          } else {
-            sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis_testnet.json'
-          }
-
+        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE}'
         sh 'make -j4'
       }
     }
@@ -95,5 +90,13 @@ def get_label_name() {
     return 'suse' 
   } else {
     return 'linux'
+  }
+}
+
+def get_genesis_file_name() {
+  if( ${build_as_testnet} ) {
+    return 'genesis_testnet.json'
+  } else {
+    return 'genesis.json'
   }
 }
