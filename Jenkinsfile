@@ -25,7 +25,7 @@ pipeline {
           if( build_as_testnet ) {
             GENESIS_FILE = "genesis_testnet.json"
           }
-          if(build_as_debug) {
+          if( build_as_debug ) {
             BUILD_TYPE = "Debug"
           }
         }
@@ -43,12 +43,16 @@ pipeline {
         sh 'make install'
         dir('install') {
             dir('lib') {
-                sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                if( NOT build_as_debug ) {
+                  sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                }
                 sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
-              sh 'strip -s *' //strip symbols
+              if( NOT build_as_debug ) {
+                sh 'strip -s *' //strip symbols
+              }
               sh 'rm -f test*' //remove test binaries
               sh 'tar -czf ${ARCHIVE_NAME} *' //create tar file
               archiveArtifacts '*.gz'
