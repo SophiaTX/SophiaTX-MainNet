@@ -321,12 +321,12 @@ public:
       return result;
    }
 
-   condenser_api::api_account_object get_account( string account_name_or_seed ) const
+   vector<condenser_api::api_account_object> get_account( string account_name_or_seed ) const
    {
-
       auto accounts = _remote_api->get_accounts( { account_name_or_seed, get_account_name_from_seed(account_name_or_seed) } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      return accounts.front();
+      std::vector<condenser_api::api_account_object>  accounts_ret(accounts.begin(), accounts.end());
+      return accounts_ret;
    }
 
    string get_account_name_from_seed(string seed) const{
@@ -820,7 +820,18 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
 
    result.reserve( names.size() );
    for( const auto& name : names )
-      result.emplace_back( get_account( name ) );
+   {
+      auto accounts =  get_account( name );
+      if(accounts.size() == 1) {
+         result.emplace_back( accounts.front());
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(name)) {
+            result.emplace_back( acc);
+         }
+      }
+   }
 
    return result;
 }
@@ -867,7 +878,7 @@ string wallet_api::get_wallet_filename() const
 }
 
 
-condenser_api::api_account_object wallet_api::get_account( string account_name ) const
+vector<condenser_api::api_account_object> wallet_api::get_account( string account_name ) const
 {
    return my->get_account( account_name );
 }
@@ -1517,10 +1528,28 @@ string wallet_api::get_encrypted_memo( string from, string to, string memo ) {
        memo_data m;
 
        auto from_account = get_account( from );
+
+       if(from_account.size() == 1) {
+          m.from = from_account.front().memo_key;
+       }
+
+       for(const auto& acc: from_account) {
+          if(acc.name == account_name_type(from)) {
+             m.from = acc.memo_key;
+          }
+       }
        auto to_account   = get_account( to );
 
-       m.from            = from_account.memo_key;
-       m.to              = to_account.memo_key;
+       if(from_account.size() == 1) {
+          m.to = to_account.front().memo_key;
+       }
+
+       for(const auto& acc: from_account) {
+          if(acc.name == account_name_type(to)) {
+             m.to = acc.memo_key;
+          }
+       }
+
        m.nonce = fc::time_point::now().time_since_epoch().count();
 
        auto from_priv = my->get_private_key( m.from );
@@ -1542,7 +1571,19 @@ string wallet_api::get_encrypted_memo( string from, string to, string memo ) {
 annotated_signed_transaction wallet_api::transfer(string from, string to, asset amount, string memo, bool broadcast )
 { try {
    FC_ASSERT( !is_locked() );
-    check_memo( memo, get_account( from ) );
+
+      auto acc_from = get_account(from);
+
+      if(acc_from.size() == 1) {
+         check_memo( memo, acc_from.front() );
+      }
+
+      for(const auto& acc: acc_from) {
+         if(acc.name == account_name_type(to)) {
+            check_memo( memo, acc );
+         }
+      }
+
     transfer_operation op;
     op.from = from;
     op.to = to;
