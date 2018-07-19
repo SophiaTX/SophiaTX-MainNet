@@ -134,7 +134,13 @@ public:
       string decoded_name = make_random_fixed_string(account_name);
       auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      std::vector<condenser_api::api_account_object>  accounts_ret(accounts.begin(), accounts.end());
+      std::vector<condenser_api::api_account_object>  accounts_ret;
+      accounts_ret.reserve(accounts.size());
+      std::transform( accounts.begin(), accounts.end(),
+                      std::back_inserter(accounts_ret),
+                      [](const auto& val)
+                      { return (condenser_api::api_account_object)val; } );
+
       return accounts_ret;
    }
 
@@ -852,6 +858,7 @@ authority alexandria_api::get_active_authority(string account_name) const {
          }
       }
       FC_ASSERT("Account name does not exist!");
+      return authority();
 
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
@@ -869,6 +876,7 @@ authority alexandria_api::get_owner_authority(string account_name) const {
          }
       }
       FC_ASSERT("Account name does not exist!");
+      return authority();
 
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
@@ -886,6 +894,7 @@ public_key_type alexandria_api::get_memo_key(string account_name) const {
          }
       }
       FC_ASSERT("Account name does not exist!");
+      return public_key_type();
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
@@ -902,6 +911,7 @@ int64_t alexandria_api::get_account_balance(string account_name) const {
          }
       }
       FC_ASSERT("Account name does not exist!");
+      return 0;
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
@@ -918,6 +928,7 @@ int64_t alexandria_api::get_vesting_balance(string account_name) const {
          }
       }
       FC_ASSERT("Account name does not exist!");
+      return 0;
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 

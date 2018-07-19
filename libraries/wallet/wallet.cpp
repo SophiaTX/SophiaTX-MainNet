@@ -325,7 +325,12 @@ public:
    {
       auto accounts = _remote_api->get_accounts( { account_name_or_seed, get_account_name_from_seed(account_name_or_seed) } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      std::vector<condenser_api::api_account_object>  accounts_ret(accounts.begin(), accounts.end());
+      std::vector<condenser_api::api_account_object>  accounts_ret;
+      accounts_ret.reserve(accounts.size());
+      std::transform( accounts.begin(), accounts.end(),
+                      std::back_inserter(accounts_ret),
+                      [](const auto& val)
+                      { return (condenser_api::api_account_object)val; } );
       return accounts_ret;
    }
 
@@ -1572,17 +1577,17 @@ annotated_signed_transaction wallet_api::transfer(string from, string to, asset 
 { try {
    FC_ASSERT( !is_locked() );
 
-      auto acc_from = get_account(from);
+   auto acc_from = get_account(from);
 
-      if(acc_from.size() == 1) {
-         check_memo( memo, acc_from.front() );
-      } else {
-         for(const auto& acc: acc_from) {
-            if(acc.name == account_name_type(to)) {
-               check_memo( memo, acc );
-            }
+   if(acc_from.size() == 1) {
+      check_memo( memo, acc_from.front() );
+   } else {
+      for(const auto& acc: acc_from) {
+         if(acc.name == account_name_type(to)) {
+            check_memo( memo, acc );
          }
       }
+   }
 
     transfer_operation op;
     op.from = from;
