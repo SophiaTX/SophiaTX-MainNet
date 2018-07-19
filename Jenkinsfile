@@ -43,14 +43,14 @@ pipeline {
         sh 'make install'
         dir('install') {
             dir('lib') {
-                if( ! build_as_debug ) {
+                if( !build_as_debug ) {
                   sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
                 }
                 sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
-              if( ! build_as_debug ) {
+              if( !build_as_debug ) {
                 sh 'strip -s *' //strip symbols
               }
               sh 'rm -f test*' //remove test binaries
