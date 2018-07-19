@@ -3,6 +3,8 @@
 #include <fc/uint128.hpp>
 #include <fc/io/raw_fwd.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/crypto/base64.hpp>
+
 #include <fc/crypto/ripemd160.hpp>
 
 #include <boost/endian/conversion.hpp>
@@ -77,7 +79,7 @@ class fixed_string_impl
       {
          Storage d;
 
-         char bytes[fc::ripemd160::data_size()];
+         /*char bytes[fc::ripemd160::data_size()];
          auto count = fc::from_base58(str, bytes, fc::ripemd160::data_size());
 
          if( count <= sizeof(d) )
@@ -86,17 +88,32 @@ class fixed_string_impl
             _size = sizeof(d);
          memcpy( (char*)&d, bytes, _size );
 
+         data = boost::endian::big_to_native( d );*/
+
+
+         std::string s = fc::base64_decode(str);
+         int count = s.size();
+         if( count <= sizeof(d) )
+            _size = count;
+         else
+            _size = sizeof(d);
+         memcpy( (char*)&d, s.c_str(), _size );
          data = boost::endian::big_to_native( d );
+
       }
 
       operator std::string()const
       {
          Storage d = boost::endian::native_to_big( data );
 
-         std::vector<char> _self ((const char*)&d, (const char*)&d +  _size);
+         /*std::vector<char> _self ((const char*)&d, (const char*)&d +  _size);
 
          std::string ret = fc::to_base58(_self);
-         return ret;
+         return ret;*/
+
+
+         std::string s = fc::base64_encode((char*)&d, _size);
+         return s;
       }
 
       uint32_t size()const

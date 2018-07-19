@@ -10,9 +10,11 @@ namespace sophiatx { namespace protocol {
    std::string make_random_fixed_string(std::string seed)
    {
       auto hash = fc::ripemd160::hash(seed);
-      std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
+      /*std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
       std::string ret = fc::to_base58(bytes);
-      return ret;
+      return ret;*/
+      std::string s = fc::base64_encode(hash.data(), hash.data_size());
+      return s;
    }
 
    void account_create_operation::validate() const
