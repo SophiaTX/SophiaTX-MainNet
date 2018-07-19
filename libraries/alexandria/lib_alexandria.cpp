@@ -129,12 +129,14 @@ public:
       return result;
    }
 
-   condenser_api::api_account_object get_account( string account_name ) const
+   vector<condenser_api::api_account_object> get_account( string account_name ) const
    {
       string decoded_name = make_random_fixed_string(account_name);
       auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      return accounts.front();
+      std::vector<condenser_api::api_account_object>  accounts_ret(std::make_move_iterator(accounts.begin()),
+                                                                   std::make_move_iterator(accounts.end()));
+      return accounts_ret;
    }
 
    operation set_voting_proxy(string account_to_modify, string proxy)
@@ -440,7 +442,7 @@ annotated_signed_transaction alexandria_api::get_transaction( transaction_id_typ
    return my->_remote_api->get_transaction( id );
 }
 
-condenser_api::api_account_object alexandria_api::get_account( string account_name ) const
+vector<condenser_api::api_account_object> alexandria_api::get_account( string account_name ) const
 {
    return my->get_account( account_name );
 }
@@ -829,11 +831,9 @@ bool alexandria_api::account_exist(string account_name) const {
       string decoded_name = make_random_fixed_string(account_name);
       auto accounts = my->_remote_api->get_accounts( { account_name, decoded_name } );
 
-      if( !accounts.empty())
-      {
+      if( !accounts.empty()) {
          return true;
-      }
-      else{
+      } else {
          return false;
       }
    } FC_CAPTURE_AND_RETHROW((account_name))
@@ -842,36 +842,88 @@ bool alexandria_api::account_exist(string account_name) const {
 
 authority alexandria_api::get_active_authority(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.active;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().active;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.active;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return authority();
+
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 authority alexandria_api::get_owner_authority(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.owner;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().owner;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.owner;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return authority();
+
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 public_key_type alexandria_api::get_memo_key(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.memo_key;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().memo_key;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.memo_key;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return public_key_type();
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 int64_t alexandria_api::get_account_balance(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.balance.amount.value;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().balance.amount.value;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.balance.amount.value;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return 0;
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 int64_t alexandria_api::get_vesting_balance(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.vesting_shares.amount.value;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().vesting_shares.amount.value;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.vesting_shares.amount.value;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return 0;
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
