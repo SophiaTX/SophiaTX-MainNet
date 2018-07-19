@@ -63,7 +63,12 @@ std::vector<fc::ip::endpoint> resolve_string_to_ip_endpoints( const std::string&
          FC_THROW("Bad port: ${port}", ("port", port_string) );
       }
    }
-   FC_CAPTURE_AND_RETHROW( (endpoint_string) )
+   catch(...)
+   {
+      std::vector< fc::ip::endpoint > endpoints;
+      return endpoints;
+   }
+   //FC_CAPTURE_AND_RETHROW( (endpoint_string) )
 }
 
 class p2p_plugin_impl : public graphene::net::node_delegate
