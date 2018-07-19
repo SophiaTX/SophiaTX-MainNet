@@ -22,10 +22,10 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          if( build_as_testnet ) {
+          if( ${params.build_as_testnet} ) {
             GENESIS_FILE = "genesis_testnet.json"
           }
-          if( build_as_debug ) {
+          if( ${params.build_as_debug} ) {
             BUILD_TYPE = "Debug"
           }
         }
@@ -44,7 +44,7 @@ pipeline {
         dir('install') {
             dir('lib') {
                 script {
-                    if( !build_as_debug ) {
+                    if( !${params.build_as_debug} ) {
                       sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
                     }
                 }
@@ -53,7 +53,7 @@ pipeline {
             }
           dir('bin') {
               script {
-                  if( !build_as_debug ) {
+                  if( !${params.build_as_debug} ) {
                     sh 'strip -s *' //strip symbols
                   }
               }
