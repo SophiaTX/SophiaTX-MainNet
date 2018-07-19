@@ -182,6 +182,7 @@ namespace sophiatx { namespace protocol {
          return fc::sha256();
    }
 
+
 } } // sophiatx::protocol
 
 namespace fc

@@ -1,8 +1,11 @@
 #pragma once
 
+#include <boost/algorithm/string.hpp>
 #include <fc/uint128.hpp>
 #include <fc/io/raw_fwd.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/crypto/base64.hpp>
+
 #include <fc/crypto/ripemd160.hpp>
 
 #include <boost/endian/conversion.hpp>
@@ -75,28 +78,46 @@ class fixed_string_impl
       fixed_string_impl( const char* str ) : fixed_string_impl( std::string( str ) ) {}
       fixed_string_impl( const std::string& str )
       {
+         //prepare the string to have length divisible by 4
+         std::string tmp_str = str;
+         while(tmp_str.size() % 4)
+            tmp_str +='A';
+
          Storage d;
 
-         char bytes[fc::ripemd160::data_size()];
-         auto count = fc::from_base58(str, bytes, fc::ripemd160::data_size());
-
+         std::string s = fc::base64_decode(tmp_str);
+         int count = s.size();
          if( count <= sizeof(d) )
             _size = count;
          else
             _size = sizeof(d);
-         memcpy( (char*)&d, bytes, _size );
-
+         memcpy( (char*)&d, s.c_str(), _size );
          data = boost::endian::big_to_native( d );
+
       }
 
       operator std::string()const
       {
          Storage d = boost::endian::native_to_big( data );
 
-         std::vector<char> _self ((const char*)&d, (const char*)&d +  _size);
+         unsigned char data[sizeof(Storage)+3];
+         memcpy(data, (char*)&d, _size);
+         //do the padding to avoid '=' at the end of the result string
+         std::string s;
+         if(_size % 3 == 1) {
+            data[ _size ] = data[ _size + 1 ] = 0;
+            s = fc::base64_encode((char*)&d, _size+2);
+         }else if(_size % 3 == 2) {
+            data[ _size ] = 0;
+            s = fc::base64_encode((char*)&d, _size+1);
+         }else
+            s = fc::base64_encode((char*)&d, _size);
 
-         std::string ret = fc::to_base58(_self);
-         return ret;
+         if(s.size())
+            while( s.at(s.size()-1) == 'A')
+               s.erase(s.size()-1);
+
+         return s;
       }
 
       uint32_t size()const
