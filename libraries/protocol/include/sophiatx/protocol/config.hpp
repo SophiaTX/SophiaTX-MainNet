@@ -27,7 +27,8 @@
 #define SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 1
 
 #define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
-#define SOPHIATX_INIT_SUPPLY                     (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+#define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+
 #define SOPHIATX_MIN_FEEDS                       1 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 /// Allows to limit number of total produced blocks.
