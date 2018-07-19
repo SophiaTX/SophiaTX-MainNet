@@ -11,5 +11,5 @@ if(BUILD_PIC AND (NOT ABAP_INTERFACE))
     if(JNI_FOUND)
         add_subdirectory( alexandriaJNI )
     endif(JNI_FOUND)
-endif(BUILD_PIC)
+endif(BUILD_PIC AND (NOT ABAP_INTERFACE))
 
