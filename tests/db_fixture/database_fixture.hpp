@@ -192,7 +192,7 @@ struct database_fixture {
    public_key_type committee_key;
    account_id_type committee_account;
    fc::ecc::private_key private_key = fc::ecc::private_key::generate();
-   fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
+   fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JusFLYUhNNsYV8PSTanqfADU5nhWAkTzogZwYjPrTYMw3nCAx3"));
    string debug_key = sophiatx::utilities::key_to_wif( init_account_priv_key );
    public_key_type init_account_pub_key = init_account_priv_key.get_public_key();
    uint32_t default_skip = 0 | database::skip_undo_history_check | database::skip_authority_check;
@@ -212,7 +212,7 @@ struct database_fixture {
    string generate_anon_acct_name();
    void open_database();
    void generate_block(uint32_t skip = 0,
-                               const fc::ecc::private_key& key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV")),
+                               const fc::ecc::private_key& key = *(sophiatx::utilities::wif_to_key("5JusFLYUhNNsYV8PSTanqfADU5nhWAkTzogZwYjPrTYMw3nCAx3")),
                                int miss_blocks = 0);
 
    /**

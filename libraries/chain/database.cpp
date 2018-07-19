@@ -792,7 +792,9 @@ signed_block database::_generate_block(
    const auto& witness_obj = get_witness( witness_owner );
 
    if( !(skip & skip_witness_signature) )
-      FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
+      FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key(),
+                 "The witness signing key ${ws} is different to the block generation key ${bs}",
+                 ("ws",witness_obj.signing_key)("bs", block_signing_private_key.get_public_key()) );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
    auto maximum_block_size = get_dynamic_global_properties().maximum_block_size; //SOPHIATX_MAX_BLOCK_SIZE;
