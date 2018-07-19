@@ -1,8 +1,12 @@
 #!groovy
 
 ////////////////////////////////////////
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug')])])
+
+
+properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')]),
+            parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug')])
+           ])
+
 
 pipeline {
   options {
