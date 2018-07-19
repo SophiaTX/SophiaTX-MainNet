@@ -2,6 +2,10 @@
 
 ////////////////////////////////////////
 
+properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
+
+////////////////////////////////////////
+
 pipeline {
   options {
     buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
