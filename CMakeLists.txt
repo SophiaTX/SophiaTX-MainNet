@@ -167,7 +167,7 @@ if(JNI_FOUND AND (NOT ABAP_INTERFACE))
     MESSAGE(STATUS "JNI found, building libalexandriaJNI")
 else(JNI_FOUND)
     MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
-endif(JNI_FOUND)
+endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
 
 
 if( WIN32 )

@@ -1,0 +1,48 @@
+{
+   "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
+   "initial_balace" : 300000000000000,
+   "initial_accounts" : [
+      {
+         "name":"ejossev",
+         "key": "SPH8D8De3AFYZyc3vDfZSQogqSUAc7pbzqgYUuw5x6JBXNDp5d4i5",
+         "balance": 100000000000
+      },
+      {
+         "name":"matej",
+         "key": "SPH8M7RdvhK7gBvwGq2BcGqWFgiscvKWZT6irGnN43cd1mzoAfXKc",
+         "balance": 100000000000
+      },
+      {
+         "name":"pato",
+         "key": "SPH6usa8PYnA2gdDKSLiWPqDjKN4JjtRPBCazv3u3ky6Fw15BdexZ",
+         "balance": 100000000000
+      },
+      {
+         "name":"peto",
+         "key": "SPH6Yx7Dn5xQyCUzK23JyhpLaWr3mwJv6dagB9c3A6LjPhXFdJHuq",
+         "balance": 100000000000
+      },
+      {
+         "name":"sajniv",
+         "key": "SPH7GvbxZTntaqCnNSsuai1Dguejh23RKJHmu2uuR869BLbM3yWPK",
+         "balance": 100000000000
+      },
+      {
+         "name":"honza",
+         "key": "SPH7qyB1qvNvB1bnGRvemRJZHSFX5XKtEBjPVSSeJYQshruQgWB2k",
+         "balance": 100000000000
+      },
+      {
+         "name":"matus",
+         "key": "SPH8CCSuKrntXmjZQvzarisey1yxG94Dspoa9VQVn1b2aFummfVig",
+         "balance": 100000000000
+      },
+      {
+         "name":"martyn",
+         "key": "SPH8DaynogzuT4jYkGqVB7pcxC5xU8Pj7qJ6RGnqLQCTiLGYA5ZSz",
+         "balance": 100000000000
+      }
+   ],
+   "genesis_time" : "2018-07-17T11:00:00",
+   "initial_chain_id" : ""
+}

@@ -1,6 +1,8 @@
 #!groovy
 
 ////////////////////////////////////////
+properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
+
 pipeline {
   options {
     buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
@@ -14,7 +16,13 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis.json'
+          if(${build_as_testnet})
+          {
+            sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis.json'
+          } else {
+            sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis_testnet.json'
+          }
+
         sh 'make -j4'
       }
     }
