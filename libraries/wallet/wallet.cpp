@@ -325,12 +325,8 @@ public:
    {
       auto accounts = _remote_api->get_accounts( { account_name_or_seed, get_account_name_from_seed(account_name_or_seed) } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      std::vector<condenser_api::api_account_object>  accounts_ret;
-      accounts_ret.reserve(accounts.size());
-      std::transform( accounts.begin(), accounts.end(),
-                      std::back_inserter(accounts_ret),
-                      [](const auto& val)
-                      { return (condenser_api::api_account_object)val; } );
+      std::vector<condenser_api::api_account_object>  accounts_ret(std::make_move_iterator(accounts.begin()),
+                                                                   std::make_move_iterator(accounts.end()));
       return accounts_ret;
    }
 
