@@ -44,7 +44,7 @@ pipeline {
         dir('install') {
             dir('lib') {
                 if( build_as_debug ) {
-
+                  echo 'test'
                 } else {
                   sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
                 }
@@ -52,8 +52,8 @@ pipeline {
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
-              if( !build_as_debug ) {
-
+              if( build_as_debug ) {
+                echo 'test'
               } else {
                 sh 'strip -s *' //strip symbols
               }
