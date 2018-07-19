@@ -1,7 +1,6 @@
 #!groovy
 
 ////////////////////////////////////////
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
 
 pipeline {
   options {
@@ -9,7 +8,6 @@ pipeline {
   }
   environment {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-    GENESIS_FILE = "genesis.json"
   }
   agent { 
     label get_label_name()
@@ -17,8 +15,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        get_genesis_file_name()
-        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE}'
+        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=genesis_testnet.json'
         sh 'make -j4'
       }
     }
@@ -92,12 +89,4 @@ def get_label_name() {
   } else {
     return 'linux'
   }
-}
-
-def get_genesis_file_name() {
-    script {
-      if( ${params.build_as_testnet} ) {
-        GENESIS_FILE = 'genesis_testnet.json'
-      }
-    }
 }
