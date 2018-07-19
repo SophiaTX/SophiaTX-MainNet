@@ -17,7 +17,7 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          if( ${params.build_as_testnet} ) {
+          if( build_as_testnet ) {
             GENESIS_FILE = 'genesis_testnet.json'
           } else {
             GENESIS_FILE = 'genesis.json'
