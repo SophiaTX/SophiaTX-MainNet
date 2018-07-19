@@ -44,9 +44,7 @@ pipeline {
         dir('install') {
             dir('lib') {
                 script {
-                    if( build_as_debug ) {
-                      echo 'test'
-                    } else {
+                    if( !build_as_debug ) {
                       sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
                     }
                 }
@@ -55,9 +53,7 @@ pipeline {
             }
           dir('bin') {
               script {
-                  if( build_as_debug ) {
-                    echo 'test'
-                  } else {
+                  if( !build_as_debug ) {
                     sh 'strip -s *' //strip symbols
                   }
               }
