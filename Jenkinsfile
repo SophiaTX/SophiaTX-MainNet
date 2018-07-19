@@ -9,6 +9,7 @@ pipeline {
   }
   environment {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    GENESIS_FILE = "genesis.json"
   }
   agent {
     label get_label_name()
@@ -18,12 +19,10 @@ pipeline {
       steps {
         script {
           if( build_as_testnet ) {
-            GENESIS_FILE = 'genesis_testnet.json'
-          } else {
-            GENESIS_FILE = 'genesis.json'
+            GENESIS_FILE = "genesis_testnet.json"
           }
         }
-        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=GENESIS_FILE'
+        sh 'cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE}'
         sh 'make -j4'
       }
     }
