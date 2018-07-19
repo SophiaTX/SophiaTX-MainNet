@@ -1,6 +1,6 @@
 {
    "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
-   "initial_balace" : 349200000000000,
+   "initial_balace" : 349000000000000,
    "initial_accounts" : [
       {
          "name":"ejossev",
@@ -35,6 +35,16 @@
       {
          "name":"matus",
          "key": "SPH8CCSuKrntXmjZQvzarisey1yxG94Dspoa9VQVn1b2aFummfVig",
+         "balance": 100000000000
+      },
+      {
+         "name":"mrajnic",
+         "key": "SPH5ue1zKq2qkpnGdfk57qa4GF7eGdWFq68cgYrarRAeXF89CagE3",
+         "balance": 100000000000
+      },
+      {
+         "name":"rpetricek",
+         "key": "SPH5ieVFuVbYGkhVjNaBM8k5Hr3ZZrb4gajAwjCCByTMUAko9EU27",
          "balance": 100000000000
       },
       {
