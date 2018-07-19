@@ -68,6 +68,15 @@ clean_database_fixture::clean_database_fixture()
    init_account_pub_key = init_account_priv_key.get_public_key();
 
    open_database();
+   db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
+   {
+        a.signing_key = init_account_pub_key;
+   });
+   db->modify( db->get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+   {
+        a.active.add_authority(init_account_pub_key, 1);
+        a.owner.add_authority(init_account_pub_key, 1);
+   });
 
    generate_block();
    db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
@@ -138,6 +147,15 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       args.shared_file_size = size;
       db->open( args, gen );
    }
+   db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
+   {
+        a.signing_key = init_account_pub_key;
+   });
+   db->modify( db->get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+   {
+        a.active.add_authority(init_account_pub_key, 1);
+        a.owner.add_authority(init_account_pub_key, 1);
+   });
 
    boost::program_options::variables_map options;
 
@@ -748,6 +766,15 @@ json_rpc_database_fixture::json_rpc_database_fixture()
 
    open_database();
 
+   db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
+   {
+        a.signing_key = init_account_pub_key;
+   });
+   db->modify( db->get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+   {
+        a.active.add_authority(init_account_pub_key, 1);
+        a.owner.add_authority(init_account_pub_key, 1);
+   });
    generate_block();
    db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
    generate_block();

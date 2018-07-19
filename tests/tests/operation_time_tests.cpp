@@ -156,6 +156,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
       ACTORS( (alice0)(alice1)(alice2)(alice3)(alice4)(alice5)(alice6) )
 
+
       BOOST_TEST_MESSAGE( "Setup" );
 
       generate_blocks( 30 / SOPHIATX_BLOCK_INTERVAL );
