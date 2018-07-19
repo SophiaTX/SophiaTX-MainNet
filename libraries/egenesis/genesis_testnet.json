@@ -54,5 +54,5 @@
       }
    ],
    "genesis_time" : "2018-07-17T11:00:00",
-   "initial_chain_id" : ""
+   "initial_chain_id" : "testnet"
 }
