@@ -43,10 +43,10 @@ namespace sophiatx { namespace protocol {
       asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);} ;
 
       void get_required_owner_authorities( flat_set<account_name_type>& a )const
-      { if( owner ) a.insert( account ); }
+      { if( owner || active ) a.insert( account ); }
 
       void get_required_active_authorities( flat_set<account_name_type>& a )const
-      { if( !owner ) a.insert( account ); }
+      { if( !owner && !active ) a.insert( account ); }
    };
 
 
@@ -485,30 +485,7 @@ asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
    };
 
 
-   /**
-    * This operation is used to report a miner who signs two blocks
-    * at the same time. To be valid, the violation must be reported within
-    * SOPHIATX_MAX_WITNESSES blocks of the head block (1 round) and the
-    * producer must be in the ACTIVE witness set.
-    *
-    * Users not in the ACTIVE witness set should not have to worry about their
-    * key getting compromised and being used to produced multiple blocks so
-    * the attacker can report it and steel their vesting sophiatx.
-    *
-    * The result of the operation is to transfer the full VESTING SOPHIATX balance
-    * of the block producer to the reporter.
-    */
-   struct report_over_production_operation : public base_operation
-   {
-      account_name_type    reporter;
-      signed_block_header  first_block;
-      signed_block_header  second_block;
 
-      account_name_type get_fee_payer()const { return reporter;};
-      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
-
-      void validate()const;
-   };
 
 
    /**
@@ -812,7 +789,6 @@ FC_REFLECT_DERIVED( sophiatx::protocol::reset_account_operation, (sophiatx::prot
 FC_REFLECT_DERIVED( sophiatx::protocol::set_reset_account_operation, (sophiatx::protocol::base_operation), (account)(current_reset_account)(reset_account) )
 
 
-FC_REFLECT_DERIVED( sophiatx::protocol::report_over_production_operation, (sophiatx::protocol::base_operation), (reporter)(first_block)(second_block) )
 FC_REFLECT_DERIVED( sophiatx::protocol::feed_publish_operation, (sophiatx::protocol::base_operation), (publisher)(exchange_rate) )
 
 FC_REFLECT( sophiatx::protocol::chain_properties,

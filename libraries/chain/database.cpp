@@ -460,7 +460,9 @@ const node_property_object& database::get_node_properties() const
 const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
       const auto& fh_idx = get_index<feed_history_index>().indices().get<by_symbol>();
-      return *fh_idx.find(a);
+      const auto fh_itr = fh_idx.find(a);
+      FC_ASSERT(fh_itr != fh_idx.end(), "Symbol history not found");
+      return *fh_itr;
 } FC_CAPTURE_AND_RETHROW() }
 
 const witness_schedule_object& database::get_witness_schedule_object()const
@@ -1419,7 +1421,6 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< custom_evaluator                         >();
    _my->_evaluator_registry.register_evaluator< custom_binary_evaluator                  >();
    _my->_evaluator_registry.register_evaluator< custom_json_evaluator                    >();
-   _my->_evaluator_registry.register_evaluator< report_over_production_evaluator         >();
    _my->_evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
    _my->_evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
    _my->_evaluator_registry.register_evaluator< recover_account_evaluator                >();
@@ -1645,20 +1646,31 @@ void database::init_genesis( genesis_state_type genesis )
 
       for( const auto &acc: genesis.initial_accounts) {
          total_initial_balance += acc.balance;
+         authority owner;
+         authority active;
+         active.add_authority(acc.key, 1);
+         active.weight_threshold = 1;
+         if(acc.key == public_key_type()){
+            owner.add_authority(SOPHIATX_INIT_MINER_NAME, 1);
+            owner.weight_threshold = 1;
+         }else{
+            owner = active;
+         }
          create< account_object >( [&]( account_object& a )
                                    {
                                         a.name = acc.name;
                                         a.memo_key = acc.key;
                                         a.balance  = asset( acc.balance, SOPHIATX_SYMBOL );
                                         a.holdings_considered_for_interests = a.balance.amount * 2;
+                                        a.recovery_account = SOPHIATX_INIT_MINER_NAME;
+                                        a.reset_account = SOPHIATX_INIT_MINER_NAME;
                                    } );
 
          create< account_authority_object >( [&]( account_authority_object& auth )
                                    {
                                         auth.account = acc.name;
-                                        auth.owner.add_authority( acc.key, 1 );
-                                        auth.owner.weight_threshold = 1;
-                                        auth.active  = auth.owner;
+                                        auth.owner = owner;
+                                        auth.active  = active;
                                    });
       }
 
@@ -1689,6 +1701,7 @@ void database::init_genesis( genesis_state_type genesis )
 
       for( int i = 0; i < 0x10000; i++ )
          create< block_summary_object >( [&]( block_summary_object& ) {});
+
       create< hardfork_property_object >( [&](hardfork_property_object& hpo )
       {
          hpo.processed_hardforks.push_back( genesis.genesis_time );

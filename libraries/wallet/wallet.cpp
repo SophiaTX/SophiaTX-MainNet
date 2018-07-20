@@ -566,6 +566,27 @@ public:
          for( const auto& a : auth.account_auths )
             req_active_approvals.insert(a.first);
 
+      /// TODO: recursively check one layer deeper in the authority tree for keys
+      vector<account_name_type> v_accs;
+      for(const auto& a: req_active_approvals)
+         v_accs.push_back(a);
+      auto req_active_objects = _remote_api->get_accounts(v_accs);
+      for(const auto& o: req_active_objects) {
+         for( const auto a: o.active.account_auths )
+            req_active_approvals.insert(a.first);
+         for( const auto a: o.owner.account_auths )
+            req_active_approvals.insert(a.first);
+      }
+
+      v_accs.clear();
+      for(const auto& a: req_owner_approvals)
+         v_accs.push_back(a);
+      auto req_owner_objects = _remote_api->get_accounts(v_accs);
+      for(const auto& o: req_owner_objects) {
+         for( const auto a: o.owner.account_auths )
+            req_owner_approvals.insert(a.first);
+      }
+
       // std::merge lets us de-duplica te account_id's that occur in both
       //   sets, and dump them into a vector (as required by remote_db api)
       //   at the same time
@@ -577,8 +598,8 @@ public:
       /// TODO: fetch the accounts specified via other_auths as well.
 
       auto approving_account_objects = _remote_api->get_accounts( v_approving_account_names );
+      elog("Approving accounts: ${a}", ("a", v_approving_account_names));
 
-      /// TODO: recursively check one layer deeper in the authority tree for keys
 
       FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
 
@@ -611,12 +632,18 @@ public:
             continue;
          const condenser_api::api_account_object& acct = it->second;
          vector<public_key_type> v_approving_keys = acct.active.get_keys();
-         wdump((v_approving_keys));
          for( const public_key_type& approving_key : v_approving_keys )
          {
-            wdump((approving_key));
+            edump((approving_key));
             approving_key_set.insert( approving_key );
          }
+         vector<public_key_type> v_approving_keys_o = acct.owner.get_keys();
+         for( const public_key_type& approving_key : v_approving_keys_o )
+         {
+            edump((approving_key));
+            approving_key_set.insert( approving_key );
+         }
+
       }
 
 
@@ -647,7 +674,7 @@ public:
       tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
       tx.signatures.clear();
 
-      //idump((_keys));
+      idump((_keys));
       flat_set< public_key_type > available_keys;
       flat_map< public_key_type, fc::ecc::private_key > available_private_keys;
       for( const public_key_type& key : approving_key_set )

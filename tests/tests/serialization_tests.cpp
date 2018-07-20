@@ -539,7 +539,7 @@ BOOST_AUTO_TEST_CASE( legacy_signed_transaction )
    tx.expiration = fc::time_point_sec( 1514764800 );
    tx.operations.push_back( op );
 
-   signed_transaction tx2 = signed_transaction( fc::json::from_string( "{\"ref_block_num\":4000,\"ref_block_prefix\":4000000000,\"expiration\":\"2018-01-01T00:00:00\",\"operations\":[[\"transfer\",{\"from\":\"3CTX5kVeSbUCDb8DS3gpx87qa6wB\",\"to\":\"4MNkc6AEAmUEJgLgZaKZEhi38yTF\",\"amount\":\"0.000050 SPHTX\"}]],\"extensions\":[],\"signatures\":[\"\"]}" ).as< legacy_signed_transaction >() );
+   signed_transaction tx2 = signed_transaction( fc::json::from_string( "{\"ref_block_num\":4000,\"ref_block_prefix\":4000000000,\"expiration\":\"2018-01-01T00:00:00\",\"operations\":[[\"transfer\",{\"from\":\"nbyckkPfkdV4OQtmdTh93QjB5CIA\",\"to\":\"8I1Pt6T2ovPJgEhTaMPP3Qv4uCoA\",\"amount\":\"0.000050 SPHTX\"}]],\"extensions\":[],\"signatures\":[\"\"]}" ).as< legacy_signed_transaction >() );
 
    BOOST_REQUIRE( tx.id() == tx2.id() );
 }

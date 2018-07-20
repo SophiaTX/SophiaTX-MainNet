@@ -2,6 +2,7 @@
 
 #include <fc/io/raw.hpp>
 #include <sophiatx/protocol/types_fwd.hpp>
+#include <sophiatx/protocol/config.hpp>
 
 #define VESTS_SYMBOL_U64  (uint64_t('V') | (uint64_t('E') << 8) | (uint64_t('S') << 16) | (uint64_t('T') << 24) | (uint64_t('S') << 32))
 #define SOPHIATX_SYMBOL_U64  (uint64_t('S') | (uint64_t('P') << 8) | (uint64_t('H') << 16) | (uint64_t('T') << 24) | (uint64_t('X') << 32))
@@ -29,34 +30,17 @@ namespace sophiatx { namespace protocol {
   public:
      uint64_t value = SOPHIATX_SYMBOL_SER;
   public:
-     asset_symbol_type() {}
+     asset_symbol_type() {};
      asset_symbol_type(uint64_t v): value(v) {}
      asset_symbol_type(const asset_symbol_type& as){value = as.value;}
 
-     static asset_symbol_type from_string( const std::string& str ){
-        FC_ASSERT((str.size() >= 3 && str.size() <= 6), "invalid symbol length");
-       const char* c_str = str.c_str();
-       uint64_t ret = 0;
-       int i = str.size();
-       while( i-- ){
-          ret = (ret << 8) | uint64_t(c_str[i]);
-       }
-       asset_symbol_type rv (ret) ;
-       return rv;
-     }
-
-     std::string to_string()const{
-       std::string ret;
-       uint64_t symbol = value;
-       while ( symbol ) {
-         ret.push_back(symbol & (uint64_t(255)));
-         symbol = symbol >> 8;
-       }
-       FC_ASSERT((ret.size() >= 3), "invalid symbol length");
-       return ret;
-     }
-
      uint8_t decimals()const{ return SOPHIATX_DECIMALS; };
+
+
+     static asset_symbol_type from_string( const std::string& str );
+
+     std::string to_string()const;
+
 
      friend bool operator == ( const asset_symbol_type& a, const asset_symbol_type& b )
      {  return (a.value == b.value);   }
@@ -107,93 +91,9 @@ class asset_symbol_type
 */
 } } // sophiatx::protocol
 
-FC_REFLECT(sophiatx::protocol::asset_symbol_type, (value))
-
-/*
-FC_REFLECT(sophiatx::protocol::asset_symbol_type, (asset_num))
-
-namespace fc { namespace raw {
-
-template< typename Stream >
-inline void pack( Stream& s, const sophiatx::protocol::asset_symbol_type& sym )
-{
-   switch( sym.space() )
-   {
-      case sophiatx::protocol::asset_symbol_type::legacy_space:
-      {
-         uint64_t ser = 0;
-         switch( sym.asset_num )
-         {
-            case SOPHIATX_ASSET_NUM_SOPHIATX:
-               ser = SOPHIATX_SYMBOL_SER;
-               break;
-            case SOPHIATX_ASSET_NUM_SBD:
-               ser = SBD_SYMBOL_SER;
-               break;
-            case SOPHIATX_ASSET_NUM_VESTS:
-               ser = VESTS_SYMBOL_SER;
-               break;
-            default:
-               FC_ASSERT( false, "Cannot serialize unknown asset symbol" );
-         }
-         pack( s, ser );
-         break;
-      }
-      case sophiatx::protocol::asset_symbol_type::smt_nai_space:
-         pack( s, sym.asset_num );
-         break;
-      default:
-         FC_ASSERT( false, "Cannot serialize unknown asset symbol" );
-   }
+namespace fc {
+void to_variant( const sophiatx::protocol::asset_symbol_type& var,  fc::variant& vo );
+void from_variant( const fc::variant& var,  sophiatx::protocol::asset_symbol_type& vo );
 }
 
-template< typename Stream >
-inline void unpack( Stream& s, sophiatx::protocol::asset_symbol_type& sym )
-{
-   uint64_t ser = 0;
-   s.read( (char*) &ser, 4 );
-
-   switch( ser )
-   {
-      case SOPHIATX_SYMBOL_SER & 0xFFFFFFFF:
-         s.read( ((char*) &ser)+4, 4 );
-         FC_ASSERT( ser == SOPHIATX_SYMBOL_SER, "invalid asset bits" );
-         sym.asset_num = SOPHIATX_ASSET_NUM_SOPHIATX;
-         break;
-      case SBD_SYMBOL_SER & 0xFFFFFFFF:
-         s.read( ((char*) &ser)+4, 4 );
-         FC_ASSERT( ser == SBD_SYMBOL_SER, "invalid asset bits" );
-         sym.asset_num = SOPHIATX_ASSET_NUM_SBD;
-         break;
-      case VESTS_SYMBOL_SER & 0xFFFFFFFF:
-         s.read( ((char*) &ser)+4, 4 );
-         FC_ASSERT( ser == VESTS_SYMBOL_SER, "invalid asset bits" );
-         sym.asset_num = SOPHIATX_ASSET_NUM_VESTS;
-         break;
-      default:
-         sym.asset_num = uint32_t( ser );
-   }
-   sym.validate();
-}
-
-} // fc::raw
-*/
-namespace fc{
-inline void to_variant( const sophiatx::protocol::asset_symbol_type& sym, fc::variant& var )
-{
-   try
-   {
-      var = sym.to_string();
-   } FC_CAPTURE_AND_RETHROW()
-}
-
-inline void from_variant( const fc::variant& var, sophiatx::protocol::asset_symbol_type& sym )
-{
-   try
-   {
-      sym = sophiatx::protocol::asset_symbol_type::from_string(var.as<std::string>());
-
-   } FC_CAPTURE_AND_RETHROW()
-}
-
-} // fc
+FC_REFLECT( sophiatx::protocol::asset_symbol_type, (value) )
