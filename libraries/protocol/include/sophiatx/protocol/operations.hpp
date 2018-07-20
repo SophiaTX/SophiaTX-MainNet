@@ -34,8 +34,6 @@ namespace sophiatx { namespace protocol {
             custom_json_operation,
             custom_binary_operation,
 
-            report_over_production_operation,
-
             request_account_recovery_operation,
             recover_account_operation,
             change_recovery_account_operation,

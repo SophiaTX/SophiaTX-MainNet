@@ -1,6 +1,6 @@
 {
    "initial_public_key" : "SPH7VNqGPfHXVu7try6KqdxG1feVt3SDwgkXZYdw44jkWdrUNDBhY",
-   "initial_balace" : 300000000000000,
+   "initial_balace" : 250000000000000,
    "initial_accounts" : [
       {
          "name":"ejossev",
@@ -11,8 +11,12 @@
          "name":"qryptos",
          "key": "SPH8D8De3AFYZyc3vDfZSQogqSUAc7pbzqgYUuw5x6JBXNDp5d4i5",
          "balance": 0
+      },
+      {
+         "name":"claimtest",
+         "balance": 50000000000000
       }
    ],
    "genesis_time" : "2018-07-17T11:00:00",
-   "initial_chain_id" : ""
+   "initial_chain_id" : "" 
 }
