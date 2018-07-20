@@ -35,7 +35,11 @@ pipeline {
     }
     stage('Tests') {
       steps {
-        sh './tests/chain_test'
+        script {
+          if( !params.build_as_testnet ) {
+            sh './tests/chain_test'
+          }
+        }
       }
     }
     stage('Archive') {
@@ -58,7 +62,7 @@ pipeline {
                   }
               }
               sh 'rm -f test*' //remove test binaries
-              sh 'tar -czf ${ARCHIVE_NAME} *' //create tar file
+              sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd' //create tar file
               archiveArtifacts '*.gz'
           }
         }
