@@ -211,6 +211,7 @@ set( fc_sources
      src/crypto/base36.cpp
      src/crypto/base58.cpp
      src/crypto/base64.cpp
+     src/crypto/base64m.cpp
      src/crypto/bigint.cpp
      src/crypto/hex.cpp
      src/crypto/sha1.cpp
