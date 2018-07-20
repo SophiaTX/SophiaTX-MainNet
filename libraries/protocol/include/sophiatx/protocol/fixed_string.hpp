@@ -3,8 +3,7 @@
 #include <boost/algorithm/string.hpp>
 #include <fc/uint128.hpp>
 #include <fc/io/raw_fwd.hpp>
-#include <fc/crypto/base58.hpp>
-#include <fc/crypto/base64.hpp>
+#include <fc/crypto/base64m.hpp>
 
 #include <fc/crypto/ripemd160.hpp>
 
@@ -85,7 +84,7 @@ class fixed_string_impl
 
          Storage d;
 
-         std::string s = fc::base64_decode(tmp_str);
+         std::string s = fc::base64m_decode(tmp_str);
          int count = s.size();
          if( count <= sizeof(d) )
             _size = count;
@@ -106,12 +105,12 @@ class fixed_string_impl
          std::string s;
          if(_size % 3 == 1) {
             data[ _size ] = data[ _size + 1 ] = 0;
-            s = fc::base64_encode((char*)&d, _size+2);
+            s = fc::base64m_encode((char*)&d, _size+2);
          }else if(_size % 3 == 2) {
             data[ _size ] = 0;
-            s = fc::base64_encode((char*)&d, _size+1);
+            s = fc::base64m_encode((char*)&d, _size+1);
          }else
-            s = fc::base64_encode((char*)&d, _size);
+            s = fc::base64m_encode((char*)&d, _size);
 
          if(s.size())
             while( s.at(s.size()-1) == 'A')

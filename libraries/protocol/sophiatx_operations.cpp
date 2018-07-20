@@ -2,7 +2,7 @@
 
 #include <fc/macros.hpp>
 #include <fc/io/json.hpp>
-
+#include <fc/crypto/base64m.hpp>
 #include <locale>
 
 namespace sophiatx { namespace protocol {
@@ -14,7 +14,7 @@ namespace sophiatx { namespace protocol {
       memcpy(data, hash.data(), 20);
       data[20] = 0; //do the padding to avoid '=' at the end of the result string
 
-      std::string s = fc::base64_encode(data, 21);
+      std::string s = fc::base64m_encode(data, 21);
       return s;
    }
 

@@ -316,7 +316,7 @@ class wallet_api
        * The current account creation fee can be found with the 'info' wallet command.
        *
        * @param creator The account creating the new account
-       * @param newname The name of the new account
+       * @param seed The seed used to generate the name of the new account
        * @param json_meta JSON Metadata associated with the new account
        * @param owner public owner key of the new account
        * @param active public active key of the new account
@@ -324,7 +324,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction create_account_with_keys( string creator,
-                                            string newname,
+                                            string seed,
                                             string json_meta,
                                             public_key_type owner,
                                             public_key_type active,
