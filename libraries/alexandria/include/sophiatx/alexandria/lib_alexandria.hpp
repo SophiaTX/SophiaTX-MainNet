@@ -256,22 +256,22 @@ class alexandria_api
                                           bool approve = true);
 
       /**
-       * Transfer funds from one account to another. sophiatx can be transferred.
+       * Transfer funds from one account to another. SPHTX can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
-       * @param amount The funds being transferred. i.e. "100.000 sophiatx"
+       * @param amount The funds being transferred. i.e. "100.000 SPHTX"
        * @param memo A memo for the transaction, encrypted with the to account's public memo key       */
       operation transfer(string from, string to, asset amount, string memo);
 
       /**
-       * Transfer sophiatx into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
+       * Transfer SPHTX into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
        * for a minimum of one coin year and can be withdrawn once a week over a two year withdraw period.
-       * VESTS are protected against dilution up until 90% of sophiatx is vesting.
+       * VESTS are protected against dilution up until 90% of SPHTX is vesting.
        *
-       * @param from The account the sophiatx is coming from
+       * @param from The account the SPHTX is coming from
        * @param to The account getting the VESTS
-       * @param amount The amount of sophiatx to vest i.e. "100.00 sophiatx"
+       * @param amount The amount of SPHTX to vest i.e. "100.00 SPHTX"
        */
       operation transfer_to_vesting(string from, string to, asset amount);
 
@@ -280,7 +280,7 @@ class alexandria_api
         *
         * @param from The account the VESTS are withdrawn from
         * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
-        *    withdrawn and deposited back as sophiatx. i.e. "10.000000 VESTS"
+        *    withdrawn and deposited back as SPHTX. i.e. "10.000000 VESTS"
         */
       operation withdraw_vesting( string from, asset vesting_shares);
 

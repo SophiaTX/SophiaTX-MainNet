@@ -1,13 +1,13 @@
 #ifdef IS_TEST_NET
-#include <sophiatx/chain/generic_custom_operation_interpreter.hpp>
-#include <sophiatx/chain/account_object.hpp>
-
-#include <boost/test/unit_test.hpp>
-
-#include "../db_fixture/database_fixture.hpp"
-
-using namespace sophiatx::chain;
-using namespace sophiatx::chain::test;
+//#include <sophiatx/chain/generic_custom_operation_interpreter.hpp>
+//#include <sophiatx/chain/account_object.hpp>
+//
+//#include <boost/test/unit_test.hpp>
+//
+//#include "../db_fixture/database_fixture.hpp"
+//
+//using namespace sophiatx::chain;
+//using namespace sophiatx::chain::test;
 /*
 namespace sophiatx { namespace plugin_tests {
 
@@ -87,7 +87,7 @@ FC_REFLECT_TYPENAME( sophiatx::plugin_tests::test_op );
 SOPHIATX_DEFINE_OPERATION_TYPE( sophiatx::plugin_tests::test_op );
 */
 
-BOOST_FIXTURE_TEST_SUITE( plugin_ops, clean_database_fixture );
+//BOOST_FIXTURE_TEST_SUITE( plugin_ops, clean_database_fixture );
 /*
 BOOST_AUTO_TEST_CASE( custom_json )
 {
@@ -107,5 +107,5 @@ BOOST_AUTO_TEST_CASE( custom_binary )
    FC_LOG_AND_RETHROW()
 }
 */
-BOOST_AUTO_TEST_SUITE_END()
+//BOOST_AUTO_TEST_SUITE_END()
 #endif
