@@ -128,12 +128,11 @@ class fixed_string_impl
 
       uint32_t length()const { return size(); }
 
-      fixed_string_impl& operator = ( const fixed_string_impl& str )
+      /*fixed_string_impl& operator = ( const fixed_string_impl& str )
       {
-         data = str.data;
-         _size = str._size;
+         *this = fixed_string_impl( str );
          return *this;
-      }
+      }*/
 
       fixed_string_impl& operator = ( const char* str )
       {

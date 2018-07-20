@@ -225,15 +225,6 @@ namespace sophiatx { namespace protocol {
       exchange_rate.validate();
    }
 
-   void report_over_production_operation::validate()const
-   {
-      validate_account_name( reporter );
-      validate_account_name( first_block.witness );
-      FC_ASSERT( first_block.witness   == second_block.witness );
-      FC_ASSERT( first_block.timestamp == second_block.timestamp );
-      FC_ASSERT( first_block.signee()  == second_block.signee() );
-      FC_ASSERT( first_block.id() != second_block.id() );
-   }
 
    void escrow_transfer_operation::validate()const
    {

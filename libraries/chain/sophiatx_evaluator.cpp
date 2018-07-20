@@ -802,12 +802,6 @@ void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
    });
 }
 
-void report_over_production_evaluator::do_apply( const report_over_production_operation& o )
-{
-   FC_ASSERT( false, "report_over_production_operation is disabled." );
-}
-
-
 void request_account_recovery_evaluator::do_apply( const request_account_recovery_operation& o )
 {
    const auto& account_to_recover = _db.get_account( o.account_to_recover );
@@ -830,7 +824,6 @@ void request_account_recovery_evaluator::do_apply( const request_account_recover
       {
          _db.get_account( a.first );
       }
-
 
       _db.create< account_recovery_request_object >( [&]( account_recovery_request_object& req )
       {
@@ -906,18 +899,18 @@ void change_recovery_account_evaluator::do_apply( const change_recovery_account_
    if( request == change_recovery_idx.end() ) // New request
    {
       _db.create< change_recovery_account_request_object >( [&]( change_recovery_account_request_object& req )
-      {
-         req.account_to_recover = o.account_to_recover;
-         req.recovery_account = o.new_recovery_account;
-         req.effective_on = _db.head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
-      });
+                                                            {
+                                                                 req.account_to_recover = o.account_to_recover;
+                                                                 req.recovery_account = o.new_recovery_account;
+                                                                 req.effective_on = _db.head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
+                                                            });
    }
    else if( account_to_recover.recovery_account != o.new_recovery_account ) // Change existing request
    {
       _db.modify( *request, [&]( change_recovery_account_request_object& req )
       {
-         req.recovery_account = o.new_recovery_account;
-         req.effective_on = _db.head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
+           req.recovery_account = o.new_recovery_account;
+           req.effective_on = _db.head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
       });
    }
    else // Request exists and changing back to current recovery account
@@ -928,22 +921,19 @@ void change_recovery_account_evaluator::do_apply( const change_recovery_account_
 
 void reset_account_evaluator::do_apply( const reset_account_operation& op )
 {
-   FC_ASSERT( false, "Reset Account Operation is currently disabled." );
-/*
+   //FC_ASSERT( false, "Reset Account Operation is currently disabled." ); Temporarily enabled.
+
    const auto& acnt = _db.get_account( op.account_to_reset );
-   auto band = _db.find< account_bandwidth_object, by_account_bandwidth_type >( boost::make_tuple( op.account_to_reset, bandwidth_type::old_forum ) );
-   if( band != nullptr )
-      FC_ASSERT( ( _db.head_block_time() - band->last_bandwidth_update ) > fc::days(60), "Account must be inactive for 60 days to be eligible for reset" );
    FC_ASSERT( acnt.reset_account == op.reset_account, "Reset account does not match reset account on account." );
 
    _db.update_owner_authority( acnt, op.new_owner_authority );
-*/
+
 }
 
 void set_reset_account_evaluator::do_apply( const set_reset_account_operation& op )
 {
-   FC_ASSERT( false, "Set Reset Account Operation is currently disabled." );
-/*
+   //FC_ASSERT( false, "Set Reset Account Operation is currently disabled." );
+
    const auto& acnt = _db.get_account( op.account );
    _db.get_account( op.reset_account );
 
@@ -954,7 +944,7 @@ void set_reset_account_evaluator::do_apply( const set_reset_account_operation& o
    {
        a.reset_account = op.reset_account;
    });
-*/
+
 }
 
 void application_create_evaluator::do_apply( const application_create_operation& o )

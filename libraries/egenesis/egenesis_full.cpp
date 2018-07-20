@@ -40,11 +40,11 @@ namespace sophiatx { namespace egenesis {
 
 using namespace sophiatx::chain;
 
-static const char genesis_json_array[13][40+1] =
+static const char genesis_json_array[15][40+1] =
 {
 "{\n   \"initial_public_key\" : \"SPH7VNqGPfH",
 "XVu7try6KqdxG1feVt3SDwgkXZYdw44jkWdrUNDB",
-"hY\",\n   \"initial_balace\" : 3000000000000",
+"hY\",\n   \"initial_balace\" : 2500000000000",
 "00,\n   \"initial_accounts\" : [\n      {\n  ",
 "       \"name\":\"ejossev\",\n         \"key\":",
 " \"SPH8D8De3AFYZyc3vDfZSQogqSUAc7pbzqgYUu",
@@ -52,31 +52,33 @@ static const char genesis_json_array[13][40+1] =
 "000000000000\n      },\n      {\n         \"",
 "name\":\"qryptos\",\n         \"key\": \"SPH8D8",
 "De3AFYZyc3vDfZSQogqSUAc7pbzqgYUuw5x6JBXN",
-"Dp5d4i5\",\n         \"balance\": 0\n      }\n",
-"   ],\n   \"genesis_time\" : \"2018-07-17T11",
-":00:00\",\n   \"initial_chain_id\" : \"\"\n}\n"
+"Dp5d4i5\",\n         \"balance\": 0\n      },",
+"\n      {\n         \"name\":\"claimtest\",\n  ",
+"       \"balance\": 50000000000000\n      }",
+"\n   ],\n   \"genesis_time\" : \"2018-07-17T1",
+"1:00:00\",\n   \"initial_chain_id\" : \"\" \n}\n"
 };
 
 chain_id_type get_egenesis_chain_id()
 {
-   return chain_id_type( "250c06a66746d099bd0abcf7968c21b24c7f8cf3683ff53b52b4a6b1500d1d04" );
+   return chain_id_type( "85b7571ccbbfa5c7ac95726ed826574de279c39e75fac74bf13c1c8a1e4f992c" );
 }
 
 void compute_egenesis_json( std::string& result )
 {
-   result.reserve( 518 );
+   result.reserve( 600 );
    result.resize(0);
-   for( size_t i=0; i<13-1; i++ )
+   for( size_t i=0; i<15-1; i++ )
    {
       result.append( genesis_json_array[i], 40 );
    }
-   result.append( std::string( genesis_json_array[ 13-1 ] ) );
+   result.append( std::string( genesis_json_array[ 15-1 ] ) );
    return;
 }
 
 fc::sha256 get_egenesis_json_hash()
 {
-   return fc::sha256( "250c06a66746d099bd0abcf7968c21b24c7f8cf3683ff53b52b4a6b1500d1d04" );
+   return fc::sha256( "85b7571ccbbfa5c7ac95726ed826574de279c39e75fac74bf13c1c8a1e4f992c" );
 }
 
 } }
