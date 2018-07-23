@@ -13,7 +13,6 @@
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
-#define SOPHIATX_ADDRESS_PREFIX                  "TST"
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60) /// 1 hr
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*3) /// 3 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24) /// 1 day
