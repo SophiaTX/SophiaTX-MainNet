@@ -13,11 +13,9 @@
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
-#define SOPHIATX_ADDRESS_PREFIX                  "TST"
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60) /// 1 hr
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*3) /// 3 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24) /// 1 day
-
 
 #define SOPHIATX_MIN_ACCOUNT_CREATION_FEE          0
 
@@ -38,10 +36,7 @@
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-//#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu"
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
-
-#define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*30) /// 30 days
@@ -58,6 +53,8 @@
 #define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #endif
+
+#define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
 //#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1532512800))
 #define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1531512800))
