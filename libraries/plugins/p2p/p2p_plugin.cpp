@@ -63,7 +63,12 @@ std::vector<fc::ip::endpoint> resolve_string_to_ip_endpoints( const std::string&
          FC_THROW("Bad port: ${port}", ("port", port_string) );
       }
    }
-   FC_CAPTURE_AND_RETHROW( (endpoint_string) )
+   catch(...)
+   {
+      std::vector< fc::ip::endpoint > endpoints;
+      return endpoints;
+   }
+   //FC_CAPTURE_AND_RETHROW( (endpoint_string) )
 }
 
 class p2p_plugin_impl : public graphene::net::node_delegate
@@ -502,9 +507,10 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
    if( options.count( "p2p-max-connections" ) )
       my->max_connections = options.at( "p2p-max-connections" ).as< uint32_t >();
 
+   vector< string > seeds;
    if( options.count( "seed-node" ) || options.count( "p2p-seed-node" ) )
    {
-      vector< string > seeds;
+
       if( options.count( "seed-node" ) )
       {
          wlog( "Option seed-node is deprecated in favor of p2p-seed-node" );
@@ -518,18 +524,26 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
          seeds.insert( seeds.end(), s.begin(), s.end() );
       }
 
-      for( const string& endpoint_string : seeds )
+   }else{
+      for(int i=1; i<=6; i++){
+         string seednode = string("seednode")+std::to_string(i)+string(".sophiatx.com:60000");
+         seeds.push_back(seednode);
+      }
+   }
+
+   wlog("Starting with following list of seed nodes");
+   for( const string& endpoint_string : seeds )
+   {
+      wlog("   ${s}",("s",endpoint_string));
+      try
       {
-         try
-         {
-            std::vector<fc::ip::endpoint> endpoints = detail::resolve_string_to_ip_endpoints(endpoint_string);
-            my->seeds.insert( my->seeds.end(), endpoints.begin(), endpoints.end() );
-         }
-         catch( const fc::exception& e )
-         {
-            wlog( "caught exception ${e} while adding seed node ${endpoint}",
+         std::vector<fc::ip::endpoint> endpoints = detail::resolve_string_to_ip_endpoints(endpoint_string);
+         my->seeds.insert( my->seeds.end(), endpoints.begin(), endpoints.end() );
+      }
+      catch( const fc::exception& e )
+      {
+         wlog( "caught exception ${e} while adding seed node ${endpoint}",
                ("e", e.to_detail_string())("endpoint", endpoint_string) );
-         }
       }
    }
 

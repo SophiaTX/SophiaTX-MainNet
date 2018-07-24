@@ -2,7 +2,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/comment_object.hpp>
 #include <sophiatx/protocol/sophiatx_operations.hpp>
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 

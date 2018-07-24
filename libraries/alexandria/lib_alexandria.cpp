@@ -129,12 +129,14 @@ public:
       return result;
    }
 
-   condenser_api::api_account_object get_account( string account_name ) const
+   vector<condenser_api::api_account_object> get_account( string account_name ) const
    {
       string decoded_name = make_random_fixed_string(account_name);
       auto accounts = _remote_api->get_accounts( { account_name, decoded_name } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      return accounts.front();
+      std::vector<condenser_api::api_account_object>  accounts_ret(std::make_move_iterator(accounts.begin()),
+                                                                   std::make_move_iterator(accounts.end()));
+      return accounts_ret;
    }
 
    operation set_voting_proxy(string account_to_modify, string proxy)
@@ -440,7 +442,7 @@ annotated_signed_transaction alexandria_api::get_transaction( transaction_id_typ
    return my->_remote_api->get_transaction( id );
 }
 
-condenser_api::api_account_object alexandria_api::get_account( string account_name ) const
+vector<condenser_api::api_account_object> alexandria_api::get_account( string account_name ) const
 {
    return my->get_account( account_name );
 }
@@ -557,11 +559,41 @@ operation alexandria_api::make_custom_binary_operation(uint32_t app_id, string f
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data))
 }
 
+#ifdef ABAP_INTERFACE
+vector< condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+   try{
+      typedef std::map< uint64_t, condenser_api::api_received_object > ObjectMap;
+      std::vector<condenser_api::api_received_object> ret;
+      ObjectMap from_api = my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      std::transform( from_api.begin(), from_api.end(),
+                   std::back_inserter(ret),
+                   boost::bind(&ObjectMap::value_type::second,_1) );
+      return ret;
+    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
+}
+
+vector< condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+   typedef std::map< uint32_t, condenser_api::api_operation_object > ObjectMap;
+   ObjectMap from_api = my->_remote_api->get_account_history( account, from, limit );
+   std::vector < condenser_api::api_operation_object > ret;
+   std::transform( from_api.begin(), from_api.end(),
+                   std::back_inserter(ret),
+                   boost::bind(&ObjectMap::value_type::second,_1) );
+   return ret;
+}
+#else
 map< uint64_t, condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
       return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
+
+map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+   auto result = my->_remote_api->get_account_history( account, from, limit );
+   return result;
+}
+#endif
+
 
 annotated_signed_transaction alexandria_api::broadcast_transaction(signed_transaction tx) const
 {
@@ -669,6 +701,22 @@ signed_transaction alexandria_api::add_signature(signed_transaction tx, fc::ecc:
    }FC_CAPTURE_AND_RETHROW((tx)(signature))
 }
 
+operation alexandria_api::add_fee(operation op, asset fee)const {
+   class op_visitor{
+   public:
+      op_visitor(asset _fee):fee(_fee){};
+      asset fee;
+      typedef void result_type;
+      result_type operator()( base_operation& bop){
+         bop.fee = fee;
+      };
+   };
+   op_visitor op_v(fee);
+   operation ret = op;
+   ret.visit(op_v);
+   return ret;
+}
+
 fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, string pk) const {
    try{
       auto priv_key = *sophiatx::utilities::wif_to_key(pk);
@@ -678,14 +726,14 @@ fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, strin
 
 annotated_signed_transaction alexandria_api::send_and_sign_operation(operation op, string pk) {
    try{
-      auto tx = create_simple_transaction(op);
-      broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
+       signed_transaction tx = create_simple_transaction(op);
+       return broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
    }FC_CAPTURE_AND_RETHROW((op)(pk))
 }
 
 annotated_signed_transaction alexandria_api::send_and_sign_transaction(signed_transaction tx, string pk){
    try{
-      broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
+      return broadcast_transaction(add_signature(tx, sign_digest(get_transaction_digest(tx), pk)));
    }FC_CAPTURE_AND_RETHROW((tx)(pk))
 }
 
@@ -783,11 +831,9 @@ bool alexandria_api::account_exist(string account_name) const {
       string decoded_name = make_random_fixed_string(account_name);
       auto accounts = my->_remote_api->get_accounts( { account_name, decoded_name } );
 
-      if( !accounts.empty())
-      {
+      if( !accounts.empty()) {
          return true;
-      }
-      else{
+      } else {
          return false;
       }
    } FC_CAPTURE_AND_RETHROW((account_name))
@@ -796,36 +842,88 @@ bool alexandria_api::account_exist(string account_name) const {
 
 authority alexandria_api::get_active_authority(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.active;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().active;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.active;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return authority();
+
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 authority alexandria_api::get_owner_authority(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.owner;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().owner;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.owner;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return authority();
+
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 public_key_type alexandria_api::get_memo_key(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.memo_key;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().memo_key;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.memo_key;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return public_key_type();
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 int64_t alexandria_api::get_account_balance(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.balance.amount.value;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().balance.amount.value;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.balance.amount.value;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return 0;
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
 int64_t alexandria_api::get_vesting_balance(string account_name) const {
    try {
-      auto account =  get_account(account_name);
-      return account.vesting_shares.amount.value;
+      auto accounts =  get_account(account_name);
+      if(accounts.size() == 1) {
+         return accounts.front().vesting_shares.amount.value;
+      }
+
+      for(const auto& acc: accounts) {
+         if(acc.name == account_name_type(account_name)) {
+            return acc.vesting_shares.amount.value;
+         }
+      }
+      FC_ASSERT("Account name does not exist!");
+      return 0;
    } FC_CAPTURE_AND_RETHROW((account_name))
 }
 
@@ -838,14 +936,7 @@ authority alexandria_api::create_simple_managed_authority(string managing_accoun
    return authority(1, decoded_name, 1);
 }
 
-map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
-   auto result = my->_remote_api->get_account_history( account, from, limit );
-   for( auto& item : result ) {
-      if( item.second.op.which() == condenser_api::legacy_operation::tag<condenser_api::legacy_transfer_operation>::value )
-         auto& top = item.second.op.get<condenser_api::legacy_transfer_operation>();
-   }
-   return result;
-}
+
 
 authority
 alexandria_api::create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const {
@@ -872,6 +963,115 @@ authority alexandria_api::create_simple_multisig_managed_authority(vector<string
 
 string alexandria_api::get_account_name_from_seed(string seed) const{
    return make_random_fixed_string(seed);
+}
+
+asset alexandria_api::calculate_fee(operation op, asset_symbol_type symbol)const{
+   auto props = my->_remote_api->get_chain_properties();
+
+   if(op.which() == operation::tag<account_create_operation>::value){
+      return props.account_creation_fee;
+   }
+
+   class op_visitor{
+   public:
+      op_visitor(asset_symbol_type _symbol):symbol(_symbol){};
+      asset_symbol_type symbol;
+      typedef asset result_type;
+      result_type operator()(const base_operation& bop){
+         if(bop.has_special_fee())
+            return asset(0, SOPHIATX_SYMBOL);
+         asset req_fee = bop.get_required_fee(symbol);
+         FC_ASSERT(symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
+         return req_fee;
+      };
+   };
+   op_visitor op_v(symbol);
+
+   asset fee = op.visit(op_v);
+   //check if the symbol has current price feed
+   FC_ASSERT(fee.symbol == SOPHIATX_SYMBOL || fiat_to_sphtx(fee).symbol == SOPHIATX_SYMBOL, "no current feed for this symbol");
+
+   return fee;
+}
+
+asset alexandria_api::fiat_to_sphtx(asset fiat)const{
+   auto price = my->_remote_api->get_feed_history(fiat.symbol).current_median_price;
+   if(price.base.amount == 0 || price.quote.amount == 0)
+      return fiat;
+   if(price.base.symbol!= fiat.symbol && price.quote.symbol!=fiat.symbol)
+      return fiat;
+   return fiat * price;
+}
+
+set<public_key_type> alexandria_api::get_required_signatures(signed_transaction tx) const {
+   try {
+      flat_set< account_name_type >   req_active_approvals;
+      flat_set< account_name_type >   req_owner_approvals;
+      vector< authority >  other_auths;
+
+      tx.get_required_authorities( req_active_approvals, req_owner_approvals, other_auths );
+
+      vector< account_name_type > v_approving_account_names;
+      std::merge(req_active_approvals.begin(), req_active_approvals.end(),
+                 req_owner_approvals.begin() , req_owner_approvals.end(),
+                 std::back_inserter( v_approving_account_names ) );
+
+      auto approving_account_objects = my->_remote_api->get_accounts( v_approving_account_names );
+      
+      FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
+
+      flat_map< string, condenser_api::api_account_object > approving_account_lut;
+      size_t i = 0;
+      for( const optional< condenser_api::api_account_object >& approving_acct : approving_account_objects )
+      {
+         if( !approving_acct.valid() )
+         {
+            wlog( "operation_get_required_auths said approval of non-existing account ${name} was needed",
+                  ("name", v_approving_account_names[i]) );
+            i++;
+            continue;
+         }
+         approving_account_lut[ approving_acct->name ] =  *approving_acct;
+         i++;
+      }
+
+      set<public_key_type> approving_key_set;
+      for( account_name_type& acct_name : req_active_approvals )
+      {
+         const auto it = approving_account_lut.find( acct_name );
+         if( it == approving_account_lut.end() )
+            continue;
+         const condenser_api::api_account_object& acct = it->second;
+         vector<public_key_type> v_approving_keys = acct.active.get_keys();
+         for( const public_key_type& approving_key : v_approving_keys )
+         {
+            approving_key_set.insert( approving_key );
+         }
+      }
+
+      for( const account_name_type& acct_name : req_owner_approvals )
+      {
+         const auto it = approving_account_lut.find( acct_name );
+         if( it == approving_account_lut.end() )
+            continue;
+         const condenser_api::api_account_object& acct = it->second;
+         vector<public_key_type> v_approving_keys = acct.owner.get_keys();
+         for( const public_key_type& approving_key : v_approving_keys )
+         {
+            approving_key_set.insert( approving_key );
+         }
+      }
+
+      for( const authority& a : other_auths )
+      {
+         for( const auto& k : a.key_auths )
+         {
+            approving_key_set.insert( k.first );
+         }
+      }
+
+      return approving_key_set;
+   } FC_CAPTURE_AND_RETHROW((tx))
 }
 
 } } // sophiatx::alexandria

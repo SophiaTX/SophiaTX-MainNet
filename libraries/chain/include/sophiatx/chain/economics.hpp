@@ -31,6 +31,7 @@ public:
    share_type interest_pool_from_coinbase;
    share_type interest_pool_from_fees;
    share_type promotion_pool;
+   share_type burn_pool=0;
    share_type initial_promotion_pool;
    share_type init_supply;
    share_type total_supply;

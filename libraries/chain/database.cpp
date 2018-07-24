@@ -459,9 +459,10 @@ const node_property_object& database::get_node_properties() const
 
 const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
-   return get< feed_history_object >();
       const auto& fh_idx = get_index<feed_history_index>().indices().get<by_symbol>();
-      return *fh_idx.find(a);
+      const auto fh_itr = fh_idx.find(a);
+      FC_ASSERT(fh_itr != fh_idx.end(), "Symbol history not found");
+      return *fh_itr;
 } FC_CAPTURE_AND_RETHROW() }
 
 const witness_schedule_object& database::get_witness_schedule_object()const
@@ -793,7 +794,9 @@ signed_block database::_generate_block(
    const auto& witness_obj = get_witness( witness_owner );
 
    if( !(skip & skip_witness_signature) )
-      FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key() );
+      FC_ASSERT( witness_obj.signing_key == block_signing_private_key.get_public_key(),
+                 "The witness signing key ${ws} is different to the block generation key ${bs}",
+                 ("ws",witness_obj.signing_key)("bs", block_signing_private_key.get_public_key()) );
 
    static const size_t max_block_header_size = fc::raw::pack_size( signed_block_header() ) + 4;
    auto maximum_block_size = get_dynamic_global_properties().maximum_block_size; //SOPHIATX_MAX_BLOCK_SIZE;
@@ -1418,7 +1421,6 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< custom_evaluator                         >();
    _my->_evaluator_registry.register_evaluator< custom_binary_evaluator                  >();
    _my->_evaluator_registry.register_evaluator< custom_json_evaluator                    >();
-   _my->_evaluator_registry.register_evaluator< report_over_production_evaluator         >();
    _my->_evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
    _my->_evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
    _my->_evaluator_registry.register_evaluator< recover_account_evaluator                >();
@@ -1638,27 +1640,38 @@ void database::init_genesis( genesis_state_type genesis )
       create< witness_object >( [&]( witness_object& w )
                                 {
                                      w.owner        = SOPHIATX_INIT_MINER_NAME;
-                                     w.signing_key  = init_public_key;
+                                     w.signing_key  = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
                                      w.schedule = witness_object::top19;
                                 } );
 
       for( const auto &acc: genesis.initial_accounts) {
          total_initial_balance += acc.balance;
-         create< account_object >( [&]( account_object& a )
-                                   {
-                                        a.name = acc.name;
-                                        a.memo_key = acc.key;
-                                        a.balance  = asset( acc.balance, SOPHIATX_SYMBOL );
-                                        a.holdings_considered_for_interests = a.balance.amount * 2;
-                                   } );
+         authority owner;
+         authority active;
+         active.add_authority(acc.key, 1);
+         active.weight_threshold = 1;
+         if(acc.key == public_key_type()){
+            owner.add_authority(SOPHIATX_INIT_MINER_NAME, 1);
+            owner.weight_threshold = 1;
+         }else{
+            owner = active;
+         }
+         try {
+            create<account_object>([ & ](account_object &a) {
+                 a.name = acc.name;
+                 a.memo_key = acc.key;
+                 a.balance = asset(acc.balance, SOPHIATX_SYMBOL);
+                 a.holdings_considered_for_interests = a.balance.amount * 2;
+                 a.recovery_account = SOPHIATX_INIT_MINER_NAME;
+                 a.reset_account = SOPHIATX_INIT_MINER_NAME;
+            });
 
-         create< account_authority_object >( [&]( account_authority_object& auth )
-                                   {
-                                        auth.account = acc.name;
-                                        auth.owner.add_authority( acc.key, 1 );
-                                        auth.owner.weight_threshold = 1;
-                                        auth.active  = auth.owner;
-                                   });
+            create<account_authority_object>([ & ](account_authority_object &auth) {
+                 auth.account = acc.name;
+                 auth.owner = owner;
+                 auth.active = active;
+            });
+         }FC_CAPTURE_AND_RETHROW((acc))
       }
 
 
@@ -1688,6 +1701,7 @@ void database::init_genesis( genesis_state_type genesis )
 
       for( int i = 0; i < 0x10000; i++ )
          create< block_summary_object >( [&]( block_summary_object& ) {});
+
       create< hardfork_property_object >( [&](hardfork_property_object& hpo )
       {
          hpo.processed_hardforks.push_back( genesis.genesis_time );
@@ -2110,14 +2124,14 @@ try {
       }
    }
 
-   for ( const auto& feeds: all_feeds){
-      if( feeds.second.size() >= SOPHIATX_MIN_FEEDS )
+   for ( const auto& feed: all_feeds){
+      if( feed.second.size() >= SOPHIATX_MIN_FEEDS )
       {
-         vector<price> f = feeds.second;
+         vector<price> f = feed.second;
          std::sort( f.begin(), f.end() );
          auto median_feed = f[f.size()/2];
 
-         modify(get_feed_history(feeds.first), [&](feed_history_object& fho )
+         modify(get_feed_history(feed.first), [&](feed_history_object& fho )
          {
             fho.price_history.push_back( median_feed );
             size_t sophiatx_feed_history_window = SOPHIATX_FEED_HISTORY_WINDOW;
@@ -2735,9 +2749,9 @@ void database::validate_invariants()const
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool) == SOPHIATX_TOTAL_SUPPLY, "difference is $diff", ("diff", SOPHIATX_TOTAL_SUPPLY -
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool) == SOPHIATX_TOTAL_SUPPLY, "difference is $diff", ("diff", SOPHIATX_TOTAL_SUPPLY -
                  (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool)));
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool)));
 
    }
    FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );

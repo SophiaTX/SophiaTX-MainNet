@@ -48,6 +48,9 @@ BOOST_AUTO_TEST_SUITE(block_tests)
 
 void open_test_database( database& db, const fc::path& dir )
 {
+   fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
+   auto init_account_pub_key = init_account_priv_key.get_public_key();
+
    genesis_state_type gen;
    gen.genesis_time = fc::time_point_sec(1530644400);
    database::open_args args;
@@ -55,6 +58,15 @@ void open_test_database( database& db, const fc::path& dir )
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
    db.open( args, gen );
+   db.modify( db.get_witness( "initminer" ), [&]( witness_object& a )
+   {
+        a.signing_key = init_account_pub_key;
+   });
+   db.modify( db.get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+   {
+        a.active.add_authority(init_account_pub_key, 1);
+        a.owner.add_authority(init_account_pub_key, 1);
+   });
 }
 
 BOOST_AUTO_TEST_CASE( generate_empty_blocks )
@@ -255,7 +267,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(100000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, SOPHIATX_SYMBOL);
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1.get_chain_id() );
@@ -316,7 +328,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(100000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -373,7 +385,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(100000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -748,6 +760,15 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
 
 
       open_database();
+      db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
+      {
+         a.signing_key = init_account_pub_key;
+      });
+      db->modify( db->get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+      {
+         a.active.add_authority(init_account_pub_key, 1);
+         a.owner.add_authority(init_account_pub_key, 1);
+      });
 
       generate_blocks( 2 );
 

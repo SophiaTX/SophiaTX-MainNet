@@ -9,7 +9,6 @@ set_source_files_properties( "${CMAKE_CURRENT_BINARY_DIR}/include/sophiatx/proto
 ## SORT .cpp by most likely to change / break compile
 add_library( sophiatx_protocol
 
-             smt_operations.cpp
              sophiatx_operations.cpp
              types.cpp
              authority.cpp
@@ -19,6 +18,7 @@ add_library( sophiatx_protocol
              transaction.cpp
              block.cpp
              asset.cpp
+             asset_symbol.cpp
              version.cpp
              get_config.cpp
 

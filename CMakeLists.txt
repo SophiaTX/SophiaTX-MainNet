@@ -73,16 +73,6 @@ if( BUILD_SOPHIATX_TESTNET  )
   SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DIS_TEST_NET" )
 endif()
 
-OPTION( ENABLE_SMT_SUPPORT "Build source with SMT support (ON OR OFF)" OFF )
-MESSAGE( STATUS "ENABLE_SMT_SUPPORT: ${ENABLE_SMT_SUPPORT}" )
-if( ENABLE_SMT_SUPPORT  )
-  MESSAGE( STATUS "     " )
-  MESSAGE( STATUS "             CONFIGURING FOR SMT SUPPORT             " )
-  MESSAGE( STATUS "     " )
-  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSOPHIATX_ENABLE_SMT" )
-  SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSOPHIATX_ENABLE_SMT" )
-endif()
-
 OPTION( LOW_MEMORY_NODE "Build source for low memory node (ON OR OFF)" OFF )
 MESSAGE( STATUS "LOW_MEMORY_NODE: ${LOW_MEMORY_NODE}" )
 if( LOW_MEMORY_NODE )
@@ -129,6 +119,12 @@ else(PRIVATE_NET)
     MESSAGE(STATUS "Building as public net")
 endif(PRIVATE_NET)
 
+OPTION(ABAP_INTERFACE "Build without map obejcts on the interface (ON OR OFF)" OFF )
+if(ABAP_INTERFACE)
+    MESSAGE(STATUS "Building with ABAP compliant Alexandria interface")
+    ADD_DEFINITIONS("-DABAP_INTERFACE")
+endif(ABAP_INTERFACE)
+
 SET( SOPHIATX_LINT_LEVEL "OFF" CACHE STRING "Lint level during sophiatx build (FULL, HIGH, LOW, OFF)" )
 find_program(
    CLANG_TIDY_EXE
@@ -167,11 +163,11 @@ ENDIF(WIN32)
 FIND_PACKAGE(Boost 1.60 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 find_package(JNI)
-if(JNI_FOUND)
+if(JNI_FOUND AND (NOT ABAP_INTERFACE))
     MESSAGE(STATUS "JNI found, building libalexandriaJNI")
 else(JNI_FOUND)
     MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
-endif(JNI_FOUND)
+endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
 
 
 if( WIN32 )
@@ -343,12 +339,6 @@ if( BUILD_SOPHIATX_TESTNET )
   MESSAGE( STATUS "\n\n             CONFIGURED FOR TEST NETWORK             \n\n" )
 else()
   MESSAGE( STATUS "\n\n             CONFIGURED FOR SOPHIATX NETWORK             \n\n" )
-endif()
-
-if( ENABLE_SMT_SUPPORT )
-MESSAGE( STATUS "\n\n             CONFIGURED FOR SMT SUPPORT             \n\n" )
-else()
-MESSAGE( STATUS "\n\n             CONFIGURED FOR NO SUPPORT OF SMT             \n\n" )
 endif()
 
 if( LOW_MEMORY_NODE )

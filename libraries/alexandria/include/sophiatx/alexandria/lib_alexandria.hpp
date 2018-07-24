@@ -122,7 +122,7 @@ class alexandria_api
        * @param account_name the name of the account to provide information about
        * @returns the public account data stored in the blockchain
        */
-      condenser_api::api_account_object get_account( string account_name ) const;
+      vector<condenser_api::api_account_object> get_account( string account_name ) const;
 
       /**
        * Returns transaction by ID.
@@ -256,22 +256,22 @@ class alexandria_api
                                           bool approve = true);
 
       /**
-       * Transfer funds from one account to another. sophiatx can be transferred.
+       * Transfer funds from one account to another. SPHTX can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
-       * @param amount The funds being transferred. i.e. "100.000 sophiatx"
+       * @param amount The funds being transferred. i.e. "100.000 SPHTX"
        * @param memo A memo for the transaction, encrypted with the to account's public memo key       */
       operation transfer(string from, string to, asset amount, string memo);
 
       /**
-       * Transfer sophiatx into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
+       * Transfer SPHTX into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
        * for a minimum of one coin year and can be withdrawn once a week over a two year withdraw period.
-       * VESTS are protected against dilution up until 90% of sophiatx is vesting.
+       * VESTS are protected against dilution up until 90% of SPHTX is vesting.
        *
-       * @param from The account the sophiatx is coming from
+       * @param from The account the SPHTX is coming from
        * @param to The account getting the VESTS
-       * @param amount The amount of sophiatx to vest i.e. "100.00 sophiatx"
+       * @param amount The amount of SPHTX to vest i.e. "100.00 SPHTX"
        */
       operation transfer_to_vesting(string from, string to, asset amount);
 
@@ -280,7 +280,7 @@ class alexandria_api
         *
         * @param from The account the VESTS are withdrawn from
         * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
-        *    withdrawn and deposited back as sophiatx. i.e. "10.000000 VESTS"
+        *    withdrawn and deposited back as SPHTX. i.e. "10.000000 VESTS"
         */
       operation withdraw_vesting( string from, asset vesting_shares);
 
@@ -370,16 +370,6 @@ class alexandria_api
        */
       operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
 
-      /**
-       * Get all received custom jsons and data.
-       * @param app_id Application ID
-       * @param account_name Name of the relevant (sender/recipient) account
-       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
-       * @param start Either timestamp in ISO format or index
-       * @param count Number of items to retrieve
-       * @return
-       */
-      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
       /**
        * Broadcast transaction to node
@@ -423,6 +413,13 @@ class alexandria_api
        * @return signed transaction
        */
       signed_transaction add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const;
+
+      /**
+       * Add custom fee to the operation
+       * @param op Operation where the fee is added
+       * @param fee Fee to be added
+       */
+      operation add_fee(operation op, asset fee)const;
 
       /**
        * Sign digest with providet private key
@@ -513,7 +510,29 @@ class alexandria_api
        * @return returns true if account exists
        */
       bool account_exist(string account_name) const;
+#ifdef ABAP_INTERFACE
+     /**
+      *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
+      *  returns operations in the range [from-limit, from]
+      *
+      *  @param account - account whose history will be returned
+      *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
+      *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
+      */
+      vector< condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
 
+      /**
+       * Get all received custom jsons and data.
+       * @param app_id Application ID
+       * @param account_name Name of the relevant (sender/recipient) account
+       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
+       * @param start Either timestamp in ISO format or index
+       * @param count Number of items to retrieve
+       * @return
+       */
+      vector< condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+
+#else
       /**
       *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
       *  returns operations in the range [from-limit, from]
@@ -524,6 +543,17 @@ class alexandria_api
       */
       map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
 
+      /**
+       * Get all received custom jsons and data.
+       * @param app_id Application ID
+       * @param account_name Name of the relevant (sender/recipient) account
+       * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
+       * @param start Either timestamp in ISO format or index
+       * @param count Number of items to retrieve
+       * @return
+       */
+      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+#endif
       /**
        * Returns active authority for given account
        * @param account_name - account name
@@ -588,6 +618,27 @@ class alexandria_api
        */
       string get_account_name_from_seed(string seed) const;
 
+      /**
+       * Returns set of public key (authorities) required for signing specific transaction
+       * @param tx - transaction for signing
+       */
+      set< public_key_type > get_required_signatures( signed_transaction tx) const;
+
+
+      /**
+       * Returns a fee for the given operation
+       * @param op Operation to evaluate
+       * @param symbol Symbol of the fee paying currency
+       * @return fee
+       */
+       asset calculate_fee(operation op, asset_symbol_type symbol)const;
+
+       /**
+        * Converts the given amount of fiat to sphtx
+        * @param fiat The amount to be converted
+        * @return Amount of SPHTX if conversion is possible, or returns back fiat if not.
+        */
+       asset fiat_to_sphtx(asset fiat)const;
 };
 
 } }
@@ -613,6 +664,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (get_received_documents)
         (get_active_witnesses)
         (get_transaction)
+        (get_required_signatures)
 
         ///account api
         (get_account_name_from_seed)
@@ -653,10 +705,14 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (broadcast_transaction)
         (create_transaction)
         (create_simple_transaction)
+        (calculate_fee)
+        (fiat_to_sphtx)
 
         ///local api
         (get_transaction_digest)
         (add_signature)
+        (add_fee)
+
         (sign_digest)
         (send_and_sign_operation)
         (send_and_sign_transaction)

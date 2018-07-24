@@ -14,7 +14,6 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
    typedef custom_operation                       legacy_custom_operation;
    typedef custom_json_operation                  legacy_custom_json_operation;
    typedef custom_binary_operation                legacy_custom_binary_operation;
-   typedef report_over_production_operation       legacy_report_over_production_operation;
    typedef request_account_recovery_operation     legacy_request_account_recovery_operation;
    typedef recover_account_operation              legacy_recover_account_operation;
    typedef reset_account_operation                legacy_reset_account_operation;
@@ -69,7 +68,6 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
             legacy_custom_json_operation,
             legacy_custom_binary_operation,
 
-            legacy_report_over_production_operation,
 
             legacy_request_account_recovery_operation,
             legacy_recover_account_operation,
@@ -123,7 +121,6 @@ namespace sophiatx { namespace plugins { namespace condenser_api {
       bool operator()( const custom_operation& op )const                         { l_op = op; return true; }
       bool operator()( const custom_json_operation& op )const                    { l_op = op; return true; }
       bool operator()( const custom_binary_operation& op )const                  { l_op = op; return true; }
-      bool operator()( const report_over_production_operation& op )const         { l_op = op; return true; }
       bool operator()( const request_account_recovery_operation& op )const       { l_op = op; return true; }
       bool operator()( const recover_account_operation& op )const                { l_op = op; return true; }
       bool operator()( const change_recovery_account_operation& op )const        { l_op = op; return true; }

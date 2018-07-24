@@ -2,7 +2,7 @@
 
 #include <fc/macros.hpp>
 #include <fc/io/json.hpp>
-
+#include <fc/crypto/base64m.hpp>
 #include <locale>
 
 namespace sophiatx { namespace protocol {
@@ -10,9 +10,12 @@ namespace sophiatx { namespace protocol {
    std::string make_random_fixed_string(std::string seed)
    {
       auto hash = fc::ripemd160::hash(seed);
-      std::vector<char> bytes(hash.data(), hash.data()+hash.data_size());
-      std::string ret = fc::to_base58(bytes);
-      return ret;
+      unsigned char data[21];
+      memcpy(data, hash.data(), 20);
+      data[20] = 0; //do the padding to avoid '=' at the end of the result string
+
+      std::string s = fc::base64m_encode(data, 21);
+      return s;
    }
 
    void account_create_operation::validate() const
@@ -222,15 +225,6 @@ namespace sophiatx { namespace protocol {
       exchange_rate.validate();
    }
 
-   void report_over_production_operation::validate()const
-   {
-      validate_account_name( reporter );
-      validate_account_name( first_block.witness );
-      FC_ASSERT( first_block.witness   == second_block.witness );
-      FC_ASSERT( first_block.timestamp == second_block.timestamp );
-      FC_ASSERT( first_block.signee()  == second_block.signee() );
-      FC_ASSERT( first_block.id() != second_block.id() );
-   }
 
    void escrow_transfer_operation::validate()const
    {

@@ -13,18 +13,9 @@
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
-#define SOPHIATX_CHAIN_ID_NAME "testnet"
-#define SOPHIATX_CHAIN_ID (fc::sha256::hash(SOPHIATX_CHAIN_ID_NAME))
-#define SOPHIATX_ADDRESS_PREFIX                  "TST"
-
-#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1451606400))
-#define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1451606400))
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60) /// 1 hr
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*3) /// 3 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24) /// 1 day
-#define SOPHIATX_UPVOTE_LOCKOUT_HF7              (fc::minutes(1))
-#define SOPHIATX_UPVOTE_LOCKOUT_HF17             (fc::minutes(5))
-
 
 #define SOPHIATX_MIN_ACCOUNT_CREATION_FEE          0
 
@@ -33,7 +24,10 @@
 #define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::seconds(0)
 #define SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 1
 
-#define SOPHIATX_INIT_SUPPLY                     (int64_t( 250 ) * int64_t( 1000000 ) * int64_t( 1000 ))
+#define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+#define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+
+#define SOPHIATX_MIN_FEEDS                       1 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 /// Allows to limit number of total produced blocks.
 #define TESTNET_BLOCK_LIMIT                   (3000000)
@@ -42,18 +36,13 @@
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
 
-#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH8Xg6cEbqPCY8jrWFccgbCq5Fjw1okivwwmLDDgqQCQeAk7jedu" //5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV
-#define SOPHIATX_ADDRESS_PREFIX                  "SPH"
+#define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
 
-#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1524563000))
-#//define SOPHIATX_MINING_TIME                     (fc::time_point_sec(1524563200))
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60*24*7)  /// 7 days
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*30) /// 30 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24*14) /// 2 weeks
-#define SOPHIATX_UPVOTE_LOCKOUT_HF7              (fc::minutes(1))
-#define SOPHIATX_UPVOTE_LOCKOUT_HF17             (fc::hours(12))
 
-#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE           100000
+#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE           50000
 
 #define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
 #define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
@@ -61,9 +50,14 @@
 
 #define SOPHIATX_INIT_SUPPLY                     int64_t(350000000000000)
 #define SOPHIATX_TOTAL_SUPPLY                    int64_t(500000000000000)
+#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #endif
 
+#define SOPHIATX_ADDRESS_PREFIX                  "SPH"
+
+//#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1532512800))
+#define SOPHIATX_GENESIS_TIME                    (fc::time_point_sec(1531512800))
 #define SOPHIATX_BLOCK_INTERVAL                  3
 #define SOPHIATX_BLOCKS_PER_YEAR                 (365*24*60*60/SOPHIATX_BLOCK_INTERVAL)
 #define SOPHIATX_BLOCKS_PER_DAY                  (24*60*60/SOPHIATX_BLOCK_INTERVAL)
@@ -75,6 +69,7 @@
 #define SOPHIATX_PROMOTION_POOL_PERCENTAGE (1000)
 #define SOPHIATX_MINING_POOL_PERCENTAGE (2500)
 #define SOPHIATX_INTEREST_POOL_PERCENTAGE (6500)
+#define SOPHIATX_BURN_FEE_PERCENTAGE (1000)
 #define SOPHIATX_INTEREST_BLOCKS (2400)
 #define SOPHIATX_INTEREST_FEES_TIME ( SOPHIATX_BLOCKS_PER_DAY )
 #define SOPHIATX_INTEREST_DELAY (SOPHIATX_BLOCKS_PER_DAY)
@@ -90,11 +85,21 @@
 
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
 #define SOPHIATX_SYMBOL  ( sophiatx::protocol::asset_symbol_type( SOPHIATX_SYMBOL_SER ) )
-#define SBD1_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD1_SYMBOL_SER ) )
-#define SBD2_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD2_SYMBOL_SER ) )
-#define SBD3_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD3_SYMBOL_SER ) )
-#define SBD4_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD4_SYMBOL_SER ) )
-#define SBD5_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD5_SYMBOL_SER ) )
+#define SBD1_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD1_SYMBOL_SER ) ) //USD
+#define SBD2_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD2_SYMBOL_SER ) ) //EUR
+#define SBD3_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD3_SYMBOL_SER ) ) //CHF
+#define SBD4_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD4_SYMBOL_SER ) ) //CNY
+#define SBD5_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD5_SYMBOL_SER ) ) //GBP
+
+#define BASE_FEE       (asset(100000, SOPHIATX_SYMBOL))
+#define BASE_FEE_SBD1  (asset(100000, SBD1_SYMBOL)) //USD
+#define BASE_FEE_SBD2  (asset(80000,  SBD2_SYMBOL)) //EUR
+#define BASE_FEE_SBD3  (asset(100000, SBD3_SYMBOL)) //CHF
+#define BASE_FEE_SBD4  (asset(640000, SBD4_SYMBOL)) //CNY
+#define BASE_FEE_SBD5  (asset(75000,  SBD5_SYMBOL)) //GBP
+
+#define SIZE_COVERED_IN_BASE_FEE 1024
+#define SIZE_INCREASE_PER_FEE 2048
 
 #define SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION     ( hardfork_version( SOPHIATX_BLOCKCHAIN_VERSION ) )
 
@@ -117,10 +122,8 @@
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
 #define SOPHIATX_MAX_PROXY_RECURSION_DEPTH       4
 #define SOPHIATX_VESTING_WITHDRAW_INTERVALS      27
-#define SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS (60*60*24*7) /// 1 week per interval
-#define SOPHIATX_MAX_WITHDRAW_ROUTES             10
-#define SOPHIATX_SAVINGS_WITHDRAW_TIME        	(fc::days(3))
-#define SOPHIATX_SAVINGS_WITHDRAW_REQUEST_LIMIT  100
+#define SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS (60*60*24) /// 1 day per interval
+
 #define SOPHIATX_VOTE_REGENERATION_SECONDS       (5*60*60*24) // 5 day
 #define SOPHIATX_MAX_VOTE_CHANGES                5
 #define SOPHIATX_REVERSE_AUCTION_WINDOW_SECONDS  (60*30) /// 30 minutes
@@ -131,7 +134,7 @@
 #define SOPHIATX_POST_AVERAGE_WINDOW             (60*60*24u) // 1 day
 #define SOPHIATX_POST_WEIGHT_CONSTANT            (uint64_t(4*SOPHIATX_100_PERCENT) * (4*SOPHIATX_100_PERCENT))// (4*SOPHIATX_100_PERCENT) -> 2 posts per 1 days, average 1 every 12 hours
 
-#define SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES       30
+#define SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES       60
 
 #define SOPHIATX_100_PERCENT                     10000
 #define SOPHIATX_1_PERCENT                       (SOPHIATX_100_PERCENT/100)
@@ -201,13 +204,12 @@
 #define SOPHIATX_MAX_TRANSACTION_SIZE            (1024*64)
 #define SOPHIATX_MIN_BLOCK_SIZE_LIMIT            (SOPHIATX_MAX_TRANSACTION_SIZE)
 #define SOPHIATX_MAX_BLOCK_SIZE                  (SOPHIATX_MAX_TRANSACTION_SIZE * SOPHIATX_BLOCK_INTERVAL*2000)
-#define SOPHIATX_SOFT_MAX_BLOCK_SIZE             (2*1024*1024)
+#define SOPHIATX_SOFT_MAX_BLOCK_SIZE             (20*1024*1024)
 #define SOPHIATX_MIN_BLOCK_SIZE                  115
 #define SOPHIATX_BLOCKS_PER_HOUR                 (60*60/SOPHIATX_BLOCK_INTERVAL)
 #define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
 #define SOPHIATX_FEED_HISTORY_WINDOW             (12*7) // 3.5 days
 #define SOPHIATX_MAX_FEED_AGE_SECONDS            (60*60*24*7) // 7 days
-#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #define SOPHIATX_MIN_UNDO_HISTORY                10
 #define SOPHIATX_MAX_UNDO_HISTORY                10000

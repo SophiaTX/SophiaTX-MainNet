@@ -321,12 +321,13 @@ public:
       return result;
    }
 
-   condenser_api::api_account_object get_account( string account_name_or_seed ) const
+   vector<condenser_api::api_account_object> get_account( string account_name_or_seed ) const
    {
-
       auto accounts = _remote_api->get_accounts( { account_name_or_seed, get_account_name_from_seed(account_name_or_seed) } );
       FC_ASSERT( !accounts.empty(), "Unknown account" );
-      return accounts.front();
+      std::vector<condenser_api::api_account_object>  accounts_ret(std::make_move_iterator(accounts.begin()),
+                                                                   std::make_move_iterator(accounts.end()));
+      return accounts_ret;
    }
 
    string get_account_name_from_seed(string seed) const{
@@ -530,6 +531,13 @@ public:
 
    annotated_signed_transaction sign_transaction(signed_transaction tx, bool broadcast = false)
    {
+      //first, get the correct chain_id
+      if(sophiatx_chain_id == fc::sha256())
+      {
+         auto v = _remote_api->get_version();
+         sophiatx_chain_id = fc::sha256(v.chain_id);
+      }
+
       //set fees first
       class op_visitor{
       public:
@@ -558,6 +566,27 @@ public:
          for( const auto& a : auth.account_auths )
             req_active_approvals.insert(a.first);
 
+      /// TODO: recursively check one layer deeper in the authority tree for keys
+      vector<account_name_type> v_accs;
+      for(const auto& a: req_active_approvals)
+         v_accs.push_back(a);
+      auto req_active_objects = _remote_api->get_accounts(v_accs);
+      for(const auto& o: req_active_objects) {
+         for( const auto a: o.active.account_auths )
+            req_active_approvals.insert(a.first);
+         for( const auto a: o.owner.account_auths )
+            req_active_approvals.insert(a.first);
+      }
+
+      v_accs.clear();
+      for(const auto& a: req_owner_approvals)
+         v_accs.push_back(a);
+      auto req_owner_objects = _remote_api->get_accounts(v_accs);
+      for(const auto& o: req_owner_objects) {
+         for( const auto a: o.owner.account_auths )
+            req_owner_approvals.insert(a.first);
+      }
+
       // std::merge lets us de-duplica te account_id's that occur in both
       //   sets, and dump them into a vector (as required by remote_db api)
       //   at the same time
@@ -569,8 +598,8 @@ public:
       /// TODO: fetch the accounts specified via other_auths as well.
 
       auto approving_account_objects = _remote_api->get_accounts( v_approving_account_names );
+      elog("Approving accounts: ${a}", ("a", v_approving_account_names));
 
-      /// TODO: recursively check one layer deeper in the authority tree for keys
 
       FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
 
@@ -603,12 +632,18 @@ public:
             continue;
          const condenser_api::api_account_object& acct = it->second;
          vector<public_key_type> v_approving_keys = acct.active.get_keys();
-         wdump((v_approving_keys));
          for( const public_key_type& approving_key : v_approving_keys )
          {
-            wdump((approving_key));
+            edump((approving_key));
             approving_key_set.insert( approving_key );
          }
+         vector<public_key_type> v_approving_keys_o = acct.owner.get_keys();
+         for( const public_key_type& approving_key : v_approving_keys_o )
+         {
+            edump((approving_key));
+            approving_key_set.insert( approving_key );
+         }
+
       }
 
 
@@ -639,7 +674,7 @@ public:
       tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
       tx.signatures.clear();
 
-      //idump((_keys));
+      idump((_keys));
       flat_set< public_key_type > available_keys;
       flat_map< public_key_type, fc::ecc::private_key > available_private_keys;
       for( const public_key_type& key : approving_key_set )
@@ -671,6 +706,7 @@ public:
          tx.sign( it->second, sophiatx_chain_id );
       }
 
+      elog("Transaction digest is: ${d}", ("d", tx.sig_digest(sophiatx_chain_id)));
       if( broadcast ) {
          try {
             auto result = _remote_api->broadcast_transaction_synchronous( tx );
@@ -812,7 +848,18 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
 
    result.reserve( names.size() );
    for( const auto& name : names )
-      result.emplace_back( get_account( name ) );
+   {
+      auto accounts =  get_account( name );
+      if(accounts.size() == 1) {
+         result.emplace_back( accounts.front());
+      } else {
+         for(const auto& acc: accounts) {
+            if(acc.name == account_name_type(name)) {
+               result.emplace_back( acc);
+            }
+         }
+      }
+   }
 
    return result;
 }
@@ -859,7 +906,7 @@ string wallet_api::get_wallet_filename() const
 }
 
 
-condenser_api::api_account_object wallet_api::get_account( string account_name ) const
+vector<condenser_api::api_account_object> wallet_api::get_account( string account_name ) const
 {
    return my->get_account( account_name );
 }
@@ -1509,10 +1556,28 @@ string wallet_api::get_encrypted_memo( string from, string to, string memo ) {
        memo_data m;
 
        auto from_account = get_account( from );
+
+       if(from_account.size() == 1) {
+          m.from = from_account.front().memo_key;
+       } else {
+          for(const auto& acc: from_account) {
+             if(acc.name == account_name_type(from)) {
+                m.from = acc.memo_key;
+             }
+          }
+       }
        auto to_account   = get_account( to );
 
-       m.from            = from_account.memo_key;
-       m.to              = to_account.memo_key;
+       if(from_account.size() == 1) {
+          m.to = to_account.front().memo_key;
+       } else {
+          for(const auto& acc: from_account) {
+             if(acc.name == account_name_type(to)) {
+                m.to = acc.memo_key;
+             }
+         }
+       }
+
        m.nonce = fc::time_point::now().time_since_epoch().count();
 
        auto from_priv = my->get_private_key( m.from );
@@ -1534,7 +1599,19 @@ string wallet_api::get_encrypted_memo( string from, string to, string memo ) {
 annotated_signed_transaction wallet_api::transfer(string from, string to, asset amount, string memo, bool broadcast )
 { try {
    FC_ASSERT( !is_locked() );
-    check_memo( memo, get_account( from ) );
+
+   auto acc_from = get_account(from);
+
+   if(acc_from.size() == 1) {
+      check_memo( memo, acc_from.front() );
+   } else {
+      for(const auto& acc: acc_from) {
+         if(acc.name == account_name_type(to)) {
+            check_memo( memo, acc );
+         }
+      }
+   }
+
     transfer_operation op;
     op.from = from;
     op.to = to;

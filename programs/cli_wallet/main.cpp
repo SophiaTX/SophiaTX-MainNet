@@ -41,6 +41,9 @@
 #include <sophiatx/protocol/protocol.hpp>
 #include <sophiatx/wallet/remote_node_api.hpp>
 #include <sophiatx/wallet/wallet.hpp>
+#ifdef IS_TEST_NET
+#include <sophiatx/egenesis/egenesis.hpp>
+#endif
 
 #include <fc/interprocess/signals.hpp>
 #include <boost/program_options.hpp>
@@ -81,7 +84,7 @@ int main( int argc, char** argv )
          ("rpc-http-allowip", bpo::value<vector<string>>()->multitoken(), "Allows only specified IPs to connect to the HTTP endpoint" )
          ("wallet-file,w", bpo::value<string>()->implicit_value("wallet.json"), "wallet to load")
 #ifdef IS_TEST_NET
-         ("chain-id", bpo::value< std::string >()->implicit_value( SOPHIATX_CHAIN_ID_NAME ), "chain ID to connect to")
+         ("chain-id", bpo::value< std::string >()->implicit_value( sophiatx::egenesis::get_egenesis_chain_id() ), "chain ID to connect to")
 #endif
          ;
       vector<string> allowed_ips;
@@ -102,10 +105,8 @@ int main( int argc, char** argv )
 
       sophiatx::protocol::chain_id_type _sophiatx_chain_id;
 
-#ifdef IS_TEST_NET
       if( options.count("chain-id") )
             _sophiatx_chain_id = generate_chain_id( options["chain-id"].as< std::string >() );
-#endif
 
       fc::path data_dir;
       fc::logging_config cfg;

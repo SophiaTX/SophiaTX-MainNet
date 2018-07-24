@@ -139,7 +139,7 @@ class wallet_api
        * @param account_name the name of the account to provide information about
        * @returns the public account data stored in the blockchain
        */
-      condenser_api::api_account_object get_account( string account_name ) const;
+      vector<condenser_api::api_account_object> get_account( string account_name ) const;
 
       /** Returns the current wallet filename.
        *
@@ -316,7 +316,7 @@ class wallet_api
        * The current account creation fee can be found with the 'info' wallet command.
        *
        * @param creator The account creating the new account
-       * @param newname The name of the new account
+       * @param seed The seed used to generate the name of the new account
        * @param json_meta JSON Metadata associated with the new account
        * @param owner public owner key of the new account
        * @param active public active key of the new account
@@ -324,7 +324,7 @@ class wallet_api
        * @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction create_account_with_keys( string creator,
-                                            string newname,
+                                            string seed,
                                             string json_meta,
                                             public_key_type owner,
                                             public_key_type active,
@@ -504,24 +504,24 @@ class wallet_api
                                           bool broadcast = false);
 
       /**
-       * Transfer funds from one account to another. SOPHIATX can be transferred.
+       * Transfer funds from one account to another. SPHTX can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
        * @param amount The funds being transferred. i.e. "100.000 SOPHIATX"
-       * @param memo A memo for the transactionm, encrypted with the to account's public memo key
+       * @param memo A memo for the transaction, encrypted with the to account's public memo key
        * @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction transfer(string from, string to, asset amount, string memo, bool broadcast = false);
 
       /**
-       * Transfer funds from one account to another using escrow. SOPHIATX can be transferred.
+       * Transfer funds from one account to another using escrow. SPHTX can be transferred.
        *
        * @param from The account the funds are coming from
        * @param to The account the funds are going to
        * @param agent The account acting as the agent in case of dispute
        * @param escrow_id A unique id for the escrow transfer. (from, escrow_id) must be a unique pair
-       * @param sophiatx_amount The amount of SOPHIATX to transfer
+       * @param sophiatx_amount The amount of SPHTX to transfer
        * @param fee The fee paid to the agent
        * @param ratification_deadline The deadline for 'to' and 'agent' to approve the escrow transfer
        * @param escrow_expiration The expiration of the escrow transfer, after which either party can claim the funds
@@ -591,7 +591,7 @@ class wallet_api
        * @param who The account authorizing the release
        * @param receiver The account that will receive funds being released
        * @param escrow_id A unique id for the escrow transfer
-       * @param sophiatx_amount The amount of SOPHIATX that will be released
+       * @param sophiatx_amount The amount of SPHTX that will be released
        * @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction escrow_release(
@@ -606,13 +606,13 @@ class wallet_api
       );
 
       /**
-       * Transfer SOPHIATX into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
+       * Transfer SPHTX into a vesting fund represented by vesting shares (VESTS). VESTS are required to vesting
        * for a minimum of one coin year and can be withdrawn once a week over a two year withdraw period.
-       * VESTS are protected against dilution up until 90% of SOPHIATX is vesting.
+       * VESTS are protected against dilution up until 90% of SPHTX is vesting.
        *
-       * @param from The account the SOPHIATX is coming from
+       * @param from The account the SPHTX is coming from
        * @param to The account getting the VESTS
-       * @param amount The amount of SOPHIATX to vest i.e. "100.00 SOPHIATX"
+       * @param amount The amount of SPHTX to vest i.e. "100.00 SPHTX"
        * @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction transfer_to_vesting(string from, string to, asset amount, bool broadcast = false);
@@ -623,14 +623,14 @@ class wallet_api
        *
        * @param from The account the VESTS are withdrawn from
        * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
-       *    withdrawn and deposited back as SOPHIATX. i.e. "10.000000 VESTS"
+       *    withdrawn and deposited back as SPHTX. i.e. "10.000000 VESTS"
        * @param broadcast true if you wish to broadcast the transaction
        */
       annotated_signed_transaction withdraw_vesting( string from, asset vesting_shares, bool broadcast = false );
 
       /**
-       * A witness can public a price feed for the SOPHIATX:SBD market. The median price feed is used
-       * to process conversion requests from SBD to SOPHIATX.
+       * A witness can public a price feed for the SPHTX:SBD market. The median price feed is used
+       * to process conversion requests from SBD to SPHTX.
        *
        * @param witness The witness publishing the price feed
        * @param exchange_rate The desired exchange rate
