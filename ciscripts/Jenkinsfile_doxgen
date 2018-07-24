@@ -1,0 +1,35 @@
+#!groovy
+
+////////////////////////////////////////
+
+pipeline {
+  options {
+    buildDiscarder(logRotator(artifactNumToKeepStr: '1'))
+  }
+  environment {
+    ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + "doc.tar.gz"
+  }
+  stages {
+    stage('Generate doxygen') {
+      steps {
+            sh 'doxygen Doxyfile'
+        }
+      }
+    }
+    stage('Archive') {
+     steps {
+        dir('doxygen') {
+                sh 'tar -czf html' //create tar file
+                archiveArtifacts '*.gz'
+            }
+        }
+      }
+    }
+    stage('Clean WS') {
+      steps {
+        cleanWs()
+      }
+    }
+  }
+}
+////////////////////////////////////////
