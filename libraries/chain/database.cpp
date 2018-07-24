@@ -1656,22 +1656,22 @@ void database::init_genesis( genesis_state_type genesis )
          }else{
             owner = active;
          }
-         create< account_object >( [&]( account_object& a )
-                                   {
-                                        a.name = acc.name;
-                                        a.memo_key = acc.key;
-                                        a.balance  = asset( acc.balance, SOPHIATX_SYMBOL );
-                                        a.holdings_considered_for_interests = a.balance.amount * 2;
-                                        a.recovery_account = SOPHIATX_INIT_MINER_NAME;
-                                        a.reset_account = SOPHIATX_INIT_MINER_NAME;
-                                   } );
+         try {
+            create<account_object>([ & ](account_object &a) {
+                 a.name = acc.name;
+                 a.memo_key = acc.key;
+                 a.balance = asset(acc.balance, SOPHIATX_SYMBOL);
+                 a.holdings_considered_for_interests = a.balance.amount * 2;
+                 a.recovery_account = SOPHIATX_INIT_MINER_NAME;
+                 a.reset_account = SOPHIATX_INIT_MINER_NAME;
+            });
 
-         create< account_authority_object >( [&]( account_authority_object& auth )
-                                   {
-                                        auth.account = acc.name;
-                                        auth.owner = owner;
-                                        auth.active  = active;
-                                   });
+            create<account_authority_object>([ & ](account_authority_object &auth) {
+                 auth.account = acc.name;
+                 auth.owner = owner;
+                 auth.active = active;
+            });
+         }FC_CAPTURE_AND_RETHROW((acc))
       }
 
 

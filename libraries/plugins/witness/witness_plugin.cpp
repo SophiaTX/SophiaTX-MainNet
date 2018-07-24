@@ -257,7 +257,7 @@ namespace detail {
       chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
       if( fc::time_point::now() < fc::time_point(db.get_genesis_time()) )
       {
-         wlog( "waiting until genesis time to produce block: ${t}", ("t", db.get_genesis_time()) );
+         wlog( "waiting until genesis time to produce block: ${t}, now is: ${n}", ("t", db.get_genesis_time())("n", fc::time_point::now()) );
          schedule_production_loop();
          return block_production_condition::wait_for_genesis;
       }
