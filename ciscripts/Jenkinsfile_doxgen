@@ -19,7 +19,7 @@ pipeline {
     stage('Archive') {
      steps {
         dir('doxygen') {
-          sh 'tar -czf html' //create tar file
+          sh 'tar -czf ${ARCHIVE_NAME} html' //create tar file
           archiveArtifacts '*.gz'
         }
       }
