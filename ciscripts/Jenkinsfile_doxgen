@@ -15,12 +15,11 @@ pipeline {
             sh 'doxygen Doxyfile'
         }
       }
-    }
     stage('Archive') {
      steps {
         dir('doxygen') {
-                sh 'tar -czf html' //create tar file
-                archiveArtifacts '*.gz'
+          sh 'tar -czf html' //create tar file
+          archiveArtifacts '*.gz'
         }
       }
     }
@@ -29,5 +28,6 @@ pipeline {
         cleanWs()
       }
     }
+  }
 }
 ////////////////////////////////////////
