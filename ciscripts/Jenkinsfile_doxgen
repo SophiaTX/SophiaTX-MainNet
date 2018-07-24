@@ -21,7 +21,6 @@ pipeline {
         dir('doxygen') {
                 sh 'tar -czf html' //create tar file
                 archiveArtifacts '*.gz'
-            }
         }
       }
     }
@@ -30,6 +29,5 @@ pipeline {
         cleanWs()
       }
     }
-  }
 }
 ////////////////////////////////////////
