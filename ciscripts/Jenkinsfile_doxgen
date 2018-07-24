@@ -3,6 +3,7 @@
 ////////////////////////////////////////
 
 pipeline {
+  agent any
   options {
     buildDiscarder(logRotator(artifactNumToKeepStr: '1'))
   }
