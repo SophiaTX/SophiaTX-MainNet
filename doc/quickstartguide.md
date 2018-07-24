@@ -62,8 +62,8 @@ Quickstart Guide
 
   To fulfil this requirement, it is recommended to create a dedicated user and group on NIX system
 
-    * Group: _sphtxgrp_  
-    * Account: _sphtxamd_  
+    * Group: sphtxgrp  
+    * Account: sphtxamd  
 
   __!!! You must gain sufficient privileges (e.g. as a root user or you can also prefix the following commands with the sudo command to run them as a non-privileged user to create a group and an account!!!__
 
