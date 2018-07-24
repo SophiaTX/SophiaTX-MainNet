@@ -20,7 +20,7 @@ namespace sophiatx { namespace chain {
 
          bip::vector< fc::time_point_sec, allocator< fc::time_point_sec > >   processed_hardforks;
          uint32_t                                                             last_hardfork = 0;
-         protocol::hardfork_version                                           current_hardfork_version;
+         protocol::hardfork_version                                           current_hardfork_version = protocol::hardfork_version(1, 0);
          protocol::hardfork_version                                           next_hardfork;
          fc::time_point_sec                                                   next_hardfork_time;
    };

@@ -9,7 +9,7 @@
 // This is checked by get_config_check.sh called from Dockerfile
 
 #ifdef IS_TEST_NET
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
@@ -34,7 +34,7 @@
 
 #else // IS LIVE SOPHIATX NETWORK
 
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(0, 0, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
 
