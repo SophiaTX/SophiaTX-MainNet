@@ -2,12 +2,6 @@
 
 SophiaTX is a Delegated Proof of Stake blockchain that uses a "Proof of Brain" social consensus algorithm for token allocation.
 
-  - Currency symbol SPHTX.
-  - 10% APR inflation narrowing to 1% APR over 20 years.
-  - 75% of inflation to "Proof of Brain" social consensus algorithm.
-  - 15% of inflation to stake holders.
-  - 10% of inflation to block producers.
-
 # Public Announcement & Discussion
 
 SophiaTX was announced on the

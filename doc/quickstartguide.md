@@ -35,9 +35,9 @@ Quickstart Guide
 
     For any testing purposes on the witness node, restrict the usage of http & ws ports for a limited time period and only to locahost = 127.0.0.1 or to a dedicated host IP – a.b.c.d. The setting to 0.0.0.0 is not recommended and to be avoided. Restrict accepting incoming http or ws requests to only specific IP or net. For net - define network as a.b.0.0 / for dedicated IP as a.b.c.d. 
 
-    All ports are configurable and can be subject to adjustment, either in the confing.ini file or added as a parameter(s) upon the starting of  sophiatxd deamon. 
+    All ports are configurable and can be subject to adjustment, either in the config.ini file or added as a parameter(s) upon the starting of sophiatxd deamon.
 
-    Example of configuration of the network parameters (IP & Ports) in confing.ini: 
+    Example of configuration of the network parameters (IP & Ports) in config.ini:
 
     #### The local IP address and port to listen for incoming connections.  
 
@@ -60,18 +60,14 @@ Quickstart Guide
 
   In general, as your own user account, programs you run are restricted from writing to the rest of the system – they can only write to your “home” folder. You cannot modify system files without gaining root permissions first. This helps keep your computer secure. 
 
-  To fulfil this requirement, it is recommended to create a dedicated user and group on NIX system 
+  To fulfil this requirement, it is recommended to create a dedicated user and group on NIX system
 
     * Group: _sphtxgrp_  
     * Account: _sphtxamd_  
 
-    __!!! You must gain sufficient privileges (e.g. as a root user or you can also prefix the following commands with the sudo command to run them as a non-privileged user to create a group and an account!!!__   
+  __!!! You must gain sufficient privileges (e.g. as a root user or you can also prefix the following commands with the sudo command to run them as a non-privileged user to create a group and an account!!!__
 
-  CLI commands to 
-
-  Add group and account: 
-  The basic syntax of the command to Create/Add a new Group 
-  As a root user you will type and run this command from command line. 
+  CLI commands to add group and account. The basic syntax of the command to Create/Add a new Group. As a root user you will type and run this command from command line.
   
   `# groupadd sphtxgrp `     
   
@@ -176,7 +172,7 @@ Adjust a list of plugins
 #plugin = chain_api 
 #plugin = custom_api 
 ```
-Adjust a default port nr. for P2P endpoint blockchain nodes communication 
+Adjust a default port number for P2P endpoint blockchain nodes communication
 
 `p2p-endpoint = 0.0.0.0:60000` 
 
@@ -189,7 +185,7 @@ Copy witness_config.ini into config.ini in the blockchain data directory
 `sphtxadm@EUGREEN02:~/sphtxd>  cp ./witness_config.ini /sphtxBCdata/config.ini` 
 
 
-__To run SophiaTX Witness node and produce blocks (meaning being eligible to validate the transactions embedded in the  blocks) you need to be one of the elected SophiaTX witnesses___
+__To run SophiaTX Witness node and produce blocks (meaning being eligible to validate the transactions embedded in the  blocks) you need to be one of the elected SophiaTX witnesses__
 
 #### Run SophiaTX Witness 
 
