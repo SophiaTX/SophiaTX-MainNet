@@ -62,8 +62,8 @@ pipeline {
                   }
               }
               sh 'rm -f test*' //remove test binaries
-              sh 'cp ${workspace}/contrib/fullnode_config.ini .'//copy configs
-              sh 'cp ${workspace}/contrib/witness_config.ini .'//copy configs
+              sh 'cp ${env.WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
+              sh 'cp ${env.WORKSPACE}/contrib/witness_config.ini .'//copy configs
               sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
               archiveArtifacts '*.gz'
           }
