@@ -1,0 +1,6 @@
+seednode1.sophiatx.com:60000
+seednode2.sophiatx.com:60000
+seednode3.sophiatx.com:60000
+seednode4.sophiatx.com:60000
+seednode5.sophiatx.com:60000
+seednode6.sophiatx.com:60000
