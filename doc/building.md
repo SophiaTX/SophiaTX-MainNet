@@ -28,14 +28,6 @@ By default this is off. Enabling will prevent the account history plugin queryin
 by id, but saving around 65% of CPU time when reindexing. Enabling this option is a
 huge gain if you do not need this functionality.
 
-## Building under Docker
-
-We ship a Dockerfile.  This builds both common node type binaries.
-
-    git clone https://github.com/SophiaTX/SophiaTX
-    cd sophiatx
-    docker build -t SophiaTX/SophiaTX .
-
 ## Building on Ubuntu 16.04
 
 For Ubuntu 16.04 users, after installing the right packages with `apt` SophiaTX
