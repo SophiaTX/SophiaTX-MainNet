@@ -36,11 +36,14 @@
 #include <fc/rpc/websocket_api.hpp>
 #include <fc/smart_ref_impl.hpp>
 
-#include <steem/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
 
-#include <steem/protocol/protocol.hpp>
-#include <steem/wallet/remote_node_api.hpp>
-#include <steem/wallet/wallet.hpp>
+#include <sophiatx/protocol/protocol.hpp>
+#include <sophiatx/wallet/remote_node_api.hpp>
+#include <sophiatx/wallet/wallet.hpp>
+#ifdef IS_TEST_NET
+#include <sophiatx/egenesis/egenesis.hpp>
+#endif
 
 #include <fc/interprocess/signals.hpp>
 #include <boost/program_options.hpp>
@@ -58,9 +61,9 @@
 #endif
 
 
-using namespace steem::utilities;
-using namespace steem::chain;
-using namespace steem::wallet;
+using namespace sophiatx::utilities;
+using namespace sophiatx::chain;
+using namespace sophiatx::wallet;
 using namespace std;
 namespace bpo = boost::program_options;
 
@@ -81,7 +84,7 @@ int main( int argc, char** argv )
          ("rpc-http-allowip", bpo::value<vector<string>>()->multitoken(), "Allows only specified IPs to connect to the HTTP endpoint" )
          ("wallet-file,w", bpo::value<string>()->implicit_value("wallet.json"), "wallet to load")
 #ifdef IS_TEST_NET
-         ("chain-id", bpo::value< std::string >()->implicit_value( STEEM_CHAIN_ID_NAME ), "chain ID to connect to")
+         ("chain-id", bpo::value< std::string >()->implicit_value( sophiatx::egenesis::get_egenesis_chain_id() ), "chain ID to connect to")
 #endif
          ;
       vector<string> allowed_ips;
@@ -100,12 +103,10 @@ int main( int argc, char** argv )
          wdump((allowed_ips));
       }
 
-      steem::protocol::chain_id_type _steem_chain_id;
+      sophiatx::protocol::chain_id_type _sophiatx_chain_id;
 
-#ifdef IS_TEST_NET
       if( options.count("chain-id") )
-            _steem_chain_id = generate_chain_id( options["chain-id"].as< std::string >() );
-#endif
+            _sophiatx_chain_id = generate_chain_id( options["chain-id"].as< std::string >() );
 
       fc::path data_dir;
       fc::logging_config cfg;
@@ -157,9 +158,9 @@ int main( int argc, char** argv )
       auto con  = client.connect( wdata.ws_server );
       auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
 
-      auto remote_api = apic->get_remote_api< steem::wallet::remote_node_api >( 0, "condenser_api" );
+      auto remote_api = apic->get_remote_api< sophiatx::wallet::remote_node_api >( 0, "condenser_api" );
 
-      auto wapiptr = std::make_shared<wallet_api>( wdata, _steem_chain_id, remote_api );
+      auto wapiptr = std::make_shared<wallet_api>( wdata, _sophiatx_chain_id, remote_api );
       wapiptr->set_wallet_filename( wallet_file.generic_string() );
       wapiptr->load_wallet_file();
 
@@ -235,7 +236,7 @@ int main( int argc, char** argv )
             [&]( const fc::http::request& req, const fc::http::server::response& resp )
             {
                auto itr = allowed_ip_set.find( fc::ip::endpoint::from_string(req.remote_endpoint).get_address() );
-               if( itr == allowed_ip_set.end() ) {
+               if( allowed_ip_set.size() && itr == allowed_ip_set.end() ) {
                   elog("rejected connection from ${ip} because it isn't in allowed set ${s}", ("ip",req.remote_endpoint)("s",allowed_ip_set) );
                   resp.set_status( fc::http::reply::NotAuthorized );
                   return;

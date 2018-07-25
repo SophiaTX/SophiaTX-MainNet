@@ -1,13 +1,13 @@
-#include <steem/plugins/account_history/account_history_plugin.hpp>
+#include <sophiatx/plugins/account_history/account_history_plugin.hpp>
 
-#include <steem/chain/util/impacted.hpp>
+#include <sophiatx/chain/util/impacted.hpp>
 
-#include <steem/protocol/config.hpp>
+#include <sophiatx/protocol/config.hpp>
 
-#include <steem/chain/operation_notification.hpp>
-#include <steem/chain/history_object.hpp>
+#include <sophiatx/chain/operation_notification.hpp>
+#include <sophiatx/chain/history_object.hpp>
 
-#include <steem/utilities/plugin_utilities.hpp>
+#include <sophiatx/utilities/plugin_utilities.hpp>
 
 #include <fc/io/json.hpp>
 #include <fc/smart_ref_impl.hpp>
@@ -15,11 +15,11 @@
 #include <boost/algorithm/string.hpp>
 
 
-#define STEEM_NAMESPACE_PREFIX "steem::protocol::"
+#define SOPHIATX_NAMESPACE_PREFIX "sophiatx::protocol::"
 
-namespace steem { namespace plugins { namespace account_history {
+namespace sophiatx { namespace plugins { namespace account_history {
 
-using namespace steem::protocol;
+using namespace sophiatx::protocol;
 
 using chain::database;
 using chain::operation_notification;
@@ -31,7 +31,7 @@ class account_history_plugin_impl
 {
    public:
       account_history_plugin_impl() :
-         _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ) {}
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       virtual ~account_history_plugin_impl() {}
 
@@ -73,6 +73,8 @@ struct operation_visitor
             obj.op_in_trx    = _note.op_in_trx;
             obj.virtual_op   = _note.virtual_op;
             obj.timestamp    = _db.head_block_time();
+
+            obj.fee_payer = _note.fee_payer;
             //fc::raw::pack( obj.serialized_op , _note.op);  //call to 'pack' is ambiguous
             auto size = fc::raw::pack_size( _note.op );
             obj.serialized_op.resize( size );
@@ -152,6 +154,7 @@ void account_history_plugin_impl::on_operation( const operation_notification& no
 
    const operation_object* new_obj = nullptr;
    app::operation_get_impacted_accounts( note.op, impacted );
+   impacted.insert(note.fee_payer);
 
    for( const auto& item : impacted ) {
       auto itr = _tracked_accounts.lower_bound( item );
@@ -223,12 +226,12 @@ void account_history_plugin::plugin_initialize( const boost::program_options::va
    my->pre_apply_connection = my->_db.pre_apply_operation.connect( 0, [&]( const operation_notification& note ){ my->on_operation(note); } );
 
    typedef pair< account_name_type, account_name_type > pairstring;
-   STEEM_LOAD_VALUE_SET(options, "account-history-track-account-range", my->_tracked_accounts, pairstring);
+   SOPHIATX_LOAD_VALUE_SET(options, "account-history-track-account-range", my->_tracked_accounts, pairstring);
 
    if( options.count( "track-account-range" ) )
    {
       wlog( "track-account-range is deprecated in favor of account-history-track-account-range" );
-      STEEM_LOAD_VALUE_SET( options, "track-account-range", my->_tracked_accounts, pairstring );
+      SOPHIATX_LOAD_VALUE_SET( options, "track-account-range", my->_tracked_accounts, pairstring );
    }
 
 
@@ -247,7 +250,7 @@ void account_history_plugin::plugin_initialize( const boost::program_options::va
             for( const string& op : ops )
             {
                if( op.size() )
-                  my->_op_list.insert( STEEM_NAMESPACE_PREFIX + op );
+                  my->_op_list.insert( SOPHIATX_NAMESPACE_PREFIX + op );
             }
          }
       }
@@ -264,7 +267,7 @@ void account_history_plugin::plugin_initialize( const boost::program_options::va
             for( const string& op : ops )
             {
                if( op.size() )
-                  my->_op_list.insert( STEEM_NAMESPACE_PREFIX + op );
+                  my->_op_list.insert( SOPHIATX_NAMESPACE_PREFIX + op );
             }
          }
       }
@@ -286,7 +289,7 @@ void account_history_plugin::plugin_initialize( const boost::program_options::va
             for( const string& op : ops )
             {
                if( op.size() )
-                  my->_op_list.insert( STEEM_NAMESPACE_PREFIX + op );
+                  my->_op_list.insert( SOPHIATX_NAMESPACE_PREFIX + op );
             }
          }
       }
@@ -303,7 +306,7 @@ void account_history_plugin::plugin_initialize( const boost::program_options::va
             for( const string& op : ops )
             {
                if( op.size() )
-                  my->_op_list.insert( STEEM_NAMESPACE_PREFIX + op );
+                  my->_op_list.insert( SOPHIATX_NAMESPACE_PREFIX + op );
             }
          }
       }
@@ -329,4 +332,4 @@ flat_map< account_name_type, account_name_type > account_history_plugin::tracked
    return my->_tracked_accounts;
 }
 
-} } } // steem::plugins::account_history
+} } } // sophiatx::plugins::account_history

@@ -1,10 +1,10 @@
 #include <boost/test/unit_test.hpp>
 
-#include <steem/protocol/exceptions.hpp>
-#include <steem/protocol/hardfork.hpp>
+#include <sophiatx/protocol/exceptions.hpp>
+#include <sophiatx/protocol/hardfork.hpp>
 
-#include <steem/chain/database.hpp>
-#include <steem/chain/steem_objects.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/sophiatx_objects.hpp>
 
 #include <fc/crypto/digest.hpp>
 
@@ -12,11 +12,11 @@
 
 #include <iostream>
 
-using namespace steem;
-using namespace steem::chain;
-using namespace steem::protocol;
+using namespace sophiatx;
+using namespace sophiatx::chain;
+using namespace sophiatx::protocol;
 
-#ifndef IS_TEST_NET
+#ifdef IS_TEST_NET
 
 BOOST_FIXTURE_TEST_SUITE( live_tests, live_database_fixture )
 
@@ -43,12 +43,11 @@ BOOST_AUTO_TEST_CASE( vests_stock_split )
          acnt_itr++;
       }
 
-      auto old_virtual_supply = db->get_dynamic_global_properties().virtual_supply;
       auto old_current_supply = db->get_dynamic_global_properties().current_supply;
-      auto old_vesting_fund = db->get_dynamic_global_properties().total_vesting_fund_steem;
+      auto old_vesting_fund = db->get_dynamic_global_properties().total_vesting_fund_sophiatx;
       auto old_vesting_shares = db->get_dynamic_global_properties().total_vesting_shares;
       auto old_rshares2 = db->get_dynamic_global_properties().total_reward_shares2;
-      auto old_reward_fund = db->get_dynamic_global_properties().total_reward_fund_steem;
+      auto old_reward_fund = db->get_dynamic_global_properties().total_reward_fund_sophiatx;
 
       flat_map< std::tuple< account_name_type, string >, share_type > comment_net_rshares;
       flat_map< std::tuple< account_name_type, string >, share_type > comment_abs_rshares;
@@ -73,7 +72,7 @@ BOOST_AUTO_TEST_CASE( vests_stock_split )
          {
             total_rshares2 += com_itr->net_rshares.value > 0 ? fc::uint128_t( com_itr->net_rshares.value ) * com_itr->net_rshares.value * magnitude * magnitude : 0;
             u256 rs( com_itr->net_rshares.value );
-            u256 rf( gpo.total_reward_fund_steem.amount.value );
+            u256 rf( gpo.total_reward_fund_sophiatx.amount.value );
             auto rs2 = rs * rs;
             u256 rshares2 = old_rshares2.hi;
             rshares2 = rshares2 << 64;
@@ -102,11 +101,10 @@ BOOST_AUTO_TEST_CASE( vests_stock_split )
       BOOST_TEST_MESSAGE( "Verify split took place correctly" );
 
       BOOST_REQUIRE( db->get_dynamic_global_properties().current_supply == old_current_supply );
-      BOOST_REQUIRE( db->get_dynamic_global_properties().virtual_supply == old_virtual_supply );
-      BOOST_REQUIRE( db->get_dynamic_global_properties().total_vesting_fund_steem == old_vesting_fund );
+      BOOST_REQUIRE( db->get_dynamic_global_properties().total_vesting_fund_sophiatx == old_vesting_fund );
       BOOST_REQUIRE( db->get_dynamic_global_properties().total_vesting_shares.amount == old_vesting_shares.amount * magnitude );
       BOOST_REQUIRE( db->get_dynamic_global_properties().total_reward_shares2 == total_rshares2 );
-      BOOST_REQUIRE( db->get_dynamic_global_properties().total_reward_fund_steem == old_reward_fund );
+      BOOST_REQUIRE( db->get_dynamic_global_properties().total_reward_fund_sophiatx == old_reward_fund );
 
       BOOST_TEST_MESSAGE( "Check accounts were updated" );
       acnt_itr = acnt_idx.begin();
@@ -129,7 +127,7 @@ BOOST_AUTO_TEST_CASE( vests_stock_split )
          if( com_itr->net_rshares.value > 0 )
          {
             u256 rs( com_itr->net_rshares.value );
-            u256 rf( gpo.total_reward_fund_steem.amount.value );
+            u256 rf( gpo.total_reward_fund_sophiatx.amount.value );
             u256 rshares2 = total_rshares2.hi;
             rshares2 = ( rshares2 << 64 ) + total_rshares2.lo;
             auto rs2 = rs * rs;

@@ -1,12 +1,12 @@
-#include <steem/plugins/network_broadcast_api/network_broadcast_api.hpp>
-#include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 
 #include <appbase/application.hpp>
 
 #include <boost/thread/future.hpp>
 #include <boost/thread/lock_guard.hpp>
 
-namespace steem { namespace plugins { namespace network_broadcast_api {
+namespace sophiatx { namespace plugins { namespace network_broadcast_api {
 
 namespace detail
 {
@@ -14,8 +14,8 @@ namespace detail
    {
       public:
          network_broadcast_api_impl() :
-            _p2p( appbase::app().get_plugin< steem::plugins::p2p::p2p_plugin >() ),
-            _chain( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >() )
+            _p2p( appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >() ),
+            _chain( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >() )
          {
             _on_applied_block_connection = _chain.db().applied_block.connect(
                0, [&]( const signed_block& b ){ on_applied_block( b ); } );
@@ -31,8 +31,8 @@ namespace detail
 
          void on_applied_block( const signed_block& b );
 
-         steem::plugins::p2p::p2p_plugin&                      _p2p;
-         steem::plugins::chain::chain_plugin&                  _chain;
+         sophiatx::plugins::p2p::p2p_plugin&                      _p2p;
+         sophiatx::plugins::chain::chain_plugin&                  _chain;
          map< transaction_id_type, confirmation_callback >     _callbacks;
          map< time_point_sec, vector< transaction_id_type > >  _callback_expirations;
          boost::signals2::connection                           _on_applied_block_connection;
@@ -174,7 +174,7 @@ namespace detail
 
 network_broadcast_api::network_broadcast_api() : my( new detail::network_broadcast_api_impl() )
 {
-   JSON_RPC_REGISTER_API( STEEM_NETWORK_BROADCAST_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_NETWORK_BROADCAST_API_PLUGIN_NAME );
 }
 
 network_broadcast_api::~network_broadcast_api() {}
@@ -185,4 +185,4 @@ DEFINE_LOCKLESS_APIS( network_broadcast_api,
    (broadcast_block)
 )
 
-} } } // steem::plugins::network_broadcast_api
+} } } // sophiatx::plugins::network_broadcast_api

@@ -1,6 +1,6 @@
-#include <steem/plugins/webserver/webserver_plugin.hpp>
+#include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
-#include <steem/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/log/logger_config.hpp>
@@ -18,13 +18,12 @@
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
-#include <websocketpp/logger/syslog.hpp>
 
 #include <thread>
 #include <memory>
 #include <iostream>
 
-namespace steem { namespace plugins { namespace webserver {
+namespace sophiatx { namespace plugins { namespace webserver {
 
 namespace asio = boost::asio;
 
@@ -328,8 +327,8 @@ void webserver_plugin::set_program_options( options_description&, options_descri
       ("webserver-http-endpoint", bpo::value< string >(), "Local http endpoint for webserver requests.")
       ("webserver-ws-endpoint", bpo::value< string >(), "Local websocket endpoint for webserver requests.")
       ("rpc-endpoint", bpo::value< string >(), "Local http and websocket endpoint for webserver requests. Deprecated in favor of webserver-http-endpoint and webserver-ws-endpoint" )
-      ("webserver-thread-pool-size", bpo::value<thread_pool_size_t>()->default_value(32),
-       "Number of threads used to handle queries. Default: 32.")
+      ("webserver-thread-pool-size", bpo::value<thread_pool_size_t>()->default_value(16),
+       "Number of threads used to handle queries. Default: 16.")
       ;
 }
 
@@ -357,6 +356,8 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
       my->ws_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
       ilog( "configured ws to listen on ${ep}", ("ep", endpoints[0]) );
    }
+
+   ilog("still parsing stuff... ");
 
    if( options.count( "rpc-endpoint" ) )
    {
@@ -405,4 +406,4 @@ void webserver_plugin::plugin_shutdown()
    my->stop_webserver();
 }
 
-} } } // steem::plugins::webserver
+} } } // sophiatx::plugins::webserver

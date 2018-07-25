@@ -1,13 +1,25 @@
-# Defines Steem library target.
-project( Steem )
+# Defines SophiaTX library target.
+project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
 
-set( BLOCKCHAIN_NAME "Steem" )
+set( BLOCKCHAIN_NAME "SophiaTX" )
 set( CMAKE_CXX_STANDARD 14 )
 
-set( GUI_CLIENT_EXECUTABLE_NAME Steem )
+set( GUI_CLIENT_EXECUTABLE_NAME SophiaTX )
 set( CUSTOM_URL_SCHEME "gcs" )
 set( INSTALLER_APP_ID "68ad7005-8eee-49c9-95ce-9eed97e5b347" )
+
+
+OPTION( BUILD_PIC "Build with -fPIC flag (ON OR OFF)" ON)
+if(BUILD_PIC)
+    MESSAGE(STATUS "Building with -fPIC flag")
+else(BUILD_PIC)
+    MESSAGE(STATUS "Skipping libalexandria build, enable with -DBUILD_PIC flag")
+endif(BUILD_PIC)
+
+if(WIN32)
+  cmake_policy(SET CMP0054 OLD)
+endif(WIN32)
 
 # http://stackoverflow.com/a/18369825
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -51,24 +63,14 @@ LIST(APPEND BOOST_COMPONENTS thread
                              coroutine)
 SET( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
 
-OPTION( BUILD_STEEM_TESTNET "Build source for test network (ON OR OFF)" OFF )
-MESSAGE( STATUS "BUILD_STEEM_TESTNET: ${BUILD_STEEM_TESTNET}" )
-if( BUILD_STEEM_TESTNET  )
+OPTION( BUILD_SOPHIATX_TESTNET "Build source for test network (ON OR OFF)" OFF )
+MESSAGE( STATUS "BUILD_SOPHIATX_TESTNET: ${BUILD_SOPHIATX_TESTNET}" )
+if( BUILD_SOPHIATX_TESTNET  )
   MESSAGE( STATUS "     " )
   MESSAGE( STATUS "             CONFIGURING FOR TEST NET             " )
   MESSAGE( STATUS "     " )
   SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIS_TEST_NET" )
   SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DIS_TEST_NET" )
-endif()
-
-OPTION( ENABLE_SMT_SUPPORT "Build source with SMT support (ON OR OFF)" OFF )
-MESSAGE( STATUS "ENABLE_SMT_SUPPORT: ${ENABLE_SMT_SUPPORT}" )
-if( ENABLE_SMT_SUPPORT  )
-  MESSAGE( STATUS "     " )
-  MESSAGE( STATUS "             CONFIGURING FOR SMT SUPPORT             " )
-  MESSAGE( STATUS "     " )
-  SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTEEM_ENABLE_SMT" )
-  SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSTEEM_ENABLE_SMT" )
 endif()
 
 OPTION( LOW_MEMORY_NODE "Build source for low memory node (ON OR OFF)" OFF )
@@ -102,14 +104,28 @@ if( SKIP_BY_TX_ID )
    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSKIP_BY_TX_ID" )
 endif()
 
-OPTION( STEEM_STATIC_BUILD "Build steemd as a static library (ON or OFF)" OFF )
-if( STEEM_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
+OPTION( SOPHIATX_STATIC_BUILD "Build sophiatxd as a static library (ON or OFF)" OFF )
+if( SOPHIATX_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
    MESSAGE( STATUS "Statuc build is not available on Windows or OS X" )
-   SET( STEEM_STATIC_BUILD OFF )
+   SET( SOPHIATX_STATIC_BUILD OFF )
 endif()
-MESSAGE( STATUS "STEEM_STATIC_BUILD: ${STEEM_STATIC_BUILD}" )
+MESSAGE( STATUS "SOPHIATX_STATIC_BUILD: ${SOPHIATX_STATIC_BUILD}" )
 
-SET( STEEM_LINT_LEVEL "OFF" CACHE STRING "Lint level during steem build (FULL, HIGH, LOW, OFF)" )
+OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
+if(PRIVATE_NET)
+    MESSAGE(STATUS "Building as private net")
+    ADD_DEFINITIONS("-DPRIVATE_NET")
+else(PRIVATE_NET)
+    MESSAGE(STATUS "Building as public net")
+endif(PRIVATE_NET)
+
+OPTION(ABAP_INTERFACE "Build without map obejcts on the interface (ON OR OFF)" OFF )
+if(ABAP_INTERFACE)
+    MESSAGE(STATUS "Building with ABAP compliant Alexandria interface")
+    ADD_DEFINITIONS("-DABAP_INTERFACE")
+endif(ABAP_INTERFACE)
+
+SET( SOPHIATX_LINT_LEVEL "OFF" CACHE STRING "Lint level during sophiatx build (FULL, HIGH, LOW, OFF)" )
 find_program(
    CLANG_TIDY_EXE
    NAMES "clang-tidy"
@@ -122,13 +138,13 @@ elseif( VERSION LESS 3.6 )
    messgae( STATUS "clang-tidy found but only supported with CMake version >= 3.6" )
 else()
    message( STATUS "clany-tidy found: ${CLANG_TIDY_EXE}" )
-   if( "${STEEM_LINT_LEVEL}" STREQUAL "FULL" )
+   if( "${SOPHIATX_LINT_LEVEL}" STREQUAL "FULL" )
       message( STATUS "Linting level set to: FULL" )
       set( DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='*'" )
-   elseif( "${STEEM_LINT_LEVEL}" STREQUAL "HIGH" )
+   elseif( "${SOPHIATX_LINT_LEVEL}" STREQUAL "HIGH" )
       message( STATUS "Linting level set to: HIGH" )
       set( DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='boost-use-to-string,clang-analyzer-*,cppcoreguidelines-*,llvm-*,misc-*,performance-*,readability-*'" )
-   elseif( "${STEEM_LINT_LEVEL}" STREQUAL "LOW" )
+   elseif( "${SOPHIATX_LINT_LEVEL}" STREQUAL "LOW" )
       message( STATUS "Linting level set to: LOW" )
       set( DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks='clang-analyzer-*'" )
    else()
@@ -143,11 +159,20 @@ IF( WIN32 )
   set(BOOST_ALL_DYN_LINK OFF) # force dynamic linking for all libraries
 ENDIF(WIN32)
 
-FIND_PACKAGE(Boost 1.58 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+
+FIND_PACKAGE(Boost 1.60 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+
+find_package(JNI)
+if(JNI_FOUND AND (NOT ABAP_INTERFACE))
+    MESSAGE(STATUS "JNI found, building libalexandriaJNI")
+else(JNI_FOUND)
+    MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
+endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
+
 
 if( WIN32 )
 
-   message( STATUS "Configuring Steem on WIN32")
+   message( STATUS "Configuring SophiaTX on WIN32")
    set( DB_VERSION 60 )
    set( BDB_STATIC_LIBS 1 )
 
@@ -157,7 +182,8 @@ if( WIN32 )
    set(CRYPTO_LIB)
 
    if( MSVC )
-      add_compile_options(/wd4503 /wd4267 /wd4244)
+      # Activate C++ exception handling, assume extern C calls don't throw (EHsc)
+      add_compile_options(/wd4503 /wd4267 /wd4244 /EHsc)
       #looks like this flag can have different default on some machines.
       SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
       SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
@@ -179,7 +205,9 @@ if( WIN32 )
 
       SET(TCL_LIBS "${TCL_LIBS}${TCL_LIB_PATH}/${TCL_LIB_NAME}g${TCL_LIB_EXT}")
       SET(TCL_LIBRARY ${TCL_LIBS})
-
+      # Needed to disable MSVC autolinking feature (#pragma comment)
+      ADD_DEFINITIONS("-DBOOST_ALL_NO_LIB")
+      
    elseif( MINGW )
       SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive -msse4.2 -Wa,-mbig-obj")
       SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -201,11 +229,11 @@ else( WIN32 ) # Apple AND Linux
 
     if( APPLE )
         # Apple Specific Options Here
-        message( STATUS "Configuring Steem on OS X" )
+        message( STATUS "Configuring SophiaTX on OS X" )
         set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -stdlib=libc++ -Wall -Wno-conversion -Wno-deprecated-declarations" )
     else( APPLE )
         # Linux Specific Options Here
-        message( STATUS "Configuring Steem on Linux" )
+        message( STATUS "Configuring SophiaTX on Linux" )
         set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -Wall" )
         set( rt_library rt )
         set( pthread_library pthread)
@@ -218,6 +246,10 @@ else( WIN32 ) # Apple AND Linux
           set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
         endif ( FULL_STATIC_BUILD )
     endif( APPLE )
+
+    if(BUILD_PIC)
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+    endif(BUILD_PIC)
 
     if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
         set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin-memcmp" )
@@ -237,17 +269,17 @@ else( WIN32 ) # Apple AND Linux
 
 endif( WIN32 )
 
-set(ENABLE_COVERAGE_TESTING FALSE CACHE BOOL "Build Steem for code coverage analysis")
+set(ENABLE_COVERAGE_TESTING FALSE CACHE BOOL "Build SophiaTX for code coverage analysis")
 
 if(ENABLE_COVERAGE_TESTING)
     SET(CMAKE_CXX_FLAGS "--coverage ${CMAKE_CXX_FLAGS}")
 endif()
 
 # fc/src/compress/miniz.c breaks strict aliasing. The Linux kernel builds with no strict aliasing
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing -Werror -DBOOST_THREAD_DONT_PROVIDE_PROMISE_LAZY" )
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing -Werror -DBOOST_THREAD_DONT_PROVIDE_PROMISE_LAZY" )
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing -DBOOST_THREAD_DONT_PROVIDE_PROMISE_LAZY" )
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing -DBOOST_THREAD_DONT_PROVIDE_PROMISE_LAZY" )
 
-# external_plugins needs to be compiled first because libraries/app depends on STEEM_EXTERNAL_PLUGINS being fully populated
+# external_plugins needs to be compiled first because libraries/app depends on SOPHIATX_EXTERNAL_PLUGINS being fully populated
 add_subdirectory( external_plugins )
 add_subdirectory( libraries )
 add_subdirectory( programs )
@@ -256,8 +288,8 @@ add_subdirectory( tests )
 
 if (ENABLE_INSTALLER)
 
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 1)
+set(VERSION_MAJOR 1)
+set(VERSION_MINOR 0)
 set(VERSION_PATCH 0)
 
 
@@ -267,24 +299,24 @@ set(CPACK_OUTPUT_FILE_PREFIX ${CMAKE_BINARY_DIR}/packages)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 
 SET(CPACK_PACKAGE_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
-set(CPACK_PACKAGE_NAME "steem")
-set(CPACK_PACKAGE_VENDOR "Steemit, Inc.")
+set(CPACK_PACKAGE_NAME "sophiatx")
+set(CPACK_PACKAGE_VENDOR "Equidato Technologies")
 set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
 set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-set(CPACK_PACKAGE_DESCRIPTION "A client for the Steem network")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A client for the Steem network")
+set(CPACK_PACKAGE_DESCRIPTION "A client for the SophiaTX network")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A client for the SophiaTX network")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "Steem ${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "SophiaTX ${CPACK_PACKAGE_VERSION}")
 
 if(WIN32)
  SET(CPACK_GENERATOR "ZIP;NSIS")
- set(CPACK_PACKAGE_NAME "Steem") # override above
+ set(CPACK_PACKAGE_NAME "SophiaTX") # override above
  set(CPACK_NSIS_EXECUTABLES_DIRECTORY .)
- set(CPACK_NSIS_PACKAGE_NAME "Steem v${CPACK_PACKAGE_VERSION}")
+ set(CPACK_NSIS_PACKAGE_NAME "SophiaTX v${CPACK_PACKAGE_VERSION}")
  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_NSIS_PACKAGE_NAME}")
- set(CPACK_NSIS_DEFINES "  !define MUI_STARTMENUPAGE_DEFAULTFOLDER \\\"Steem\\\"")
+ set(CPACK_NSIS_DEFINES "  !define MUI_STARTMENUPAGE_DEFAULTFOLDER \\\"SophiaTX\\\"")
  # it seems like windows zip files usually don't have a single directory inside them, unix tgz frequently do
  SET(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0)
 
@@ -303,16 +335,10 @@ endif(LINUX)
  include(CPack)
 endif(ENABLE_INSTALLER)
 
-if( BUILD_STEEM_TESTNET )
+if( BUILD_SOPHIATX_TESTNET )
   MESSAGE( STATUS "\n\n             CONFIGURED FOR TEST NETWORK             \n\n" )
 else()
-  MESSAGE( STATUS "\n\n             CONFIGURED FOR STEEM NETWORK             \n\n" )
-endif()
-
-if( ENABLE_SMT_SUPPORT )
-MESSAGE( STATUS "\n\n             CONFIGURED FOR SMT SUPPORT             \n\n" )
-else()
-MESSAGE( STATUS "\n\n             CONFIGURED FOR NO SUPPORT OF SMT             \n\n" )
+  MESSAGE( STATUS "\n\n             CONFIGURED FOR SOPHIATX NETWORK             \n\n" )
 endif()
 
 if( LOW_MEMORY_NODE )

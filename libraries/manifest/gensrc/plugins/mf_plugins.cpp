@@ -1,110 +1,90 @@
 #include <appbase/application.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 
-#include <steem/manifest/plugins.hpp>
+#include <sophiatx/manifest/plugins.hpp>
 
 
-#include <steem/plugins/smt_test/smt_test_plugin.hpp>
+#include <sophiatx/plugins/smt_test/smt_test_plugin.hpp>
 
-#include <steem/plugins/witness/witness_plugin.hpp>
+#include <sophiatx/plugins/witness/witness_plugin.hpp>
 
-#include <steem/plugins/follow_api/follow_api_plugin.hpp>
+#include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
 
-#include <steem/plugins/account_history_api/account_history_api_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
-#include <steem/plugins/witness_api/witness_api_plugin.hpp>
+#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
 
-#include <steem/plugins/market_history_api/market_history_api_plugin.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 
-#include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
+#include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
-#include <steem/plugins/database_api/database_api_plugin.hpp>
+#include <sophiatx/plugins/chain_api/chain_api_plugin.hpp>
 
-#include <steem/plugins/chain_api/chain_api_plugin.hpp>
+#include <sophiatx/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
 
-#include <steem/plugins/tags_api/tags_api_plugin.hpp>
+#include <sophiatx/plugins/block_api/block_api_plugin.hpp>
 
-#include <steem/plugins/account_by_key_api/account_by_key_api_plugin.hpp>
+#include <sophiatx/plugins/debug_node_api/debug_node_api_plugin.hpp>
 
-#include <steem/plugins/block_api/block_api_plugin.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
 
-#include <steem/plugins/debug_node_api/debug_node_api_plugin.hpp>
+#include <sophiatx/plugins/account_history/account_history_plugin.hpp>
 
-#include <steem/plugins/condenser_api/condenser_api_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
 
-#include <steem/plugins/account_history/account_history_plugin.hpp>
+#include <sophiatx/plugins/debug_node/debug_node_plugin.hpp>
 
-#include <steem/plugins/follow/follow_plugin.hpp>
+#include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
-#include <steem/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/p2p/p2p_plugin.hpp>
 
-#include <steem/plugins/debug_node/debug_node_plugin.hpp>
+#include <sophiatx/plugins/block_log_info/block_log_info_plugin.hpp>
 
-#include <steem/plugins/tags/tags_plugin.hpp>
-
-#include <steem/plugins/webserver/webserver_plugin.hpp>
-
-#include <steem/plugins/p2p/p2p_plugin.hpp>
-
-#include <steem/plugins/block_log_info/block_log_info_plugin.hpp>
-
-#include <steem/plugins/account_by_key/account_by_key_plugin.hpp>
-
-#include <steem/plugins/market_history/market_history_plugin.hpp>
+#include <sophiatx/plugins/account_by_key/account_by_key_plugin.hpp>
 
 
-namespace steem { namespace plugins {
+namespace sophiatx { namespace plugins {
 
 void register_plugins()
 {
    
-   appbase::app().register_plugin< steem::plugins::smt_test::smt_test_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::smt_test::smt_test_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::witness::witness_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::follow::follow_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::account_history::account_history_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::custom::custom_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::witness::witness_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::witness::witness_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::market_history::market_history_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::network_broadcast_api::network_broadcast_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::network_broadcast_api::network_broadcast_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::database_api::database_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::chain::chain_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::chain::chain_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::account_by_key::account_by_key_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::tags::tags_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::account_by_key::account_by_key_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::block_api::block_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::debug_node::debug_node_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::condenser_api::condenser_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::chain::chain_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::account_history::account_history_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::follow::follow_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::webserver::webserver_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::chain::chain_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::p2p::p2p_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::debug_node::debug_node_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::block_log_info::block_log_info_plugin >();
    
-   appbase::app().register_plugin< steem::plugins::tags::tags_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::webserver::webserver_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::p2p::p2p_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::block_log_info::block_log_info_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::account_by_key::account_by_key_plugin >();
-   
-   appbase::app().register_plugin< steem::plugins::market_history::market_history_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::account_by_key::account_by_key_plugin >();
    
 }
 

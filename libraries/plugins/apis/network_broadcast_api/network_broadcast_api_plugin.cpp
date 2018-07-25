@@ -1,7 +1,7 @@
-#include <steem/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
-#include <steem/plugins/network_broadcast_api/network_broadcast_api.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api.hpp>
 
-namespace steem { namespace plugins { namespace network_broadcast_api {
+namespace sophiatx { namespace plugins { namespace network_broadcast_api {
 
 network_broadcast_api_plugin::network_broadcast_api_plugin() {}
 network_broadcast_api_plugin::~network_broadcast_api_plugin() {}
@@ -16,4 +16,4 @@ void network_broadcast_api_plugin::plugin_initialize( const variables_map& optio
 void network_broadcast_api_plugin::plugin_startup() {}
 void network_broadcast_api_plugin::plugin_shutdown() {}
 
-} } } // steem::plugins::test_api
+} } } // sophiatx::plugins::test_api

@@ -976,6 +976,14 @@ namespace chainbase {
              return get_mutable_index<index_type>().emplace( std::forward<Constructor>(con) );
          }
 
+
+         template< typename ObjectType >
+         size_t count()const
+         {
+            typedef typename get_index_type<ObjectType>::type index_type;
+            return get_index< index_type >().indices().size();
+         }
+
          template< typename Lambda >
          auto with_read_lock( Lambda&& callback, uint64_t wait_micro = 1000000 ) -> decltype( (*(Lambda*)nullptr)() )
          {
@@ -1016,7 +1024,7 @@ namespace chainbase {
                while( !lock.timed_lock( boost::posix_time::microsec_clock::universal_time() + boost::posix_time::microseconds( wait_micro ) ) )
                {
                   _rw_manager.next_lock();
-                  std::cerr << "Lock timeout, moving to lock " << _rw_manager.current_lock_num() << std::endl;
+//                  std::cerr << "Lock timeout, moving to lock " << _rw_manager.current_lock_num() << std::endl;
                   lock = write_lock( _rw_manager.current_lock(), boost::defer_lock_t() );
                }
             }

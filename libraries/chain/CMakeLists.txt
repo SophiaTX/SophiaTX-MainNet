@@ -1,34 +1,37 @@
-file(GLOB HEADERS "include/steem/chain/*.hpp" "include/steem/chain/util/*.hpp")
+file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp")
 
 ## SORT .cpp by most likely to change / break compile
-add_library( steem_chain
+add_library( sophiatx_chain
 
              # As database takes the longest to compile, start it first
              database.cpp
 
              smt_evaluator.cpp
-             steem_evaluator.cpp
-             steem_objects.cpp
+             sophiatx_evaluator.cpp
+             sophiatx_objects.cpp
 
              witness_schedule.cpp
              fork_database.cpp
 
              shared_authority.cpp
              block_log.cpp
+             economics.cpp
 
-             util/reward.cpp
-             util/impacted.cpp
+        util/impacted.cpp
 
              ${HEADERS}
-           )
+       )
 
-target_link_libraries( steem_chain steem_protocol fc chainbase steem_schema ${PATCH_MERGE_LIB} )
-target_include_directories( steem_chain
+target_link_libraries( sophiatx_chain sophiatx_protocol fc chainbase sophiatx_schema ${PATCH_MERGE_LIB} )
+target_include_directories( sophiatx_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
+if (USE_PCH)
+    cotire(sophiatx_chain)
+endif(USE_PCH)
 
 if( CLANG_TIDY_EXE )
    set_target_properties(
-      steem_chain PROPERTIES
+      sophiatx_chain PROPERTIES
       CXX_CLANG_TIDY "${DO_CLANG_TIDY}"
    )
 endif( CLANG_TIDY_EXE )
@@ -38,10 +41,10 @@ if(MSVC)
 endif(MSVC)
 
 INSTALL( TARGETS
-   steem_chain
+   sophiatx_chain
 
    RUNTIME DESTINATION bin
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
-INSTALL( FILES ${HEADERS} DESTINATION "include/steem/chain" )
+INSTALL( FILES ${HEADERS} DESTINATION "include/sophiatx/chain" )

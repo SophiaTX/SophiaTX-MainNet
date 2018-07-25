@@ -1,10 +1,10 @@
-file(GLOB HEADERS "include/steem/plugins/block_log_info/*.hpp")
+file(GLOB HEADERS "include/sophiatx/plugins/block_log_info/*.hpp")
 
 add_library( block_log_info_plugin
              block_log_info_plugin.cpp
            )
 
-target_link_libraries( block_log_info_plugin chain_plugin steem_chain steem_protocol )
+target_link_libraries( block_log_info_plugin chain_plugin sophiatx_chain sophiatx_protocol )
 target_include_directories( block_log_info_plugin
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 

@@ -1,14 +1,13 @@
-#include <steem/plugins/witness/witness_plugin.hpp>
-#include <steem/plugins/witness/witness_objects.hpp>
+#include <sophiatx/plugins/witness/witness_plugin.hpp>
+#include <sophiatx/plugins/witness/witness_objects.hpp>
 
-#include <steem/chain/database_exceptions.hpp>
-#include <steem/chain/account_object.hpp>
-#include <steem/chain/comment_object.hpp>
-#include <steem/chain/witness_objects.hpp>
-#include <steem/chain/index.hpp>
+#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/account_object.hpp>
+#include <sophiatx/chain/witness_objects.hpp>
+#include <sophiatx/chain/index.hpp>
 
-#include <steem/utilities/key_conversion.hpp>
-#include <steem/utilities/plugin_utilities.hpp>
+#include <sophiatx/utilities/key_conversion.hpp>
+#include <sophiatx/utilities/plugin_utilities.hpp>
 
 #include <fc/io/json.hpp>
 #include <fc/macros.hpp>
@@ -23,7 +22,7 @@
 #define DISTANCE_CALC_PRECISION (10000)
 
 
-namespace steem { namespace plugins { namespace witness {
+namespace sophiatx { namespace plugins { namespace witness {
 
 using chain::plugin_exception;
 using std::string;
@@ -38,7 +37,7 @@ void new_chain_banner( const chain::database& db )
       "********************************\n"
       "*                              *\n"
       "*   ------- NEW CHAIN ------   *\n"
-      "*   -   Welcome to Steem!  -   *\n"
+      "*   - Welcome to SophiaTX! -   *\n"
       "*   ------------------------   *\n"
       "*                              *\n"
       "********************************\n"
@@ -52,55 +51,32 @@ namespace detail {
    public:
       witness_plugin_impl( boost::asio::io_service& io ) :
          _timer(io),
-         _db( appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db() ) {}
+         _chain_plugin( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
-      void pre_transaction( const steem::protocol::signed_transaction& trx );
+      void pre_transaction( const sophiatx::protocol::signed_transaction& trx );
       void pre_operation( const chain::operation_notification& note );
       void on_block( const signed_block& b );
-
-      void update_account_bandwidth( const chain::account_object& a, uint32_t trx_size, const bandwidth_type type );
 
       void schedule_production_loop();
       block_production_condition::block_production_condition_enum block_production_loop();
       block_production_condition::block_production_condition_enum maybe_produce_block(fc::mutable_variant_object& capture);
 
       bool _production_enabled = false;
-      uint32_t _required_witness_participation = 33 * STEEM_1_PERCENT;
+      uint32_t _required_witness_participation = 33 * SOPHIATX_1_PERCENT;
       uint32_t _production_skip_flags = chain::database::skip_nothing;
 
-      std::map< steem::protocol::public_key_type, fc::ecc::private_key > _private_keys;
-      std::set< steem::protocol::account_name_type >                     _witnesses;
+      std::map< sophiatx::protocol::public_key_type, fc::ecc::private_key > _private_keys;
+      std::set< sophiatx::protocol::account_name_type >                     _witnesses;
       boost::asio::deadline_timer                                          _timer;
 
       chain::database&     _db;
+      plugins::chain::chain_plugin& _chain_plugin;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   applied_block_connection;
       boost::signals2::connection   on_pre_apply_transaction_connection;
    };
 
-   struct comment_options_extension_visitor
-   {
-      comment_options_extension_visitor( const comment_object& c, const database& db ) : _c( c ), _db( db ) {}
-
-      typedef void result_type;
-
-      const comment_object& _c;
-      const database& _db;
-
-#ifdef STEEM_ENABLE_SMT
-      void operator()( const allowed_vote_assets& va) const
-      {
-         FC_TODO("To be implemented  suppport for allowed_vote_assets");
-      }
-#endif
-
-      void operator()( const comment_payout_beneficiaries& cpb )const
-      {
-         STEEM_ASSERT( cpb.beneficiaries.size() <= 8,
-            plugin_exception,
-            "Cannot specify more than 8 beneficiaries." );
-      }
-   };
 
    void check_memo( const string& memo, const chain::account_object& account, const account_authority_object& auth )
    {
@@ -131,27 +107,20 @@ namespace detail {
       for( auto& key_weight_pair : auth.owner.key_auths )
       {
          for( auto& key : keys )
-            STEEM_ASSERT( key_weight_pair.first != key,  plugin_exception,
+            SOPHIATX_ASSERT( key_weight_pair.first != key,  plugin_exception,
                "Detected private owner key in memo field. You should change your owner keys." );
       }
 
       for( auto& key_weight_pair : auth.active.key_auths )
       {
          for( auto& key : keys )
-            STEEM_ASSERT( key_weight_pair.first != key,  plugin_exception,
+            SOPHIATX_ASSERT( key_weight_pair.first != key,  plugin_exception,
                "Detected private active key in memo field. You should change your active keys." );
-      }
-
-      for( auto& key_weight_pair : auth.posting.key_auths )
-      {
-         for( auto& key : keys )
-            STEEM_ASSERT( key_weight_pair.first != key,  plugin_exception,
-               "Detected private posting key in memo field. You should change your posting keys." );
       }
 
       const auto& memo_key = account.memo_key;
       for( auto& key : keys )
-         STEEM_ASSERT( memo_key != key,  plugin_exception,
+         SOPHIATX_ASSERT( memo_key != key,  plugin_exception,
             "Detected private memo key in memo field. You should change your memo key." );
    }
 
@@ -166,31 +135,6 @@ namespace detail {
       template< typename T >
       void operator()( const T& )const {}
 
-      void operator()( const comment_options_operation& o )const
-      {
-         const auto& comment = _db.get_comment( o.author, o.permlink );
-
-         comment_options_extension_visitor v( comment, _db );
-
-         for( auto& e : o.extensions )
-         {
-            e.visit( v );
-         }
-      }
-
-      void operator()( const comment_operation& o )const
-      {
-         if( o.parent_author != STEEM_ROOT_POST_PARENT )
-         {
-            const auto& parent = _db.find_comment( o.parent_author, o.parent_permlink );
-
-            if( parent != nullptr )
-            STEEM_ASSERT( parent->depth < STEEM_SOFT_MAX_COMMENT_DEPTH,
-               plugin_exception,
-               "Comment is nested ${x} posts deep, maximum depth is ${y}.", ("x",parent->depth)("y",STEEM_SOFT_MAX_COMMENT_DEPTH) );
-         }
-      }
-
       void operator()( const transfer_operation& o )const
       {
          if( o.memo.length() > 0 )
@@ -199,45 +143,16 @@ namespace detail {
                         _db.get< account_authority_object, chain::by_account >( o.from ) );
       }
 
-      void operator()( const transfer_to_savings_operation& o )const
-      {
-         if( o.memo.length() > 0 )
-            check_memo( o.memo,
-                        _db.get< chain::account_object, chain::by_name >( o.from ),
-                        _db.get< account_authority_object, chain::by_account >( o.from ) );
-      }
-
-      void operator()( const transfer_from_savings_operation& o )const
-      {
-         if( o.memo.length() > 0 )
-            check_memo( o.memo,
-                        _db.get< chain::account_object, chain::by_name >( o.from ),
-                        _db.get< account_authority_object, chain::by_account >( o.from ) );
-      }
    };
 
-   void witness_plugin_impl::pre_transaction( const steem::protocol::signed_transaction& trx )
+   void witness_plugin_impl::pre_transaction( const sophiatx::protocol::signed_transaction& trx )
    {
       flat_set< account_name_type > required; vector<authority> other;
-      trx.get_required_authorities( required, required, required, other );
+      trx.get_required_authorities( required, required, other );
 
       auto trx_size = fc::raw::pack_size(trx);
 
-      for( const auto& auth : required )
-      {
-         const auto& acnt = _db.get_account( auth );
-
-         update_account_bandwidth( acnt, trx_size, bandwidth_type::forum );
-
-         for( const auto& op : trx.operations )
-         {
-            if( is_market_operation( op ) )
-            {
-               update_account_bandwidth( acnt, trx_size * 10, bandwidth_type::market );
-               break;
-            }
-         }
-      }
+      //TODO_SOPHIA - rework to evaluate if the fee is corresponding to the requirements.
    }
 
    void witness_plugin_impl::pre_operation( const chain::operation_notification& note )
@@ -259,10 +174,10 @@ namespace detail {
          _db.create< reserve_ratio_object >( [&]( reserve_ratio_object& r )
          {
             r.average_block_size = 0;
-            r.current_reserve_ratio = STEEM_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION;
-            r.max_virtual_bandwidth = ( static_cast<uint128_t>( STEEM_MAX_BLOCK_SIZE) * STEEM_MAX_RESERVE_RATIO
-                                       * STEEM_BANDWIDTH_PRECISION * STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS )
-                                       / STEEM_BLOCK_INTERVAL;
+            r.current_reserve_ratio = SOPHIATX_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION;
+            r.max_virtual_bandwidth = ( static_cast<uint128_t>( SOPHIATX_MAX_BLOCK_SIZE) * SOPHIATX_MAX_RESERVE_RATIO
+                                       * SOPHIATX_BANDWIDTH_PRECISION * SOPHIATX_BANDWIDTH_AVERAGE_WINDOW_SECONDS )
+                                       / SOPHIATX_BLOCK_INTERVAL;
          });
       }
       else
@@ -303,8 +218,8 @@ namespace detail {
                   // By default, we should always slowly increase the reserve ratio.
                   r.current_reserve_ratio += std::max( RESERVE_RATIO_MIN_INCREMENT, ( r.current_reserve_ratio * distance ) / ( distance - DISTANCE_CALC_PRECISION ) );
 
-                  if( r.current_reserve_ratio > STEEM_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION )
-                     r.current_reserve_ratio = STEEM_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION;
+                  if( r.current_reserve_ratio > SOPHIATX_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION )
+                     r.current_reserve_ratio = SOPHIATX_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION;
                }
 
                if( old_reserve_ratio != r.current_reserve_ratio )
@@ -316,68 +231,14 @@ namespace detail {
                }
 
                r.max_virtual_bandwidth = ( uint128_t( max_block_size ) * uint128_t( r.current_reserve_ratio )
-                                          * uint128_t( STEEM_BANDWIDTH_PRECISION * STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS ) )
-                                          / ( STEEM_BLOCK_INTERVAL * RESERVE_RATIO_PRECISION );
+                                          * uint128_t( SOPHIATX_BANDWIDTH_PRECISION * SOPHIATX_BANDWIDTH_AVERAGE_WINDOW_SECONDS ) )
+                                          / ( SOPHIATX_BLOCK_INTERVAL * RESERVE_RATIO_PRECISION );
             }
          });
       }
    } FC_LOG_AND_RETHROW() }
    #pragma message( "Remove FC_LOG_AND_RETHROW here before appbase release. It exists to help debug a rare lock exception" )
 
-   void witness_plugin_impl::update_account_bandwidth( const chain::account_object& a, uint32_t trx_size, const bandwidth_type type )
-   {
-      const auto& props = _db.get_dynamic_global_properties();
-      bool has_bandwidth = true;
-
-      if( props.total_vesting_shares.amount > 0 )
-      {
-         auto band = _db.find< account_bandwidth_object, by_account_bandwidth_type >( boost::make_tuple( a.name, type ) );
-
-         if( band == nullptr )
-         {
-            band = &_db.create< account_bandwidth_object >( [&]( account_bandwidth_object& b )
-            {
-               b.account = a.name;
-               b.type = type;
-            });
-         }
-
-         share_type new_bandwidth;
-         share_type trx_bandwidth = trx_size * STEEM_BANDWIDTH_PRECISION;
-         auto delta_time = ( _db.head_block_time() - band->last_bandwidth_update ).to_seconds();
-
-         if( delta_time > STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS )
-            new_bandwidth = 0;
-         else
-            new_bandwidth = ( ( ( STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS - delta_time ) * fc::uint128( band->average_bandwidth.value ) )
-               / STEEM_BANDWIDTH_AVERAGE_WINDOW_SECONDS ).to_uint64();
-
-         new_bandwidth += trx_bandwidth;
-
-         _db.modify( *band, [&]( account_bandwidth_object& b )
-         {
-            b.average_bandwidth = new_bandwidth;
-            b.lifetime_bandwidth += trx_bandwidth;
-            b.last_bandwidth_update = _db.head_block_time();
-         });
-
-         fc::uint128 account_vshares( a.effective_vesting_shares().amount.value );
-         fc::uint128 total_vshares( props.total_vesting_shares.amount.value );
-         fc::uint128 account_average_bandwidth( band->average_bandwidth.value );
-         fc::uint128 max_virtual_bandwidth( _db.get( reserve_ratio_id_type() ).max_virtual_bandwidth );
-
-         has_bandwidth = ( account_vshares * max_virtual_bandwidth ) > ( account_average_bandwidth * total_vshares );
-
-         if( _db.is_producing() )
-            STEEM_ASSERT( has_bandwidth,  plugin_exception,
-               "Account: ${account} bandwidth limit exceeded. Please wait to transact or power up STEEM.",
-               ("account", a.name)
-               ("account_vshares", account_vshares)
-               ("account_average_bandwidth", account_average_bandwidth)
-               ("max_virtual_bandwidth", max_virtual_bandwidth)
-               ("total_vesting_shares", total_vshares) );
-      }
-   }
 
    void witness_plugin_impl::schedule_production_loop() {
       //Schedule for the next second's tick regardless of chain state
@@ -393,9 +254,10 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::block_production_loop()
    {
-      if( fc::time_point::now() < fc::time_point(STEEM_GENESIS_TIME) )
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      if( fc::time_point::now() < fc::time_point(db.get_genesis_time()) )
       {
-         wlog( "waiting until genesis time to produce block: ${t}", ("t",STEEM_GENESIS_TIME) );
+         wlog( "waiting until genesis time to produce block: ${t}, now is: ${n}", ("t", db.get_genesis_time())("n", fc::time_point::now()) );
          schedule_production_loop();
          return block_production_condition::wait_for_genesis;
       }
@@ -426,10 +288,10 @@ namespace detail {
       switch(result)
       {
          case block_production_condition::produced:
-            ilog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
+            elog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
             break;
          case block_production_condition::not_synced:
-   //         ilog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
+            elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
             break;
          case block_production_condition::not_my_turn:
    //         ilog("Not producing block because it isn't my turn");
@@ -462,7 +324,7 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::maybe_produce_block(fc::mutable_variant_object& capture)
    {
-      chain::database& db = appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
       fc::time_point now_fine = fc::time_point::now();
       fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
 
@@ -515,7 +377,7 @@ namespace detail {
       uint32_t prate = db.witness_participation_rate();
       if( prate < _required_witness_participation )
       {
-         capture("pct", uint32_t(100*uint64_t(prate) / STEEM_1_PERCENT));
+         capture("pct", uint32_t(100*uint64_t(prate) / SOPHIATX_1_PERCENT));
          return block_production_condition::low_participation;
       }
 
@@ -525,7 +387,7 @@ namespace detail {
          return block_production_condition::lag;
       }
 
-      auto block = db.generate_block(
+      auto block = _chain_plugin.generate_block(
          scheduled_time,
          scheduled_witness,
          private_key_itr->second,
@@ -533,7 +395,7 @@ namespace detail {
          );
       capture("n", block.block_num())("t", block.timestamp)("c", now);
 
-      appbase::app().get_plugin< steem::plugins::p2p::p2p_plugin >().broadcast_block( block );
+      appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >().broadcast_block( block );
       return block_production_condition::produced;
    }
 
@@ -550,7 +412,7 @@ void witness_plugin::set_program_options(
    string witness_id_example = "initwitness";
    cfg.add_options()
          ("enable-stale-production", bpo::bool_switch()->default_value(false), "Enable block production, even if the chain is stale.")
-         ("required-participation", bpo::value< uint32_t >()->default_value( 33 ), "Percent of witnesses (0-99) that must be participating in order to produce blocks")
+         ("required-participation", bpo::value< uint32_t >()->default_value( 67 ), "Percent of witnesses (0-99) that must be participating in order to produce blocks")
          ("witness,w", bpo::value<vector<string>>()->composing()->multitoken(),
             ("name of witness controlled by this node (e.g. " + witness_id_example + " )" ).c_str() )
          ("private-key", bpo::value<vector<string>>()->composing()->multitoken(), "WIF PRIVATE KEY to be used by one or more witnesses or miners" )
@@ -561,14 +423,14 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
 { try {
    my = std::make_unique< detail::witness_plugin_impl >( appbase::app().get_io_service() );
 
-   STEEM_LOAD_VALUE_SET( options, "witness", my->_witnesses, steem::protocol::account_name_type )
+   SOPHIATX_LOAD_VALUE_SET( options, "witness", my->_witnesses, sophiatx::protocol::account_name_type )
 
    if( options.count("private-key") )
    {
       const std::vector<std::string> keys = options["private-key"].as<std::vector<std::string>>();
       for (const std::string& wif_key : keys )
       {
-         fc::optional<fc::ecc::private_key> private_key = steem::utilities::wif_to_key(wif_key);
+         fc::optional<fc::ecc::private_key> private_key = sophiatx::utilities::wif_to_key(wif_key);
          FC_ASSERT( private_key.valid(), "unable to parse private key" );
          my->_private_keys[private_key->get_public_key()] = *private_key;
       }
@@ -578,7 +440,7 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
 
    if( options.count( "required-participation" ) )
    {
-      my->_required_witness_participation = STEEM_1_PERCENT * options.at( "required-participation" ).as< uint32_t >();
+      my->_required_witness_participation = SOPHIATX_1_PERCENT * options.at( "required-participation" ).as< uint32_t >();
    }
 
    my->on_pre_apply_transaction_connection = my->_db.on_pre_apply_transaction.connect( 0, [&]( const signed_transaction& tx ){ my->pre_transaction( tx ); } );
@@ -588,13 +450,16 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
    add_plugin_index< account_bandwidth_index >( my->_db );
    add_plugin_index< reserve_ratio_index     >( my->_db );
 
-   appbase::app().get_plugin< steem::plugins::p2p::p2p_plugin >().set_block_production( true );
+   appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >().set_block_production( true );
+
+   if( my->_witnesses.size() && my->_private_keys.size() )
+      my->_chain_plugin.set_write_lock_hold_time( -1 );
 } FC_LOG_AND_RETHROW() }
 
 void witness_plugin::plugin_startup()
 { try {
    ilog("witness plugin:  plugin_startup() begin");
-   chain::database& d = appbase::app().get_plugin< steem::plugins::chain::chain_plugin >().db();
+   chain::database& d = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
    if( !my->_witnesses.empty() )
    {
@@ -627,4 +492,4 @@ void witness_plugin::plugin_shutdown()
    }
 }
 
-} } } // steem::plugins::witness
+} } } // sophiatx::plugins::witness

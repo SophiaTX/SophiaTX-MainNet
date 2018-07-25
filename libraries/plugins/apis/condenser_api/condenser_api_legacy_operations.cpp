@@ -1,4 +1,4 @@
-#include <steem/plugins/condenser_api/condenser_api_legacy_operations.hpp>
+#include <sophiatx/plugins/condenser_api/condenser_api_legacy_operations.hpp>
 
 #define LEGACY_PREFIX "legacy_"
 #define LEGACY_PREFIX_OFFSET (7)
@@ -48,19 +48,19 @@ struct get_operation_name
    }
 };
 
-void to_variant( const steem::plugins::condenser_api::legacy_operation& var,  fc::variant& vo )
+void to_variant( const sophiatx::plugins::condenser_api::legacy_operation& var,  fc::variant& vo )
 {
    var.visit( from_operation( vo ) );
 }
 
-void from_variant( const fc::variant& var, steem::plugins::condenser_api::legacy_operation& vo )
+void from_variant( const fc::variant& var, sophiatx::plugins::condenser_api::legacy_operation& vo )
 {
    static std::map<string,uint32_t> to_tag = []()
    {
       std::map<string,uint32_t> name_map;
-      for( int i = 0; i < steem::plugins::condenser_api::legacy_operation::count(); ++i )
+      for( int i = 0; i < sophiatx::plugins::condenser_api::legacy_operation::count(); ++i )
       {
-         steem::plugins::condenser_api::legacy_operation tmp;
+         sophiatx::plugins::condenser_api::legacy_operation tmp;
          tmp.set_which(i);
          string n;
          tmp.visit( get_operation_name(n) );

@@ -1,10 +1,14 @@
-file(GLOB HEADERS "include/steem/chain_plugin/*.hpp")
+file(GLOB HEADERS "include/sophiatx/chain_plugin/*.hpp")
+file(GLOB EGENESIS_HEADERS "../../egenesis/include/sophiatx/egenesis/*.hpp")
+
 add_library( chain_plugin
              chain_plugin.cpp
-             ${HEADERS} )
+             ${HEADERS}
+             ${EGENESIS_HEADERS}
+        )
 
-target_link_libraries( chain_plugin steem_chain appbase steem_utilities )
-target_include_directories( chain_plugin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+target_link_libraries( chain_plugin sophiatx_chain sophiatx_egenesis_full appbase sophiatx_utilities )
+target_include_directories( chain_plugin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/../../egenesis/include" )
 
 if( CLANG_TIDY_EXE )
    set_target_properties(
@@ -20,4 +24,4 @@ install( TARGETS
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
-install( FILES ${HEADERS} DESTINATION "include/steem/chain_plugin" )
+install( FILES ${HEADERS} DESTINATION "include/sophiatx/chain_plugin" )
