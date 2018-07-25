@@ -71,7 +71,7 @@ will build out of the box without further effort:
         perl
 
     git clone https://github.com/SophiaTX/SophiaTX
-    cd sophiatx
+    cd SophiaTX
     git checkout master
     git submodule update --init --recursive
     mkdir build
