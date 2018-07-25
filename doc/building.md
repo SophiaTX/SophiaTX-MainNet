@@ -72,7 +72,7 @@ will build out of the box without further effort:
 
     git clone https://github.com/SophiaTX/SophiaTX
     cd sophiatx
-    git checkout stable
+    git checkout master
     git submodule update --init --recursive
     mkdir build
     cd build
@@ -154,7 +154,7 @@ sophiatx. Until then, this will allow you to install boost 1.60.0.
 
     export OPENSSL_ROOT_DIR=$(brew --prefix)/Cellar/openssl/1.0.2h_1/
     export BOOST_ROOT=$(brew --prefix)/Cellar/boost@1.60/1.60.0/
-    git checkout stable
+    git checkout master
     git submodule update --init --recursive
     mkdir build && cd build
     cmake -DBOOST_ROOT="$BOOST_ROOT" -DCMAKE_BUILD_TYPE=Release ..
