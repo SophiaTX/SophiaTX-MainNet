@@ -1,6 +1,6 @@
 # Introducing SophiaTX (beta)
 
-SophiaTX is a Delegated Proof of Stake blockchain that uses a "Proof of Brain" social consensus algorithm for token allocation.
+SophiaTX is a Delegated Proof of Stake blockchain.
 
 # Public Announcement & Discussion
 
