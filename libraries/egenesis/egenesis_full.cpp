@@ -35517,13 +35517,13 @@ static const char genesis_json_array[35477][40+1] =
 " \"0x7d45f22814a9c882d7\",\n    \"publicKey\"",
 " : \"SPH111111111111111111111111111111111",
 "4T1Anm\",\n    \"balance\" : 667564062\n}\n   ",
-"],\n   \"genesis_time\" :\"2018-07-24T11:00:",
+"],\n   \"genesis_time\" :\"2018-07-25T11:00:",
 "00\",\n   \"initial_chain_id\" : \"\"\n}\n\n"
 };
 
 chain_id_type get_egenesis_chain_id()
 {
-   return chain_id_type( "c6c45e1dc73503491d4ac152de95d4e7b4ae4ee70d7e4a2991f1ee5d487776a9" );
+   return chain_id_type( "1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324" );
 }
 
 void compute_egenesis_json( std::string& result )
@@ -35540,7 +35540,7 @@ void compute_egenesis_json( std::string& result )
 
 fc::sha256 get_egenesis_json_hash()
 {
-   return fc::sha256( "c6c45e1dc73503491d4ac152de95d4e7b4ae4ee70d7e4a2991f1ee5d487776a9" );
+   return fc::sha256( "1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324" );
 }
 
 } }
