@@ -84,7 +84,7 @@ will build out of the box without further effort:
 
 ## Building Boost 1.60
 
-SophiaTX requires Boost 1.58 (as in Ubuntu 16.04) and works with versions up to 1.60 (including).
+SophiaTX requires Boost 1.60 (as in Ubuntu 16.04) and works with versions up to 1.60 (including).
 So building SophiaTX on Ubuntu 14.04 requires downloading and installing a more recent
 version of Boost.
 
