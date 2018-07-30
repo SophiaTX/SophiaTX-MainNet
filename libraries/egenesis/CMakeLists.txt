@@ -25,7 +25,7 @@ MESSAGE( STATUS "egenesis: " ${SOPHIATX_EGENESIS_JSON} )
 list( APPEND embed_genesis_args --genesis-json "${SOPHIATX_EGENESIS_JSON}" )
 else( SOPHIATX_EGENESIS_JSON )
 MESSAGE( STATUS "egenesis: default" )
-list( APPEND embed_genesis_args --genesis-json "genesis.json" )
+list( APPEND embed_genesis_args --genesis-json "${CMAKE_CURRENT_SOURCE_DIR}/genesis.json" )
 endif( SOPHIATX_EGENESIS_JSON )
 
 MESSAGE( STATUS "embed_genesis_args: " ${embed_genesis_args} )
