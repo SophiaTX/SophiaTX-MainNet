@@ -71,6 +71,7 @@ int main( int argc, char** argv )
          ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:8091"), "Endpoint for alexandria websocket RPC to listen on")
          ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for alexandria HTTP RPC to listen on")
          ("rpc-http-cors,C", bpo::value<string>()->implicit_value("*"), "Access-Control-Allow-Origin response header")
+         ("rpc-http-no-error,E", bpo::value<bool>()->implicit_value(false), "Treat rpc error as 200 HTTP status code")
          ("daemon,d", "Run the alexandria in daemon mode" );
 
       bpo::variables_map options;
@@ -162,7 +163,7 @@ int main( int argc, char** argv )
                std::shared_ptr< fc::rpc::http_api_connection > conn =
                   std::make_shared< fc::rpc::http_api_connection>();
                conn->register_api( alex_api );
-               conn->on_request( req, resp );
+               conn->on_request( req, resp, !options.at( "rpc-http-no-error" ).as<bool>());
             } );
       }
 
