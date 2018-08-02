@@ -31,7 +31,8 @@ namespace fc { namespace rpc {
 
          void on_request(
             const fc::http::request& req,
-            const fc::http::server::response& resp );
+            const fc::http::server::response& resp,
+            bool send_error = true);
 
          fc::rpc::state                   _rpc_state;
    };

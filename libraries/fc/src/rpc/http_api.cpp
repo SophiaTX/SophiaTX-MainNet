@@ -89,7 +89,7 @@ void http_api_connection::send_notice(
    return;
 }
 
-void http_api_connection::on_request( const fc::http::request& req, const fc::http::server::response& resp )
+void http_api_connection::on_request( const fc::http::request& req, const fc::http::server::response& resp, bool send_error )
 {
    // this must be called by outside HTTP server's on_request method
    std::string resp_body;
@@ -118,7 +118,7 @@ void http_api_connection::on_request( const fc::http::request& req, const fc::ht
          catch ( const fc::exception& e )
          {
             resp_body = fc::json::to_string( fc::rpc::response( *call.id, error_object{ 1, e.to_detail_string(), fc::variant(e)} ) );
-            resp_status = http::reply::InternalServerError;
+            resp_status = (send_error) ? http::reply::InternalServerError : http::reply::OK;
          }
       }
       else
