@@ -163,7 +163,7 @@ int main( int argc, char** argv )
                std::shared_ptr< fc::rpc::http_api_connection > conn =
                   std::make_shared< fc::rpc::http_api_connection>();
                conn->register_api( alex_api );
-               conn->on_request( req, resp, !options.at( "rpc-http-no-error" ).as<bool>());
+               conn->on_request( req, resp, !options.count( "rpc-http-no-error" ));
             } );
       }
 
