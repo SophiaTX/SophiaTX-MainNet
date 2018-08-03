@@ -464,6 +464,8 @@ namespace sophiatx { namespace chain {
          void modify_balance( const account_object& a, const asset& delta, bool check_balance );
          void modify_reward_balance( const account_object& a, const asset& delta, bool check_balance );
 
+         void recalculate_all_votes();
+
          std::unique_ptr< database_impl > _my;
 
          fork_database                 _fork_db;
