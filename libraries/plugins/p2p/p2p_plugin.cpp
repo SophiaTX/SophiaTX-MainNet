@@ -485,7 +485,6 @@ void p2p_plugin::set_program_options( bpo::options_description& cli, bpo::option
    cfg.add_options()
       ("p2p-endpoint", bpo::value<string>()->implicit_value("127.0.0.1:9876"), "The local IP address and port to listen for incoming connections.")
       ("p2p-max-connections", bpo::value<uint32_t>(), "Maxmimum number of incoming connections on P2P endpoint.")
-      ("seed-node", bpo::value<vector<string>>()->composing(), "The IP address and port of a remote peer to sync with. Deprecated in favor of p2p-seed-node.")
       ("p2p-seed-node", bpo::value<vector<string>>()->composing(), "The IP address and port of a remote peer to sync with.")
       ("p2p-parameters", bpo::value<string>(), ("P2P network parameters. (Default: " + fc::json::to_string(graphene::net::node_configuration()) + " )").c_str() )
       ;
@@ -508,21 +507,10 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
       my->max_connections = options.at( "p2p-max-connections" ).as< uint32_t >();
 
    vector< string > seeds;
-   if( options.count( "seed-node" ) || options.count( "p2p-seed-node" ) )
+   if( options.count( "p2p-seed-node" ) )
    {
-
-      if( options.count( "seed-node" ) )
-      {
-         wlog( "Option seed-node is deprecated in favor of p2p-seed-node" );
-         auto s = options.at("seed-node").as<vector<string>>();
-         seeds.insert( seeds.end(), s.begin(), s.end() );
-      }
-
-      if( options.count( "p2p-seed-node" ) )
-      {
-         auto s = options.at("p2p-seed-node").as<vector<string>>();
-         seeds.insert( seeds.end(), s.begin(), s.end() );
-      }
+      auto s = options.at("p2p-seed-node").as<vector<string>>();
+      seeds.insert( seeds.end(), s.begin(), s.end() );
 
    }else{
       for(int i=1; i<=6; i++){
