@@ -326,7 +326,6 @@ void webserver_plugin::set_program_options( options_description&, options_descri
    cfg.add_options()
       ("webserver-http-endpoint", bpo::value< string >(), "Local http endpoint for webserver requests.")
       ("webserver-ws-endpoint", bpo::value< string >(), "Local websocket endpoint for webserver requests.")
-      ("rpc-endpoint", bpo::value< string >(), "Local http and websocket endpoint for webserver requests. Deprecated in favor of webserver-http-endpoint and webserver-ws-endpoint" )
       ("webserver-thread-pool-size", bpo::value<thread_pool_size_t>()->default_value(16),
        "Number of threads used to handle queries. Default: 16.")
       ;
@@ -355,29 +354,6 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
       FC_ASSERT( endpoints.size(), "ws-server-endpoint ${hostname} did not resolve", ("hostname", ws_endpoint) );
       my->ws_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
       ilog( "configured ws to listen on ${ep}", ("ep", endpoints[0]) );
-   }
-
-   ilog("still parsing stuff... ");
-
-   if( options.count( "rpc-endpoint" ) )
-   {
-      auto endpoint = options.at( "rpc-endpoint" ).as< string >();
-      auto endpoints = detail::resolve_string_to_ip_endpoints( endpoint );
-      FC_ASSERT( endpoints.size(), "rpc-endpoint ${hostname} did not resolve", ("hostname", endpoint) );
-
-      auto tcp_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
-
-      if( !my->http_endpoint )
-      {
-         my->http_endpoint = tcp_endpoint;
-         ilog( "configured http to listen on ${ep}", ("ep", endpoints[0]) );
-      }
-
-      if( !my->ws_endpoint )
-      {
-         my->ws_endpoint = tcp_endpoint;
-         ilog( "configured ws to listen on ${ep}", ("ep", endpoints[0]) );
-      }
    }
 }
 
