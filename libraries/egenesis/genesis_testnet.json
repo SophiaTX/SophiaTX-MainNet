@@ -1,6 +1,6 @@
 {
    "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
-   "initial_balace" : 349000000000000,
+   "initial_balace" : 346500000000000,
    "initial_accounts" : [
       {
          "name":"ejossev",
@@ -48,8 +48,133 @@
          "balance": 100000000000
       },
       {
+         "name":"divchyna",
+         "key": "SPH75pjCETArRw6Kf5xzyirqMK7bsudU4BDSmBY734wkuZogMC5Xe",
+         "balance": 100000000000
+      },
+      {
+         "name":"beauty",
+         "key": "SPH7GUsu1WVGm79FgaXLWMD7okzLoCFbSrjpV6EBW4MDfrhiae2bT",
+         "balance": 100000000000
+      },
+      {
+         "name":"watcher",
+         "key": "SPH6pa5iuGwKPD5V7qfcUAiHLTmE9FjYRy8Zx2Uv9JNCw2twicXBX",
+         "balance": 100000000000
+      },
+      {
+         "name":"achilles",
+         "key": "SPH6kP3fCwYBrwUqC1YZn4LNg7pd7XjfWpHTWFXddmYDWkvJctkh7",
+         "balance": 100000000000
+      },
+      {
+         "name":"wizard",
+         "key": "SPH66kjiJB7Rv6AdMdEwapRrrp17jKNu3xwNgERwZtB6VfNVhkwqd",
+         "balance": 100000000000
+      },
+      {
+         "name":"rambo",
+         "key": "SPH5pLccZ8iyCX4Piq1t99jGzap37ZuQtaj44kce5yHjpWRcUgAyv",
+         "balance": 100000000000
+      },
+      {
+         "name":"visionaire",
+         "key": "SPH6YX385PYVpvZNi4XWpsUUXgobCm67mZGzNkKXznmBzmDAztFw6",
+         "balance": 100000000000
+      },
+      {
          "name":"martyn",
          "key": "SPH8DaynogzuT4jYkGqVB7pcxC5xU8Pj7qJ6RGnqLQCTiLGYA5ZSz",
+         "balance": 100000000000
+      },
+      {
+         "name":"dominika",
+         "key": "SPH5uLdGyZafLWybGDpVdgAunoLexkHig8co22WFYaWQSd7xgo88L",
+         "balance": 100000000000
+      },
+      {
+         "name":"martin",
+         "key": "SPH5BSFddY7LwMimgHaWtgrqnD5Qawi5vFrpRMjgYDapMwpHoVaU5",
+         "balance": 100000000000
+      },
+      {
+         "name":"daren",
+         "key": "SPH4yGJQNNkxJc6CLooAyv5gHiia8GzUbEKWt8AKFjG9Y2AYBuRYo",
+         "balance": 100000000000
+      },
+      {
+         "name":"roman",
+         "key": "SPH4vBbwwHEAjCwPGcJa2zao6LEs66B9KpQukr6cVN34guNaxaULg",
+         "balance": 100000000000
+      },
+      {
+         "name":"vlado",
+         "key": "SPH83BeHrXE8DCNJN7hNrjTBamMm2TkzHSs4cHdnWZqQnsHCpwNxX",
+         "balance": 100000000000
+      },
+      {
+         "name":"jk",
+         "key": "SPH6kTXnxe6MFx2TpG9vB6LN3zJLnmoo8yx9ATjtceN1oXfbw5cKt",
+         "balance": 100000000000
+      },
+      {
+         "name":"arktree1",
+         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
+         "balance": 100000000000
+      },
+      {
+         "name":"arktree2",
+         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
+         "balance": 100000000000
+      },
+      {
+         "name":"arktree3",
+         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
+         "balance": 100000000000
+      },
+      {
+         "name":"arktree4",
+         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
+         "balance": 100000000000
+      },
+      {
+         "name":"bizcode1",
+         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
+         "balance": 100000000000
+      },
+      {
+         "name":"bizcode2",
+         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
+         "balance": 100000000000
+      },
+      {
+         "name":"bizcode3",
+         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
+         "balance": 100000000000
+      },
+      {
+         "name":"bizcode4",
+         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
+         "balance": 100000000000
+      },
+      {
+         "name":"unitedenergy1",
+         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
+         "balance": 100000000000
+      },
+      {
+         "name":"unitedenergy2",
+         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
+         "balance": 100000000000
+      },
+      {
+         "name":"unitedenergy3",
+         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
+         "balance": 100000000000
+      },
+      {
+         "name":"unitedenergy4",
+         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
          "balance": 100000000000
       }
    ],
