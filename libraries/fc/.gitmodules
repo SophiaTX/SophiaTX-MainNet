@@ -3,7 +3,7 @@
 	url = https://github.com/cryptonomex/secp256k1-zkp.git
 [submodule "vendor/websocketpp"]
     path = vendor/websocketpp
-    url = https://github.com/zaphoyd/websocketpp.git
+    url = https://github.com/SophiaTX/websocketpp.git
 [submodule "vendor/diff-match-patch-cpp-stl"]
 	path = vendor/diff-match-patch-cpp-stl
 	url = https://github.com/leutloff/diff-match-patch-cpp-stl
