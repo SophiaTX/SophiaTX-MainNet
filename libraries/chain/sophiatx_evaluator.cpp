@@ -971,10 +971,10 @@ void application_update_evaluator::do_apply( const application_update_operation&
    if(o.new_author)
    {
       _db.get_account(*o.new_author);
-      const auto& account_auth = _db.get< account_authority_object, by_account >( *o.new_author );
+      _db.get< account_authority_object, by_account >( *o.new_author );
    }
 
-   FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
+   FC_ASSERT(application.author == o.author, "Provided author is not this application author" );
 
    _db.modify( application, [&]( application_object& app )
    {

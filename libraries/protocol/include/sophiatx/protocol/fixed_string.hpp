@@ -85,7 +85,7 @@ class fixed_string_impl
          Storage d;
 
          std::string s = fc::base64m_decode(tmp_str);
-         int count = s.size();
+         uint32_t count = s.size();
          if( count <= sizeof(d) )
             _size = count;
          else

@@ -158,7 +158,6 @@ class wallet_api
 
       /**
        *  @param account  - the name of the account to retrieve key for
-       *  @param role     - active | owner  | memo
        *  @param password - the password to be used at key generation
        *  @return public key corresponding to generated private key, and private key in WIF format.
        */
