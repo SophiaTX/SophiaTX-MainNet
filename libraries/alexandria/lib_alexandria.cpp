@@ -554,7 +554,8 @@ operation alexandria_api::make_custom_binary_operation(uint32_t app_id, string f
       op.sender = from;
       for(const auto& r: to)
          op.recipients.insert(r);
-      op.data = fc::from_base58(data);
+      auto out = fc::base64_decode(data);
+      std::copy(out.begin(), out.end(), std::back_inserter(op.data));
       return op;
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data))
 }
@@ -771,12 +772,12 @@ public_key_type alexandria_api::get_public_key(string private_key) const {
    }FC_CAPTURE_AND_RETHROW((private_key))
 }
 
-std::vector<char> alexandria_api::from_base58(string data) const {
-   return fc::from_base58(data);
+string alexandria_api::from_base64(string data) const {
+   return fc::base64_decode(data);
 }
 
-string alexandria_api::to_base58(std::vector<char> data) const {
-   return fc::to_base58(data);
+string alexandria_api::to_base64(string data) const {
+   return fc::base64_encode(data);
 }
 
 string alexandria_api::encrypt_data(string data, public_key_type public_key, string private_key) const {

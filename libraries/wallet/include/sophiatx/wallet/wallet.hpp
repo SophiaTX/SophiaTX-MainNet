@@ -832,8 +832,8 @@ class wallet_api
 
       annotated_signed_transaction sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast);
 
-      string encode_to_base58(string what);
-      vector<char> decode_from_base58(string what);
+      string encode_to_base64(string what);
+      string decode_from_base64(string what);
       string get_account_name_from_seed(string seed);
 };
 
@@ -928,7 +928,7 @@ FC_API( sophiatx::wallet::wallet_api,
         (get_received_documents)
 
 
-        (encode_to_base58)(decode_from_base58)(get_account_name_from_seed)
+        (encode_to_base64)(decode_from_base64)(get_account_name_from_seed)
       )
 
 FC_REFLECT( sophiatx::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )
