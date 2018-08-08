@@ -142,5 +142,12 @@ std::string normalize_to_base64m(const std::string &base64_string) {
   return out;
 }
 
+std::string normalize_to_base64(const std::string &base64m_string) {
+  std::string out(base64m_string);
+  std::replace(out.begin(), out.end(), '-', '+');
+  std::replace(out.begin(), out.end(), '_', '/');
+  return out;
+}
+
 } // namespace fc
 
