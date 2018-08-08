@@ -1,5 +1,6 @@
 #include <fc/crypto/base64m.hpp>
 #include <ctype.h>
+#include <algorithm>
 /* 
    base64m.cpp and base64m.h
 
@@ -34,12 +35,12 @@ inline const std::string& base64m_chars()
     static const std::string m_base64m_chars = 
                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                  "abcdefghijklmnopqrstuvwxyz"
-                 "0123456789+/";
+                 "0123456789-_";
     return m_base64m_chars;
 }
 
 static inline bool is_base64m(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
+  return (isalnum(c) || (c == '-') || (c == '_'));
 }
 
 std::string base64m_encode(unsigned char const* bytes_to_encode, unsigned int in_len);
@@ -132,6 +133,20 @@ std::string base64m_decode(std::string const& encoded_string) {
   }
 
   return ret;
+}
+
+std::string normalize_to_base64m(const std::string &base64_string) {
+  std::string out(base64_string);
+  std::replace(out.begin(), out.end(), '+', '-');
+  std::replace(out.begin(), out.end(), '/', '_');
+  return out;
+}
+
+std::string normalize_to_base64(const std::string &base64m_string) {
+  std::string out(base64m_string);
+  std::replace(out.begin(), out.end(), '-', '+');
+  std::replace(out.begin(), out.end(), '_', '/');
+  return out;
 }
 
 } // namespace fc
