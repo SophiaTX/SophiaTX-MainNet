@@ -79,7 +79,7 @@ clean_database_fixture::clean_database_fixture()
    });
 
    generate_block();
-   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
+   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
 
@@ -161,7 +161,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
 
 
    generate_block();
-   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
+   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
    vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
@@ -776,7 +776,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
         a.owner.add_authority(init_account_pub_key, 1);
    });
    generate_block();
-   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.minor() );
+   db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
    vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );

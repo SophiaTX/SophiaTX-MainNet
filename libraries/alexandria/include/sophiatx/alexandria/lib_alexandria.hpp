@@ -473,18 +473,18 @@ class alexandria_api
       public_key_type get_public_key(string private_key) const;
 
       /**
-       * Decode data to base58
+       * Decode data to base64
        * @param data - data to decode
        * @return
        */
-      std::vector<char> from_base58(string data) const;
+      string from_base64(string data) const;
 
       /**
-       * Encode data to base58
+       * Encode data to base64
        * @param data - data to encode
        * @return
        */
-      string to_base58(std::vector<char> data) const;
+      string to_base64(string data) const;
 
       /**
        * Encrypt data
@@ -720,8 +720,8 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (generate_key_pair)
         (generate_key_pair_from_brain_key)
         (get_public_key)
-        (from_base58)
-        (to_base58)
+        (from_base64)
+        (to_base64)
         (encrypt_data)
         (decrypt_data)
       )

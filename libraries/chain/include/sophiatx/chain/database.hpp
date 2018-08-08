@@ -200,7 +200,23 @@ namespace sophiatx { namespace chain {
           */
          void notify_pre_apply_operation( operation_notification& note );
          void notify_post_apply_operation( const operation_notification& note );
-         inline const void push_virtual_operation( const operation& op, bool force = false ); // vops are not needed for low mem. Force will push them on low mem.
+         inline const void push_virtual_operation( const operation& op, bool force = false ) // vops are not needed for low mem. Force will push them on low mem.
+         {
+            /*
+            if( !force )
+            {
+               #if defined( IS_LOW_MEM ) && ! defined( IS_TEST_NET )
+               return;
+               #endif
+            }
+            */
+
+            FC_ASSERT( is_virtual_operation( op ) );
+            operation_notification note(op);
+            notify_pre_apply_operation( note );
+            notify_post_apply_operation( note );
+         }
+
          void notify_applied_block( const signed_block& block );
          void notify_on_pending_transaction( const signed_transaction& tx );
          void notify_on_pre_apply_transaction( const signed_transaction& tx );
