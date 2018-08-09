@@ -34,7 +34,7 @@
 
 #else // IS LIVE SOPHIATX NETWORK
 
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 1, 0) )
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
 
