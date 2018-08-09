@@ -3,14 +3,14 @@
 
 
 namespace sophiatx { namespace chain {
-namespace {
-   uint128_t multiplier(uint64_t(0x0fffffffffffffff), uint64_t(0xffffffffffffffff));
-   share_type get_next_block_interests(uint32_t block, share_type remaining_interests){
-      if(block >= SOPHIATX_COINBASE_BLOCKS )
-         return 0;
-      return remaining_interests / (SOPHIATX_COINBASE_BLOCKS - block + 1);
-   }
-}
+//namespace {
+//   uint128_t multiplier(uint64_t(0x0fffffffffffffff), uint64_t(0xffffffffffffffff));
+//   share_type get_next_block_interests(uint32_t block, share_type remaining_interests){
+//      if(block >= SOPHIATX_COINBASE_BLOCKS )
+//         return 0;
+//      return remaining_interests / (SOPHIATX_COINBASE_BLOCKS - block + 1);
+//   }
+//}
 
 using namespace sophiatx::protocol;
 

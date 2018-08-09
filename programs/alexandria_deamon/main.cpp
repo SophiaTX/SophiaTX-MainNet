@@ -106,7 +106,7 @@ int main( int argc, char** argv )
       cfg.loggers.back().level = fc::log_level::debug;
       cfg.loggers.back().appenders = {"rpc"};
 
-      string ws_server = "ws://127.0.0.1:8090";
+      string ws_server = "ws://127.0.0.1:9191";
       // but allow CLI to override
       if( options.count("server-rpc-endpoint") )
          ws_server = options.at("server-rpc-endpoint").as<std::string>();

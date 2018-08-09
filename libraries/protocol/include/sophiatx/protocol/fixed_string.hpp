@@ -84,8 +84,8 @@ class fixed_string_impl
 
          Storage d;
 
-         std::string s = fc::base64m_decode(tmp_str);
-         int count = s.size();
+         std::string s = fc::base64m_decode(fc::normalize_to_base64m(tmp_str));
+         uint32_t count = s.size();
          if( count <= sizeof(d) )
             _size = count;
          else
@@ -191,7 +191,7 @@ namespace fc { namespace raw {
    template< typename Stream, typename Storage >
    inline void pack( Stream& s, const sophiatx::protocol::fixed_string_impl< Storage >& u )
    {
-      pack( s, std::string( u ) );
+      pack( s, fc::normalize_to_base64(std::string( u )) );
    }
 
    template< typename Stream, typename Storage >

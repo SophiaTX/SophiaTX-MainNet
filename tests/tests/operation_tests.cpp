@@ -74,11 +74,6 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       signed_transaction tx;
       private_key_type priv_key = generate_private_key( "alice" );
 
-      const account_object& init = db->get_account( SOPHIATX_INIT_MINER_NAME );
-      asset init_starting_balance = init.balance;
-
-      const auto& gpo = db->get_dynamic_global_properties();
-
       account_create_operation op;
 
       op.fee = ASSET( "0.050000 SPHTX" );
@@ -356,8 +351,6 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       BOOST_TEST_MESSAGE( "Testing: account_delete_apply" );
 
       ACTORS( (alice)(bob) )
-      const auto& alice_auth = db->get< account_authority_object, by_account >( AN("alice") );
-      const auto& bob_auth = db->get< account_authority_object, by_account >( AN("bob") );
 
       BOOST_TEST_MESSAGE( "--- Test normal delete" );
 
@@ -644,12 +637,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
       ACTORS( (alice)(bob) )
       fund( AN("alice"), 10000000 );
 
-      const auto& gpo = db->get_dynamic_global_properties();
-
       BOOST_REQUIRE( alice.balance == ASSET( "10.000000 SPHTX" ) );
-
-      auto alice_shares = alice.vesting_shares;
-      auto bob_shares = bob.vesting_shares;
 
       transfer_to_vesting_operation op;
       op.from = AN("alice");
@@ -691,7 +679,6 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_authorities )
       fund( AN("alice"), 10000000 );
       vest( AN("alice"), 10000000 );
 
-      const auto& new_alice = db->get_account(AN("alice"));
       withdraw_vesting_operation op;
       op.account = AN("alice");
       op.vesting_shares = ASSET( "1.000000 VESTS" );

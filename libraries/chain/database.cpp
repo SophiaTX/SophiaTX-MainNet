@@ -960,23 +960,6 @@ void database::notify_post_apply_operation( const operation_notification& note )
    SOPHIATX_TRY_NOTIFY( post_apply_operation, note )
 }
 
-inline const void database::push_virtual_operation( const operation& op, bool force )
-{
-   /*
-   if( !force )
-   {
-      #if defined( IS_LOW_MEM ) && ! defined( IS_TEST_NET )
-      return;
-      #endif
-   }
-   */
-
-   FC_ASSERT( is_virtual_operation( op ) );
-   operation_notification note(op);
-   notify_pre_apply_operation( note );
-   notify_post_apply_operation( note );
-}
-
 void database::notify_applied_block( const signed_block& block )
 {
    SOPHIATX_TRY_NOTIFY( applied_block, block )

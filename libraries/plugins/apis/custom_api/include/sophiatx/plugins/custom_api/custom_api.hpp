@@ -26,7 +26,7 @@ struct received_object
          received( obj.received)
    {
       if(binary)
-         data = fc::to_base58(obj.data);
+         data = fc::base64_encode(obj.data.data(), obj.data.size());
       else
          data = obj.json;
       for(const auto&r: obj.all_recipients)
