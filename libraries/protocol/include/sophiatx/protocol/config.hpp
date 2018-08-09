@@ -120,6 +120,7 @@
 #define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define SOPHIATX_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
+#define SOPHIATX_MAX_NAME_SEED_SIZE              32
 #define SOPHIATX_MAX_PROXY_RECURSION_DEPTH       4
 #define SOPHIATX_VESTING_WITHDRAW_INTERVALS      27
 #define SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS (60*60*24) /// 1 day per interval
