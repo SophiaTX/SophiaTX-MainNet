@@ -2069,7 +2069,7 @@ void database::process_interests() {
               ao.balance.amount += interest;
               ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
          });
-         if( has_hardfork( STEEM_HARDFORK_1_1 ) )
+         if( has_hardfork( SOPHIATX_HARDFORK_1_1 ) )
             adjust_proxied_witness_votes(*a, interest);
          if(interest > 0)
             push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
