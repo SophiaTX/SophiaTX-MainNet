@@ -199,7 +199,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
          while( itr.first.block_num() != last_block_num )
          {
             auto cur_block_num = itr.first.block_num();
-            if( cur_block_num % 100000 == 0 )
+            if( cur_block_num % 10000 == 0 )
                std::cerr << "   " << double( cur_block_num * 100 ) / last_block_num << "%   " << cur_block_num << " of " << last_block_num <<
                "   (" << (get_free_memory() / (1024*1024)) << "M free)\n";
             apply_block( itr.first, skip_flags );
@@ -1872,7 +1872,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         ilog( "Processing ${n} genesis hardforks", ("n", n) );
+         elog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();
@@ -2688,10 +2688,11 @@ void database::apply_hardfork( uint32_t hardfork )
 }
 
 void database::recalculate_all_votes(){
-   const auto& account_idx = get_index<account_index>().indices().get<by_name>();
+   const auto& account_idx = get_index< account_index >().indices().get<by_name>();
    const auto& witness_idx = get_index< witness_index >().indices();
    for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
       //clear all witness votes
+      elog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
       modify(*itr, [&](witness_object &wo){
          wo.votes = 0;
       });
@@ -2699,6 +2700,10 @@ void database::recalculate_all_votes(){
    for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr ){
       adjust_proxied_witness_votes(*itr, itr->total_balance());
    }
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      elog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+   }
+
 }
 
 /**
