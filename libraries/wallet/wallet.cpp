@@ -1967,7 +1967,8 @@ annotated_signed_transaction wallet_api::send_custom_binary_document(uint32_t ap
       op.sender = from;
       for(const auto& r: to)
          op.recipients.insert(r);
-      op.data = fc::from_base58(data);
+      auto out = fc::base64_decode(data);
+      std::copy(out.begin(), out.end(), std::back_inserter(op.data));
       signed_transaction tx;
       tx.operations.push_back(op);
       tx.validate();
@@ -2020,12 +2021,12 @@ vector<condenser_api::api_application_object> wallet_api::get_applications(vecto
    }FC_CAPTURE_AND_RETHROW((names))
 }
 
-string wallet_api::encode_to_base58(string what){
-   return fc::to_base58(what.c_str(), what.size());
+string wallet_api::encode_to_base64(string what){
+   return fc::base64_encode(what.c_str(), what.size());
 }
 
-vector<char> wallet_api::decode_from_base58(string what){
-   return fc::from_base58(what);
+string wallet_api::decode_from_base64(string what){
+   return fc::base64_decode(what);
 }
 
 string wallet_api::get_account_name_from_seed(string seed){

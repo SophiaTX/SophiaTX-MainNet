@@ -150,7 +150,7 @@ namespace detail {
       flat_set< account_name_type > required; vector<authority> other;
       trx.get_required_authorities( required, required, other );
 
-      auto trx_size = fc::raw::pack_size(trx);
+      //auto trx_size = fc::raw::pack_size(trx);
 
       //TODO_SOPHIA - rework to evaluate if the fee is corresponding to the requirements.
    }

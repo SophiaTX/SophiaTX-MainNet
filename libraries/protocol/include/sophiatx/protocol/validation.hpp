@@ -16,7 +16,8 @@ inline bool is_asset_type( asset asset, asset_symbol_type symbol )
 
 inline void validate_account_name( const string& name )
 {
-   auto hash = fc::base64_decode(name);
+
+   auto hash = fc::base64m_decode(fc::normalize_to_base64m(name));
    FC_ASSERT( hash.size() <= sizeof(account_name_type::data) );
 
 }
