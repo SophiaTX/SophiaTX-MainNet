@@ -21,7 +21,7 @@ namespace sophiatx { namespace protocol {
    void account_create_operation::validate() const
    {
       //TODO: Add this check to the hardfork1
-      //FC_ASSERT( name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
+      FC_ASSERT( name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
       owner.validate();
       active.validate();
 
