@@ -2603,9 +2603,9 @@ void database::init_hardforks()
    _hardfork_times[ 0 ] = fc::time_point_sec( get_genesis_time() );
    _hardfork_versions[ 0 ] = hardfork_version( 1, 0 );
 
-   FC_ASSERT( STEEM_HARDFORK_1_1 == 1, "Invalid hardfork configuration" );
-   _hardfork_times[ STEEM_HARDFORK_1_1 ] = fc::time_point_sec( STEEM_HARDFORK_1_1_TIME );
-   _hardfork_versions[ STEEM_HARDFORK_1_1 ] = STEEM_HARDFORK_1_1_VERSION;
+   FC_ASSERT( SOPHIATX_HARDFORK_1_1 == 1, "Invalid hardfork configuration" );
+   _hardfork_times[ SOPHIATX_HARDFORK_1_1 ] = fc::time_point_sec( SOPHIATX_HARDFORK_1_1_TIME );
+   _hardfork_versions[ SOPHIATX_HARDFORK_1_1 ] = SOPHIATX_HARDFORK_1_1_VERSION;
 
    const auto& hardforks = get_hardfork_property_object();
    FC_ASSERT( hardforks.last_hardfork <= SOPHIATX_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("SOPHIATX_NUM_HARDFORKS",SOPHIATX_NUM_HARDFORKS) );
@@ -2667,7 +2667,7 @@ void database::apply_hardfork( uint32_t hardfork )
 
    switch( hardfork )
    {
-      case STEEM_HARDFORK_1_1:
+      case SOPHIATX_HARDFORK_1_1:
          recalculate_all_votes();
          break;
       default:
