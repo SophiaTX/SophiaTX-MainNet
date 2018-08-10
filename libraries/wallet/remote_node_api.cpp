@@ -198,7 +198,11 @@ vector<condenser_api::api_application_buying_object> remote_node_api::get_applic
     FC_ASSERT( false );
 }
 
-map< uint64_t, condenser_api::api_received_object >  remote_node_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+map< uint64_t, condenser_api::api_received_object >  remote_node_api::list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+   FC_ASSERT( false);
+};
+
+condenser_api::api_received_object  remote_node_api::get_received_document(uint64_t id){
    FC_ASSERT( false);
 };
 

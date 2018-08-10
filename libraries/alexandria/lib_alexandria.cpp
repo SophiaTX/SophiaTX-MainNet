@@ -565,7 +565,7 @@ vector< condenser_api::api_received_object >  alexandria_api::get_received_docum
    try{
       typedef std::map< uint64_t, condenser_api::api_received_object > ObjectMap;
       std::vector<condenser_api::api_received_object> ret;
-      ObjectMap from_api = my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      ObjectMap from_api = my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
       std::transform( from_api.begin(), from_api.end(),
                    std::back_inserter(ret),
                    boost::bind(&ObjectMap::value_type::second,_1) );
@@ -585,7 +585,7 @@ vector< condenser_api::api_operation_object > alexandria_api::get_account_histor
 #else
 map< uint64_t, condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
-      return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      return my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 

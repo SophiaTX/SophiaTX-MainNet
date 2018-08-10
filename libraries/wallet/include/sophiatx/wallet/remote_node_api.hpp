@@ -61,7 +61,8 @@ struct remote_node_api
    network_broadcast_api::broadcast_transaction_synchronous_return broadcast_transaction_synchronous( signed_transaction );
    void broadcast_block( signed_block );
    flat_set< uint32_t > get_market_history_buckets();
-   map< uint64_t, condenser_api::api_received_object > get_received_documents(uint32_t, string, string, string, uint32_t);
+   map< uint64_t, condenser_api::api_received_object > list_received_documents(uint32_t, string, string, string, uint32_t);
+   condenser_api::api_received_object get_received_document(uint64_t id);
 
    vector<condenser_api::api_application_object> get_applications(vector<string>);
    vector<condenser_api::api_application_buying_object> get_application_buyings(string, uint32_t, string);
@@ -108,5 +109,7 @@ FC_API( sophiatx::wallet::remote_node_api,
         (broadcast_block)
         (get_applications)
         (get_application_buyings)
-        (get_received_documents)
+        (list_received_documents)
+        (get_received_document)
+
       )
