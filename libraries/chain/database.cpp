@@ -1,5 +1,4 @@
 #include <sophiatx/protocol/sophiatx_operations.hpp>
-
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/compound.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
@@ -199,7 +198,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
          while( itr.first.block_num() != last_block_num )
          {
             auto cur_block_num = itr.first.block_num();
-            if( cur_block_num % 100000 == 0 )
+            if( cur_block_num % 10000 == 0 )
                std::cerr << "   " << double( cur_block_num * 100 ) / last_block_num << "%   " << cur_block_num << " of " << last_block_num <<
                "   (" << (get_free_memory() / (1024*1024)) << "M free)\n";
             apply_block( itr.first, skip_flags );
@@ -1878,7 +1877,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         ilog( "Processing ${n} genesis hardforks", ("n", n) );
+         elog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();
@@ -2072,6 +2071,8 @@ void database::process_interests() {
               ao.balance.amount += interest;
               ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
          });
+         if( has_hardfork( SOPHIATX_HARDFORK_1_1 ) )
+            adjust_proxied_witness_votes(*a, interest);
          if(interest > 0)
             push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
          id += SOPHIATX_INTEREST_BLOCKS;
@@ -2492,10 +2493,9 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
         {
            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient SOPHIATX funds" );
         }
-        adjust_proxied_witness_votes(a, delta.amount);
 
    } );
-
+   adjust_proxied_witness_votes(a, delta.amount);
 }
 
 
@@ -2604,6 +2604,10 @@ void database::init_hardforks()
    _hardfork_times[ 0 ] = fc::time_point_sec( get_genesis_time() );
    _hardfork_versions[ 0 ] = hardfork_version( 1, 0 );
 
+   FC_ASSERT( SOPHIATX_HARDFORK_1_1 == 1, "Invalid hardfork configuration" );
+   _hardfork_times[ SOPHIATX_HARDFORK_1_1 ] = fc::time_point_sec( SOPHIATX_HARDFORK_1_1_TIME );
+   _hardfork_versions[ SOPHIATX_HARDFORK_1_1 ] = SOPHIATX_HARDFORK_1_1_VERSION;
+
    const auto& hardforks = get_hardfork_property_object();
    FC_ASSERT( hardforks.last_hardfork <= SOPHIATX_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("SOPHIATX_NUM_HARDFORKS",SOPHIATX_NUM_HARDFORKS) );
    FC_ASSERT( _hardfork_versions[ hardforks.last_hardfork ] <= SOPHIATX_BLOCKCHAIN_VERSION, "Blockchain version is older than last applied hardfork" );
@@ -2662,11 +2666,11 @@ void database::apply_hardfork( uint32_t hardfork )
    if( _log_hardforks )
       elog( "HARDFORK ${hf} at block ${b}", ("hf", hardfork)("b", head_block_num()) );
 
-
-
    switch( hardfork )
    {
-
+      case SOPHIATX_HARDFORK_1_1:
+         recalculate_all_votes();
+         break;
       default:
          break;
    }
@@ -2682,6 +2686,25 @@ void database::apply_hardfork( uint32_t hardfork )
    } );
 
    push_virtual_operation( hardfork_operation( hardfork ), true );
+}
+
+void database::recalculate_all_votes(){
+   const auto& account_idx = get_index< account_index >().indices().get<by_name>();
+   const auto& witness_idx = get_index< witness_index >().indices();
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      //clear all witness votes
+      elog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+      modify(*itr, [&](witness_object &wo){
+         wo.votes = 0;
+      });
+   }
+   for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr ){
+      adjust_proxied_witness_votes(*itr, itr->total_balance());
+   }
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      elog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+   }
+
 }
 
 /**
