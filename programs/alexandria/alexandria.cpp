@@ -52,9 +52,19 @@ bool generate_private_key(char *private_key, char *public_key) {
    try {
       private_key_type priv_key = fc::ecc::private_key::generate();
       public_key_type pub_key = priv_key.get_public_key();
+
+      if(strlen(private_key) < key_to_wif(priv_key).size()) {
+         return false;
+      }
       strcpy(private_key, key_to_wif(priv_key).c_str());
+
       auto public_key_str = fc::json::to_string(pub_key);
-      strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
+      public_key_str = public_key_str.substr(1, public_key_str.size() - 2);
+
+      if(strlen(public_key) < public_key_str.size()) {
+         return false;
+      }
+      strcpy(public_key, public_key_str.c_str());
       return true;
    } catch (const fc::exception& e) {
       return false;
@@ -67,7 +77,12 @@ bool get_public_key(const char *private_key, char *public_key) {
          auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
          public_key_type pub_key = priv_key.get_public_key();
          auto public_key_str = fc::json::to_string(pub_key);
-         strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
+         public_key_str = public_key_str.substr(1, public_key_str.size() - 2);
+
+         if(strlen(public_key) < public_key_str.size()) {
+            return false;
+         }
+         strcpy(public_key, public_key_str.c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -82,9 +97,18 @@ bool generate_key_pair_from_brain_key(const char *brain_key, char *private_key, 
          fc::sha512 h = fc::sha512::hash(string(brain_key) + " 0");
          auto priv_key = fc::ecc::private_key::regenerate(fc::sha256::hash(h));
          public_key_type pub_key = priv_key.get_public_key();
+         if(strlen(private_key) < key_to_wif(priv_key).size()) {
+            return false;
+         }
          strcpy(private_key, key_to_wif(priv_key).c_str());
+
          auto public_key_str = fc::json::to_string(pub_key);
-         strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
+         public_key_str = public_key_str.substr(1, public_key_str.size() - 2);
+
+         if(strlen(public_key) < public_key_str.size()) {
+            return false;
+         }
+         strcpy(public_key, public_key_str.c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -101,6 +125,10 @@ bool get_transaction_digest(const char *transaction, const char *chain_id, char 
          signed_transaction stx;
          fc::from_variant( v, stx);
          digest_type dig = stx.sig_digest(fc::sha256(string(chain_id)));
+
+         if(strlen(digest) < dig.str().size()) {
+            return false;
+         }
          strcpy(digest, dig.str().c_str());
          return true;
       } catch (const fc::exception& e) {
@@ -118,7 +146,12 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
          auto priv_key = *sophiatx::utilities::wif_to_key(private_k_str);
          auto sig = priv_key.sign_compact(dig);
          string result = fc::json::to_string(sig);
-         strcpy(signed_digest, result.substr(1, result.size() - 2).c_str());
+         result = result.substr(1, result.size() - 2);
+
+         if(strlen(signed_digest) < result.size()) {
+            return false;
+         }
+         strcpy(signed_digest, result.c_str());
          return true;
       } catch (const fc::exception& e) {
          return false;
@@ -139,7 +172,11 @@ bool add_signature(const char *transaction, const char *signature, char *signed_
          fc::from_hex( string(signature), (char*)sig.begin(), sizeof(compact_signature) );
 
          stx.signatures.push_back(sig);
-         strcpy(signed_tx, fc::json::to_string(stx).c_str());
+         auto out = fc::json::to_string(stx);
+         if(strlen(signed_tx) < out.size()) {
+            return false;
+         }
+         strcpy(signed_tx, out.c_str());
          return true;
 
       } catch (const fc::exception& e) {
@@ -195,7 +232,11 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
 
          m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(string(memo)) );
          m.check = fc::sha256::hash( encrypt_key )._hash[0];
-         strcpy(encrypted_memo, string(m).c_str());
+         auto out = string(m);
+         if(strlen(encrypted_memo) < out.size()) {
+            return false;
+         }
+         strcpy(encrypted_memo, out.c_str());
          return true;
 
       } catch (const fc::exception& e) {
@@ -230,7 +271,11 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
             if( check != m->check ) return false;
 
             vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
-            strcpy(decrypted_memo, fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
+            auto out = fc::raw::unpack_from_vector<std::string>( decrypted );
+            if(strlen(decrypted_memo) < out.size()) {
+               return false;
+            }
+            strcpy(decrypted_memo, out.c_str());
 
             return true;
          }
@@ -239,6 +284,32 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
       }
    }
    return false;
+}
+
+bool base64_decode(const char *input, char *output) {
+   try {
+      auto out = fc::base64_decode(string(input));
+      if(strlen(output) < out.size()) {
+         return false;
+      }
+      strcpy(output, out.c_str());
+   } catch (const fc::exception& e) {
+      return false;
+   }
+   return true;
+}
+
+bool base64_encode(const char *input, char *output) {
+   try {
+      auto out = fc::base64_encode(string(input));
+      if(strlen(output) < out.size()) {
+         return false;
+      }
+      strcpy(output, out.c_str());
+   } catch (const fc::exception& e) {
+      return false;
+   }
+   return true;
 }
 
 } //
