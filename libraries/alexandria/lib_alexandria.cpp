@@ -260,6 +260,11 @@ vector< account_name_type > alexandria_api::list_witnesses(const string& lowerbo
    return my->_remote_api->lookup_witness_accounts( lowerbound, limit );
 }
 
+vector< condenser_api::api_witness_object > alexandria_api::list_witnesses_by_vote(const string& name, uint32_t limit)
+{
+   return my->_remote_api->get_witnesses_by_vote( name, limit );
+}
+
 optional< condenser_api::api_witness_object > alexandria_api::get_witness(string owner_account)
 {
    return my->get_witness(owner_account);

@@ -199,6 +199,8 @@ class alexandria_api
        */
       vector< account_name_type > list_witnesses(const string& lowerbound, uint32_t limit);
 
+      vector< condenser_api::api_witness_object > list_witnesses_by_vote(const string& name, uint32_t limit);
+
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
@@ -655,6 +657,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         /// query api
         (info)
         (list_witnesses)
+        (list_witnesses_by_vote)
         (get_witness)
         (get_block)
         (get_ops_in_block)
