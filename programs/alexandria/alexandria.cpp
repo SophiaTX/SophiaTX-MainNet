@@ -241,6 +241,26 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
    return false;
 }
 
+bool base64_decode(const char *input, char *output) {
+   try {
+      auto out = fc::base64_decode(string(input));
+      strcpy(output, out.c_str());
+   } catch (const fc::exception& e) {
+      return false;
+   }
+   return true;
+}
+
+bool base64_encode(const char *input, char *output) {
+   try {
+      auto out = fc::base64_encode(string(input));
+      strcpy(output, out.c_str());
+   } catch (const fc::exception& e) {
+      return false;
+   }
+   return true;
+}
+
 } //
 
 FC_REFLECT( memo_data, (nonce)(check)(encrypted) )
