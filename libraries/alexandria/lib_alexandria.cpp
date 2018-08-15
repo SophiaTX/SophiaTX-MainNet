@@ -725,8 +725,9 @@ operation alexandria_api::add_fee(operation op, asset fee)const {
 
 fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, string pk) const {
    try{
-      auto priv_key = *sophiatx::utilities::wif_to_key(pk);
-      return priv_key.sign_compact(digest);
+      auto priv_key = sophiatx::utilities::wif_to_key(pk);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
+      return priv_key->sign_compact(digest);
    }FC_CAPTURE_AND_RETHROW((digest)(pk))
 }
 
@@ -772,8 +773,9 @@ key_pair alexandria_api::generate_key_pair_from_brain_key(string brain_key) cons
 
 public_key_type alexandria_api::get_public_key(string private_key) const {
    try{
-      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
-      return priv_key.get_public_key();
+      auto priv_key = sophiatx::utilities::wif_to_key(private_key);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
+      return priv_key->get_public_key();
    }FC_CAPTURE_AND_RETHROW((private_key))
 }
 
@@ -789,11 +791,12 @@ string alexandria_api::encrypt_data(string data, public_key_type public_key, str
    try {
       memo_data m;
 
-      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+      auto priv_key = sophiatx::utilities::wif_to_key(private_key);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
 
       m.nonce = fc::time_point::now().time_since_epoch().count();
 
-      auto shared_secret = priv_key.get_shared_secret( public_key );
+      auto shared_secret = priv_key->get_shared_secret( public_key );
 
       fc::sha512::encoder enc;
       fc::raw::pack( enc, m.nonce );
@@ -813,9 +816,10 @@ string alexandria_api::decrypt_data(string data, public_key_type public_key, str
       FC_ASSERT(m , "Can not parse input!");
 
       fc::sha512 shared_secret;
-      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+      auto priv_key = sophiatx::utilities::wif_to_key(private_key);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
 
-      shared_secret = priv_key.get_shared_secret(public_key);
+      shared_secret = priv_key->get_shared_secret(public_key);
 
       fc::sha512::encoder enc;
       fc::raw::pack(enc, m->nonce);
