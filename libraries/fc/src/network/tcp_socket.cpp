@@ -90,7 +90,7 @@ namespace fc {
 
   tcp_socket::tcp_socket(){};
 
-  tcp_socket::~tcp_socket(){};
+  tcp_socket::~tcp_socket(){}
 
   void tcp_socket::flush() {}
   void tcp_socket::close() {

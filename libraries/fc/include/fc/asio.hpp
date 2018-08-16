@@ -72,7 +72,7 @@ namespace asio {
      * This IO service is automatically running in its own thread to service asynchronous
      * requests without blocking any other threads.
      */
-    boost::asio::io_service& default_io_service(bool cleanup = false);
+    boost::asio::io_service& default_io_service();
 
     /** 
      *  @brief wraps boost::asio::async_read
