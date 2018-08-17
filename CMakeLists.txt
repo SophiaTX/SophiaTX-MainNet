@@ -160,7 +160,7 @@ IF( WIN32 )
 ENDIF(WIN32)
 
 
-FIND_PACKAGE(Boost 1.60 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+FIND_PACKAGE(Boost 1.65 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
 find_package(JNI)
 if(JNI_FOUND AND (NOT ABAP_INTERFACE))
@@ -237,6 +237,7 @@ else( WIN32 ) # Apple AND Linux
         set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -Wall" )
         set( rt_library rt )
         set( pthread_library pthread)
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         if ( NOT DEFINED crypto_library )
           # I'm not sure why this is here, I guess someone has openssl and can't detect it with find_package()?
           # if you have a normal install, you can define crypto_library to the empty string to avoid a build error
