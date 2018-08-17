@@ -193,7 +193,7 @@ namespace fc { namespace ecc {
             unsigned char *buffer = (unsigned char*)alloca(len + 1);
             *buffer = 0;
             memcpy( buffer + 1, in, len );
-            BN_bin2bn( buffer, sizeof(buffer), out );
+            BN_bin2bn( buffer, len + 1, out );
         }
         else
         {

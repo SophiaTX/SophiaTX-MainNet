@@ -34,7 +34,7 @@ endif()
 SET (ORIGINAL_LIB_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 SET(BOOST_COMPONENTS)
-LIST(APPEND BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context locale iostreams)
+LIST(APPEND BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context locale iostreams coroutine)
 SET( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
 
 IF( ECC_IMPL STREQUAL openssl )
@@ -112,24 +112,14 @@ IF( WIN32 )
   set(Boost_USE_MULTITHREADED ON)
   set(BOOST_ALL_DYN_LINK OFF) # force dynamic linking for all libraries
 
-  FIND_PACKAGE(Boost 1.53 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
-  # For Boost 1.53 on windows, coroutine was not in BOOST_LIBRARYDIR and do not need it to build,  but if boost versin >= 1.54, find coroutine otherwise will cause link errors
-  IF(NOT "${Boost_VERSION}" MATCHES "1.53(.*)")
-    SET(BOOST_LIBRARIES_TEMP ${Boost_LIBRARIES})
-    FIND_PACKAGE(Boost 1.54 REQUIRED COMPONENTS coroutine)
-    LIST(APPEND BOOST_COMPONENTS coroutine)
-    SET(Boost_LIBRARIES ${BOOST_LIBRARIES_TEMP} ${Boost_LIBRARIES})
-  ENDIF()
-
+  FIND_PACKAGE(Boost 1.65 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
   set( PLATFORM_SPECIFIC_LIBS wsock32.lib ws2_32.lib userenv.lib)
   # iphlpapi.lib
 
 ELSE(WIN32)
   MESSAGE(STATUS "Configuring fc to build on Unix/Apple")
 
-  LIST(APPEND BOOST_COMPONENTS coroutine)
-
-  FIND_PACKAGE(Boost 1.53 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+  FIND_PACKAGE(Boost 1.65 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 
   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
@@ -184,7 +174,6 @@ set( fc_sources
      src/io/varint.cpp
      src/io/console.cpp
      src/filesystem.cpp
-     src/interprocess/process.cpp
      src/interprocess/signals.cpp
      src/interprocess/file_mapping.cpp
      src/interprocess/mmap_struct.cpp
@@ -277,7 +266,7 @@ endif(WIN32)
 # end readline stuff
 
 if( NOT CPP_STANDARD )
-  set( CPP_STANDARD, "-std=c++11" )
+  set( CPP_STANDARD "-std=c++11" )
 endif()
 
 IF(WIN32)
@@ -365,7 +354,6 @@ target_include_directories(fc
     "${readline_includes}"
 
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/boost_1.51/include
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cyoencode-1.0.2/src
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/secp256k1-zkp
   )

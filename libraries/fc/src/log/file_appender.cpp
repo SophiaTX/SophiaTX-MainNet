@@ -7,6 +7,7 @@
 #include <fc/variant.hpp>
 #include <boost/thread/mutex.hpp>
 #include <iomanip>
+#include <iostream>
 #include <queue>
 #include <sstream>
 
