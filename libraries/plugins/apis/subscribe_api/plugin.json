@@ -1,0 +1,5 @@
+{
+  "plugin_name": "subscribe_api",
+  "plugin_namespace": "subscribe",
+  "plugin_project": "subscribe_api_plugin"
+}

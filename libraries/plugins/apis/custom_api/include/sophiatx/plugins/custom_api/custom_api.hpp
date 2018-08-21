@@ -14,6 +14,7 @@ namespace sophiatx { namespace plugins { namespace custom {
 
 
 namespace detail { class custom_api_impl; }
+using plugins::json_rpc::void_type;
 
 
 struct received_object

@@ -213,6 +213,7 @@ namespace sophiatx { namespace chain {
 
             FC_ASSERT( is_virtual_operation( op ) );
             operation_notification note(op);
+            note.virtual_op = true;
             notify_pre_apply_operation( note );
             notify_post_apply_operation( note );
          }

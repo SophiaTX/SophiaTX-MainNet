@@ -124,6 +124,8 @@ class webserver_plugin_impl
       void handle_ws_message( websocket_server_type*, connection_hdl, detail::websocket_server_type::message_ptr );
       void handle_http_message( websocket_server_type*, connection_hdl );
 
+      void send_ws_notice( websocket_server_type* server, connection_hdl hdl, string message );
+
       shared_ptr< std::thread >  http_thread;
       asio::io_service           http_ios;
       optional< tcp::endpoint >  http_endpoint;
@@ -233,16 +235,36 @@ void webserver_plugin_impl::stop_webserver()
    }
 }
 
+void webserver_plugin_impl::send_ws_notice( websocket_server_type* server, connection_hdl hdl, string message )
+{
+   try{
+      auto con = server->get_con_from_hdl( hdl );
+
+      thread_pool_ios.post( [con, message, this]() {
+         try{
+            con->send(message);
+         }catch( ... )
+         {
+            elog("failed to send notification connection from handler");
+            //we shall notify the caller and delete the callback association
+         }
+      });
+   }catch(...){
+      elog("failed to get connection from handler");
+      return;
+   }
+}
+
 void webserver_plugin_impl::handle_ws_message( websocket_server_type* server, connection_hdl hdl, detail::websocket_server_type::message_ptr msg )
 {
    auto con = server->get_con_from_hdl( hdl );
 
-   thread_pool_ios.post( [con, msg, this]()
+   thread_pool_ios.post( [con, msg, this, server, hdl]()
    {
       try
       {
          if( msg->get_opcode() == websocketpp::frame::opcode::text )
-            con->send( api->call( msg->get_payload() ) );
+            con->send( api->call( msg->get_payload(), boost::bind(&webserver_plugin_impl::send_ws_notice, this, server, hdl, _1) ) );
          else
             con->send( "error: string payload expected" );
       }

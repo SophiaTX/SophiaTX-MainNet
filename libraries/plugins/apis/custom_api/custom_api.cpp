@@ -9,15 +9,18 @@ namespace detail {
 class custom_api_impl
 {
 public:
-   custom_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {}
+   custom_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
+   }
 
    DECLARE_API_IMPL(
          (list_received_documents)
          (get_received_document)
    )
 
-   chain::database& _db;
+
+   chain::database&                 _db;
 };
+
 
 DEFINE_API_IMPL( custom_api_impl, get_received_document )
 {
