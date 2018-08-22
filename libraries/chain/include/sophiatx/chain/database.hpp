@@ -215,8 +215,8 @@ namespace sophiatx { namespace chain {
             operation_notification note(op);
             ++_current_virtual_op;
             note.virtual_op = _current_virtual_op;
-            note.trx_id = transaction_id_type();
             notify_pre_apply_operation( note );
+            note.trx_id = transaction_id_type();
             notify_post_apply_operation( note );
          }
 
