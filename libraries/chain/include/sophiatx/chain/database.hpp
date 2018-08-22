@@ -214,9 +214,9 @@ namespace sophiatx { namespace chain {
             FC_ASSERT( is_virtual_operation( op ) );
             operation_notification note(op);
             ++_current_virtual_op;
+            _current_trx_id = transaction_id_type();
             note.virtual_op = _current_virtual_op;
             notify_pre_apply_operation( note );
-            note.trx_id = transaction_id_type();
             notify_post_apply_operation( note );
          }
 
