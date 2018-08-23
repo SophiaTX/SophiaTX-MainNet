@@ -40,8 +40,33 @@ sophiatx::protocol::transaction_id_type sophiatx::protocol::transaction::id() co
    return result;
 }
 
+
+namespace{
+class raw_bytes
+{
+public:
+   raw_bytes(){};
+   ~raw_bytes(){};
+
+   void write( const char* d, uint32_t dlen ){ for(int i =0; i<dlen; i++){data[size++] = d[i]; }   };
+   void put( char c ) { write( &c, 1 ); }
+   void reset(){size = 0 ;};
+
+   unsigned char data[100000];
+   uint32_t size = 0;
+};
+}
+
+
 digest_type transaction::sig_digest( const chain_id_type& chain_id )const
 {
+#ifndef NDEBUG
+   raw_bytes s,t;
+   fc::raw::pack( s, chain_id );
+   fc::raw::pack( s, *this );
+   for(int i = 0; i<s.size; i++) std::cout<<std::hex << std::setfill('0') << std::setw(2) <<std::uppercase << (static_cast<int>(s.data[i])&0xFF);
+   std::cout <<"\n";
+#endif
    digest_type::encoder enc;
    fc::raw::pack( enc, chain_id );
    fc::raw::pack( enc, *this );
