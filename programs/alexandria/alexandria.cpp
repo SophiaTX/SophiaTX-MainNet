@@ -64,11 +64,13 @@ bool generate_private_key(char *private_key, char *public_key) {
 bool get_public_key(const char *private_key, char *public_key) {
    if(private_key) {
       try {
-         auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
-         public_key_type pub_key = priv_key.get_public_key();
-         auto public_key_str = fc::json::to_string(pub_key);
-         strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
-         return true;
+         auto priv_key = sophiatx::utilities::wif_to_key(string(private_key));
+         if(priv_key) {
+            public_key_type pub_key = priv_key->get_public_key();
+            auto public_key_str = fc::json::to_string(pub_key);
+            strcpy(public_key, public_key_str.substr(1, public_key_str.size() - 2).c_str());
+            return true;
+         }
       } catch (const fc::exception& e) {
          return false;
       }
@@ -115,11 +117,13 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
       try {
          fc::sha256 dig(string(digest, strlen(digest)));
          string private_k_str(private_key);
-         auto priv_key = *sophiatx::utilities::wif_to_key(private_k_str);
-         auto sig = priv_key.sign_compact(dig);
-         string result = fc::json::to_string(sig);
-         strcpy(signed_digest, result.substr(1, result.size() - 2).c_str());
-         return true;
+         auto priv_key = sophiatx::utilities::wif_to_key(private_k_str);
+         if(priv_key) {
+            auto sig = priv_key->sign_compact(dig);
+            string result = fc::json::to_string(sig);
+            strcpy(signed_digest, result.substr(1, result.size() - 2).c_str());
+            return true;
+         }
       } catch (const fc::exception& e) {
          return false;
       }
@@ -178,25 +182,27 @@ bool encrypt_memo(const char *memo, const char *private_key, const char *public_
       try {
          memo_data m;
 
-         auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
+         auto priv_key = sophiatx::utilities::wif_to_key(string(private_key));
 
-         fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-         public_key_type pub_key;
-         fc::from_variant( v, pub_key );
+         if(priv_key) {
+            fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+            public_key_type pub_key;
+            fc::from_variant( v, pub_key );
 
-         m.nonce = fc::time_point::now().time_since_epoch().count();
+            m.nonce = fc::time_point::now().time_since_epoch().count();
 
-         auto shared_secret = priv_key.get_shared_secret( pub_key );
+            auto shared_secret = priv_key->get_shared_secret( pub_key );
 
-         fc::sha512::encoder enc;
-         fc::raw::pack( enc, m.nonce );
-         fc::raw::pack( enc, shared_secret );
-         auto encrypt_key = enc.result();
+            fc::sha512::encoder enc;
+            fc::raw::pack( enc, m.nonce );
+            fc::raw::pack( enc, shared_secret );
+            auto encrypt_key = enc.result();
 
-         m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(string(memo)) );
-         m.check = fc::sha256::hash( encrypt_key )._hash[0];
-         strcpy(encrypted_memo, string(m).c_str());
-         return true;
+            m.encrypted = fc::aes_encrypt( encrypt_key, fc::raw::pack_to_vector(string(memo)) );
+            m.check = fc::sha256::hash( encrypt_key )._hash[0];
+            strcpy(encrypted_memo, string(m).c_str());
+            return true;
+         }
 
       } catch (const fc::exception& e) {
          return false;
@@ -213,32 +219,53 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
 
          if( m ) {
             fc::sha512 shared_secret;
-            auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
+            auto priv_key = sophiatx::utilities::wif_to_key(string(private_key));
+            if(priv_key) {
+               fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+               public_key_type pub_key;
+               fc::from_variant( v, pub_key );
 
-            fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
-            public_key_type pub_key;
-            fc::from_variant( v, pub_key );
+               shared_secret = priv_key->get_shared_secret(pub_key);
 
-            shared_secret = priv_key.get_shared_secret(pub_key);
+               fc::sha512::encoder enc;
+               fc::raw::pack( enc, m->nonce );
+               fc::raw::pack( enc, shared_secret );
+               auto encryption_key = enc.result();
 
-            fc::sha512::encoder enc;
-            fc::raw::pack( enc, m->nonce );
-            fc::raw::pack( enc, shared_secret );
-            auto encryption_key = enc.result();
+               uint64_t check = fc::sha256::hash( encryption_key )._hash[0];
+               if( check != m->check ) return false;
 
-            uint64_t check = fc::sha256::hash( encryption_key )._hash[0];
-            if( check != m->check ) return false;
+               vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
+               strcpy(decrypted_memo, fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
 
-            vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
-            strcpy(decrypted_memo, fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
-
-            return true;
+               return true;
+            }
          }
       } catch (const fc::exception& e) {
          return false;
       }
    }
    return false;
+}
+
+bool base64_decode(const char *input, char *output) {
+   try {
+      auto out = fc::base64_decode(string(input));
+      strcpy(output, out.c_str());
+   } catch (const fc::exception& e) {
+      return false;
+   }
+   return true;
+}
+
+bool base64_encode(const char *input, char *output) {
+   try {
+      auto out = fc::base64_encode(string(input));
+      strcpy(output, out.c_str());
+   } catch (const fc::exception& e) {
+      return false;
+   }
+   return true;
 }
 
 } //

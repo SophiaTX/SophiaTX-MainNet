@@ -572,10 +572,14 @@ JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_wifToPrivateKey(JNIEnv *env, jcl
    }
 
    try {
-      auto priv_key = *sophiatx::utilities::wif_to_key(string(private_key));
+      auto priv_key = sophiatx::utilities::wif_to_key(string(private_key));
       env->ReleaseStringUTFChars(inJNIStrPrivateKey, private_key);
 
-      std::vector<char> key_bytes = fc::variant(priv_key).as<std::vector<char>>();
+      if(!priv_key) {
+         return nullptr;
+      }
+
+      std::vector<char> key_bytes = fc::variant(*priv_key).as<std::vector<char>>();
 
       jbyteArray ret = env->NewByteArray(static_cast<jsize>(key_bytes.size()));
 
