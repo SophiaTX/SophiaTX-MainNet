@@ -1965,6 +1965,9 @@ void database::_apply_block( const signed_block& next_block )
       ++_current_trx_in_block;
    }
 
+   _current_virtual_op = 0;
+   _current_trx_in_block = -1;
+
    update_global_dynamic_data(next_block);
    update_signing_witness(signing_witness, next_block);
 
@@ -2137,6 +2140,7 @@ void database::apply_transaction(const signed_transaction& trx, uint32_t skip)
 void database::_apply_transaction(const signed_transaction& trx)
 { try {
    _current_trx_id = trx.id();
+   _current_virtual_op = 0;
    uint32_t skip = get_node_properties().skip_flags;
 
    if( !(skip&skip_validate) ) {   /* issue #505 explains why this skip_flag is disabled */
