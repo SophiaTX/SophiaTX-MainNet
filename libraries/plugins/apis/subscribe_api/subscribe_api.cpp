@@ -22,7 +22,8 @@ public:
 
    chain::database&                 _db;
    boost::signals2::connection      post_apply_connection;
-   //vector<std::function<void( const received_object )>> cbs;
+   std::vector<std::uint64_t>            _subscriptions;
+   plugins::json_rpc::json_rpc_plugin* json_api;
 };
 
 void subscribe_api_impl::on_operation( const chain::operation_notification& note ){
@@ -33,16 +34,20 @@ void subscribe_api_impl::on_operation( const chain::operation_notification& note
          const auto& idx = _db.get_index< chain::custom_content_index, chain::by_id >();
          auto res = idx.find(co_id);
 
-//         for( auto cb:cbs ) {
-//            cb(op);
-//         }
+         string text = "my_notification";
+         fc::variant notify_body;
+         fc::to_variant(text, notify_body);
+         for(uint64_t i = 0; i< _subscriptions.size(); i++)
+            json_api->send_ws_notice( i, _subscriptions[i], notify_body);
+
       }
    }catch(fc::assert_exception){}
 }
 
 DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
 {
-//cbs.push_back(args);
+   _subscriptions.push_back(args);
+   return _subscriptions.size()-1;
 }
 
 
@@ -56,10 +61,14 @@ subscribe_api::subscribe_api(): my( new detail::subscribe_api_impl() )
    JSON_RPC_REGISTER_SUBSCRIBE_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME );
 }
 
+void subscribe_api::api_startup(){
+   my->json_api = appbase::app().find_plugin< plugins::json_rpc::json_rpc_plugin >();
+}
+
 subscribe_api::~subscribe_api() {}
 
 DEFINE_READ_APIS( subscribe_api,
-(custom_object_subscription)
+     (custom_object_subscription)
 )
 
 } } } // sophiatx::plugins::subscribe

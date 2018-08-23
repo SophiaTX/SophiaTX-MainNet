@@ -14,7 +14,10 @@ void subscribe_api_plugin::plugin_initialize( const variables_map& options )
    api = std::make_shared< subscribe_api >();
 }
 
-void subscribe_api_plugin::plugin_startup() {}
+void subscribe_api_plugin::plugin_startup()
+{
+   api->api_startup();
+}
 void subscribe_api_plugin::plugin_shutdown() {}
 
 } } } // namespace

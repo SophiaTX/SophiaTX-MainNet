@@ -26,6 +26,7 @@ class subscribe_api
 public:
    subscribe_api();
    ~subscribe_api();
+   void api_startup();
 
    DECLARE_API(
    (custom_object_subscription)
