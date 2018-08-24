@@ -95,6 +95,7 @@ void subscribe_api_impl::on_operation( const chain::operation_notification& note
 DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
 {
 
+   FC_ASSERT( custom_api, "custom_api_plugin not enabled." );
    custom_content_callback cb(args, this, _content_subscriptions.size() );
 
    _content_subscriptions.push_back(cb);
