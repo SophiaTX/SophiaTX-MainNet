@@ -21,6 +21,7 @@ struct custom_object_subscription_args{
    uint32_t app_id;
    string   account_name;
    string   search_type;
+   uint64_t start;
 };
 
 
@@ -43,4 +44,4 @@ private:
 
 } } } // sophiatx::plugins::subscribe
 
-FC_REFLECT(sophiatx::plugins::subscribe::custom_object_subscription_args, (return_id)(app_id)(account_name)(search_type))
+FC_REFLECT(sophiatx::plugins::subscribe::custom_object_subscription_args, (return_id)(app_id)(account_name)(search_type)(start))

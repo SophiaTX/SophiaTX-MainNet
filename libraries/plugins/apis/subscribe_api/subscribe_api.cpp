@@ -40,11 +40,11 @@ struct custom_content_callback{
    subscribe_api_impl* impl;
    custom_object_subscription_args args;
 
-   custom_content_callback(custom_object_subscription_args _args, subscribe_api_impl* _impl, uint64_t _websocket_handle, uint64_t _last ){
+   custom_content_callback(custom_object_subscription_args _args, subscribe_api_impl* _impl, uint64_t _websocket_handle ){
       args = _args;
       impl = _impl;
       websocket_handle = _websocket_handle;
-      last_position = _last;
+      last_position = _args.start;
    }
 
    custom_content_callback(custom_content_callback&c){
@@ -94,7 +94,7 @@ void subscribe_api_impl::on_operation( const chain::operation_notification& note
 DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
 {
 
-   custom_content_callback cb(args, this, _content_subscriptions.size(), 1 );
+   custom_content_callback cb(args, this, _content_subscriptions.size() );
 
    _content_subscriptions.push_back(cb);
 
