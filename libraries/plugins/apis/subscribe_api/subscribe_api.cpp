@@ -41,10 +41,11 @@ struct custom_content_callback{
    custom_object_subscription_args args;
 
    custom_content_callback(custom_object_subscription_args _args, subscribe_api_impl* _impl, uint64_t _websocket_handle ){
+      FC_ASSERT(_args.start > 0);
       args = _args;
       impl = _impl;
       websocket_handle = _websocket_handle;
-      last_position = _args.start;
+      last_position = _args.start-1;
    }
 
    custom_content_callback(custom_content_callback&c){
