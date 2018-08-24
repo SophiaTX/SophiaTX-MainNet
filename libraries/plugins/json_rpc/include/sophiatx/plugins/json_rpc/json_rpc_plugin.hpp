@@ -111,7 +111,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
 
       void send_ws_notice( uint64_t registration_id, uint64_t subscription_id, fc::variant& message);
       string call( const string& body );
-      string call( const string& message, std::function<void(string)> callback);
+      string call( const string& message, std::function<void(const string& )> callback);
 
    private:
       std::unique_ptr< detail::json_rpc_plugin_impl > my;

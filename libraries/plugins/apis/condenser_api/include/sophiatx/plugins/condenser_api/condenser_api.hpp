@@ -355,6 +355,7 @@ struct get_version_return
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
 typedef map< uint64_t, api_received_object >      list_received_documents_return_type;
+typedef api_received_object get_received_document_return_type;
 typedef vector< api_application_buying_object > get_application_buyings_return_type;
 
 
@@ -403,6 +404,8 @@ DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   js
 DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
 DEFINE_API_ARGS( get_promotion_pool_balance,             vector< variant >,   legacy_asset)
 DEFINE_API_ARGS( list_received_documents,                 vector< variant >,   list_received_documents_return_type )
+DEFINE_API_ARGS( get_received_document,                 vector< variant >,   get_received_document_return_type )
+
 DEFINE_API_ARGS( get_application_buyings,                vector< variant >,   get_application_buyings_return_type )
 
 #undef DEFINE_API_ARGS

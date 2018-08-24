@@ -124,7 +124,7 @@ class webserver_plugin_impl
       void handle_ws_message( websocket_server_type*, connection_hdl, detail::websocket_server_type::message_ptr );
       void handle_http_message( websocket_server_type*, connection_hdl );
 
-      void send_ws_notice( websocket_server_type* server, connection_hdl hdl, string message );
+      void send_ws_notice( websocket_server_type* server, connection_hdl hdl, const string& message );
 
       shared_ptr< std::thread >  http_thread;
       asio::io_service           http_ios;
@@ -235,7 +235,7 @@ void webserver_plugin_impl::stop_webserver()
    }
 }
 
-void webserver_plugin_impl::send_ws_notice( websocket_server_type* server, connection_hdl hdl, string message )
+void webserver_plugin_impl::send_ws_notice( websocket_server_type* server, connection_hdl hdl, const string& message )
 {
    try{
       auto con = server->get_con_from_hdl( hdl );

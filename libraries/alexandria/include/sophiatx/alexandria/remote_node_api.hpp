@@ -17,7 +17,7 @@ using namespace plugins::market_history;
 using namespace plugins::witness;*/
 
 /**
- * This is a dummy API so that the wallet can create properly formatted API calls
+ * This is a dummy API so that the alexandria can create properly formatted API calls
  */
 struct remote_node_api
 {

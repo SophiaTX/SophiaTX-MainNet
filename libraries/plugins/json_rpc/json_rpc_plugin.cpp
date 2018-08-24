@@ -516,7 +516,7 @@ void json_rpc_plugin::send_ws_notice( uint64_t registration_id, uint64_t subscri
    my->send_ws_notice( registration_id, fc::json::to_string(n));
 }
 
-string json_rpc_plugin::call( const string& message, std::function<void(string)> callback)
+string json_rpc_plugin::call( const string& message, std::function<void(const string&)> callback)
 {
    try
    {

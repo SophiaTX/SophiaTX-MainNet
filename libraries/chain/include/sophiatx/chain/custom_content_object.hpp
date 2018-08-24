@@ -7,7 +7,6 @@
 #include <sophiatx/chain/buffer_type.hpp>
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
-#include  <boost/interprocess/containers/flat_set.hpp>
 #include <fc/time.hpp>
 
 #include <boost/multi_index/composite_key.hpp>
