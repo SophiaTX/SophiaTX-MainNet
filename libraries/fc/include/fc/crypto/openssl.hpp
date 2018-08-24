@@ -8,6 +8,7 @@
 #include <openssl/ecdh.h>
 #include <openssl/sha.h>
 #include <openssl/obj_mac.h>
+#include <openssl/engine.h>
 
 /** 
  * @file openssl.hpp
