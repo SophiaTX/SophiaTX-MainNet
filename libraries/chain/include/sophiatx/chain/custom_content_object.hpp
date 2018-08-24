@@ -7,6 +7,7 @@
 #include <sophiatx/chain/buffer_type.hpp>
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
+#include  <boost/interprocess/containers/flat_set.hpp>
 #include <fc/time.hpp>
 
 #include <boost/multi_index/composite_key.hpp>
@@ -19,18 +20,17 @@ namespace sophiatx { namespace chain {
 class custom_content_object: public object< custom_content_object_type, custom_content_object> {
 public:
    template<typename Constructor, typename Allocator>
-   custom_content_object(Constructor &&c, allocator<Allocator> a) {
+   custom_content_object(Constructor &&c, allocator<Allocator> a):all_recipients( a.get_segment_manager() ) {
       c(*this);
    }
-
-   custom_content_object() {}
 
    id_type id;
 
    uint64_t app_id;
    account_name_type sender;
    account_name_type recipient;
-   flat_set<account_name_type> all_recipients;
+
+   bip::vector<account_name_type, allocator<account_name_type>> all_recipients;
 
    uint64_t sender_sequence = 0;
    uint64_t recipient_sequence = 0;

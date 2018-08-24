@@ -39,13 +39,12 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, std::max( int64_t(0), int64_t(itr->sender_sequence) - args.count ) ) );
 
-      list_received_documents_return result; result.history.clear();
-      while( itr != end && result.history.size() < args.count )
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count )
       {
-         result.history[ itr->sender_sequence ] = *itr;
+         result[ itr->sender_sequence ] = *itr;
          ++itr;
       }
-
       return result;
    }else if(args.search_type == "by_recipient"){
       uint64_t start = std::stoull(args.start);
@@ -54,10 +53,10 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, std::max( int64_t(0), int64_t(itr->recipient_sequence) - args.count ) ) );
 
-      list_received_documents_return result; result.history.clear();
-      while( itr != end && result.history.size() < args.count)
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count)
       {
-         result.history[ itr->recipient_sequence ] = *itr;
+         result[ itr->recipient_sequence ] = *itr;
          ++itr;
       }
 
@@ -68,26 +67,24 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::min() ) );
 
-
-      list_received_documents_return result; result.history.clear();
-      while( itr != end && result.history.size() < args.count)
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count)
       {
-         result.history[ itr->sender_sequence ] = *itr;
+         result[ itr->sender_sequence ] = *itr;
          ++itr;
       }
 
       return result;
-
    }else if(args.search_type == "by_recipient_datetime"){
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
       const auto& idx = _db.get_index< chain::custom_content_index, chain::by_recipient_time >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::min() ) );
 
-      list_received_documents_return result; result.history.clear();
-      while( itr != end && result.history.size() < args.count)
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count)
       {
-         result.history[ itr->recipient_sequence ] = *itr;
+         result[ itr->recipient_sequence ] = *itr;
          ++itr;
       }
 

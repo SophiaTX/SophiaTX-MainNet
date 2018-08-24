@@ -16,8 +16,13 @@ namespace detail { class subscribe_api_impl; }
 using plugins::json_rpc::void_type;
 
 
+struct custom_object_subscription_args{
+   uint64_t return_id;
+   uint32_t app_id;
+   string   account_name;
+   string   search_type;
+};
 
-typedef uint64_t custom_object_subscription_args;
 
 typedef uint64_t custom_object_subscription_return;
 
@@ -38,4 +43,4 @@ private:
 
 } } } // sophiatx::plugins::subscribe
 
-
+FC_REFLECT(sophiatx::plugins::subscribe::custom_object_subscription_args, (return_id)(app_id)(account_name)(search_type))

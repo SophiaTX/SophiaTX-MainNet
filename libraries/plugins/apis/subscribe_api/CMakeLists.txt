@@ -4,7 +4,7 @@ add_library( subscribe_api_plugin
         subscribe_api.cpp
         )
 
-target_link_libraries( subscribe_api_plugin json_rpc_plugin chain_plugin sophiatx_chain sophiatx_protocol )
+target_link_libraries( subscribe_api_plugin json_rpc_plugin chain_plugin sophiatx_chain custom_api_plugin sophiatx_protocol )
 target_include_directories( subscribe_api_plugin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 if( CLANG_TIDY_EXE )

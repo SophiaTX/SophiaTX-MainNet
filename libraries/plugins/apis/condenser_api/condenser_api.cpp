@@ -658,7 +658,7 @@ namespace detail
       CHECK_ARG_SIZE( 5 )
       FC_ASSERT( _custom_api, "custom_api_plugin not enabled." );
 
-      return _custom_api->list_received_documents( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint32_t >() } ).history;
+      return _custom_api->list_received_documents( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint32_t >() } );
    }
 
    DEFINE_API_IMPL( condenser_api_impl, broadcast_transaction )

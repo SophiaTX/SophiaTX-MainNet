@@ -21,17 +21,17 @@ struct received_object
 {
    received_object() {};
    received_object( const sophiatx::chain::custom_content_object& obj ) :
+         id(obj.id._id),
          sender( obj.sender ),
          app_id( obj.app_id ),
          binary( obj.binary ),
-         received( obj.received),
-         id(obj.id._id)
+         received( obj.received)
    {
       if(binary)
          data = fc::base64_encode(obj.data.data(), obj.data.size());
       else
          data = obj.json;
-      for(const auto&r: obj.all_recipients)
+      for(auto r: obj.all_recipients)
          recipients.push_back(r);
    }
 
@@ -60,10 +60,8 @@ struct get_received_document_args
    uint64_t id;
 };
 
-struct list_received_documents_return
-{
-   std::map< uint64_t, received_object > history;
-};
+typedef std::map< uint64_t, received_object > list_received_documents_return;
+
 
 typedef received_object get_received_document_return;
 
@@ -93,5 +91,3 @@ FC_REFLECT( sophiatx::plugins::custom::list_received_documents_args,
 FC_REFLECT( sophiatx::plugins::custom::get_received_document_args,
             (id) )
 
-FC_REFLECT( sophiatx::plugins::custom::list_received_documents_return,
-            (history) )
