@@ -72,7 +72,7 @@ namespace detail
             (broadcast_block)
             (get_applications)
             (get_promotion_pool_balance)
-            (get_received_documents)
+            (list_received_documents)
             (get_application_buyings)
          )
 
@@ -653,12 +653,12 @@ namespace detail
       return result;
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_received_documents )
+   DEFINE_API_IMPL( condenser_api_impl, list_received_documents )
    {
       CHECK_ARG_SIZE( 5 )
       FC_ASSERT( _custom_api, "custom_api_plugin not enabled." );
 
-      return _custom_api->get_received_documents( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint32_t >() } ).history;
+      return _custom_api->list_received_documents( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint32_t >() } );
    }
 
    DEFINE_API_IMPL( condenser_api_impl, broadcast_transaction )
@@ -806,7 +806,7 @@ DEFINE_READ_APIS( condenser_api,
    (get_account_history)
    (get_applications)
    (get_promotion_pool_balance)
-   (get_received_documents)
+   (list_received_documents)
    (get_application_buyings)
 )
 

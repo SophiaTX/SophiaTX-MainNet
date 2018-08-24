@@ -827,7 +827,7 @@ class wallet_api
        * @param count Number of items to retrieve
        * @return
        */
-      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+      map< uint64_t, condenser_api::api_received_object >  list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
       annotated_signed_transaction sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast);
 
@@ -924,7 +924,7 @@ FC_API( sophiatx::wallet::wallet_api,
 
         (send_custom_json_document)
         (send_custom_binary_document)
-        (get_received_documents)
+        (list_received_documents)
 
 
         (encode_to_base64)(decode_from_base64)(get_account_name_from_seed)

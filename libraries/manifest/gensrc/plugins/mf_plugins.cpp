@@ -10,6 +10,8 @@
 
 #include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
 
+#include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
+
 #include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
 #include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
@@ -53,6 +55,8 @@ void register_plugins()
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_api_plugin >();
+   
+   appbase::app().register_plugin< sophiatx::plugins::subscribe::subscribe_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::custom::custom_api_plugin >();
    
