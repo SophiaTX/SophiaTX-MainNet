@@ -1,7 +1,6 @@
 #include <fc/crypto/openssl.hpp>
 
 #include <fc/filesystem.hpp>
-#include <fc/log/logger.hpp>
 
 #include <boost/filesystem/path.hpp>
 
