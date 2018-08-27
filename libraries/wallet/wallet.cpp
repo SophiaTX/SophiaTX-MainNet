@@ -1995,9 +1995,9 @@ annotated_signed_transaction wallet_api::sponsor_account_fees(string sponsoring_
    }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account)(broadcast) )
 }
 
-map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+map< uint64_t, condenser_api::api_received_object >  wallet_api::list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
-      return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      return my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 

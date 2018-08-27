@@ -706,7 +706,8 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;
-           c.all_recipients = o.recipients;
+           for( auto o_r: o.recipients)
+              c.all_recipients.push_back(o_r);
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
            c.received = d.head_block_time();
@@ -757,7 +758,8 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;
-           c.all_recipients = o.recipients;
+           for( auto o_r: o.recipients)
+              c.all_recipients.push_back(o_r);
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
            c.received = d.head_block_time();
