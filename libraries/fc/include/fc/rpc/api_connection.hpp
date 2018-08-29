@@ -182,7 +182,7 @@ namespace fc {
 		 R call_generic(const std::function<R(Arg0, Args...)>& f, variants::const_iterator a0, variants::const_iterator e)
 		 {
 			 FC_ASSERT(a0 != e, "too few arguments passed to method");
-			 return  call_generic<R, Args...>(this->bind_first_arg<R, Arg0, Args...>(f, a0->as< typename std::decay<Arg0>::type >()), a0 + 1, e);
+			 return  call_generic(this->bind_first_arg<R, Arg0, Args...>(f, a0->as< typename std::decay<Arg0>::type >()), a0 + 1, e);
 		 }
 
          struct api_visitor
