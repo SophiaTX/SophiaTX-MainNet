@@ -133,7 +133,7 @@ namespace detail
 
          void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
 
-         void add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
+         void add_api_subscribe_method( const string& api_name, const string& method_name );
 
          api_method* find_api_method( std::string api, std::string method );
          api_method* process_params( string method, const fc::variant_object& request, fc::variant& func_args, bool& is_subscribe );
@@ -174,9 +174,8 @@ namespace detail
       _methods.push_back( canonical_name.str() );
    }
 
-   void json_rpc_plugin_impl::add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+   void json_rpc_plugin_impl::add_api_subscribe_method( const string& api_name, const string& method_name )
    {
-      add_api_method(api_name, method_name, api, sig);
       std::stringstream canonical_name;
       canonical_name << api_name << '.' << method_name;
       _subscribe_methods.push_back( canonical_name.str() );
@@ -450,9 +449,9 @@ void json_rpc_plugin::add_api_method( const string& api_name, const string& meth
    my->add_api_method( api_name, method_name, api, sig );
 }
 
-void json_rpc_plugin::add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+void json_rpc_plugin::add_api_subscribe_method( const string& api_name, const string& method_name )
 {
-   my->add_api_subscribe_method( api_name, method_name, api, sig );
+   my->add_api_subscribe_method( api_name, method_name );
 }
 
 string json_rpc_plugin::call( const string& message )

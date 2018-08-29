@@ -107,7 +107,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
       virtual void plugin_shutdown() override;
 
       void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
-      void add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
+      void add_api_subscribe_method( const string& api_name, const string& method_name );
 
       void send_ws_notice( uint64_t registration_id, uint64_t subscription_id, fc::variant& message);
       string call( const string& body );
@@ -164,12 +164,7 @@ namespace detail {
             Args* args,
             Ret* ret )
       {
-         _json_rpc_plugin.add_api_subscribe_method( _api_name, method_name,
-                                          [&plugin,method]( const fc::variant& args ) -> fc::variant
-                                          {
-                                               return fc::variant( (plugin.*method)( args.as< Args >(), true ) );
-                                          },
-                                          api_method_signature{ fc::variant( Args() ), fc::variant( Ret() ) } );
+         _json_rpc_plugin.add_api_subscribe_method( _api_name, method_name );
       }
 
    private:

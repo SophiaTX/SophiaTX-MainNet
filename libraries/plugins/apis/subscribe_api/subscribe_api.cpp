@@ -111,7 +111,8 @@ DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
 
 subscribe_api::subscribe_api(): my( new detail::subscribe_api_impl() )
 {
-   JSON_RPC_REGISTER_SUBSCRIBE_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME );
+   appbase::app().get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >().add_api_subscribe_method("subscribe_api", "custom_object_subscription" );
 }
 
 void subscribe_api::api_startup(){
