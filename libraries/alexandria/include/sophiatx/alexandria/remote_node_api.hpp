@@ -69,8 +69,7 @@ struct remote_node_api
    vector<condenser_api::api_application_object> get_applications(vector<string>);
    vector<condenser_api::api_application_buying_object> get_application_buyings(string, uint32_t, string);
 
-   //uint64_t custom_object_subscription(std::function<void(const variant&)>, uint64_t, uint32_t, string, string){FC_ASSERT( false );}
-   uint64_t custom_object_subscription( uint64_t, uint32_t, string, string, std::function<void(const variant&)>){FC_ASSERT( false );}
+   uint64_t custom_object_subscription(std::function<void(const variant&)>, uint32_t, string, string, uint64_t){FC_ASSERT( false );}
 };
 
 } }
