@@ -407,7 +407,13 @@ namespace detail
    }
 
    void json_rpc_plugin_impl::send_ws_notice( uint64_t id, string message){
-      _subscribe_callbacks[id](message);
+      try{
+         _subscribe_callbacks[id](message);
+      }catch(...){
+         _subscribe_callbacks.erase(id);
+         fc::send_error_exception e;
+         throw e;
+      }
    }
 }
 

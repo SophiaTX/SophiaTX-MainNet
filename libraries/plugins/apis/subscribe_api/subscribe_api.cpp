@@ -37,6 +37,7 @@ public:
 struct custom_content_callback{
    uint64_t last_position=0;
    uint64_t websocket_handle = 0;
+   bool invalid = false;
    subscribe_api_impl* impl;
    custom_object_subscription_args args;
 
@@ -84,8 +85,16 @@ void subscribe_api_impl::on_operation( const chain::operation_notification& note
       if( note.op.which() == sophiatx::protocol::operation::tag<sophiatx::protocol::custom_json_operation>::value ||
           note.op.which() == sophiatx::protocol::operation::tag<sophiatx::protocol::custom_binary_operation>::value ) {
 
-         for(uint64_t i = 0; i< _content_subscriptions.size(); i++)
-            _content_subscriptions[i]();
+         auto itr = _content_subscriptions.begin();
+         while(itr!= _content_subscriptions.end() ) {
+            try {
+               if(!itr->invalid)
+                  (*itr)();
+            }catch(fc::send_error_exception e){
+               itr->invalid = true;
+            }
+            itr++;
+         }
 
       }
    }catch(fc::assert_exception){}
