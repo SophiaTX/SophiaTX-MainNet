@@ -237,6 +237,11 @@ namespace detail
          ret = find_api_method( v[0].as_string(), v[1].as_string() );
 
          func_args = ( v.size() == 3 ) ? v[2] : fc::json::from_string( "{}" );
+
+         string method = v[0].as_string() + "." + v[1].as_string();
+         auto it = find (_subscribe_methods.begin(), _subscribe_methods.end(), method);
+         if( it!=_subscribe_methods.end() )
+            is_subscribe = true;
       }
       else
       {
@@ -506,12 +511,14 @@ string json_rpc_plugin::call( const string& message )
 
 struct ws_notice{
    string method="notice";
-   std::pair<uint64_t, fc::variant> params;
+   std::pair<uint64_t, std::vector<fc::variant>> params;
 };
 
 void json_rpc_plugin::send_ws_notice( uint64_t registration_id, uint64_t subscription_id, fc::variant& message ){
    ws_notice n;
-   n.params = std::make_pair(subscription_id, message);
+   std::vector<fc::variant> array_message;
+   array_message.push_back(message);
+   n.params = std::make_pair(subscription_id, array_message);
    my->send_ws_notice( registration_id, fc::json::to_string(n));
 }
 

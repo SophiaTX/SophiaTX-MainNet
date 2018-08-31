@@ -730,5 +730,6 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (to_base64)
         (encrypt_data)
         (decrypt_data)
+        (custom_object_subscription)
       )
 
