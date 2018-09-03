@@ -64,7 +64,8 @@ struct remote_node_api
    map< uint64_t, condenser_api::api_received_object > list_received_documents(uint32_t, string, string, string, uint32_t);
    condenser_api::api_received_object get_received_document(uint64_t id);
 
-   vector<condenser_api::api_application_object> get_applications(vector<string>);
+   vector<condenser_api::api_application_object> get_applications(vector<uint32_t>);
+   vector<condenser_api::api_application_object> get_applications_by_names(vector<string>);
    vector<condenser_api::api_application_buying_object> get_application_buyings(string, uint32_t, string);
 };
 
@@ -108,6 +109,7 @@ FC_API( sophiatx::wallet::remote_node_api,
         (broadcast_transaction_synchronous)
         (broadcast_block)
         (get_applications)
+        (get_applications_by_names)
         (get_application_buyings)
         (list_received_documents)
         (get_received_document)

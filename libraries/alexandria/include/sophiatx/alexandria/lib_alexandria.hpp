@@ -402,6 +402,13 @@ class alexandria_api
       vector< condenser_api::api_application_object >  get_applications(vector<string> names);
 
       /**
+      * Get all app objects
+      * @param ids - array of ids of applications
+      * @return array of application objects
+      */
+      vector< condenser_api::api_application_object >  get_applications_by_ids(vector<uint32_t> ids);
+
+      /**
        * Calculates digest of provided transaction
        * @param tx - transaction to be digested
        * @return transaction digest
@@ -664,6 +671,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (get_feed_history)
         (get_application_buyings)
         (get_applications)
+        (get_applications_by_ids)
         (get_received_documents)
         (get_active_witnesses)
         (get_transaction)

@@ -70,6 +70,7 @@ namespace detail
             (broadcast_transaction)
             (broadcast_transaction_synchronous)
             (broadcast_block)
+            (get_applications_by_names)
             (get_applications)
             (get_promotion_pool_balance)
             (list_received_documents)
@@ -685,7 +686,7 @@ namespace detail
       return _network_broadcast_api->broadcast_block( { signed_block( args[0].as< legacy_signed_block >() ) } );
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_applications )
+   DEFINE_API_IMPL( condenser_api_impl, get_applications_by_names )
    {
       CHECK_ARG_SIZE( 1 )
       vector< string > app_names = args[0].as< vector< string > >();
@@ -704,6 +705,26 @@ namespace detail
       }
       return result;
    }
+
+DEFINE_API_IMPL( condenser_api_impl, get_applications )
+{
+   CHECK_ARG_SIZE( 1 )
+   vector< uint32_t > app_ids = args[0].as< vector< uint32_t > >();
+
+   vector< api_application_object > result;
+   result.reserve( app_ids.size() );
+
+   for( auto& id : app_ids )
+   {
+      auto itr = _db.find< application_object, by_id >( id );
+
+      if( itr )
+      {
+         result.push_back( api_application_object( database_api::api_application_object( *itr ) ) );
+      }
+   }
+   return result;
+}
 
    DEFINE_API_IMPL( condenser_api_impl, get_application_buyings )
    {
@@ -805,6 +826,7 @@ DEFINE_READ_APIS( condenser_api,
  //  (get_account_votes)
    (get_account_history)
    (get_applications)
+   (get_applications_by_names)
    (get_promotion_pool_balance)
    (list_received_documents)
    (get_application_buyings)
