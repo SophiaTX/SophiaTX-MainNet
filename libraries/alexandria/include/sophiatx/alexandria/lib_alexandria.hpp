@@ -648,6 +648,9 @@ class alexandria_api
         * @return Amount of SPHTX if conversion is possible, or returns back fiat if not.
         */
        asset fiat_to_sphtx(asset fiat)const;
+
+
+       uint64_t custom_object_subscription(std::function<void(const variant&)> callback, uint32_t app_id, string account_name, string search_type, uint64_t start)const;
 };
 
 } }
@@ -735,5 +738,6 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (to_base64)
         (encrypt_data)
         (decrypt_data)
+        (custom_object_subscription)
       )
 

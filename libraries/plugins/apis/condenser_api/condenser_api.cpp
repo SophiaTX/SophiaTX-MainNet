@@ -8,6 +8,7 @@
 #include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 #include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
 #include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
+#include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
 
 #include <sophiatx/utilities/git_revision.hpp>
 
@@ -65,6 +66,7 @@ namespace detail
             (get_potential_signatures)
             (verify_authority)
             (verify_account_authority)
+            (custom_object_subscription)
   //          (get_account_votes)
             (get_account_history)
             (broadcast_transaction)
@@ -88,6 +90,7 @@ namespace detail
          std::shared_ptr< network_broadcast_api::network_broadcast_api > _network_broadcast_api;
          std::shared_ptr< witness::witness_api > _witness_api;
          std::shared_ptr< custom::custom_api > _custom_api;
+         std::shared_ptr< subscribe::subscribe_api> _subscribe_api;
    };
 
    DEFINE_API_IMPL( condenser_api_impl, get_version )
@@ -602,6 +605,15 @@ namespace detail
       return _database_api->verify_account_authority( { args[0].as< account_name_type >(), args[1].as< flat_set< public_key_type > >() } ).valid;
    }
 
+   DEFINE_API_IMPL( condenser_api_impl, custom_object_subscription )
+   {
+      CHECK_ARG_SIZE( 5 )
+      FC_ASSERT( _subscribe_api, "subscribe_api_plugin not enabled." );
+
+      return _subscribe_api->custom_object_subscription( { args[0].as< uint64_t>(), args[1].as< uint32_t>(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint64_t>() } );
+   }
+
+
 /*
    DEFINE_API_IMPL( condenser_api_impl, get_account_votes )
    {
@@ -747,6 +759,7 @@ condenser_api::condenser_api()
    : my( new detail::condenser_api_impl() )
 {
    JSON_RPC_REGISTER_API( SOPHIATX_CONDENSER_API_PLUGIN_NAME );
+   appbase::app().get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >().add_api_subscribe_method("condenser_api", "custom_object_subscription" );
 }
 
 condenser_api::~condenser_api() {}
@@ -780,6 +793,9 @@ void condenser_api::api_startup()
    auto custom = appbase::app().find_plugin< custom::custom_api_plugin>();
    if( custom != nullptr )
       my->_custom_api = custom->api;
+
+   auto subscribe = appbase::app().find_plugin< subscribe::subscribe_api_plugin>();
+      my->_subscribe_api = subscribe->api;
 }
 
 DEFINE_LOCKLESS_APIS( condenser_api,
@@ -823,6 +839,7 @@ DEFINE_READ_APIS( condenser_api,
    (get_potential_signatures)
    (verify_authority)
    (verify_account_authority)
+   (custom_object_subscription)
  //  (get_account_votes)
    (get_account_history)
    (get_applications)

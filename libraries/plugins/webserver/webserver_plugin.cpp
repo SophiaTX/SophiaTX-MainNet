@@ -245,13 +245,14 @@ void webserver_plugin_impl::send_ws_notice( websocket_server_type* server, conne
             con->send(message);
          }catch( ... )
          {
-            elog("failed to send notification connection from handler");
+            fc::send_error_exception e;
+            throw e;
             //we shall notify the caller and delete the callback association
          }
       });
    }catch(...){
-      elog("failed to get connection from handler");
-      return;
+      fc::send_error_exception e;
+      throw e;
    }
 }
 

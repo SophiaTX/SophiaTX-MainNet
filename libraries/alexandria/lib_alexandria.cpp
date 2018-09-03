@@ -952,8 +952,6 @@ authority alexandria_api::create_simple_managed_authority(string managing_accoun
    return authority(1, decoded_name, 1);
 }
 
-
-
 authority
 alexandria_api::create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const {
    authority auth;
@@ -1089,6 +1087,14 @@ set<public_key_type> alexandria_api::get_required_signatures(signed_transaction 
       return approving_key_set;
    } FC_CAPTURE_AND_RETHROW((tx))
 }
+
+uint64_t alexandria_api::custom_object_subscription(std::function<void(const variant&)> cb, uint32_t app_id, string account_name, string search_type, uint64_t start)const
+{
+   try{
+      return my->_remote_api->custom_object_subscription(cb, app_id, account_name, search_type, start);
+   }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start))
+}
+
 
 } } // sophiatx::alexandria
 

@@ -69,6 +69,8 @@ struct remote_node_api
    vector<condenser_api::api_application_object> get_applications_by_names(vector<string>);
    vector<condenser_api::api_application_object> get_applications(vector<uint32_t>);
    vector<condenser_api::api_application_buying_object> get_application_buyings(string, uint32_t, string);
+
+   uint64_t custom_object_subscription(std::function<void(const variant&)>, uint32_t, string, string, uint64_t){FC_ASSERT( false );}
 };
 
 } }
@@ -117,5 +119,5 @@ FC_API( sophiatx::alexandria::remote_node_api,
         (get_application_buyings)
         (list_received_documents)
         (get_received_document)
-
+        (custom_object_subscription)
       )

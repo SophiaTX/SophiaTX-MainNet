@@ -133,7 +133,7 @@ namespace detail
 
          void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
 
-         void add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
+         void add_api_subscribe_method( const string& api_name, const string& method_name );
 
          api_method* find_api_method( std::string api, std::string method );
          api_method* process_params( string method, const fc::variant_object& request, fc::variant& func_args, bool& is_subscribe );
@@ -174,9 +174,8 @@ namespace detail
       _methods.push_back( canonical_name.str() );
    }
 
-   void json_rpc_plugin_impl::add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+   void json_rpc_plugin_impl::add_api_subscribe_method( const string& api_name, const string& method_name )
    {
-      add_api_method(api_name, method_name, api, sig);
       std::stringstream canonical_name;
       canonical_name << api_name << '.' << method_name;
       _subscribe_methods.push_back( canonical_name.str() );
@@ -238,6 +237,11 @@ namespace detail
          ret = find_api_method( v[0].as_string(), v[1].as_string() );
 
          func_args = ( v.size() == 3 ) ? v[2] : fc::json::from_string( "{}" );
+
+         string method = v[0].as_string() + "." + v[1].as_string();
+         auto it = find (_subscribe_methods.begin(), _subscribe_methods.end(), method);
+         if( it!=_subscribe_methods.end() )
+            is_subscribe = true;
       }
       else
       {
@@ -403,7 +407,13 @@ namespace detail
    }
 
    void json_rpc_plugin_impl::send_ws_notice( uint64_t id, string message){
-      _subscribe_callbacks[id](message);
+      try{
+         _subscribe_callbacks[id](message);
+      }catch(...){
+         _subscribe_callbacks.erase(id);
+         fc::send_error_exception e;
+         throw e;
+      }
    }
 }
 
@@ -450,9 +460,9 @@ void json_rpc_plugin::add_api_method( const string& api_name, const string& meth
    my->add_api_method( api_name, method_name, api, sig );
 }
 
-void json_rpc_plugin::add_api_subscribe_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+void json_rpc_plugin::add_api_subscribe_method( const string& api_name, const string& method_name )
 {
-   my->add_api_subscribe_method( api_name, method_name, api, sig );
+   my->add_api_subscribe_method( api_name, method_name );
 }
 
 string json_rpc_plugin::call( const string& message )
@@ -507,12 +517,14 @@ string json_rpc_plugin::call( const string& message )
 
 struct ws_notice{
    string method="notice";
-   std::pair<uint64_t, fc::variant> params;
+   std::pair<uint64_t, std::vector<fc::variant>> params;
 };
 
 void json_rpc_plugin::send_ws_notice( uint64_t registration_id, uint64_t subscription_id, fc::variant& message ){
    ws_notice n;
-   n.params = std::make_pair(subscription_id, message);
+   std::vector<fc::variant> array_message;
+   array_message.push_back(message);
+   n.params = std::make_pair(subscription_id, array_message);
    my->send_ws_notice( registration_id, fc::json::to_string(n));
 }
 
