@@ -685,8 +685,14 @@ operation alexandria_api::delete_account(string account_name) {
 
 vector<condenser_api::api_application_object> alexandria_api::get_applications(vector<string> names) {
    try{
-      return my->_remote_api->get_applications(names);
+      return my->_remote_api->get_applications_by_names(names);
    }FC_CAPTURE_AND_RETHROW((names))
+}
+
+vector<condenser_api::api_application_object> alexandria_api::get_applications_by_ids(vector<uint32_t> ids) {
+   try{
+      return my->_remote_api->get_applications(ids);
+   }FC_CAPTURE_AND_RETHROW((ids))
 }
 
 digest_type alexandria_api::get_transaction_digest(signed_transaction tx) {
@@ -703,7 +709,7 @@ digest_type alexandria_api::get_transaction_digest(signed_transaction tx) {
 signed_transaction alexandria_api::add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const {
    try{
       tx.signatures.push_back(signature);
-      return  tx;
+      return tx;
    }FC_CAPTURE_AND_RETHROW((tx)(signature))
 }
 

@@ -2017,7 +2017,7 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, boo
 
 vector<condenser_api::api_application_object> wallet_api::get_applications(vector<string> names) {
    try{
-      return my->_remote_api->get_applications(names);
+      return my->_remote_api->get_applications_by_names(names);
    }FC_CAPTURE_AND_RETHROW((names))
 }
 

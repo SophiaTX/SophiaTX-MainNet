@@ -188,9 +188,14 @@ void remote_node_api::broadcast_block( signed_block )
    FC_ASSERT( false );
 }
 
-vector<condenser_api::api_application_object> remote_node_api::get_applications(vector<string>)
+vector<condenser_api::api_application_object> remote_node_api::get_applications(vector<uint32_t>)
 {
     FC_ASSERT( false );
+}
+
+vector<condenser_api::api_application_object> remote_node_api::get_applications_by_names(vector<string>)
+{
+   FC_ASSERT( false );
 }
 
 vector<condenser_api::api_application_buying_object> remote_node_api::get_application_buyings(std::string, uint32_t, std::string)
