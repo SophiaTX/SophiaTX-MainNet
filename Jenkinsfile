@@ -71,9 +71,9 @@ pipeline {
       }
     }
     stage('Create RPM') {
-      when {
-          branch 'develop'
-      }
+//      when {
+//          branch 'develop'
+//      }
      steps {
         sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
         dir('install') {
