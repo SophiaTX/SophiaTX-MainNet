@@ -155,6 +155,15 @@ DEFINE_API_IMPL( database_api_impl, list_witnesses )
             reverse);
          break;
       }
+      case( by_id ):
+      {
+         iterate_results< chain::witness_index, chain::by_id >(
+               args.start.as< witness_id_type >(),
+               result.witnesses,
+               args.limit,
+               [&]( const witness_object& w ){ return api_witness_object( w ); } );
+         break;
+      }
       case( by_vote_name ):
       case( by_vote_name_reverse ):
       {
@@ -284,6 +293,15 @@ DEFINE_API_IMPL( database_api_impl, list_accounts )
             result.accounts,
             args.limit,
             [&]( const account_object& a ){ return api_account_object( a, _db ); }, reverse );
+         break;
+      }
+      case( by_id ):
+      {
+         iterate_results< chain::account_index, chain::by_id >(
+            args.start.as< account_id_type >(),
+            result.accounts,
+            args.limit,
+            [&]( const account_object& a ){ return api_account_object( a, _db ); } );
          break;
       }
       case( by_proxy ):
