@@ -51,3 +51,4 @@ We provide a basic cli wallet for interfacing with `sophiatxd`. The wallet is se
 
 For a full web node, you need at least 110GB of disk space available. SophiaTXd uses a memory mapped file which currently holds 56GB of data and by default is set to use up to 80GB. The block log of the blockchain itself is a little over 27GB. It's highly recommended to run sophiatxd on a fast disk such as an SSD or by placing the shared memory files in a ramdisk and using the `--shared-file-dir=/path` command line option to specify where. At least 16GB of memory is required for a full web node. Seed nodes (p2p mode) can run with as little as 4GB of memory with a 24 GB state file. Any CPU with decent single core performance should be sufficient. SophiaTXd is constantly growing, so you may find you need more disk space to run a full node. We are also constantly working on optimizing SophiaTX's use of disk space.
 ```
+
