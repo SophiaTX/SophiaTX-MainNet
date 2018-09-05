@@ -18,6 +18,7 @@ using plugins::json_rpc::void_type;
 enum sort_order_type
 {
    by_name,
+   by_id,
    by_proxy,
    by_next_vesting_withdrawal,
    by_account,
@@ -361,6 +362,7 @@ struct get_smt_next_identifier_return
 
 FC_REFLECT_ENUM( sophiatx::plugins::database_api::sort_order_type,
    (by_name)
+   (by_id)
    (by_proxy)
    (by_next_vesting_withdrawal)
    (by_account)
