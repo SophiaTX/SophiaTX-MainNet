@@ -90,6 +90,63 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
 
       return result;
 
+   }else if(args.search_type == "by_sender_reverse"){
+      uint64_t start = std::stoull(args.start);
+      FC_ASSERT( start >= args.count, "start must be greater than limit" );
+      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender >();
+      auto itr = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
+      auto end = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, int64_t(itr->sender_sequence) + args.count  ) );
+
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count )
+      {
+         result[ itr->sender_sequence ] = *itr;
+         --itr;
+      }
+      return result;
+   }else if(args.search_type == "by_recipient_reverse"){
+      uint64_t start = std::stoull(args.start);
+      FC_ASSERT( start >= args.count, "start must be greater than limit" );
+      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_recipient >();
+      auto itr = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
+      auto end = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, int64_t(itr->recipient_sequence) + args.count ) ) ;
+
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count)
+      {
+         result[ itr->recipient_sequence ] = *itr;
+         --itr;
+      }
+
+      return result;
+   }else if(args.search_type == "by_sender_datetime_reverse"){
+      fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
+      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender_time >();
+      auto itr = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
+      auto end = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::max() ) );
+
+      list_received_documents_return result; result.clear();
+      while( itr != end && result.size() < args.count)
+      {
+         result[ itr->sender_sequence ] = *itr;
+         --itr;
+      }
+
+      return result;
+   }else if(args.search_type == "by_recipient_datetime_reverse") {
+      fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
+      const auto &idx = _db.get_index<chain::custom_content_index, chain::by_recipient_time>();
+      auto itr = idx.upper_bound(boost::make_tuple(args.account_name, args.app_id, start));
+      auto end = idx.lower_bound(boost::make_tuple(args.account_name, args.app_id, fc::time_point_sec::max()));
+
+      list_received_documents_return result;
+      result.clear();
+      while( itr != end && result.size() < args.count ) {
+         result[ itr->recipient_sequence ] = *itr;
+         --itr;
+      }
+
+      return result;
    }else{
       FC_ASSERT(false, "Unknown search type argument");
    }

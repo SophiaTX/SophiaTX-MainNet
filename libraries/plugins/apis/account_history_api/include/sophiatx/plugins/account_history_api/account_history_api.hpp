@@ -65,6 +65,7 @@ struct get_account_history_args
    sophiatx::protocol::account_name_type   account;
    uint64_t                               start = -1;
    uint32_t                               limit = 1000;
+   bool                                   reverse_order = false;
 };
 
 struct get_account_history_return
