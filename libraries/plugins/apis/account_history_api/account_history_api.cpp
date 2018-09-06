@@ -61,8 +61,8 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
    FC_ASSERT( args.reverse_order || args.start >= args.limit, "start must be greater than limit" );
 
    const auto& idx = _db.get_index< chain::account_history_index, chain::by_account >();
-   auto itr = args.reverse? idx.lower_bound( boost::make_tuple( args.account, args.start + args.limit )) : idx.lower_bound( boost::make_tuple( args.account, args.start ) );
-   auto end = args.reverse? idx.upper_bound( boost::make_tuple( args.account, args.start )) : idx.upper_bound( boost::make_tuple( args.account, std::max( int64_t(0), int64_t(itr->sequence) - args.limit ) ) );
+   auto itr = args.reverse_order? idx.lower_bound( boost::make_tuple( args.account, args.start + args.limit )) : idx.lower_bound( boost::make_tuple( args.account, args.start ) );
+   auto end = args.reverse_order? idx.upper_bound( boost::make_tuple( args.account, args.start )) : idx.upper_bound( boost::make_tuple( args.account, std::max( int64_t(0), int64_t(itr->sequence) - args.limit ) ) );
 
    get_account_history_return result;
    while( itr != end )
