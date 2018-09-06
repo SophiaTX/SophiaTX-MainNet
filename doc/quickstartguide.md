@@ -139,7 +139,7 @@ If required, adjust witness_config.ini and get it copied as config.ini into the 
 
 ```
 sphtxadm@EUGREEN02:~/sphtxd>  chmod 600 ./witness_config.ini 
-sphtxadm@EUGREEN02:~/sphtxd>  chown sphtxadm:sphtxgp ./witness_config.ini 
+sphtxadm@EUGREEN02:~/sphtxd>  chown sphtxadm:sphtxgrp ./witness_config.ini 
 sphtxadm@EUGREEN02:~/sphtxd>  ls -l ./witness_config.ini 
 -rw------- 1 sphatxdm sphtxgrp     5671 Jul 25 17:26 witness_config.ini 
 ```
