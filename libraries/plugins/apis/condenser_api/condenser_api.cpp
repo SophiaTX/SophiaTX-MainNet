@@ -795,7 +795,7 @@ void condenser_api::api_startup()
       my->_custom_api = custom->api;
 
    auto subscribe = appbase::app().find_plugin< subscribe::subscribe_api_plugin>();
-   if ( subscribe )
+   if ( subscribe != nullptr)
       my->_subscribe_api = subscribe->api;
 }
 
