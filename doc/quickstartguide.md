@@ -139,7 +139,7 @@ If required, adjust witness_config.ini and get it copied as config.ini into the 
 
 ```
 sphtxadm@EUGREEN02:~/sphtxd>  chmod 600 ./witness_config.ini 
-sphtxadm@EUGREEN02:~/sphtxd>  chown sphtxadm:sphtxgp ./witness_config.ini 
+sphtxadm@EUGREEN02:~/sphtxd>  chown sphtxadm:sphtxgrp ./witness_config.ini 
 sphtxadm@EUGREEN02:~/sphtxd>  ls -l ./witness_config.ini 
 -rw------- 1 sphatxdm sphtxgrp     5671 Jul 25 17:26 witness_config.ini 
 ```
@@ -195,7 +195,7 @@ There are two options to launch and run the SophiaTX witness node. When all mand
 
 Example 
 
-`sphtxadm@EUGREEN02:~/sphtxd>  ./sophiatxd -d /sophiaBCdata`
+`sphtxadm@EUGREEN02:~/sphtxd>  ./sophiatxd -d /sphtxBCdata`
 
 Parameters to be entered from command line. 
 
@@ -203,6 +203,6 @@ Parameters to be entered from command line.
 
 Example: 
 
-```sphtxadm@EUGREEN02:~/sphtxd>  ./sophiatxd -d /sophiaBCdata --enable-stale-production true --witness '" I889UHminer"' --private-key 5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV --plugin witness``` 
+```sphtxadm@EUGREEN02:~/sphtxd>  ./sophiatxd -d /sphtxBCdata --enable-stale-production true --witness '" I889UHminer"' --private-key 5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV --plugin witness``` 
 
  
