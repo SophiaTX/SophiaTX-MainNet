@@ -38,6 +38,7 @@ pipeline {
         script {
           if( !params.build_as_testnet ) {
             sh './tests/chain_test'
+            sh './tests/plugin_test'
           }
         }
       }
