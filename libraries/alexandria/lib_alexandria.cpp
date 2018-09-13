@@ -976,7 +976,7 @@ authority alexandria_api::create_simple_multisig_managed_authority(vector<string
 }
 
 string alexandria_api::get_account_name_from_seed(string seed) const{
-   return make_random_fixed_string(seed);
+   return account_name_type(make_random_fixed_string(seed));
 }
 
 asset alexandria_api::calculate_fee(operation op, asset_symbol_type symbol)const{
@@ -1093,6 +1093,17 @@ uint64_t alexandria_api::custom_object_subscription(std::function<void(const var
    try{
       return my->_remote_api->custom_object_subscription(cb, app_id, account_name, search_type, start);
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start))
+}
+
+operation alexandria_api::sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring) const {
+   try{
+      sponsor_fees_operation op;
+      op.sponsor = sponsoring_account;
+      op.sponsored = sponsored_account;
+      op.is_sponsoring = is_sponsoring;
+      return op;
+
+   }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account))
 }
 
 
