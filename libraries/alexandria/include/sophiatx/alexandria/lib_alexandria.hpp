@@ -651,6 +651,15 @@ class alexandria_api
 
 
        uint64_t custom_object_subscription(std::function<void(const variant&)> callback, uint32_t app_id, string account_name, string search_type, uint64_t start)const;
+
+       /**
+        * Creates sonsor operation
+        * @param sponsoring_account - account name that will sponsor fees
+        * @param sponsored_account - account that will be sponsored
+        * @param is_sponsoring - true or false if you want to enable/disable this operation
+        * @return
+        */
+       operation sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring) const;
 };
 
 } }
@@ -703,6 +712,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (set_voting_proxy)
         (vote_for_witness)
         (transfer)
+        (sponsor_account_fees)
 
         (transfer_to_vesting)
         (withdraw_vesting)
