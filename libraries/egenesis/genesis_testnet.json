@@ -1,6 +1,6 @@
 {
    "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
-   "initial_balace" : 346500000000000,
+   "initial_balace" : 346200000000000,
    "initial_accounts" : [
       {
          "name":"ejossev",
@@ -115,6 +115,21 @@
       {
          "name":"jk",
          "key": "SPH6kTXnxe6MFx2TpG9vB6LN3zJLnmoo8yx9ATjtceN1oXfbw5cKt",
+         "balance": 100000000000
+      },
+      {
+         "name":"jano",
+         "key": "SPH5eaXXDJnYRsSersnHyrZmiJt4tbyq9mmsq49AZdxDDgjBGJogH",
+         "balance": 100000000000
+      },
+      {
+         "name":"pmatavovsky",
+         "key": "SPH59YXvANWaPseZS8EkFBVzu8ceV2uVmL8YS7QrFPwnh3UYA8FQB",
+         "balance": 100000000000
+      },
+      {
+         "name":"usercreator",
+         "key": "SPH55k6JhyZ7pBKWsHKv4J7CkE3eNHnLJFauJjzr8uusUSARZRyUj",
          "balance": 100000000000
       },
       {
