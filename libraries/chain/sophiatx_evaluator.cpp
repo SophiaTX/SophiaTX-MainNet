@@ -752,6 +752,12 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
    if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
       sender_sequence = send_itr->sender_sequence + 1;
 
+   const auto& app_msg_idx = d.get_index< custom_content_index >().indices().get< by_app_id >();
+   auto app_msg_itr = app_msg_idx.lower_bound( boost::make_tuple( o.app_id, uint64_t(-1) ) );
+   uint64_t app_message_sequence = 1;
+   if( app_msg_itr != app_msg_idx.end() && app_msg_itr->app_id == o.app_id )
+      app_message_sequence = app_msg_itr->app_message_sequence + 1;
+
    for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
       const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
@@ -769,7 +775,7 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
               c.all_recipients.push_back(o_r);
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
-           c.app_message_sequence = 1;
+           c.app_message_sequence = app_message_sequence;
            c.received = d.head_block_time();
       });
    }
