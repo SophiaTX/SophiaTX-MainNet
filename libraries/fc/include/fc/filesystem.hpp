@@ -82,8 +82,6 @@ namespace fc {
       bool       is_relative()const;
       bool       is_absolute()const;
 
-      static char    separator_char;
-
     private:
     #ifdef _WIN64
       fwd<boost::filesystem::path,40> _p; 

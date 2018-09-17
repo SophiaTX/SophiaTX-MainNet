@@ -29,25 +29,26 @@ namespace fc {
   // when converting to and from a variant, store utf-8 in the variant
   void to_variant( const fc::path& path_to_convert, variant& variant_output ) 
   {
+#ifdef _WIN32
     std::wstring wide_string = path_to_convert.generic_wstring();
     std::string utf8_string;
     fc::encodeUtf8(wide_string, &utf8_string);
     variant_output = utf8_string;
-
-    //std::string path = t.to_native_ansi_path();
-    //std::replace(path.begin(), path.end(), '\\', '/');
-    //v = path;
+#else
+    variant_output = path_to_convert.generic_string();
+#endif
   }
 
   void from_variant( const fc::variant& variant_to_convert, fc::path& path_output ) 
   {
+#ifdef _WIN32
     std::wstring wide_string;
     fc::decodeUtf8(variant_to_convert.as_string(), &wide_string);
     path_output = path(wide_string);
+#else
+    path_output = path(variant_to_convert.as_string());
+#endif
   }
-
-   // Note: we can do this cast because the separator should be an ASCII character
-   char path::separator_char = static_cast<char>(boost::filesystem::path("/").make_preferred().native()[0]);
 
    path::path(){}
    path::~path(){};
@@ -123,9 +124,8 @@ namespace fc {
 
   std::string path::to_native_ansi_path() const
     {
-    std::wstring path = generic_wstring();
-
 #ifdef WIN32
+    std::wstring path = generic_wstring();
     const size_t maxPath = 32*1024;
     std::vector<wchar_t> short_path;
     short_path.resize(maxPath + 1);
@@ -134,9 +134,13 @@ namespace fc {
     DWORD res = GetShortPathNameW(path.c_str(), buffer, maxPath);
     if(res != 0)
       path = buffer;
-#endif
+
     std::string filePath;
     fc::encodeUtf8(path, &filePath);
+#else
+     std::string filePath = generic_string();
+#endif
+
     return filePath;
     }
 
