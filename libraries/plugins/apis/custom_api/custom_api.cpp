@@ -15,6 +15,7 @@ public:
    DECLARE_API_IMPL(
          (list_received_documents)
          (get_received_document)
+         (get_app_custom_messages)
    )
 
 
@@ -29,9 +30,47 @@ DEFINE_API_IMPL( custom_api_impl, get_received_document )
    return *res;
 }
 
+DEFINE_API_IMPL( custom_api_impl, get_app_custom_messages)
+{
+   FC_ASSERT( args.limit <= CUSTOM_API_SINGLE_QUERY_LIMIT, "limit of ${l} is greater than maxmimum allowed", ("l",args.limit) );
+   FC_ASSERT( args.start >= args.limit, "start must be greater than limit" );
+
+   const auto& idx = _db.get_index< chain::custom_content_index, chain::by_app_id >();
+   auto itr = idx.lower_bound( boost::make_tuple( args.app_id, args.start ) );
+   auto end = idx.upper_bound( boost::make_tuple( args.app_id, std::max( int64_t(0), int64_t(itr->app_message_sequence) - args.limit ) ) );
+
+   get_app_custom_messages_return result; result.clear();
+   while( itr != end && result.size() < args.limit )
+   {
+      result[ itr->app_message_sequence ] = *itr;
+      //result.push_back(*itr);
+      ++itr;
+   }
+   return result;
+}
+
+//DEFINE_API_IMPL( custom_api_impl, get_app_custom_messages)
+//{
+//    FC_ASSERT( args.limit <= CUSTOM_API_SINGLE_QUERY_LIMIT, "limit of ${l} is greater than maxmimum allowed", ("l",args.limit) );
+//    FC_ASSERT( args.start >= args.limit, "start must be greater than limit" );
+//
+//    const auto& idx = _db.get_index< chain::custom_content_index, chain::by_app_id >();
+//    auto itr = idx.lower_bound(args.app_id);
+//    auto end = idx.upper_bound(args.app_id);
+//
+//
+//    get_app_custom_messages_return result; result.clear();
+//    while( itr != end && result.size() < args.limit )
+//    {
+//        result.push_back(*itr);
+//        ++itr;
+//    }
+//    return result;
+//}
+
 DEFINE_API_IMPL( custom_api_impl, list_received_documents )
 {
-   FC_ASSERT( args.count <= 10000, "limit of ${l} is greater than maxmimum allowed", ("l",args.count) );
+   FC_ASSERT( args.count <= CUSTOM_API_SINGLE_QUERY_LIMIT, "limit of ${l} is greater than maxmimum allowed", ("l",args.count) );
    if(args.search_type == "by_sender"){
       uint64_t start = std::stoull(args.start);
       FC_ASSERT( start >= args.count, "start must be greater than limit" );
@@ -109,6 +148,7 @@ custom_api::~custom_api() {}
 DEFINE_READ_APIS( custom_api,
       (list_received_documents)
       (get_received_document)
+      (get_app_custom_messages)
 )
 
 } } } // sophiatx::plugins::custom

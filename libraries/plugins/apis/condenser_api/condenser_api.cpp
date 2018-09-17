@@ -48,6 +48,7 @@ namespace detail
             (get_next_scheduled_hardfork)
             (get_key_references)
             (get_accounts)
+            (get_app_custom_messages)
             (get_account_references)
             (lookup_account_names)
             (lookup_accounts)
@@ -373,6 +374,13 @@ namespace detail
 
       return results;
    }
+
+    DEFINE_API_IMPL( condenser_api_impl, get_app_custom_messages )
+    {
+       CHECK_ARG_SIZE( 3 )
+       return _custom_api->get_app_custom_messages( {args[0].as< uint64_t >(), args[1].as< uint64_t >(), args[2].as< uint32_t >()});
+
+    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_account_references )
    {
@@ -823,6 +831,7 @@ DEFINE_READ_APIS( condenser_api,
    (get_next_scheduled_hardfork)
    (get_key_references)
    (get_accounts)
+   (get_app_custom_messages)
    (lookup_account_names)
    (lookup_accounts)
    (get_account_count)

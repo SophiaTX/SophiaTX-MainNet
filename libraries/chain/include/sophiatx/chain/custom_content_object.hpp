@@ -33,6 +33,7 @@ public:
 
    uint64_t sender_sequence = 0;
    uint64_t recipient_sequence = 0;
+   uint64_t app_message_sequence = 0;
    time_point_sec received;
 
    bool binary;
@@ -41,6 +42,7 @@ public:
 };
 
 struct by_id;
+struct by_app_id;
 struct by_sender;
 struct by_recipient;
 struct by_sender_time;
@@ -50,7 +52,14 @@ typedef multi_index_container<
       custom_content_object,
       indexed_by<
             ordered_unique< tag< by_id >,
-                  member< custom_content_object, custom_content_object::id_type, &custom_content_object::id > >,
+                    member< custom_content_object, custom_content_object::id_type, &custom_content_object::id > >,
+            ordered_non_unique< tag< by_app_id >,
+                composite_key< custom_content_object,
+                    member< custom_content_object, uint64_t, &custom_content_object::app_id>,
+                    member< custom_content_object, uint64_t, &custom_content_object::app_message_sequence>
+                >,
+                composite_key_compare< std::greater<uint64_t>, std::greater<uint64_t> >
+            >,
             ordered_non_unique< tag< by_sender >,
                composite_key< custom_content_object,
                      member< custom_content_object, account_name_type, &custom_content_object::sender>,

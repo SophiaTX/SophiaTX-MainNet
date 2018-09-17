@@ -364,6 +364,9 @@ typedef vector< api_application_buying_object > get_application_buyings_return_t
 typedef arg_type api_name ## _args;                         \
 typedef return_type api_name ## _return;
 
+typedef vector< variant > get_app_custom_messages_args;
+typedef map< uint64_t, custom::received_object >  get_app_custom_messages_return;
+
 /*               API,                                    args,                return */
 DEFINE_API_ARGS( get_state,                              vector< variant >,   state )
 DEFINE_API_ARGS( get_active_witnesses,                   vector< variant >,   vector< account_name_type > )
@@ -436,6 +439,7 @@ public:
       (get_next_scheduled_hardfork)
       (get_key_references)
       (get_accounts)
+      (get_app_custom_messages) // TODO: remove from condenser_api !!!
       (get_account_references)
       (lookup_account_names)
       (lookup_accounts)
