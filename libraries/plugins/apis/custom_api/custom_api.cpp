@@ -39,11 +39,12 @@ DEFINE_API_IMPL( custom_api_impl, get_app_custom_messages)
    auto itr = idx.lower_bound( boost::make_tuple( args.app_id, args.start ) );
    auto end = idx.upper_bound( boost::make_tuple( args.app_id, std::max( int64_t(0), int64_t(itr->app_message_sequence) - args.limit ) ) );
 
-   get_app_custom_messages_return result; result.clear();
+   get_app_custom_messages_return result;
+   result.clear();
+
    while( itr != end && result.size() < args.limit )
    {
       result[ itr->app_message_sequence ] = *itr;
-      //result.push_back(*itr);
       ++itr;
    }
    return result;
