@@ -38,6 +38,7 @@ pipeline {
         script {
           if( !params.build_as_testnet ) {
             sh './tests/chain_test'
+            sh './tests/plugin_test'
           }
         }
       }
@@ -56,15 +57,22 @@ pipeline {
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
+              sh 'rm -f test*' //remove test binaries
+
               script {
                   if( !params.build_as_debug ) {
                     sh 'strip -s *' //strip symbols
                   }
+
+                  if( params.build_as_testnet ) {
+                     sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
+                     sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
+                  } else {
+                     sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
+                     sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
+                     sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
+                  }
               }
-              sh 'rm -f test*' //remove test binaries
-              sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
-              sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
-              sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
               archiveArtifacts '*.gz'
           }
         }

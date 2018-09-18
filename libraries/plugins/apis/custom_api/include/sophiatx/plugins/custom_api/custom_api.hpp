@@ -10,8 +10,9 @@
 #include <fc/vector.hpp>
 #include <fc/crypto/base58.hpp>
 
-namespace sophiatx { namespace plugins { namespace custom {
+#define CUSTOM_API_SINGLE_QUERY_LIMIT 10000
 
+namespace sophiatx { namespace plugins { namespace custom {
 
 namespace detail { class custom_api_impl; }
 
@@ -29,7 +30,7 @@ struct received_object
       if(binary)
          data = fc::base64_encode(obj.data.data(), obj.data.size());
       else
-         data = obj.json;
+         data = chain::to_string(obj.json);
       for(auto r: obj.all_recipients)
          recipients.push_back(r);
    }
@@ -59,10 +60,17 @@ struct get_received_document_args
    uint64_t id;
 };
 
+struct get_app_custom_messages_args
+{
+    uint64_t app_id;
+    uint64_t start;
+    uint32_t limit;
+};
+
 typedef std::map< uint64_t, received_object > list_received_documents_return;
-
-
 typedef received_object get_received_document_return;
+typedef map<uint64_t, received_object> get_app_custom_messages_return;
+
 
 class custom_api
 {
@@ -71,7 +79,9 @@ public:
    ~custom_api();
 
    DECLARE_API(
-         (list_received_documents)(get_received_document)
+           (list_received_documents)
+           (get_received_document)
+           (get_app_custom_messages)
    )
 
 private:
@@ -90,3 +100,5 @@ FC_REFLECT( sophiatx::plugins::custom::list_received_documents_args,
 FC_REFLECT( sophiatx::plugins::custom::get_received_document_args,
             (id) )
 
+FC_REFLECT( sophiatx::plugins::custom::get_app_custom_messages_args,
+            (app_id)(start)(limit) )
