@@ -101,6 +101,6 @@ typedef multi_index_container<
 
 
 FC_REFLECT(sophiatx::chain::custom_content_object,
-           (id)(app_id)(sender)(recipient)(binary)(data)(json)(received)(sender_sequence)(recipient_sequence)
+           (id)(app_id)(sender)(recipient)(binary)(data)(json)(received)(sender_sequence)(recipient_sequence)(app_message_sequence)
 )
 CHAINBASE_SET_INDEX_TYPE( sophiatx::chain::custom_content_object, sophiatx::chain::custom_content_index )
