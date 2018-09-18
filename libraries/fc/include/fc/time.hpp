@@ -84,6 +84,7 @@ namespace fc {
         :utc_seconds( t.time_since_epoch().count() / 1000000ll ){}
 
         static time_point_sec maximum() { return time_point_sec(0xffffffff); }
+        static time_point_sec max() { return maximum(); }
         static time_point_sec min() { return time_point_sec(0); }
 
         operator time_point()const { return time_point( fc::seconds( utc_seconds) ); }
