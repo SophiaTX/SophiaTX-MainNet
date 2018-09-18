@@ -407,16 +407,20 @@ namespace detail
    DEFINE_API_IMPL( condenser_api_impl, lookup_accounts )
    {
       CHECK_ARG_SIZE( 2 )
-      account_name_type lower_bound_name = args[0].as< account_name_type >();
+      account_name_type lower_bound_name = args[0].as< string >();
       uint32_t limit = args[1].as< uint32_t >();
+
 
       FC_ASSERT( limit <= 1000 );
       const auto& accounts_by_name = _db.get_index< account_index, by_name >();
       set<string> result;
 
-      for( auto itr = accounts_by_name.lower_bound( lower_bound_name );
-           limit-- && itr != accounts_by_name.end();
-           ++itr )
+      auto itr = accounts_by_name.upper_bound( lower_bound_name );
+      itr--;
+
+      for( ;
+           limit-- && itr != accounts_by_name.begin();
+           --itr )
       {
          result.insert( itr->name );
       }
@@ -454,7 +458,7 @@ namespace detail
       CHECK_ARG_SIZE( 2 )
       get_escrow_return result;
 
-      auto escrows = _database_api->list_escrows( { { args }, 1, database_api::by_from_id } ).escrows;
+      auto escrows = _database_api->list_escrows( { { args }, 1, database_api::by_from_id_reverse } ).escrows;
 
       if( escrows.size()
          && escrows[0].from == args[0].as< account_name_type >()
@@ -519,7 +523,7 @@ namespace detail
       }
       else
       {
-         auto start = _database_api->list_witnesses( { args[0], 1, database_api::by_name } );
+         auto start = _database_api->list_witnesses( { args[0], 1, database_api::by_name_reverse } );
 
          if( start.witnesses.size() == 0 )
             return get_witnesses_by_vote_return();
@@ -529,7 +533,7 @@ namespace detail
       }
 
       auto limit = args[1].as< uint32_t >();
-      auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name } ).witnesses;
+      auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name_reverse } ).witnesses;
 
       get_witnesses_by_vote_return result;
 
@@ -649,7 +653,7 @@ namespace detail
       CHECK_ARG_SIZE( 3 )
       FC_ASSERT( _account_history_api, "account_history_api_plugin not enabled." );
 
-      auto history = _account_history_api->get_account_history( { args[0].as< account_name_type >(), args[1].as< uint64_t >(), args[2].as< uint32_t >() } ).history;
+      auto history = _account_history_api->get_account_history( { args[0].as< account_name_type >(), args[1].as< uint64_t >(), args[2].as< uint32_t >(), true } ).history;
       get_account_history_return result;
 
       legacy_operation l_op;

@@ -105,7 +105,7 @@ FC_REFLECT( sophiatx::plugins::account_history::get_transaction_args,
    (id) )
 
 FC_REFLECT( sophiatx::plugins::account_history::get_account_history_args,
-   (account)(start)(limit) )
+   (account)(start)(limit)(reverse_order) )
 
 FC_REFLECT( sophiatx::plugins::account_history::get_account_history_return,
    (history) )

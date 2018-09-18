@@ -56,7 +56,8 @@ class database_api_impl
       void iterate_results( ValueType start, vector< ResultType >& result, uint32_t limit, OnPush&& on_push = &database_api_impl::on_push_default< ResultType >, bool reverse = false )
       {
          const auto& idx = _db.get_index< IndexType, OrderType >();
-         auto itr = reverse? idx.upper_bound(start) : idx.lower_bound( start );
+         auto itr = reverse? (idx.upper_bound(start)): idx.lower_bound( start );
+         if(reverse) itr--;
          auto end = reverse? idx.begin() : idx.end();
 
          while( result.size() < limit && itr != end )
@@ -156,12 +157,14 @@ DEFINE_API_IMPL( database_api_impl, list_witnesses )
          break;
       }
       case( by_id ):
+      case( by_id_reverse ):
       {
          iterate_results< chain::witness_index, chain::by_id >(
                args.start.as< witness_id_type >(),
                result.witnesses,
                args.limit,
-               [&]( const witness_object& w ){ return api_witness_object( w ); } );
+               [&]( const witness_object& w ){ return api_witness_object( w ); },
+               reverse);
          break;
       }
       case( by_vote_name ):
@@ -612,13 +615,13 @@ DEFINE_API_IMPL( database_api_impl, get_application_buyings )
                args.start.as<account_name_type>(),
                result.application_buyings,
                args.limit,
-               [&]( const application_buying_object& a ){ return api_application_buying_object( a ); } );
+               [&]( const application_buying_object& a ){ return api_application_buying_object( a ); }, true );
    } else if(args.search_type == "by_app_id") {
        iterate_results< chain::application_buying_index, chain::by_app_id >(
                args.start.as<application_id_type>(),
                result.application_buyings,
                args.limit,
-               [&]( const application_buying_object& a ){ return api_application_buying_object( a ); } );
+               [&]( const application_buying_object& a ){ return api_application_buying_object( a ); }, true );
    } else {
       FC_ASSERT( false, "Unknown search type argument" );
    }
