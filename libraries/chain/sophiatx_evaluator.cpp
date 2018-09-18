@@ -708,7 +708,7 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = false;
-           c.json = o.json;
+           from_string( c.json, o.json );
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;

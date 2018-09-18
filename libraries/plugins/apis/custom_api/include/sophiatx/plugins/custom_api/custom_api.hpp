@@ -30,7 +30,7 @@ struct received_object
       if(binary)
          data = fc::base64_encode(obj.data.data(), obj.data.size());
       else
-         data = obj.json;
+         data = chain::to_string(obj.json);
       for(auto r: obj.all_recipients)
          recipients.push_back(r);
    }

@@ -19,7 +19,7 @@ namespace sophiatx { namespace chain {
 class custom_content_object: public object< custom_content_object_type, custom_content_object> {
 public:
    template<typename Constructor, typename Allocator>
-   custom_content_object(Constructor &&c, allocator<Allocator> a):all_recipients( a.get_segment_manager() ) {
+   custom_content_object(Constructor &&c, allocator<Allocator> a): all_recipients( a.get_segment_manager() ), json(a) {
       c(*this);
    }
 
@@ -38,7 +38,7 @@ public:
 
    bool binary;
    vector<char> data;
-   string json;
+   shared_string json;
 };
 
 struct by_id;
