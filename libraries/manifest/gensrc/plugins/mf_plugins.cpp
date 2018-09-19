@@ -42,6 +42,8 @@
 
 #include <sophiatx/plugins/block_log_info/block_log_info_plugin.hpp>
 
+#include <sophiatx/plugins/track_and_trace/track_and_trace_plugin.hpp>
+
 #include <sophiatx/plugins/account_by_key/account_by_key_plugin.hpp>
 
 
@@ -87,6 +89,8 @@ void register_plugins()
    appbase::app().register_plugin< sophiatx::plugins::p2p::p2p_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::block_log_info::block_log_info_plugin >();
+   
+   appbase::app().register_plugin< sophiatx::plugins::track_and_trace_plugin::track_and_trace_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_by_key::account_by_key_plugin >();
    
