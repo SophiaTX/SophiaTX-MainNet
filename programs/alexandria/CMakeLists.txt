@@ -1,5 +1,6 @@
 if(APPLE)
-    add_library( alexandria SHARED alexandria.cpp alexandria.hpp )
+    add_library( alexandria MODULE alexandria.cpp alexandria.hpp )
+    add_library( alexandria_shared SHARED alexandria.cpp alexandria.hpp )
 else(APPLE)
     add_library( alexandria MODULE alexandria.cpp alexandria.hpp )
 endif(APPLE)
@@ -9,6 +10,9 @@ if( UNIX AND NOT APPLE )
 endif()
 
 set_target_properties(alexandria PROPERTIES PUBLIC_HEADER alexandria.hpp)
+if(APPLE)
+   set_target_properties(alexandria_shared PROPERTIES PUBLIC_HEADER alexandria.hpp)
+endif(APPLE)   
 
 find_package( Gperftools QUIET )
 if( GPERFTOOLS_FOUND )
@@ -20,7 +24,9 @@ endif()
 target_link_libraries( alexandria PRIVATE
         sophiatx_protocol sophiatx_utilities fc
         ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
-
+if(APPLE)
+        target_link_libraries( alexandria_shared PRIVATE sophiatx_protocol sophiatx_utilities fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+endif(APPLE)
 
 if( CLANG_TIDY_EXE )
     set_target_properties(

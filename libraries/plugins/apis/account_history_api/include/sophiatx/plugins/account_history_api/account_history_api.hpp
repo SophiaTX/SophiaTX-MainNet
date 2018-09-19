@@ -65,6 +65,7 @@ struct get_account_history_args
    sophiatx::protocol::account_name_type   account;
    uint64_t                               start = -1;
    uint32_t                               limit = 1000;
+   bool                                   reverse_order = false;
 };
 
 struct get_account_history_return
@@ -104,7 +105,7 @@ FC_REFLECT( sophiatx::plugins::account_history::get_transaction_args,
    (id) )
 
 FC_REFLECT( sophiatx::plugins::account_history::get_account_history_args,
-   (account)(start)(limit) )
+   (account)(start)(limit)(reverse_order) )
 
 FC_REFLECT( sophiatx::plugins::account_history::get_account_history_return,
    (history) )

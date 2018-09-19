@@ -972,7 +972,7 @@ void application_create_evaluator::do_apply( const application_create_operation&
                                         app.name = o.name;
                                         app.author = o.author;
                                         app.price_param = static_cast<application_price_param>(o.price_param);
-                                        app.url = o.url;
+                                        from_string( app.url, o.url);
 #ifndef IS_LOW_MEM
                                         from_string( app.metadata, o.metadata );
 #endif
@@ -1003,13 +1003,11 @@ void application_update_evaluator::do_apply( const application_update_operation&
 #ifndef IS_LOW_MEM
         if ( o.metadata.size() > 0 )
            from_string( app.metadata, o.metadata );
+#endif
 
         if ( o.url.size() > 0 )
-           app.url = o.url;
-#endif
-   });
-
-
+           from_string(app.url, o.url);
+    });
 }
 
 void application_delete_evaluator::do_apply( const application_delete_operation& o )
