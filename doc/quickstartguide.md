@@ -23,17 +23,21 @@ Quickstart Guide
   `p2p-endpoint = 0.0.0.0:60000`
 
   #### OPTIONAL PORTS 
-  9193 (default port nr. for Local http endpoint for webserver requests)  
-
+  9193 (default port nr. for Local http endpoint for webserver requests)
+  
   `webserver-http-endpoint = a.b.c.d:9193`
+  
+  9194 (default port nr. for Local https endpoint for webserver requests)
+  
+  `webserver-https-endpoint = a.b.c.d:9194`
 
    9191 (default port for Local web-socket endpoint for webserver requests) 
 
    ` webserver-ws-endpoint = a.b.c.d:9191`
 
-    There is no need to keep these 2 ports (http & ws) open on the witness node. 
+    There is no need to keep these 3 ports (http, https & ws) open on the witness node. 
 
-    For any testing purposes on the witness node, restrict the usage of http & ws ports for a limited time period and only to locahost = 127.0.0.1 or to a dedicated host IP – a.b.c.d. The setting to 0.0.0.0 is not recommended and to be avoided. Restrict accepting incoming http or ws requests to only specific IP or net. For net - define network as a.b.0.0 / for dedicated IP as a.b.c.d. 
+    For any testing purposes on the witness node, restrict the usage of http, https & ws ports for a limited time period and only to locahost = 127.0.0.1 or to a dedicated host IP – a.b.c.d. The setting to 0.0.0.0 is not recommended and to be avoided. Restrict accepting incoming http, https or ws requests to only specific IP or net. For net - define network as a.b.0.0 / for dedicated IP as a.b.c.d. 
 
     All ports are configurable and can be subject to adjustment, either in the config.ini file or added as a parameter(s) upon the starting of sophiatxd deamon.
 
@@ -47,13 +51,27 @@ Quickstart Guide
 
     `webserver-http-endpoint = 127.0.0.1:1193`
 
+    #### Local https endpoint for webserver requests. 
+
+    `webserver-https-endpoint = 127.0.0.1:1194`
+    
+    Note: In case of using webserver-https-endpoint, there are 2 others parameters required to be set for TLS to work:
+    
+    ##### File with certificate chain to present on https connections
+    
+    `https-certificate-chain-file = /path/to/cert-file`
+    
+    ##### File with https private key in PEM format
+    
+    `https-private-key-file = /path/to/private-key-file`
+
     #### Local websocket endpoint for webserver requests. 
 
     `webserver-ws-endpoint = 127.0.0.1:2291` 
 
     Example to start sophiatxd with adjusted network parameters: 
 
-    ```./sophiatxd -d /sphtxBCdata --p2p-endpoint 154.32.0.0:61234 --webserver-http-endpoint 127.0.0.1:1193 --webserver-ws-endpoint 127.0.0.1:2291``` 
+    ```./sophiatxd -d /sphtxBCdata --p2p-endpoint 154.32.0.0:61234 --webserver-http-endpoint 127.0.0.1:1193 --webserver-https-endpoint 127.0.0.1:1194 --https-certificate-chain-file /path/to/cert-file --https-private-key-file /path/to/private-key-file --webserver-ws-endpoint 127.0.0.1:2291``` 
 
 ### Dedicated Operating System account to run blockchain applications 
   There is no urgency to install and run blockchain applications (daemon, wallet, …) under privileged account as a root. 
