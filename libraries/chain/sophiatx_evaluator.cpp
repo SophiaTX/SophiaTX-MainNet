@@ -731,8 +731,7 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
    }
    catch( const fc::exception& e )
    {
-      if( d.is_producing() )
-         throw e;
+      edump((e));
    }
    catch(...)
    {

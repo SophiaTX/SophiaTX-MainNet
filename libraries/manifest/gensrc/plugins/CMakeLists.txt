@@ -6,8 +6,6 @@ add_library( sophiatx_plugins
 
 target_link_libraries( sophiatx_plugins appbase fc
 
-   smt_test_plugin
-
    witness_plugin
 
    account_history_api_plugin
@@ -40,9 +38,13 @@ target_link_libraries( sophiatx_plugins appbase fc
 
    webserver_plugin
 
+   template_plugin
+
    p2p_plugin
 
    block_log_info_plugin
+
+   track_and_trace_plugin
 
    account_by_key_plugin
 
