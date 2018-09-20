@@ -51,8 +51,8 @@ void tat_interpreter::apply( const protocol::custom_json_operation& op ) {
          po.holder="";
          po.new_holder = "";
          po.serial = serial;
-         //from_string(po.meta, tmp["meta"].as<string>());
-         //from_string(po.claim_key, tmp["claimKey"].as<string>());
+         from_string(po.meta, tmp["meta"].as<string>());
+         from_string(po.claim_key, tmp["claimKey"].as<string>());
       });//*/
    } else {
       //read the db entry here
