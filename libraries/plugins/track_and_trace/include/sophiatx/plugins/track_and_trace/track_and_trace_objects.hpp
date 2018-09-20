@@ -27,12 +27,12 @@ enum posession_object_types
    transfer_history_object_type = ( SOPHIATX_TRACK_AND_TRACE_SPACE_ID << 8 )+1
 };
 
-typedef fixed_string<32> tracked_object_name_type;
+typedef account_name_type tracked_object_name_type;
 class possession_object : public object< posession_object_type, possession_object >
 {
    public:
       template< typename Constructor, typename Allocator >
-      possession_object( Constructor&& c, allocator< Allocator > a )
+      possession_object( Constructor&& c, allocator< Allocator > a ): meta(a), info(a), claim_key(a)
       {
          c( *this );
       }
@@ -40,8 +40,12 @@ class possession_object : public object< posession_object_type, possession_objec
       id_type           id;
 
       account_name_type   holder;
+      account_name_type   new_holder;
       tracked_object_name_type   serial;
       shared_string     meta;
+      shared_string     info;
+      shared_string     claim_key;
+
 };
 
 class transfer_history_object : public object< transfer_history_object_type, transfer_history_object >
@@ -54,8 +58,8 @@ class transfer_history_object : public object< transfer_history_object_type, tra
       }
 
       id_type           id;
-      account_name_type   new_owner;
-      fc::time_point_sec    change_date;
+      account_name_type          new_holder;
+      fc::time_point_sec          change_date;
       tracked_object_name_type   serial;
 };
 
@@ -68,13 +72,15 @@ using namespace boost::multi_index;
 struct by_holder;
 struct by_serial;
 struct by_serial_date;
+struct by_new_holder;
 
 typedef multi_index_container<
       possession_object,
    indexed_by<
       ordered_unique< tag< by_id >, member< possession_object, possession_object_id_type, &possession_object::id > >,
       ordered_non_unique< tag <by_holder>, member < possession_object, account_name_type, &possession_object::holder > >,
-      ordered_unique< tag <by_serial>, member < possession_object, tracked_object_name_type, &possession_object::serial > >
+      ordered_unique< tag <by_serial>, member < possession_object, tracked_object_name_type, &possession_object::serial > >,
+      ordered_non_unique< tag <by_new_holder>, member < possession_object, account_name_type, &possession_object::new_holder > >
    >,
    allocator< possession_object >
 > posession_index;
@@ -97,8 +103,8 @@ typedef multi_index_container<
 } } } // sophiatx::plugins::track_and_trace
 
 
-FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::possession_object, (id)(serial)(holder) )
-FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::transfer_history_object, (id)(new_owner)(change_date)(serial) )
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::possession_object, (id)(serial)(holder)(new_holder)(meta)(info)(claim_key) )
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::transfer_history_object, (id)(new_holder)(change_date)(serial) )
 
 CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::track_and_trace_plugin::possession_object, sophiatx::plugins::track_and_trace_plugin::posession_index )
 CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::track_and_trace_plugin::transfer_history_object, sophiatx::plugins::track_and_trace_plugin::transfer_history_index )

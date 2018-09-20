@@ -38,10 +38,11 @@ class track_and_trace_plugin : public plugin< track_and_trace_plugin >
       virtual void plugin_startup() override;
       virtual void plugin_shutdown() override;
 
-
+      uint64_t app_id;
    private:
       std::unique_ptr< detail::track_and_trace_plugin_impl > my;
       std::shared_ptr< class track_and_trace_api > api;
+
 };
 
 } } } //sophiatx::plugins::track_and_trace_plugin

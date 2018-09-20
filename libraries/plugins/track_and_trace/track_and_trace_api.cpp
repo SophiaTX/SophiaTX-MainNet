@@ -14,6 +14,8 @@ class track_and_trace_api_impl
    get_current_holder_return get_current_holder( const get_current_holder_args& args )const;
    get_holdings_return get_holdings( const get_holdings_args& args )const;
    get_tracked_object_history_return get_tracked_object_history( const get_tracked_object_history_args& args )const;
+   get_transfer_requests_return get_transfer_requests(const get_transfer_requests_args& args)const;
+   get_item_details_return get_item_details(const get_item_details_args& args)const;
 
    chain::database& _db;
 };
@@ -53,6 +55,28 @@ get_tracked_object_history_return track_and_trace_api_impl::get_tracked_object_h
    }
    return final_result;
 }
+
+get_transfer_requests_return track_and_trace_api_impl::get_transfer_requests(const get_transfer_requests_args& args)const
+{
+   get_transfer_requests_return final_result;
+   const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_new_holder >();
+   auto itr = holder_idx.lower_bound( args.new_holder );
+   while (itr!=holder_idx.end() && itr->holder == args.new_holder ) {
+      final_result.serials.push_back(itr->serial);
+      itr++;
+   }
+   return final_result;
+}
+
+get_item_details_return track_and_trace_api_impl::get_item_details(const get_item_details_args& args)const
+{
+   const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_serial >();
+   const auto& holder_itr = holder_idx.find(args.serial);
+   if(holder_itr != holder_idx.end())
+      return *holder_itr;
+   return get_item_details_return();
+}
+
 } // detail
 
 track_and_trace_api::track_and_trace_api(): my( new detail::track_and_trace_api_impl() )
@@ -62,6 +86,6 @@ track_and_trace_api::track_and_trace_api(): my( new detail::track_and_trace_api_
 
 track_and_trace_api::~track_and_trace_api() {}
 
-DEFINE_READ_APIS( track_and_trace_api, (get_current_holder)(get_holdings)(get_tracked_object_history) )
+DEFINE_READ_APIS( track_and_trace_api, (get_current_holder)(get_holdings)(get_tracked_object_history)(get_transfer_requests)(get_item_details) )
 
 } } } // sophiatx::plugins::track_and_trace_plugin

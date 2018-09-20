@@ -35,15 +35,44 @@ struct get_holdings_return
    vector<tracked_object_name_type> serials;
 };
 
+struct get_transfer_requests_args
+{
+   account_name_type new_holder;
+};
+
+struct get_transfer_requests_return
+{
+   vector<tracked_object_name_type> serials;
+};
+
+struct get_item_details_args
+{
+   tracked_object_name_type serial;
+};
+
+struct get_item_details_return
+{
+   account_name_type   holder;
+   account_name_type   new_holder;
+   tracked_object_name_type   serial;
+   string     meta;
+   string     info;
+   get_item_details_return(const possession_object& o): holder(o.holder), new_holder(o.new_holder),
+                                                        serial(o.serial), meta(to_string(o.meta)),
+                                                        info(to_string(o.info)) {}
+   get_item_details_return(){};
+};
+
+
 struct get_tracked_object_history_args
 {
    tracked_object_name_type serial;
 };
 
 struct tracked_object_history_item{
-   account_name_type   new_owner;
+   account_name_type   new_holder;
    fc::time_point_sec    change_date;
-   tracked_object_history_item(const transfer_history_object & o): new_owner(o.new_owner), change_date(o.change_date){};
+   tracked_object_history_item(const transfer_history_object & o): new_holder(o.new_holder), change_date(o.change_date){};
 };
 
 struct get_tracked_object_history_return
@@ -57,7 +86,7 @@ class track_and_trace_api
       track_and_trace_api();
       ~track_and_trace_api();
 
-      DECLARE_API( (get_current_holder) (get_holdings) (get_tracked_object_history) )
+      DECLARE_API( (get_current_holder) (get_holdings) (get_tracked_object_history) (get_transfer_requests) (get_item_details))
 
    private:
       std::unique_ptr< detail::track_and_trace_api_impl > my;
@@ -65,7 +94,7 @@ class track_and_trace_api
 
 } } } // sophiatx::plugins::track_and_trace_plugin
 
-FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::tracked_object_history_item, (new_owner)(change_date) )
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::tracked_object_history_item, (new_holder)(change_date) )
 
 FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_current_holder_args,
             (serial) )
@@ -84,3 +113,15 @@ FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_tracked_object_histor
 
 FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_tracked_object_history_return,
             (history_items) )
+
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_transfer_requests_args,
+            (new_holder) )
+
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_transfer_requests_return,
+            (serials) )
+
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_item_details_args,
+            (serial) )
+
+FC_REFLECT( sophiatx::plugins::track_and_trace_plugin::get_item_details_return,
+            (holder)(new_holder)(serial)(meta)(info) )
