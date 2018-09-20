@@ -63,6 +63,7 @@ void tat_interpreter::apply( const protocol::custom_json_operation& op ) {
          FC_ASSERT(tmp["claimKey"].as<string>() == to_string(holder_itr->claim_key), "incorrect claim key");
          _db.modify(*holder_itr,[&](possession_object& po){
               po.holder = sender;
+              from_string(po.info, tmp["info"].as<string>());
          });
       } else if( tmp[ "action" ].as<string>() == std::string("updateInfo")) {
          FC_ASSERT(sender == holder_itr->holder);
