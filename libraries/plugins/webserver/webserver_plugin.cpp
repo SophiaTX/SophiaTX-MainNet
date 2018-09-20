@@ -241,7 +241,7 @@ void webserver_plugin_impl::start_webserver()
       });
    }
 
-   if( https_endpoint && ( ( ws_endpoint && ws_endpoint != https_endpoint ) || !ws_endpoint ) )
+   if( https_endpoint )
    {
       https_thread = std::make_shared<std::thread>( [&]()
       {
@@ -470,6 +470,15 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
    ilog("configured with ${tps} thread pool size", ("tps", thread_pool_size));
    my.reset(new detail::webserver_plugin_impl(thread_pool_size));
 
+   if( options.count( "webserver-ws-endpoint" ) )
+   {
+      auto ws_endpoint = options.at( "webserver-ws-endpoint" ).as< string >();
+      auto endpoints = detail::resolve_string_to_ip_endpoints( ws_endpoint );
+      FC_ASSERT( endpoints.size(), "ws-server-endpoint ${hostname} did not resolve", ("hostname", ws_endpoint) );
+      my->ws_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
+      ilog( "configured ws to listen on ${ep}", ("ep", endpoints[0]) );
+   }
+
    if( options.count( "webserver-http-endpoint" ) )
    {
       auto http_endpoint = options.at( "webserver-http-endpoint" ).as< string >();
@@ -493,17 +502,9 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
       auto endpoints = detail::resolve_string_to_ip_endpoints( https_endpoint );
       FC_ASSERT( endpoints.size(), "webserver-https-endpoint ${hostname} did not resolve", ("hostname", https_endpoint) );
       my->https_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
-      FC_ASSERT(my->http_endpoint != my->https_endpoint, "webserver-https-endpoint must be different than webserver-http-endpoint");
+      FC_ASSERT(my->https_endpoint != my->http_endpoint, "webserver-https-endpoint must be different than webserver-http-endpoint");
+      FC_ASSERT(my->https_endpoint != my->ws_endpoint, "webserver-https-endpoint must be different than webserver-ws-endpoint");
       ilog( "configured https to listen on ${ep}", ("ep", endpoints[0]) );
-   }
-
-   if( options.count( "webserver-ws-endpoint" ) )
-   {
-      auto ws_endpoint = options.at( "webserver-ws-endpoint" ).as< string >();
-      auto endpoints = detail::resolve_string_to_ip_endpoints( ws_endpoint );
-      FC_ASSERT( endpoints.size(), "ws-server-endpoint ${hostname} did not resolve", ("hostname", ws_endpoint) );
-      my->ws_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
-      ilog( "configured ws to listen on ${ep}", ("ep", endpoints[0]) );
    }
 }
 
