@@ -4,6 +4,3 @@
 [submodule "vendor/websocketpp"]
     path = vendor/websocketpp
     url = https://github.com/SophiaTX/websocketpp.git
-[submodule "vendor/diff-match-patch-cpp-stl"]
-	path = vendor/diff-match-patch-cpp-stl
-	url = https://github.com/leutloff/diff-match-patch-cpp-stl

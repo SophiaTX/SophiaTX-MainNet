@@ -25,8 +25,7 @@ namespace fc {
     typedef fc::array<unsigned char,65> compact_signature;
     typedef std::vector<char>           range_proof_type;
     typedef fc::array<char,78>          extended_key_data;
-    typedef fc::sha256                  blinded_hash;
-    typedef fc::sha256                  blind_signature;
+
 
     /**
      *  @class public_key
@@ -52,8 +51,7 @@ namespace fc {
            public_key child( const fc::sha256& offset )const;
 
            bool valid()const;
-           /** Computes new pubkey = generator * offset + old pubkey ?! */
-//           public_key mult( const fc::sha256& offset )const;
+
            /** Computes new pubkey = regenerate(offset).pubkey + old pubkey
             *                      = offset * G + 1 * old pubkey ?! */
            public_key add( const fc::sha256& offset )const;
@@ -122,9 +120,8 @@ namespace fc {
             */
            fc::sha512 get_shared_secret( const public_key& pub )const;
 
-//           signature         sign( const fc::sha256& digest )const;
            compact_signature sign_compact( const fc::sha256& digest, bool require_canonical = true )const;
-//           bool              verify( const fc::sha256& digest, const signature& sig );
+
 
            public_key get_public_key()const;
 
@@ -164,8 +161,6 @@ namespace fc {
             fc::string to_base58() const { return str(); }
             static extended_public_key from_base58( const fc::string& base58 );
 
-            public_key generate_p( int i ) const;
-            public_key generate_q( int i ) const;
         private:
             sha256 c;
             int child_num, parent_fp;
@@ -192,25 +187,10 @@ namespace fc {
             static extended_private_key generate_master( const fc::string& seed );
             static extended_private_key generate_master( const char* seed, uint32_t seed_len );
 
-            // Oleg Andreev's blind signature scheme,
-            // see http://blog.oleganza.com/post/77474860538/blind-signatures
-            public_key blind_public_key( const extended_public_key& bob, int i ) const;
-            blinded_hash blind_hash( const fc::sha256& hash, int i ) const;
-            blind_signature blind_sign( const blinded_hash& hash, int i ) const;
-            // WARNING! This may produce non-canonical signatures!
-            compact_signature unblind_signature( const extended_public_key& bob,
-                                                 const blind_signature& sig,
-                                                 const fc::sha256& hash, int i ) const;
-
         private:
             extended_private_key private_derive_rest( const fc::sha512& hash,
                                                       int num ) const;
-            private_key generate_a( int i ) const;
-            private_key generate_b( int i ) const;
-            private_key generate_c( int i ) const;
-            private_key generate_d( int i ) const;
-            private_key_secret compute_p( int i ) const;
-            private_key_secret compute_q( int i, const private_key_secret& p ) const;
+
             sha256 c;
             int child_num, parent_fp;
             uint8_t depth;
