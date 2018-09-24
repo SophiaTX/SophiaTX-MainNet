@@ -28,6 +28,8 @@
 
 #include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
 
+#include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
+
 #include <sophiatx/plugins/account_history/account_history_plugin.hpp>
 
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
@@ -75,6 +77,8 @@ void register_plugins()
    appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >();
+
+   appbase::app().register_plugin< sophiatx::plugins::condenser_api::alexandria_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
    
