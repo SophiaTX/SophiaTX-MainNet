@@ -57,13 +57,13 @@ class database_api_impl
       {
          const auto& idx = _db.get_index< IndexType, OrderType >();
          auto itr = reverse? (idx.upper_bound(start)): idx.lower_bound( start );
-         if(reverse) itr--;
          auto end = reverse? idx.begin() : idx.end();
 
          while( result.size() < limit && itr != end )
          {
+            if (reverse) --itr;
             result.push_back( on_push( *itr ) );
-            if (reverse) --itr; else ++itr;
+            if (!reverse) ++itr;
          }
       }
 
