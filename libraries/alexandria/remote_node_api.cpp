@@ -177,7 +177,7 @@ bool remote_node_api::verify_account_authority( string, flat_set< public_key_typ
    FC_ASSERT( false );
 }
 
-map< uint32_t, condenser_api::api_operation_object > remote_node_api::get_account_history( account_name_type, uint64_t, uint32_t )
+map< uint32_t, condenser_api::api_operation_object > remote_node_api::get_account_history( account_name_type, int64_t, uint32_t )
 {
    FC_ASSERT( false );
 }

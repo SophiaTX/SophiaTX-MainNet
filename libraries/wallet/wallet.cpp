@@ -1811,7 +1811,8 @@ string wallet_api::decrypt_memo( string encrypted_memo ) {
    return encrypted_memo;
 }
 
-map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_history(string account, int64_t from,
+                                                                                     uint32_t limit) {
    auto result = my->_remote_api->get_account_history( account, from, limit );
    if( !is_locked() ) {
       for( auto& item : result ) {
