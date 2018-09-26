@@ -58,7 +58,7 @@ struct remote_node_api
    bool verify_account_authority( string, flat_set< public_key_type > );
    //vector< condenser_api::account_vote > get_account_votes( account_name_type );
 
-   map< uint32_t, condenser_api::api_operation_object > get_account_history( account_name_type, uint64_t, uint32_t );
+   map< uint32_t, condenser_api::api_operation_object > get_account_history( account_name_type, int64_t, uint32_t );
    void broadcast_transaction( signed_transaction );
    network_broadcast_api::broadcast_transaction_synchronous_return broadcast_transaction_synchronous( signed_transaction );
    void broadcast_block( signed_block );

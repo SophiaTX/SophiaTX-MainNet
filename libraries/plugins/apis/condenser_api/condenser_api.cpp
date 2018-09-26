@@ -141,7 +141,7 @@ namespace detail
                {
                   legacy_operation l_op;
                   legacy_operation_conversion_visitor visitor( l_op );
-                  auto history = _account_history_api->get_account_history( { acnt, uint64_t(-1), 1000 } ).history;
+                  auto history = _account_history_api->get_account_history( { acnt, int64_t(-1), 1000 } ).history;
                   for( auto& item : history )
                   {
                      switch( item.second.op.which() ) {
@@ -653,7 +653,7 @@ namespace detail
       CHECK_ARG_SIZE( 3 )
       FC_ASSERT( _account_history_api, "account_history_api_plugin not enabled." );
 
-      auto history = _account_history_api->get_account_history( { args[0].as< account_name_type >(), args[1].as< uint64_t >(), args[2].as< uint32_t >(), true } ).history;
+      auto history = _account_history_api->get_account_history( { args[0].as< account_name_type >(), args[1].as< int64_t >(), args[2].as< uint32_t >(), true } ).history;
       get_account_history_return result;
 
       legacy_operation l_op;

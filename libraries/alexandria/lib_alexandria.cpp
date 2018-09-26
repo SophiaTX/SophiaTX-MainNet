@@ -578,7 +578,7 @@ vector< condenser_api::api_received_object >  alexandria_api::get_received_docum
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
-vector< condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+vector< condenser_api::api_operation_object > alexandria_api::get_account_history( string account, int64_t from, uint32_t limit ) {
    typedef std::map< uint32_t, condenser_api::api_operation_object > ObjectMap;
    ObjectMap from_api = my->_remote_api->get_account_history( account, from, limit );
    std::vector < condenser_api::api_operation_object > ret;
@@ -594,7 +594,7 @@ map< uint64_t, condenser_api::api_received_object >  alexandria_api::get_receive
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
-map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, int64_t from, uint32_t limit ) {
    auto result = my->_remote_api->get_account_history( account, from, limit );
    return result;
 }
