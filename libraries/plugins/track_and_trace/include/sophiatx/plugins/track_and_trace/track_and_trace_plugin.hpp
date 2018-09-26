@@ -4,7 +4,7 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 
-#define SOPHIATX_PLUGIN_NAME "track_and_trace"
+#define SOPHIATX_TRACK_AND_TRACE_PLUGIN_NAME "track_and_trace"
 
 namespace sophiatx { namespace plugins { namespace track_and_trace_plugin {
 
@@ -29,7 +29,7 @@ class track_and_trace_plugin : public plugin< track_and_trace_plugin >
             (sophiatx::plugins::json_rpc::json_rpc_plugin)
       )
 
-      static const std::string& name() { static std::string name = SOPHIATX_PLUGIN_NAME; return name; }
+      static const std::string& name() { static std::string name = SOPHIATX_TRACK_AND_TRACE_PLUGIN_NAME; return name; }
 
       virtual void set_program_options(
          options_description& cli,

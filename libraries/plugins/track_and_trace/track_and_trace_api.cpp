@@ -81,7 +81,7 @@ get_item_details_return track_and_trace_api_impl::get_item_details(const get_ite
 
 track_and_trace_api::track_and_trace_api(): my( new detail::track_and_trace_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_TRACK_AND_TRACE_PLUGIN_NAME );
 }
 
 track_and_trace_api::~track_and_trace_api() {}
