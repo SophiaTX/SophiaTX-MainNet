@@ -1,5 +1,9 @@
 #include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_api.hpp>
+#include <appbase/application.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
+
 
 namespace sophiatx { namespace plugins { namespace account_history {
 
