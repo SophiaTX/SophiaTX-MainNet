@@ -104,7 +104,8 @@ class alexandria_api
        * @param block_num Block height of specified block
        * @param only_virtual Whether to only return virtual operations
        */
-      vector< condenser_api::api_operation_object > get_ops_in_block( uint32_t block_num, bool only_virtual = true );
+      vector< condenser_api::api_operation_object >
+            get_ops_in_block( uint32_t block_num, bool only_virtual = true );
 
       /** Return the current price feed history
        *
@@ -353,7 +354,7 @@ class alexandria_api
       std::shared_ptr<detail::alexandria_api_impl> my;
 
       /**
-       * Send custom JSON data
+       * Send custom JSON dataget_application_buyings
        * @param app_id Application ID
        * @param from Sender i.e. "account_name"
        * @param to List of receivers i.e. ["account_name"]
@@ -660,6 +661,10 @@ class alexandria_api
         * @return
         */
        operation sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring) const;
+
+       std::string hello() {
+             return "hello world";
+       }
 };
 
 } }
@@ -672,6 +677,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         /// alexandria api
         (help)(gethelp)
         (about)
+        (hello)
 
         /// query api
         (info)
