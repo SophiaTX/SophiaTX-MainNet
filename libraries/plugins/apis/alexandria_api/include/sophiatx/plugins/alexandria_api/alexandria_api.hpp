@@ -22,6 +22,7 @@ class alexandria_api
 //         /// alexandria api
 //         (help)(gethelp)
 //         (about)
+//         (hello)
 //
 //         /// query api
 //         (info)
@@ -32,7 +33,7 @@ class alexandria_api
          (get_ops_in_block)
          (get_feed_history)
          (get_application_buyings)
-//         (get_applications)
+         (get_applications)
 //         (get_applications_by_ids)
 //         (get_received_documents)
 //         (get_active_witnesses)

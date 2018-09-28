@@ -71,6 +71,16 @@ struct get_feed_history_return {
    alexandria_api::api_feed_history_object history;
 };
 
+/**
+ * get_applications
+ */
+struct get_applications_args {
+   vector<std::string> names;
+};
+struct get_applications_return {
+   vector<alexandria_api::api_application_object> applications;
+};
+
 
 
 DEFINE_API_ARGS( list_witnesses,           alexandria_api::list_witnesses_args,          alexandria_api::list_witnesses_return )
@@ -80,12 +90,13 @@ DEFINE_API_ARGS( get_block,                block_api::get_block_args,           
 DEFINE_API_ARGS( get_ops_in_block,         account_history::get_ops_in_block_args,       alexandria_api::get_ops_in_block_return)
 DEFINE_API_ARGS( get_feed_history,         database_api::get_feed_history_args,          alexandria_api::get_feed_history_return)
 DEFINE_API_ARGS( get_application_buyings,  database_api::get_application_buyings_args,   database_api::get_application_buyings_return)
+DEFINE_API_ARGS( get_applications,         alexandria_api::get_applications_args,        alexandria_api::get_applications_return)
 
 
 
 
 
-} } } // sophiatx::alexandria_api
+} } } // sophiatx::plugins::alexandria_api
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::list_witnesses_args,
             (start)(limit) )
@@ -112,5 +123,11 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::get_block_return,
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_ops_in_block_return,
             (ops) )
 
+
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_feed_history_return,
             (history) )
+
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_applications_args,
+            (names) )
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_applications_return,
+            (applications) )

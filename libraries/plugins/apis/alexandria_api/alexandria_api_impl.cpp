@@ -184,6 +184,7 @@ DEFINE_API_IMPL( alexandria_api_impl, get_ops_in_block )
    return result;
 }
 
+
 DEFINE_API_IMPL( alexandria_api_impl, get_feed_history )
 {
    checkApiEnabled(_database_api);
@@ -194,6 +195,7 @@ DEFINE_API_IMPL( alexandria_api_impl, get_feed_history )
    return result;
 }
 
+
 DEFINE_API_IMPL( alexandria_api_impl, get_application_buyings )
 {
    checkApiEnabled(_database_api);
@@ -201,6 +203,25 @@ DEFINE_API_IMPL( alexandria_api_impl, get_application_buyings )
    return _database_api->get_application_buyings( { args.start, args.limit, args.search_type } );
 }
 
+
+DEFINE_API_IMPL( alexandria_api_impl, get_applications )
+{
+   vector< string > app_names = args.names;
+
+   alexandria_api::get_applications_return result;
+   result.applications.reserve( app_names.size() );
+
+   for( auto& name : app_names )
+   {
+      auto itr = _db.find< chain::application_object, chain::by_name >( name );
+
+      if( itr )
+      {
+         result.applications.push_back( api_application_object( database_api::api_application_object( *itr ) ) );
+      }
+   }
+   return result;
+}
 
 
 

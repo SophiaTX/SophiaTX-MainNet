@@ -67,7 +67,7 @@ public:
          (get_ops_in_block)
          (get_feed_history)
          (get_application_buyings)
-//         (get_applications)
+         (get_applications)
 //         (get_applications_by_ids)
 //         (get_received_documents)
 //         (get_active_witnesses)

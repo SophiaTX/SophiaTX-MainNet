@@ -661,10 +661,6 @@ class alexandria_api
         * @return
         */
        operation sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring) const;
-
-       std::string hello() {
-             return "hello world";
-       }
 };
 
 } }
@@ -676,8 +672,7 @@ FC_REFLECT( sophiatx::alexandria::memo_data, (nonce)(check)(encrypted) )
 FC_API( sophiatx::alexandria::alexandria_api,
         /// alexandria api
         (help)(gethelp)
-        (about)
-        (hello)
+        (about
 
         /// query api
         (info)
