@@ -672,7 +672,7 @@ FC_REFLECT( sophiatx::alexandria::memo_data, (nonce)(check)(encrypted) )
 FC_API( sophiatx::alexandria::alexandria_api,
         /// alexandria api
         (help)(gethelp)
-        (about
+        (about)
 
         /// query api
         (info)

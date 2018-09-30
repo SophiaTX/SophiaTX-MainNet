@@ -28,8 +28,8 @@ typedef sophiatx::protocol::annotated_signed_transaction get_transaction_return;
 
 struct get_account_history_args
 {
-   sophiatx::protocol::account_name_type   account;
-   uint64_t                               start = -1;
+   sophiatx::protocol::account_name_type  account;
+   int64_t                                start = -1;
    uint32_t                               limit = 1000;
    bool                                   reverse_order = false;
 };
