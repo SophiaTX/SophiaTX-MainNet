@@ -4,10 +4,45 @@
 #include <sophiatx/plugins/block_api/block_api_objects.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_objects.hpp>
 #include <sophiatx/plugins/database_api/database_api_objects.hpp>
+#include <sophiatx/plugins/custom_api/custom_api.hpp>  //TODO: separate custom_api_objects
 
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
+
+typedef sophiatx::plugins::custom::received_object api_received_object;
+typedef sophiatx::plugins::database_api::api_application_buying_object api_application_buying_object;
+
+struct key_pair_st
+{
+   public_key_type      pub_key;
+   string               wif_priv_key;
+};
+
+struct memo_data {
+
+   static fc::optional<memo_data> from_string( string str ) {
+      try {
+         if( str.size() > sizeof(memo_data)) {
+            auto data = fc::from_base58( str );
+            auto m  = fc::raw::unpack_from_vector<memo_data>( data );
+            FC_ASSERT( string(m) == str );
+            return m;
+         }
+      } catch ( ... ) {}
+      return fc::optional<memo_data>();
+   }
+
+   int64_t         nonce = 0;
+   uint64_t        check = 0;
+   vector<char>    encrypted;
+
+   operator string()const {
+      auto data = fc::raw::pack_to_vector(*this);
+      auto base58 = fc::to_base58( data );
+      return base58;
+   }
+};
 
 
 struct api_signed_transaction
@@ -411,19 +446,19 @@ struct api_application_object
 };
 
 
-struct state
-{
-   string                                             current_route;
-
-   extended_dynamic_global_properties                 props;
-
-   map< string, extended_account >                    accounts;
-
-   map< string, api_witness_object >                  witnesses;
-   api_witness_schedule_object                        witness_schedule;
-   api_price                                          feed_price;
-   string                                             error;
-};
+//struct state
+//{
+//   string                                             current_route;
+//
+//   extended_dynamic_global_properties                 props;
+//
+//   map< string, extended_account >                    accounts;
+//
+//   map< string, api_witness_object >                  witnesses;
+//   api_witness_schedule_object                        witness_schedule;
+//   api_price                                          feed_price;
+//   string                                             error;
+//};
 
 
 struct scheduled_hardfork
@@ -447,7 +482,9 @@ struct get_version_return
 
 } } } // sophiatx::plugins::database_api
 
+FC_REFLECT( sophiatx::plugins::alexandria_api::key_pair_st, (pub_key)(wif_priv_key) )
 
+FC_REFLECT( sophiatx::plugins::alexandria_api::memo_data, (nonce)(check)(encrypted) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_signed_transaction,
             (ref_block_num)(ref_block_prefix)(expiration)(operations)(extensions)(signatures)(transaction_id)(block_num)(transaction_num) )
@@ -463,8 +500,8 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_feed_history_object,
             (current_median_price)
             (price_history) )
 
-FC_REFLECT( sophiatx::plugins::alexandria_api::state,
-            (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
+//FC_REFLECT( sophiatx::plugins::alexandria_api::state,
+//            (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_account_object,
             (id)(name)(owner)(active)(memo_key)(json_metadata)(voting_proxy)
@@ -497,20 +534,20 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_witness_object,
                   (running_version)
                   (hardfork_version_vote)(hardfork_time_vote) )
 
-FC_REFLECT( sophiatx::plugins::alexandria_api::api_witness_schedule_object,
-            (id)
-                  (current_virtual_time)
-                  (next_shuffle_block_num)
-                  (current_shuffled_witnesses)
-                  (num_scheduled_witnesses)
-                  (top19_weight)
-                  (timeshare_weight)
-                  (witness_pay_normalization_factor)
-                  (median_props)
-                  (majority_version)
-                  (max_voted_witnesses)
-                  (max_runner_witnesses)
-                  (hardfork_required_witnesses) )
+//FC_REFLECT( sophiatx::plugins::alexandria_api::api_witness_schedule_object,
+//            (id)
+//                  (current_virtual_time)
+//                  (next_shuffle_block_num)
+//                  (current_shuffled_witnesses)
+//                  (num_scheduled_witnesses)
+//                  (top19_weight)
+//                  (timeshare_weight)
+//                  (witness_pay_normalization_factor)
+//                  (median_props)
+//                  (majority_version)
+//                  (max_voted_witnesses)
+//                  (max_runner_witnesses)
+//                  (hardfork_required_witnesses) )
 
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_escrow_object,

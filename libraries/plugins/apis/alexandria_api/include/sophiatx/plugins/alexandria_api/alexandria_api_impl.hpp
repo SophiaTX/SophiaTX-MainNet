@@ -48,92 +48,84 @@ public:
    const shared_ptr<subscribe::subscribe_api> &get_subscribe_api() const;
    void set_subscribe_api(const shared_ptr<subscribe::subscribe_api> &subscribe_api);
 
+   const chain_id_type &get_chain_id() const;
+
+   void set_chain_id(const chain_id_type &_chain_id);
+
+
    /**
     * API methods declarations
     */
    DECLARE_API_IMPL (
-
-//         /// alexandria api
-//         (help)(gethelp)
-//         (about)
-//         (hello)
-//
-//         /// query api
-//         (info)
-         (list_witnesses)
-         (list_witnesses_by_vote)
-         (get_witness)
+         (info)
+         (about)
          (get_block)
          (get_ops_in_block)
          (get_feed_history)
+         (get_active_witnesses)
+         (get_account)
+         (get_transaction)
+         (create_account)
+         (update_account)
+         (delete_account)
+         (get_transaction_id)
+         (list_witnesses)
+         (list_witnesses_by_vote)
+         (get_witness)
+         (update_witness)
+         (stop_witness)
+         (set_voting_proxy)
+         (vote_for_witness)
+         (transfer)
+         (transfer_to_vesting)
+         (withdraw_vesting)
+         (get_owner_history)
+         (create_application)
+         (update_application)
+         (delete_application)
+         (buy_application)
+         (cancel_application_buying)
          (get_application_buyings)
+         //(get_result_formatters) // TODO: check if needed
+         (make_custom_json_operation)
+         (make_custom_binary_operation)
+         (broadcast_transaction)
+         (create_transaction)
+         (create_simple_transaction)
          (get_applications)
-//         (get_applications_by_ids)
-//         (get_received_documents)
-//         (get_active_witnesses)
-//         (get_transaction)
-//         (get_required_signatures)
-//
-//         ///account api
-//         (get_account_name_from_seed)
-//         (account_exist)
-//         (get_account)
-//         (get_account_history)
-//         (get_active_authority)
-//         (get_owner_authority)
-//         (get_memo_key)
-//         (get_account_balance)
-//         (get_vesting_balance)
-//         (create_simple_authority)
-//         (create_simple_multisig_authority)
-//         (create_simple_managed_authority)
-//         (create_simple_multisig_managed_authority)
-//
-//         /// transaction api
-//         (create_account)
-//         (update_account)
-//         (delete_account)
-//         (update_witness)
-//         (set_voting_proxy)
-//         (vote_for_witness)
-//         (transfer)
-//         (sponsor_account_fees)
-//
-//         (transfer_to_vesting)
-//         (withdraw_vesting)
-//         (create_application)
-//         (update_application)
-//         (delete_application)
-//         (buy_application)
-//         (cancel_application_buying)
-//
-//         (make_custom_json_operation)
-//         (make_custom_binary_operation)
-//
-//         /// helper api
-//         (broadcast_transaction)
-//         (create_transaction)
-//         (create_simple_transaction)
-//         (calculate_fee)
-//         (fiat_to_sphtx)
-//
-//         ///local api
-//         (get_transaction_digest)
-//         (add_signature)
-//         (add_fee)
-//
-//         (sign_digest)
-//         (send_and_sign_operation)
-//         (send_and_sign_transaction)
-//         (verify_signature)
-//         (generate_key_pair)
-//         (generate_key_pair_from_brain_key)
-//         (get_public_key)
-//         (from_base64)
-//         (to_base64)
-//         (encrypt_data)
-//         (decrypt_data)
-//         (custom_object_subscription)
+         (get_applications_by_ids)
+         (get_transaction_digest)
+         (add_signature)
+         (add_fee)
+         (sign_digest)
+         (send_and_sign_operation)
+         (send_and_sign_transaction)
+         (verify_signature)
+         (generate_key_pair)
+         (generate_key_pair_from_brain_key)
+         (get_public_key)
+         (from_base64)
+         (to_base64)
+         (encrypt_data)
+         (decrypt_data)
+         (account_exist)
+         (get_account_history)
+         (get_received_documents)
+         (get_active_authority)
+         (get_owner_authority)
+         (get_memo_key)
+         (get_account_balance)
+         (get_vesting_balance)
+         (create_simple_authority)
+         (create_simple_multisig_authority)
+         (create_simple_managed_authority)
+         (create_simple_multisig_managed_authority)
+         (get_account_name_from_seed)
+         (get_required_signatures)
+         (calculate_fee)
+         (fiat_to_sphtx)
+         (custom_object_subscription)
+         (sponsor_account_fees)
    )
 
    chain::database &_db;
@@ -149,6 +141,9 @@ private:
    std::shared_ptr< subscribe::subscribe_api >                       _subscribe_api;
 
 
+   chain_id_type             _chain_id;
+   static constexpr uint32_t _tx_expiration_seconds = 30;
+
    /**
     * @brief Checks if concrete api shared_ptr is valid, it asserts if not
     *
@@ -160,6 +155,9 @@ private:
       FC_ASSERT(api != nullptr, "API: " + std::string(typeid(T).name()) + " plugin not enabled.");
    }
 
+
+   std::vector<extended_account> get_accounts(const std::vector<account_name_type>& account_names);
+   extended_dynamic_global_properties get_dynamic_global_properties();
 };
 
 } } } // sophiatx::plugins::alexandria_api
