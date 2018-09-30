@@ -274,6 +274,8 @@ DEFINE_API_IMPL( alexandria_api_impl, list_witnesses_by_vote )
 {
    checkApiEnabled(_database_api);
 
+   list_witnesses_by_vote_return result;
+
    account_name_type start_name = args.name;
    vector< fc::variant > start_key;
 
@@ -287,7 +289,7 @@ DEFINE_API_IMPL( alexandria_api_impl, list_witnesses_by_vote )
       auto start = _database_api->list_witnesses( { args.name, 1, database_api::by_name_reverse } );
 
       if( start.witnesses.size() == 0 )
-         return list_witnesses_by_vote_return();
+         return result;
 
       start_key.push_back( fc::variant( start.witnesses[0].votes ) );
       start_key.push_back( fc::variant( start.witnesses[0].owner ) );
@@ -295,8 +297,6 @@ DEFINE_API_IMPL( alexandria_api_impl, list_witnesses_by_vote )
 
    auto limit = args.limit;
    auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name_reverse } ).witnesses;
-
-   list_witnesses_by_vote_return result;
 
    for( auto& w : witnesses ) {
       result.witnesses_by_vote.push_back( api_witness_object( w ) );
@@ -331,40 +331,6 @@ DEFINE_API_IMPL(alexandria_api_impl, set_voting_proxy)
    return result;
 }
 
-//DEFINE_API_IMPL(alexandria_api_impl, help)
-//{
-//   std::vector<std::string> method_names = my->method_documentation.get_method_names();
-//   std::stringstream ss;
-//   for (const std::string method_name : method_names)
-//   {
-//      try
-//      {
-//         ss <<my->method_documentation.get_brief_description(method_name);
-//      }
-//      catch (const fc::key_not_found_exception&)
-//      {
-//         ss <<method_name <<" (no help available)\n";
-//      }
-//   }
-//   return ss.str();
-//}
-
-//DEFINE_API_IMPL(alexandria_api_impl, gethelp)const
-//{
-//   fc::api<alexandria_api> tmp;
-//   std::stringstream ss;
-//   ss <<"\n";
-//
-//   std::string doxygenHelpString = my->method_documentation.get_detailed_description(method);
-//   if (!doxygenHelpString.empty())
-//      ss <<doxygenHelpString;
-//   else
-//      ss <<"No help defined for method " <<method <<"\n";
-//
-//   return ss.str();
-//}
-
-
 DEFINE_API_IMPL( alexandria_api_impl, get_feed_history )
 {
    checkApiEnabled(_database_api);
@@ -386,7 +352,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_account)
    op.active = authority( 1, args.active, 1 );
    op.memo_key = args.memo;
    op.json_metadata = args.json_meta;
-   op.fee = api_chain_properties( _database_api->get_witness_schedule( {} ).median_props ).account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
+   op.fee = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
 
    create_account_return result;
    result.op = std::move(op);
@@ -730,7 +696,7 @@ DEFINE_API_IMPL(alexandria_api_impl, broadcast_transaction)
    checkApiEnabled(_network_broadcast_api);
 
    broadcast_transaction_return result;
-   auto broadcast_result = _network_broadcast_api->broadcast_transaction_synchronous( { signed_transaction( args.tx ) } );
+   auto broadcast_result = _network_broadcast_api->broadcast_transaction_synchronous( { args.tx } );
 
    annotated_signed_transaction rtrx(args.tx);
    rtrx.block_num = broadcast_result.block_num;

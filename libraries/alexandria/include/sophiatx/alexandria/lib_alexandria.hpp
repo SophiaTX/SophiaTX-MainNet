@@ -354,7 +354,7 @@ class alexandria_api
       std::shared_ptr<detail::alexandria_api_impl> my;
 
       /**
-       * Send custom JSON dataget_application_buyings
+       * Send custom JSON data
        * @param app_id Application ID
        * @param from Sender i.e. "account_name"
        * @param to List of receivers i.e. ["account_name"]

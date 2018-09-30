@@ -445,22 +445,6 @@ struct api_application_object
    application_price_param                         price_param;
 };
 
-
-//struct state
-//{
-//   string                                             current_route;
-//
-//   extended_dynamic_global_properties                 props;
-//
-//   map< string, extended_account >                    accounts;
-//
-//   map< string, api_witness_object >                  witnesses;
-//   api_witness_schedule_object                        witness_schedule;
-//   api_price                                          feed_price;
-//   string                                             error;
-//};
-
-
 struct scheduled_hardfork
 {
    hardfork_version     hf_version;
@@ -500,9 +484,6 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_feed_history_object,
             (current_median_price)
             (price_history) )
 
-//FC_REFLECT( sophiatx::plugins::alexandria_api::state,
-//            (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
-
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_account_object,
             (id)(name)(owner)(active)(memo_key)(json_metadata)(voting_proxy)
                   (balance)
@@ -533,22 +514,6 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_witness_object,
                   (submitted_exchange_rates)
                   (running_version)
                   (hardfork_version_vote)(hardfork_time_vote) )
-
-//FC_REFLECT( sophiatx::plugins::alexandria_api::api_witness_schedule_object,
-//            (id)
-//                  (current_virtual_time)
-//                  (next_shuffle_block_num)
-//                  (current_shuffled_witnesses)
-//                  (num_scheduled_witnesses)
-//                  (top19_weight)
-//                  (timeshare_weight)
-//                  (witness_pay_normalization_factor)
-//                  (median_props)
-//                  (majority_version)
-//                  (max_voted_witnesses)
-//                  (max_runner_witnesses)
-//                  (hardfork_required_witnesses) )
-
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_escrow_object,
             (id)(escrow_id)(from)(to)(agent)
