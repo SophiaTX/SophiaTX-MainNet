@@ -551,7 +551,7 @@ class alexandria_api
       *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
       *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
       */
-      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
+      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, int64_t from, uint32_t limit );
 
       /**
        * Get all received custom jsons and data.

@@ -67,7 +67,8 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
    const auto& idx = _db.get_index< chain::account_history_index, chain::by_account >();
    get_account_history_return result;
 
-   if(args.reverse_order) {
+   if(args.reverse_order && args.start >=0 ) {
+
       auto itr = idx.find (boost::make_tuple(args.account, args.start ));
       auto end = idx.lower_bound( boost::make_tuple(args.account, args.start + args.limit ));
 
@@ -80,12 +81,18 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
          }
       }
 
-   }else{
+   }else if( !args.reverse_order ){
 
       auto itr = idx.lower_bound(boost::make_tuple(args.account, args.start));
       auto end = idx.upper_bound(boost::make_tuple(args.account, std::max(int64_t(0), int64_t(itr->sequence) - args.limit)));
 
       while( itr != end ) {
+         result.history[ itr->sequence ] = _db.get(itr->op);
+         ++itr;
+      }
+   }else{
+      auto itr = idx.lower_bound(boost::make_tuple(args.account, uint64_t(0)-1 ));
+      while(result.history.size() < args.limit && itr!= idx.end() ) {
          result.history[ itr->sequence ] = _db.get(itr->op);
          ++itr;
       }
