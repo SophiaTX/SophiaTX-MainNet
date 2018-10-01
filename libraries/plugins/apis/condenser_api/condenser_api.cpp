@@ -533,7 +533,7 @@ namespace detail
       }
 
       auto limit = args[1].as< uint32_t >();
-      auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name_reverse } ).witnesses;
+      auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name} ).witnesses;
 
       get_witnesses_by_vote_return result;
 
