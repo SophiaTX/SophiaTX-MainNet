@@ -238,7 +238,6 @@ class alexandria_api
          * @return
          */
         (get_application_buyings)
-        //(get_result_formatters)  // TODO: check if needed
 
         /**
          * Send custom JSON dataget_application_buyings

@@ -100,7 +100,6 @@ DEFINE_READ_APIS(alexandria_api,
 		(buy_application)
 		(cancel_application_buying)
 		(get_application_buyings)
-		//(get_result_formatters) // TODO: check if needed
 		(make_custom_json_operation)
 		(make_custom_binary_operation)
 		(broadcast_transaction)

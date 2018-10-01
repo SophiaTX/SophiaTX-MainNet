@@ -900,7 +900,6 @@ DEFINE_API_IMPL(alexandria_api_impl, send_and_sign_operation)
 {
    send_and_sign_operation_return result;
 
-   // TODO: important: check if _args struct can have object parameters as & so there are not useless copies made like in this method
    signed_transaction tx                       = create_simple_transaction( { args.op } ).simple_tx;
    digest_type                       tx_digest = get_transaction_digest( { tx } ).tx_digest;
    fc::ecc::compact_signature	signed_tx_digest = sign_digest( { tx_digest, args.pk } ).signed_digest;
@@ -914,7 +913,6 @@ DEFINE_API_IMPL(alexandria_api_impl, send_and_sign_transaction)
 {
    send_and_sign_transaction_return result;
 
-   // TODO: important: check if _args struct can have object parameters as & so there are not useless copies made like in this method
    digest_type                       tx_digest = get_transaction_digest( { args.tx } ).tx_digest;
    fc::ecc::compact_signature	signed_tx_digest = sign_digest( { tx_digest, args.pk } ).signed_digest;
    signed_transaction                signed_tx = add_signature( { args.tx, signed_tx_digest } ).signed_tx;

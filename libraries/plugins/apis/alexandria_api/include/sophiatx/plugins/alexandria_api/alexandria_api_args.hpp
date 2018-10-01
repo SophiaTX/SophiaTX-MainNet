@@ -367,15 +367,6 @@ struct get_application_buyings_return {
 };
 
 /**
- * get_result_formatters
- */
-// std::map<string,std::function<string(fc::variant,fc::variants)>> get_result_formatters();
-// TODO: check if needed
-//struct get_result_formatters_return {
-//   std::map<string,std::function<string(fc::variant,fc::variants)>>	formatters;
-//};
-
-/**
  * make_custom_json_operation
  */
 // operation make_custom_json_operation(uint32_t app_id,string from,vector<string> to,string json);
@@ -895,7 +886,6 @@ DEFINE_API_ARGS( delete_application,			delete_application_args,			delete_applica
 DEFINE_API_ARGS( buy_application,			buy_application_args,			buy_application_return);
 DEFINE_API_ARGS( cancel_application_buying,			cancel_application_buying_args,			cancel_application_buying_return);
 DEFINE_API_ARGS( get_application_buyings,			get_application_buyings_args,			get_application_buyings_return);
-//DEFINE_API_ARGS( get_result_formatters,			json_rpc::void_type,			get_result_formatters_return);   // TODO: check if needed
 DEFINE_API_ARGS( make_custom_json_operation,			make_custom_json_operation_args,			make_custom_json_operation_return);
 DEFINE_API_ARGS( make_custom_binary_operation,			make_custom_binary_operation_args,			make_custom_binary_operation_return);
 DEFINE_API_ARGS( broadcast_transaction,			broadcast_transaction_args,			broadcast_transaction_return);
@@ -1169,13 +1159,6 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::get_application_buyings_args,
 			(name)(search_type)(count) )
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_application_buyings_return,
 			(application_buyings) )
-
-/**
- * get_result_formatters
- */
-// TODO: check if needed
-//FC_REFLECT( sophiatx::plugins::alexandria_api::get_result_formatters_return,
-//			(formatters) )
 
 /**
  * make_custom_json_operation
