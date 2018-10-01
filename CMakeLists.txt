@@ -105,10 +105,22 @@ if( SKIP_BY_TX_ID )
 endif()
 
 OPTION( SOPHIATX_STATIC_BUILD "Build sophiatxd as a static library (ON or OFF)" OFF )
+
+if(FULL_STATIC_BUILD)
+    SET( SOPHIATX_STATIC_BUILD ON )
+endif(FULL_STATIC_BUILD)
+
 if( SOPHIATX_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
-   MESSAGE( STATUS "Statuc build is not available on Windows or OS X" )
+   MESSAGE( STATUS "Static build is not available on Windows or OS X" )
    SET( SOPHIATX_STATIC_BUILD OFF )
 endif()
+
+if(SOPHIATX_STATIC_BUILD)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    SET(BUILD_SHARED_LIBS OFF)
+    SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif(SOPHIATX_STATIC_BUILD)
+
 MESSAGE( STATUS "SOPHIATX_STATIC_BUILD: ${SOPHIATX_STATIC_BUILD}" )
 
 OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
