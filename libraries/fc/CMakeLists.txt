@@ -239,6 +239,10 @@ add_subdirectory( vendor/websocketpp )
 setup_library( fc SOURCES ${sources} LIBRARY_TYPE STATIC DONT_INSTALL_LIBRARY )
 
 # begin readline stuff
+if(FULL_STATIC_BUILD)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+endif(FULL_STATIC_BUILD)
+
 find_package(Readline)
 
 file(GLOB HEADERS "include/bts/cli/*.hpp")
