@@ -239,7 +239,6 @@ add_subdirectory( vendor/websocketpp )
 setup_library( fc SOURCES ${sources} LIBRARY_TYPE STATIC DONT_INSTALL_LIBRARY )
 
 # begin readline stuff
-find_package(Curses)
 find_package(Readline)
 
 file(GLOB HEADERS "include/bts/cli/*.hpp")
@@ -247,9 +246,6 @@ file(GLOB HEADERS "include/bts/cli/*.hpp")
 if (READLINE_FOUND)
   target_compile_definitions (fc PRIVATE HAVE_READLINE)
   set(readline_libraries ${Readline_LIBRARY})
-  if (CURSES_FOUND)
-    list(APPEND readline_libraries ${CURSES_LIBRARY})
-  endif()
   set(readline_includes ${Readline_INCLUDE_DIR})
 endif()
 if(WIN32)
