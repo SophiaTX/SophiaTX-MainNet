@@ -56,4 +56,4 @@ INSTALL( TARGETS
 )
 INSTALL( FILES ${HEADERS} DESTINATION "include/appbase" )
 
-add_subdirectory( examples )
+#add_subdirectory( examples )

@@ -11,8 +11,8 @@ endif()
 
 if( sophiatx_STATIC_BUILD )
    target_link_libraries( alexandria_deamon PRIVATE
-                          "-static-libstdc++ -static-libgcc -lreadline"
-                          graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+                          "-static-libstdc++ -static-libgcc"
+                          graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries})
 else( sophiatx_STATIC_BUILD )
    target_link_libraries( alexandria_deamon PRIVATE
                           graphene_net sophiatx_chain sophiatx_protocol sophiatx_utilities lib_alexandria condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
