@@ -117,8 +117,6 @@ endif()
 
 if(SOPHIATX_STATIC_BUILD)
     SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    SET(BUILD_SHARED_LIBS OFF)
-    SET(CMAKE_EXE_LINKER_FLAGS "-static")
 endif(SOPHIATX_STATIC_BUILD)
 
 MESSAGE( STATUS "SOPHIATX_STATIC_BUILD: ${SOPHIATX_STATIC_BUILD}" )
@@ -232,12 +230,6 @@ if( WIN32 )
    endif( MSVC )
 
 else( WIN32 ) # Apple AND Linux
-
-    find_library(READLINE_LIBRARIES NAMES readline)
-    find_path(READLINE_INCLUDE_DIR readline/readline.h)
-    #if(NOT READLINE_INCLUDE_DIR OR NOT READLINE_LIBRARIES)
-    #  MESSAGE(FATAL_ERROR "Could not find lib readline.")
-    #endif()
 
     if( APPLE )
         # Apple Specific Options Here
