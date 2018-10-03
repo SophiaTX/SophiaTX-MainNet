@@ -105,10 +105,12 @@ if( SKIP_BY_TX_ID )
 endif()
 
 OPTION( SOPHIATX_STATIC_BUILD "Build sophiatxd as a static library (ON or OFF)" OFF )
+
 if( SOPHIATX_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
-   MESSAGE( STATUS "Statuc build is not available on Windows or OS X" )
+   MESSAGE( STATUS "Static build is not available on Windows or OS X" )
    SET( SOPHIATX_STATIC_BUILD OFF )
 endif()
+
 MESSAGE( STATUS "SOPHIATX_STATIC_BUILD: ${SOPHIATX_STATIC_BUILD}" )
 
 OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
@@ -214,18 +216,12 @@ if( WIN32 )
       # Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
       # See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
       SET(CMAKE_CXX_FLAGS_DEBUG "-O2")
-      if ( FULL_STATIC_BUILD )
+      if ( SOPHIATX_STATIC_BUILD )
         set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-      endif ( FULL_STATIC_BUILD )
+      endif ( SOPHIATX_STATIC_BUILD )
    endif( MSVC )
 
 else( WIN32 ) # Apple AND Linux
-
-    find_library(READLINE_LIBRARIES NAMES readline)
-    find_path(READLINE_INCLUDE_DIR readline/readline.h)
-    #if(NOT READLINE_INCLUDE_DIR OR NOT READLINE_LIBRARIES)
-    #  MESSAGE(FATAL_ERROR "Could not find lib readline.")
-    #endif()
 
     if( APPLE )
         # Apple Specific Options Here
@@ -243,9 +239,9 @@ else( WIN32 ) # Apple AND Linux
           # if you have a normal install, you can define crypto_library to the empty string to avoid a build error
           set( crypto_library crypto)
         endif ()
-        if ( FULL_STATIC_BUILD )
+        if ( SOPHIATX_STATIC_BUILD )
           set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-        endif ( FULL_STATIC_BUILD )
+        endif ( SOPHIATX_STATIC_BUILD )
     endif( APPLE )
 
     if(BUILD_PIC)
