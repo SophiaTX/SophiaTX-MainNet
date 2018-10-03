@@ -11,8 +11,8 @@ endif()
 
 if( SOPHIATX_STATIC_BUILD )
    target_link_libraries( cli_wallet PRIVATE
-                          "-static-libstdc++ -static-libgcc -lreadline"
-                          graphene_net sophiatx_chain sophiatx_protocol sophiatx_egenesis_full sophiatx_utilities sophiatx_wallet condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
+                          "-static-libstdc++ -static-libgcc"
+                          graphene_net sophiatx_chain sophiatx_protocol sophiatx_egenesis_full sophiatx_utilities sophiatx_wallet condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} ${readline_libraries})
 else( SOPHIATX_STATIC_BUILD )
    target_link_libraries( cli_wallet PRIVATE
                           graphene_net sophiatx_chain sophiatx_protocol sophiatx_egenesis_full sophiatx_utilities sophiatx_wallet condenser_api_plugin fc ${CMAKE_DL_LIBS} ${PLATFORM_SPECIFIC_LIBS} )
