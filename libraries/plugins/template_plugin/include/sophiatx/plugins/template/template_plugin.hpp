@@ -4,7 +4,7 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 
-#define SOPHIATX_PLUGIN_NAME "template"
+#define SOPHIATX_TEMPLATE_PLUGIN_NAME "template"
 
 namespace sophiatx { namespace plugins { namespace template_plugin {
 
@@ -29,7 +29,7 @@ class template_plugin : public plugin< template_plugin >
             (sophiatx::plugins::json_rpc::json_rpc_plugin)
       )
 
-      static const std::string& name() { static std::string name = SOPHIATX_PLUGIN_NAME; return name; }
+      static const std::string& name() { static std::string name = SOPHIATX_TEMPLATE_PLUGIN_NAME; return name; }
 
       virtual void set_program_options(
          options_description& cli,

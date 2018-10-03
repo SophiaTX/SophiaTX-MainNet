@@ -30,7 +30,7 @@ example_call_return template_api_impl::example_call( const example_call_args& ar
 
 template_api::template_api(): my( new detail::template_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_TEMPLATE_PLUGIN_NAME );
 }
 
 template_api::~template_api() {}

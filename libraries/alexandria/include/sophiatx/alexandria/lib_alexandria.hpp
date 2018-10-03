@@ -104,7 +104,8 @@ class alexandria_api
        * @param block_num Block height of specified block
        * @param only_virtual Whether to only return virtual operations
        */
-      vector< condenser_api::api_operation_object > get_ops_in_block( uint32_t block_num, bool only_virtual = true );
+      vector< condenser_api::api_operation_object >
+            get_ops_in_block( uint32_t block_num, bool only_virtual = true );
 
       /** Return the current price feed history
        *
