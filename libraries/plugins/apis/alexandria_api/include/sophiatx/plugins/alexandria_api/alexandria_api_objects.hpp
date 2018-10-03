@@ -204,10 +204,10 @@ struct api_account_object
          memo_key( a.memo_key ),
          json_metadata( a.json_metadata ),
          voting_proxy( a.voting_proxy ),
-         balance( api_asset::from_asset( a.balance ) ),
+         balance( a.balance ),
          sponsoring_account(a.sponsoring_account),
-         vesting_shares( api_asset::from_asset( a.vesting_shares ) ),
-         vesting_withdraw_rate( api_asset::from_asset( a.vesting_withdraw_rate ) ),
+         vesting_shares( a.vesting_shares ),
+         vesting_withdraw_rate( a.vesting_withdraw_rate ),
          to_withdraw( a.to_withdraw )
    {
       sponsored_accounts.insert( sponsored_accounts.end(), a.sponsored_accounts.begin(), a.sponsored_accounts.end() );
@@ -227,14 +227,14 @@ struct api_account_object
    string                  json_metadata;
    account_name_type       voting_proxy;
 
-   api_asset               balance;
+   asset                   balance;
 
    std::vector<account_name_type>       sponsored_accounts;
    account_name_type                    sponsoring_account;
    vector<account_name_type>            witness_votes;
 
-   api_asset         vesting_shares;
-   api_asset         vesting_withdraw_rate;
+   asset         vesting_shares;
+   asset         vesting_withdraw_rate;
 
    share_type        to_withdraw;
 
@@ -247,7 +247,7 @@ struct extended_account : public api_account_object
          api_account_object( a ) {}
 
 
-   api_asset                               vesting_balance;  /// convert vesting_shares to vesting sophiatx
+   asset                                   vesting_balance;  /// convert vesting_shares to vesting sophiatx
    map< uint64_t, api_operation_object >   transfer_history; /// transfer to/from vesting
    map< uint64_t, api_operation_object >   other_history;
    set< string >                           witness_votes;
@@ -264,13 +264,13 @@ struct extended_dynamic_global_properties
          time( o.time ),
          current_witness( o.current_witness ),
 
-         current_supply( api_asset::from_asset( o.current_supply ) ),
-         total_vesting_shares( api_asset::from_asset( o.total_vesting_shares ) ),
+         current_supply( o.current_supply ),
+         total_vesting_shares( o.total_vesting_shares ),
          maximum_block_size( o.maximum_block_size ),
          current_aslot( o.current_aslot ),
          recent_slots_filled( o.recent_slots_filled ),
          participation_count( o.participation_count ),
-         witness_required_vesting( api_asset::from_asset( o.witness_required_vesting ) ),
+         witness_required_vesting( o.witness_required_vesting ),
          last_irreversible_block_num( o.last_irreversible_block_num )
 
    {}
@@ -280,14 +280,14 @@ struct extended_dynamic_global_properties
    time_point_sec    time;
    account_name_type current_witness;
 
-   api_asset         current_supply;
-   api_asset         total_vesting_shares;
+   asset             current_supply;
+   asset             total_vesting_shares;
 
    uint32_t          maximum_block_size = 0;
    uint64_t          current_aslot = 0;
    fc::uint128_t     recent_slots_filled;
    uint8_t           participation_count = 0;
-   api_asset         witness_required_vesting;
+   asset             witness_required_vesting;
 
 
    uint32_t          last_irreversible_block_num = 0;
@@ -300,11 +300,11 @@ struct api_chain_properties
 {
    api_chain_properties() {}
    api_chain_properties( const chain::chain_properties& c ) :
-         account_creation_fee( api_asset::from_asset( c.account_creation_fee ) ),
+         account_creation_fee( c.account_creation_fee ),
          maximum_block_size( c.maximum_block_size )
    {}
 
-   api_asset      account_creation_fee;
+   asset          account_creation_fee;
    uint32_t       maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
 };
 
@@ -383,7 +383,7 @@ struct api_witness_schedule_object
    uint8_t                       top19_weight = 1;
    uint8_t                       timeshare_weight = 5;
    uint32_t                      witness_pay_normalization_factor = 25;
-   api_chain_properties       median_props;
+   api_chain_properties          median_props;
    version                       majority_version;
    uint8_t                       max_voted_witnesses           = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
    uint8_t                       max_runner_witnesses          = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
@@ -402,8 +402,8 @@ struct api_escrow_object
          agent( e.agent ),
          ratification_deadline( e.ratification_deadline ),
          escrow_expiration( e.escrow_expiration ),
-         sophiatx_balance( api_asset::from_asset( e.sophiatx_balance ) ),
-         pending_fee( api_asset::from_asset( e.pending_fee ) ),
+         sophiatx_balance( e.sophiatx_balance ),
+         pending_fee( e.pending_fee ),
          to_approved( e.to_approved ),
          disputed( e.disputed ),
          agent_approved( e.agent_approved )
@@ -416,8 +416,8 @@ struct api_escrow_object
    account_name_type agent;
    time_point_sec    ratification_deadline;
    time_point_sec    escrow_expiration;
-   api_asset         sophiatx_balance;
-   api_asset         pending_fee;
+   asset             sophiatx_balance;
+   asset             pending_fee;
    bool              to_approved = false;
    bool              disputed = false;
    bool              agent_approved = false;

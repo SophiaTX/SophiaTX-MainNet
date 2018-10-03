@@ -6,7 +6,7 @@ add_library(
    alexandria_api_plugin.cpp
    alexandria_api_impl.cpp
    alexandria_api_operations.cpp
-   alexandria_api_asset.cpp )
+)
 
 target_link_libraries(
    alexandria_api_plugin

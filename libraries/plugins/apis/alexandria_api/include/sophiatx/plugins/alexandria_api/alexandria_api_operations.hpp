@@ -1,5 +1,4 @@
 #include <sophiatx/protocol/operations.hpp>
-#include <sophiatx/plugins/alexandria_api/alexandria_api_asset.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 

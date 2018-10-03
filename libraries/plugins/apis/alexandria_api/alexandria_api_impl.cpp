@@ -192,7 +192,7 @@ DEFINE_API_IMPL(alexandria_api_impl, info)
    info_data["median_sbd3_price"] = _database_api->get_current_price_feed( { SBD3_SYMBOL } );
    info_data["median_sbd4_price"] = _database_api->get_current_price_feed( { SBD4_SYMBOL } );
    info_data["median_sbd5_price"] = _database_api->get_current_price_feed( { SBD5_SYMBOL } );
-   info_data["account_creation_fee"] = api_asset::from_asset( _database_api->get_witness_schedule( {} ).median_props.account_creation_fee );
+   info_data["account_creation_fee"] = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee;
 
    info_return result;
    result.info = std::move(info_data);
@@ -296,7 +296,7 @@ DEFINE_API_IMPL( alexandria_api_impl, list_witnesses_by_vote )
    }
 
    auto limit = args.limit;
-   auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name_reverse } ).witnesses;
+   auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name } ).witnesses;
 
    for( auto& w : witnesses ) {
       result.witnesses_by_vote.push_back( api_witness_object( w ) );
@@ -1358,21 +1358,3 @@ DEFINE_API_IMPL(alexandria_api_impl, sponsor_account_fees)
 }
 
 } } } // sophiatx::plugins::alexandria_api
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
