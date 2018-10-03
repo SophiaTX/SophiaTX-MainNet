@@ -35,7 +35,7 @@ then
   replayBlockchain=false
 fi
 
-ansible-playbook ansible/playbooks/update-node.yml --extra-vars "host=$host user=$user sourceUrl=$sourceUrl replayBlockchain=$replayBlockchain" -i $host,
+ansible-playbook ansible/playbooks/deploy-node.yml --extra-vars "host=$host user=$user sourceUrl=$sourceUrl replayBlockchain=$replayBlockchain" -i $host,
 
 if [ $? -ne 0 ]; then
   echo "ERROR while updating node on \"${host}\". Error code: $?"

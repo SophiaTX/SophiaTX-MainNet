@@ -4,8 +4,8 @@
   become: yes
   become_user: "{{ user }}"
   vars:
-    source_dir: ~/ansible-tests/
-    bc_data_dir: ~/ansible-tests/bc-data/
+    source_dir: ~/sophiatx-binaries/
+    bc_data_dir: ~/sophiatx-binaries/bc-data/
     config_file_name: testnet_config.ini
 
   tasks:
