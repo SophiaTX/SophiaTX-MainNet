@@ -98,6 +98,7 @@ IF( WIN32 )
 
   set( RPCRT4 rpcrt4 )
 
+
   #boost
   SET(BOOST_ROOT $ENV{BOOST_ROOT})
 #  set(Boost_USE_DEBUG_PYTHON ON)
@@ -239,9 +240,9 @@ add_subdirectory( vendor/websocketpp )
 setup_library( fc SOURCES ${sources} LIBRARY_TYPE STATIC DONT_INSTALL_LIBRARY )
 
 # begin readline stuff
-if(FULL_STATIC_BUILD)
+if(SOPHIATX_STATIC_BUILD)
     SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-endif(FULL_STATIC_BUILD)
+endif(SOPHIATX_STATIC_BUILD)
 
 find_package(Readline)
 
