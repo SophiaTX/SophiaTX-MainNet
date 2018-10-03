@@ -4,7 +4,7 @@ Script connects to the server and automatically deploys node binaries and stores
 
 Created file structure on server:
  
-     ~
+     ~                                      # home of specified user
      ├── ...                        
      ├── sophiatx-binaries                  # Binaries folder
      │   ├── sophiatx_#<NUM>.tar.gz         # SophiaTX archived binaries
