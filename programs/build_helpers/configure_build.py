@@ -139,7 +139,7 @@ def main(args):
     # Maybe add Windows cross-compilation flags
     if args.windows:
         mingw = "x86_64-w64-mingw32"
-        command.append("-DFULL_STATIC_BUILD=ON")
+        command.append("-DSOPHIATX_STATIC_BUILD=ON")
         command.append("-DCMAKE_SYSTEM_NAME=Windows")
         command.append("-DCMAKE_C_COMPILER={}-gcc".format(mingw))
         command.append("-DCMAKE_CXX_COMPILER={}-g++".format(mingw))

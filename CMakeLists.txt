@@ -106,10 +106,6 @@ endif()
 
 OPTION( SOPHIATX_STATIC_BUILD "Build sophiatxd as a static library (ON or OFF)" OFF )
 
-if(FULL_STATIC_BUILD)
-    SET( SOPHIATX_STATIC_BUILD ON )
-endif(FULL_STATIC_BUILD)
-
 if( SOPHIATX_STATIC_BUILD AND ( ( MSVC AND NOT MINGW ) OR APPLE ) )
    MESSAGE( STATUS "Static build is not available on Windows or OS X" )
    SET( SOPHIATX_STATIC_BUILD OFF )
@@ -220,9 +216,9 @@ if( WIN32 )
       # Optimization flag apparently needed to get rid of "File too big" assembler errors when compiling in Debug mode
       # See: https://stackoverflow.com/questions/14125007/gcc-string-table-overflow-error-during-compilation/14601779#29479701
       SET(CMAKE_CXX_FLAGS_DEBUG "-O2")
-      if ( FULL_STATIC_BUILD )
+      if ( SOPHIATX_STATIC_BUILD )
         set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-      endif ( FULL_STATIC_BUILD )
+      endif ( SOPHIATX_STATIC_BUILD )
    endif( MSVC )
 
 else( WIN32 ) # Apple AND Linux
@@ -243,9 +239,9 @@ else( WIN32 ) # Apple AND Linux
           # if you have a normal install, you can define crypto_library to the empty string to avoid a build error
           set( crypto_library crypto)
         endif ()
-        if ( FULL_STATIC_BUILD )
+        if ( SOPHIATX_STATIC_BUILD )
           set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-        endif ( FULL_STATIC_BUILD )
+        endif ( SOPHIATX_STATIC_BUILD )
     endif( APPLE )
 
     if(BUILD_PIC)
