@@ -104,9 +104,8 @@
     with_items: "{{ sophia_tar_file.files }}"
 
 
-# Do not replace existing config.ini TODO: remove this
-#  - name: Copying {{config_file_name}} to {{bc_data_dir}}
-#    command: cp "{{ source_dir }}{{config_file_name}}" "{{bc_data_dir}}"config.ini
+  - name: Copying {{config_file_name}} to {{bc_data_dir}}
+    command: cp "{{ source_dir }}{{config_file_name}}" "{{bc_data_dir}}"config.ini
 
 
   - name: Killing all screen sessions that are actually running
