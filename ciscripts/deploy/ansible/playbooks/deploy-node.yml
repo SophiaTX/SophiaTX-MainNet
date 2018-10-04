@@ -119,7 +119,7 @@
     when: replayBlockchain == "true"
 
   - name: Starting sophia demon
-    command: screen -dmS sophia bash -c '{{ source_dir }}sophiatxd -d {{ source_dir }}bc-data/ -H0.0.0.0:9195 -C*; exec $SHELL'
+    command: screen -dmS sophia bash -c '{{ source_dir }}sophiatxd -d {{ source_dir }}bc-data/; exec $SHELL'
     when: replayBlockchain == "false"
 
 
@@ -129,4 +129,4 @@
 
 
   - name: Starting alexandria demon
-    command: screen -dmS alexandria bash -c '{{ source_dir }}alexandria_deamon; exec $SHELL'
+    command: screen -dmS alexandria bash -c '{{ source_dir }}alexandria_deamon -H0.0.0.0:9195 -C*; exec $SHELL'
