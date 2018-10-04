@@ -2,14 +2,13 @@
 #include <sophiatx/plugins/account_history/account_history_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 
-#include <appbase/application.hpp>
-
 #define SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME "account_history_api"
 
 
 namespace sophiatx { namespace plugins { namespace account_history {
 
 using namespace appbase;
+
 
 class account_history_api_plugin : public plugin< account_history_api_plugin >
 {
