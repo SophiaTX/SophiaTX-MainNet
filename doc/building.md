@@ -148,8 +148,8 @@ Install Homebrew by following the instructions here: http://brew.sh/
 
 ### Compile
 
-    export OPENSSL_ROOT_DIR=$(brew --prefix)/Cellar/openssl/1.0.2h_1/
-    export BOOST_ROOT=$(brew --prefix)/Cellar/boost@1.65/1.65.0/
+    export OPENSSL_ROOT_DIR=$(brew --prefix)/Cellar/openssl/1.1/
+    export BOOST_ROOT=$(brew --prefix)/Cellar/boost@1.67/1.67.0_1/
     git checkout master
     git submodule update --init --recursive
     mkdir build && cd build
