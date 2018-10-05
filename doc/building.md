@@ -28,25 +28,26 @@ By default this is off. Enabling will prevent the account history plugin queryin
 by id, but saving around 65% of CPU time when reindexing. Enabling this option is a
 huge gain if you do not need this functionality.
 
-## Building on Ubuntu 16.04
-
-For Ubuntu 16.04 users, after installing the right packages with `apt` SophiaTX
+## Building on Ubuntu 18.04.1 
+For Ubuntu 18.04.1 users, after installing the right packages with `apt` SophiaTX
 will build out of the box without further effort:
-
+    
     # Required packages
-    sudo apt-get install -y \
+    sudo apt install -y \
         autoconf \
         automake \
         cmake \
+        gcc \
         g++ \
         git \
+        libbz2-dev \
         libssl-dev \
         libtool \
         make \
         pkg-config \
         python3 \
         python3-jinja2
-
+        
     # Boost packages (also required)
     sudo apt-get install -y \
         libboost-chrono-dev \
@@ -64,12 +65,12 @@ will build out of the box without further effort:
         libboost-thread-dev
 
     # Optional packages (not required, but will make a nicer experience)
-    sudo apt-get install -y \
+    sudo apt install -y \
         doxygen \
         libncurses5-dev \
         libreadline-dev \
         perl
-
+        
     git clone https://github.com/SophiaTX/SophiaTX
     cd SophiaTX
     git checkout master
@@ -79,27 +80,25 @@ will build out of the box without further effort:
     cmake -DCMAKE_BUILD_TYPE=Release ..
     make -j$(nproc) sophiatxd
     make -j$(nproc) cli_wallet
+    
     # optional
     make install  # defaults to /usr/local
 
-## Building Boost 1.60
+## Building Boost 1.67
 
-SophiaTX requires Boost 1.60 (as in Ubuntu 16.04) and works with versions up to 1.60 (including).
-So building SophiaTX on Ubuntu 14.04 requires downloading and installing a more recent
-version of Boost.
+SophiaTX requires Boost 1.65 and works with versions up to 1.67 (including).
+Here is how to build and install Boost 1.67 into your user's home directory
 
-Here is how to build and install Boost 1.60 into your user's home directory
-
-    export BOOST_ROOT=$HOME/opt/boost_1_60_0
-    URL='http://sourceforge.net/projects/boost/files/boost/1.60.0/boost_1_60_0.tar.bz2/download'
-    wget -c "$URL" -O boost_1_60_0.tar.bz2
-    [ $( sha256sum boost_1_60_0.tar.bz2 | cut -d ' ' -f 1 ) == \
-        "686affff989ac2488f79a97b9479efb9f2abae035b5ed4d8226de6857933fd3b" ] \
+    export BOOST_ROOT=$HOME/opt/boost_1_67_0
+    URL='http://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.gz'
+    wget "$URL"
+    [ $( sha256sum boost_1_67_0.tar.gz | cut -d ' ' -f 1 ) == \
+        "8aa4e330c870ef50a896634c931adf468b21f8a69b77007e45c444151229f665" ] \
         || ( echo 'Corrupt download' ; exit 1 )
-    tar xjf boost_1_60_0.tar.bz2
-    cd boost_1_60_0
+    tar xzf boost_1_67_0.tar.gz
+    cd boost_1_67_0
     ./bootstrap.sh "--prefix=$BOOST_ROOT"
-    ./b2 install
+    ./b2 -j$(nproc) install
 
 ## Building on macOS X
 
@@ -126,16 +125,13 @@ Install Homebrew by following the instructions here: http://brew.sh/
         automake \
         cmake \
         git \
-        boost160 \
+        boost165 \
         libtool \
         openssl \
         python3
         
     pip3 install --user jinja2
     
-Note: brew recently updated to boost 1.61.0, which is not yet supported by
-sophiatx. Until then, this will allow you to install boost 1.60.0.
-
 *Optional.* To use TCMalloc in LevelDB:
 
     brew install google-perftools
@@ -153,7 +149,7 @@ sophiatx. Until then, this will allow you to install boost 1.60.0.
 ### Compile
 
     export OPENSSL_ROOT_DIR=$(brew --prefix)/Cellar/openssl/1.0.2h_1/
-    export BOOST_ROOT=$(brew --prefix)/Cellar/boost@1.60/1.60.0/
+    export BOOST_ROOT=$(brew --prefix)/Cellar/boost@1.65/1.65.0/
     git checkout master
     git submodule update --init --recursive
     mkdir build && cd build
