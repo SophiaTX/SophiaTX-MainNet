@@ -770,7 +770,7 @@ namespace graphene { namespace net {
       _node_is_shutting_down(false)
     {
       _rate_limiter.set_actual_rate_time_constant(fc::seconds(2));
-      fc::rand_pseudo_bytes(&_node_id.data[0], (int)_node_id.size());
+      fc::rand_bytes(&_node_id.data[0], (int)_node_id.size());
     }
 
     node_impl::~node_impl()

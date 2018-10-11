@@ -368,7 +368,7 @@ class alexandria_api
        * @param app_id Application ID
        * @param from Sender i.e. "account_name"
        * @param to List of receivers i.e. ["account_name"]
-       * @param data Data formatted in base58.
+       * @param data Data formatted in base64.
        * @return
        */
       operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
