@@ -136,4 +136,7 @@ void track_and_trace_plugin::plugin_shutdown()
 {
 }
 
+extern "C" BOOST_SYMBOL_EXPORT track_and_trace_plugin plugin;
+track_and_trace_plugin plugin;
+
 } } } // sophiatx::plugins::track_and_trace_plugin

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <boost/dll/import.hpp>
+
 namespace appbase {
 
 namespace bpo = boost::program_options;
@@ -57,6 +59,9 @@ void application::set_program_options()
    options_description app_cli_opts( "Application Command Line Options" );
    app_cfg_opts.add_options()
          ("plugin", bpo::value< vector<string> >()->composing(), "Plugin(s) to enable, may be specified multiple times");
+   app_cfg_opts.add_options()
+         ("external_plugin", bpo::value< vector<string> >()->composing(), "External plugin(s) to enable, may be specified multiple times");
+
 
    app_cli_opts.add_options()
          ("help,h", "Print this help message and exit.")
@@ -133,6 +138,33 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
                get_plugin(name).initialize(my->_args);
          }
       }
+
+      if(my->_args.count("external_plugin") > 0)
+      {
+         auto plugins = my->_args.at("external_plugin").as<std::vector<std::string>>();
+         for(auto& arg : plugins)
+         {
+            vector<string> names;
+            boost::split(names, arg, boost::is_any_of(" \t,"));
+            for(const std::string& name : names) {
+               //get_plugin(name).initialize(my->_args);
+               boost::filesystem::path lib_path(
+                     name);                 // argv[1] contains path to directory with our plugin library
+               boost::shared_ptr<appbase::abstract_plugin> plugin;   // variable to hold a pointer to plugin variable
+               std::cout << "Loading the plugin" << name << std::endl;
+
+               plugin = boost::dll::import<appbase::abstract_plugin>(          // type of imported symbol is located between `<` and `>`
+                     lib_path,                     // path to the library and library name
+                     "plugin",                                       // name of the symbol to import
+                     boost::dll::load_mode::append_decorations              // makes `libmy_plugin_sum.so` or `my_plugin_sum.dll` from `my_plugin_sum`
+               );
+
+               plugin->initialize(my->_args);
+            }
+
+         }
+      }
+
       for (const auto& plugin : autostart_plugins)
          if (plugin != nullptr && plugin->get_state() == abstract_plugin::registered)
             plugin->initialize(my->_args);
