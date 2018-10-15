@@ -9,6 +9,9 @@
 
 #include <boost/dll/import.hpp>
 
+#include "/home/fornadel/workspace/SophiaTX/external_plugins/test_plugin/include/sophiatx/plugins/test_plugin/PluginApi.hpp"
+
+
 namespace appbase {
 
 namespace bpo = boost::program_options;
@@ -149,17 +152,18 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
             for(const std::string& name : names) {
                //get_plugin(name).initialize(my->_args);
                boost::filesystem::path lib_path(
-                     name);                 // argv[1] contains path to directory with our plugin library
-               boost::shared_ptr<appbase::abstract_plugin> plugin;   // variable to hold a pointer to plugin variable
+                     name);
+               boost::shared_ptr<sophiatx::plugins::test_plugin::PluginApi> plugin;
                std::cout << "Loading the plugin" << name << std::endl;
 
-               plugin = boost::dll::import<appbase::abstract_plugin>(          // type of imported symbol is located between `<` and `>`
-                     name,                     // path to the library and library name
-                     "plugin",                                       // name of the symbol to import
-                     boost::dll::load_mode::append_decorations              // makes `libmy_plugin_sum.so` or `my_plugin_sum.dll` from `my_plugin_sum`
+               plugin = boost::dll::import<sophiatx::plugins::test_plugin::PluginApi>(
+                     name,
+                     "plugin",
+                     boost::dll::load_mode::append_decorations
                );
 
-               plugin->initialize(my->_args);
+               //plugin->initialize(my->_args);
+               plugin->initialize();
             }
 
          }

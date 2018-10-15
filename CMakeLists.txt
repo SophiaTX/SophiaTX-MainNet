@@ -284,6 +284,7 @@ add_subdirectory( libraries )
 add_subdirectory( programs )
 
 add_subdirectory( tests )
+add_subdirectory(programs/test-main)
 
 if (ENABLE_INSTALLER)
 
