@@ -5,6 +5,7 @@ add_subdirectory( js_operation_serializer )
 add_subdirectory( size_checker )
 add_subdirectory( util )
 add_subdirectory( alexandria_deamon )
+add_subdirectory( test-main )
 
 if(BUILD_PIC AND (NOT ABAP_INTERFACE))
     add_subdirectory( alexandria )

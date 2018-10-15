@@ -8,7 +8,7 @@ int main() {
 
 
    try {
-      const std::string name = "/home/fornadel/workspace/SophiaTX/cmake-build-debug/external_plugins/test_plugin/libtest_external_plugin.so";
+      const std::string name = "../../external_plugins/test_plugin/libtest_external_plugin.so";
       boost::filesystem::path lib_path(name);                 // argv[1] contains path to directory with our plugin library
       boost::shared_ptr<sophiatx::plugins::test_plugin::PluginApi> plugin;   // variable to hold a pointer to plugin variable
       std::cout << "Loading the plugin" << name << std::endl;
