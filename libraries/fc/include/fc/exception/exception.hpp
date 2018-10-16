@@ -212,6 +212,7 @@ namespace fc
         }
 
       private:
+        exception_factory();
         std::unordered_map<int64_t,base_exception_builder*> _registered_exceptions;
    };
 #define FC_REGISTER_EXCEPTION(r, unused, base) \
