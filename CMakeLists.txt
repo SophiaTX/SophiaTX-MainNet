@@ -36,9 +36,6 @@ list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules" )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-#set (ENABLE_INSTALLER 1)
-#set (USE_PCH 1)
-
 if (USE_PCH)
   include (cotire)
 endif(USE_PCH)

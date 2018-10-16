@@ -1191,8 +1191,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_multisig_managed_authority)
    result.simple_multisig_managed_authority.weight_threshold = args.required_signatures;
    for(const auto& account : args.managing_accounts)
    {
-      string decoded_name = make_random_fixed_string(account);
-      result.simple_multisig_managed_authority.add_authority(decoded_name, 1);
+      result.simple_multisig_managed_authority.add_authority(account, 1);
    }
    
    return result;
