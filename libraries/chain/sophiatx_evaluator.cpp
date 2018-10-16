@@ -236,14 +236,21 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    const auto& props = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
+   asset to_pay;
+   if(o.fee.symbol == SOPHIATX_SYMBOL) {
+      to_pay = o.fee;
+   } else {
+      to_pay = _db.to_sophiatx(o.fee);
+   }
+
+   FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
    asset required_fee = asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
-   FC_ASSERT( o.fee >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
-              ("f", required_fee ) ("p", o.fee) );
+   FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
+              ("f", required_fee ) ("p", to_pay) );
 
-   asset excess_fee = o.fee - required_fee;
+   asset excess_fee = to_pay - required_fee;
    verify_authority_accounts_exist( _db, o.owner, new_account_name, authority::owner );
    verify_authority_accounts_exist( _db, o.active, new_account_name, authority::active );
 
