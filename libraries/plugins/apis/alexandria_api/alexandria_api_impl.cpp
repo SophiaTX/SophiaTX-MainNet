@@ -372,6 +372,9 @@ DEFINE_API_IMPL(alexandria_api_impl, get_owner_history)
 
 DEFINE_API_IMPL(alexandria_api_impl, update_account)
 {
+   auto accounts = this->get_accounts( { args.account_name } );
+   FC_ASSERT( !accounts.empty(), "Account does not exist" );
+
    update_account_return result;
 
    account_update_operation op;
@@ -380,6 +383,43 @@ DEFINE_API_IMPL(alexandria_api_impl, update_account)
    op.active = authority( 1, args.active, 1);
    op.memo_key = args.memo;
    op.json_metadata = args.json_meta;
+
+   result.op = std::move(op);
+   return result;
+}
+
+DEFINE_API_IMPL(alexandria_api_impl, update_account_auth)
+{
+   auto accounts = this->get_accounts( { args.account_name } );
+   FC_ASSERT( !accounts.empty(), "Account does not exist" );
+
+   update_account_auth_return result;
+
+   account_update_operation op;
+   op.account = args.account_name;
+   op.memo_key = accounts[0].memo_key;
+   op.json_metadata = accounts[0].json_metadata;
+
+   if( args.new_authority.is_impossible() )
+   {
+      if ( args.type == owner )
+      {
+         FC_ASSERT( false, "Owner authority change would render account irrecoverable." );
+      }
+
+      wlog( "Authority is now impossible." );
+   }
+
+   switch( args.type )
+   {
+      case( owner ):
+         op.owner = args.new_authority;
+         break;
+      case( active ):
+         op.active = args.new_authority;
+         break;
+
+   }
 
    result.op = std::move(op);
    return result;
