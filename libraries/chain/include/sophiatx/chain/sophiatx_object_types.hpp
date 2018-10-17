@@ -27,6 +27,7 @@ using sophiatx::protocol::chain_id_type;
 using sophiatx::protocol::account_name_type;
 using sophiatx::protocol::share_type;
 
+template<typename T> using shared_vector = bip::vector<T, allocator< T > > ;
 typedef bip::basic_string< char, std::char_traits< char >, allocator< char > > shared_string;
 inline std::string to_string( const shared_string& str ) { return std::string( str.begin(), str.end() ); }
 inline void from_string( shared_string& out, const string& in ){ out.assign( in.begin(), in.end() ); }
