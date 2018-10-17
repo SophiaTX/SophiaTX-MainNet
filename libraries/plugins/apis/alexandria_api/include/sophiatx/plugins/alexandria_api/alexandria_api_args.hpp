@@ -129,6 +129,19 @@ struct update_account_return {
 };
 
 /**
+ * update_account_auth
+ */
+// operation update_account(string accountname, authority_type type, authority new_authority);
+struct update_account_auth_args {
+   string	account_name;
+   authority_type    type;
+   authority	new_authority;
+};
+struct update_account_auth_return {
+   operation	op;
+};
+
+/**
  * delete_account
  */
 // operation delete_account(string account_name);
@@ -867,6 +880,7 @@ DEFINE_API_ARGS( get_account,			                              get_account_args,	
 DEFINE_API_ARGS( get_transaction,			                        get_transaction_args,			                        get_transaction_return);
 DEFINE_API_ARGS( create_account,			                           create_account_args,			                           create_account_return);
 DEFINE_API_ARGS( update_account,			                           update_account_args,			                           update_account_return);
+DEFINE_API_ARGS( update_account_auth,			                     update_account_auth_args,			                     update_account_auth_return);
 DEFINE_API_ARGS( delete_account,			                           delete_account_args,			                           delete_account_return);
 DEFINE_API_ARGS( get_transaction_id,			                     get_transaction_id_args,			                     get_transaction_id_return);
 DEFINE_API_ARGS( list_witnesses,			                           list_witnesses_args,			                           list_witnesses_return);
@@ -1007,6 +1021,15 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::update_account_args,
 			(account_name)(json_meta)(owner)(active)(memo) )
 FC_REFLECT( sophiatx::plugins::alexandria_api::update_account_return,
 			(op) )
+
+/**
+ * update_account_auth
+ */
+FC_REFLECT( sophiatx::plugins::alexandria_api::update_account_auth_args,
+            (account_name)(type)(new_authority) )
+FC_REFLECT( sophiatx::plugins::alexandria_api::update_account_auth_return,
+            (op) )
+
 
 /**
  * delete_account
