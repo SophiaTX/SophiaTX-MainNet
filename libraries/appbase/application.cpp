@@ -8,8 +8,7 @@
 #include <fstream>
 
 #include <boost/dll/import.hpp>
-
-#include "/home/fornadel/workspace/SophiaTX/external_plugins/test_plugin/include/sophiatx/plugins/test_plugin/PluginApi.hpp"
+#include <boost/exception/diagnostic_information.hpp>
 
 
 namespace appbase {
@@ -65,7 +64,6 @@ void application::set_program_options()
    app_cfg_opts.add_options()
          ("external_plugin", bpo::value< vector<string> >()->composing(), "External plugin(s) to enable, may be specified multiple times");
 
-
    app_cli_opts.add_options()
          ("help,h", "Print this help message and exit.")
          ("version,v", "Print version information.")
@@ -77,16 +75,44 @@ void application::set_program_options()
    my->_app_options.add(app_cli_opts);
 
    for(auto& plug : plugins) {
-      boost::program_options::options_description plugin_cli_opts("Command Line Options for " + plug.second->get_name());
-      boost::program_options::options_description plugin_cfg_opts("Config Options for " + plug.second->get_name());
-      plug.second->set_program_options(plugin_cli_opts, plugin_cfg_opts);
-      if(plugin_cfg_opts.options().size()) {
-         my->_app_options.add(plugin_cfg_opts);
-         my->_cfg_options.add(plugin_cfg_opts);
-      }
-      if(plugin_cli_opts.options().size())
-         my->_app_options.add(plugin_cli_opts);
+      set_plugin_program_options(plug.second);
    }
+}
+
+void application::set_plugin_program_options(const std::shared_ptr< abstract_plugin >& plugin) {
+   options_description plugin_cli_opts("Command Line Options for " + plugin->get_name());
+   options_description plugin_cfg_opts("Config Options for " + plugin->get_name());
+   plugin->set_program_options(plugin_cli_opts, plugin_cfg_opts);
+   if(plugin_cfg_opts.options().size()) {
+      my->_app_options.add(plugin_cfg_opts);
+      my->_cfg_options.add(plugin_cfg_opts);
+   }
+   if(plugin_cli_opts.options().size())
+      my->_app_options.add(plugin_cli_opts);
+}
+
+
+std::shared_ptr<abstract_plugin> application::load_external_plugin(const std::string& plugin_path) {
+   std::cout << "Loading external plugin" << plugin_path << std::endl;
+
+   try {
+      auto plugin_creator = boost::dll::import<std::shared_ptr<abstract_plugin>()>(plugin_path, "get_plugin", boost::dll::load_mode::append_decorations);
+      return plugin_creator();
+   }
+   catch ( const boost::exception& e )
+   {
+      std::cerr << boost::diagnostic_information(e) << "\n";
+   }
+
+   return nullptr;
+}
+
+void application::register_external_plugin(const std::shared_ptr<abstract_plugin>& plugin) {
+   plugins[plugin->get_name()] = plugin;
+   plugin->register_dependencies();
+
+   set_plugin_program_options(plugin);
+   bpo::store( bpo::basic_parsed_options<char>(&my->_cfg_options) , my->_args );
 }
 
 bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*> autostart_plugins)
@@ -127,6 +153,7 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
          write_default_config(config_file_name);
       }
 
+
       bpo::store(bpo::parse_config_file< char >( config_file_name.make_preferred().string().c_str(),
                                              my->_cfg_options, true ), my->_args );
 
@@ -142,30 +169,25 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
          }
       }
 
+
       if(my->_args.count("external_plugin") > 0)
       {
          auto plugins = my->_args.at("external_plugin").as<std::vector<std::string>>();
          for(auto& arg : plugins)
          {
-            vector<string> names;
-            boost::split(names, arg, boost::is_any_of(" \t,"));
-            for(const std::string& name : names) {
-               //get_plugin(name).initialize(my->_args);
-               boost::filesystem::path lib_path(
-                     name);
-               boost::shared_ptr<sophiatx::plugins::test_plugin::PluginApi> plugin;
-               std::cout << "Loading the plugin" << name << std::endl;
+            vector<string> plugins_paths;
+            boost::split(plugins_paths, arg, boost::is_any_of(" \t,"));
 
-               plugin = boost::dll::import<sophiatx::plugins::test_plugin::PluginApi>(
-                     name,
-                     "plugin",
-                     boost::dll::load_mode::append_decorations
-               );
+            for(const std::string& path : plugins_paths) {
+               std::shared_ptr<abstract_plugin> plugin = load_external_plugin(path);
+               if (plugin == nullptr) {
+                  std::cerr << "Unable to load plugin: " << path << std::endl;
+                  return false;
+               }
 
-               //plugin->initialize(my->_args);
-               plugin->initialize();
+               register_external_plugin(plugin);
+               plugin->initialize(my->_args);
             }
-
          }
       }
 

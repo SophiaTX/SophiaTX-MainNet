@@ -56,6 +56,9 @@ namespace appbase {
             return *plug;
          }
 
+         std::shared_ptr<abstract_plugin> load_external_plugin(const std::string& plugin_path);
+         void register_external_plugin(const std::shared_ptr<abstract_plugin>& plugin);
+
          template< typename Plugin >
          Plugin* find_plugin()const
          {
@@ -114,6 +117,7 @@ namespace appbase {
          std::string                                        version_info;
 
          void set_program_options();
+         void set_plugin_program_options(const std::shared_ptr< abstract_plugin >& plugin);
          void write_default_config( const bfs::path& cfg_file );
          std::unique_ptr< class application_impl > my;
 
@@ -131,7 +135,7 @@ namespace appbase {
          virtual state get_state() const override { return _state; }
          virtual const std::string& get_name()const override final { return Impl::name(); }
 
-         virtual void register_dependencies()
+         virtual void register_dependencies() override
          {
             this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){} );
          }
