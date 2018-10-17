@@ -19,7 +19,7 @@ namespace sophiatx { namespace chain {
 class custom_content_object: public object< custom_content_object_type, custom_content_object> {
 public:
    template<typename Constructor, typename Allocator>
-   custom_content_object(Constructor &&c, allocator<Allocator> a):all_recipients( a.get_segment_manager() ), json(a) {
+   custom_content_object(Constructor &&c, allocator<Allocator> a):all_recipients( a.get_segment_manager() ), data(a), json(a) {
       c(*this);
    }
 
@@ -29,7 +29,7 @@ public:
    account_name_type sender;
    account_name_type recipient;
 
-   bip::vector<account_name_type, allocator<account_name_type>> all_recipients;
+   shared_vector<account_name_type> all_recipients;
 
    uint64_t sender_sequence = 0;
    uint64_t recipient_sequence = 0;
@@ -37,7 +37,7 @@ public:
    time_point_sec received;
 
    bool binary;
-   vector<char> data;
+   shared_vector<char> data;
    shared_string json;
 };
 

@@ -772,7 +772,8 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = true;
-           c.data = o.data;
+           for( auto d: o.data)
+              c.data.push_back(d);
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;
