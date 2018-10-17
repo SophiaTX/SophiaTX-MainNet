@@ -19,6 +19,12 @@ struct key_pair_st
    string               wif_priv_key;
 };
 
+enum authority_type
+{
+   owner,
+   active
+};
+
 struct memo_data {
 
    static fc::optional<memo_data> from_string( string str ) {
@@ -467,6 +473,8 @@ struct get_version_return
 } } } // sophiatx::plugins::database_api
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::key_pair_st, (pub_key)(wif_priv_key) )
+
+FC_REFLECT_ENUM( sophiatx::plugins::alexandria_api::authority_type, (owner)(active) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::memo_data, (nonce)(check)(encrypted) )
 

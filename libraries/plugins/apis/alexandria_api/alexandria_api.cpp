@@ -81,6 +81,7 @@ DEFINE_READ_APIS(alexandria_api,
 		(get_transaction)
 		(create_account)
 		(update_account)
+		(update_account_auth)
 		(delete_account)
 		(get_transaction_id)
 		(list_witnesses)
