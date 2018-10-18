@@ -89,6 +89,18 @@ class alexandria_api
         (update_account)
 
         /**
+         * This method updates authority for an exisiting account.
+         * Warning: You can create impossible authorities using this method. The method
+         * will fail if you create an impossible owner authority, but will allow impossible
+         * active authorities.
+         *
+         * @param account_name The name of the account whose authority you wish to update
+         * @param type The authority type. e.g. owner or active
+         * @param authority That will be set for specified type
+         */
+        (update_account_auth)
+
+        /**
          * This method deletes an existing account.
          * @param account_name The name of the account you wish to delete i.e. "account_name"
          */
