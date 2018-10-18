@@ -14,6 +14,28 @@ namespace appbase {
    namespace bpo = boost::program_options;
    namespace bfs = boost::filesystem;
 
+
+   /**
+    * @brief Simple data holder for plugin program options
+    */
+   class plugin_program_options {
+   public:
+      plugin_program_options(const options_description& cli_options, const options_description& cfg_options) :
+            _cli_options(cli_options),
+            _cfg_options(cfg_options)
+      {}
+
+      const options_description& get_cli_options() const { return _cli_options; }
+      const options_description& get_cfg_options() const { return _cfg_options; }
+
+   private:
+      // command line options
+      options_description     _cli_options;
+      // configuration file options
+      options_description     _cfg_options;
+   };
+
+
    class application
    {
       public:
@@ -56,8 +78,27 @@ namespace appbase {
             return *plug;
          }
 
+         /**
+          * @brief Loada external plugin
+          *
+          * @param plugin_path to plugin *.so
+          * @return std::shared_ptr<abstract_plugin> to the loaded plugin
+          */
          std::shared_ptr<abstract_plugin> load_external_plugin(const std::string& plugin_path);
+
+         /**
+          * @brief Registers external plugin into the list of all app plugins
+          *
+          * @param plugin
+          */
          void register_external_plugin(const std::shared_ptr<abstract_plugin>& plugin);
+
+         /**
+          * @brief Loads external plugin config
+          *
+          * @param plugin
+          */
+         void load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin);
 
          template< typename Plugin >
          Plugin* find_plugin()const
@@ -117,8 +158,18 @@ namespace appbase {
          std::string                                        version_info;
 
          void set_program_options();
-         void set_plugin_program_options(const std::shared_ptr< abstract_plugin >& plugin);
-         void write_default_config( const bfs::path& cfg_file );
+
+         plugin_program_options get_plugin_program_options(const std::shared_ptr< abstract_plugin >& plugin);
+
+         /**
+          * @brief Writes options_desc data into cfg_file file
+          *
+          * @param options_desc
+          * @param cfg_file
+          * @return created config file absolute path
+          */
+         bfs::path write_default_config( const options_description& options_desc, const bfs::path& cfg_file );
+
          std::unique_ptr< class application_impl > my;
 
    };
@@ -183,4 +234,5 @@ namespace appbase {
       private:
          state _state = abstract_plugin::registered;
    };
+
 }

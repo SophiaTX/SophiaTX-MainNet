@@ -133,8 +133,4 @@ void track_and_trace_plugin::plugin_initialize( const boost::program_options::va
 void track_and_trace_plugin::plugin_startup() {}
 void track_and_trace_plugin::plugin_shutdown() {}
 
-extern "C" BOOST_SYMBOL_EXPORT std::shared_ptr<abstract_plugin> get_plugin() {
-   return std::make_shared<track_and_trace_plugin>();
-}
-
 } } } // sophiatx::plugins::track_and_trace_plugin
