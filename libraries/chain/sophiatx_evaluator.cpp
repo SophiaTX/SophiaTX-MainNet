@@ -556,8 +556,8 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    const auto& account = _db.get_account( o.account );
    const auto& gpo = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX Power for withdraw." );
-   FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX Power for withdraw." );
+   FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX VESTS for withdraw." );
+   FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX VESTS for withdraw." );
 
 
    if( o.vesting_shares.amount == 0 )
@@ -575,22 +575,22 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    {
       int vesting_withdraw_intervals = SOPHIATX_VESTING_WITHDRAW_INTERVALS; /// 13 weeks = 1 quarter of a year
 
+      auto new_vesting_withdraw_rate = asset( o.vesting_shares.amount / vesting_withdraw_intervals, VESTS_SYMBOL );
+
+      if( new_vesting_withdraw_rate.amount == 0 )
+         new_vesting_withdraw_rate.amount = 1;
+
+      FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
+
+      auto wit = _db.find_witness( o. account );
+      FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - account.to_withdraw >= gpo.witness_required_vesting.amount );
+
       _db.modify( account, [&]( account_object& a )
       {
-         auto new_vesting_withdraw_rate = asset( o.vesting_shares.amount / vesting_withdraw_intervals, VESTS_SYMBOL );
-
-         if( new_vesting_withdraw_rate.amount == 0 )
-            new_vesting_withdraw_rate.amount = 1;
-
-         FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
-
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
          a.to_withdraw = o.vesting_shares.amount;
          a.withdrawn = 0;
-
-         auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
