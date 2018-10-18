@@ -1,6 +1,6 @@
 {
    "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
-   "initial_balace" : 346200000000000,
+   "initial_balace" : 346000000000000,
    "initial_accounts" : [
       {
          "name":"ejossev",
@@ -190,6 +190,16 @@
       {
          "name":"unitedenergy4",
          "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
+         "balance": 100000000000
+      },
+      {
+         "name":"kuan",
+         "key": "SPH6RmpQ9BVvniR9WnAubRzJ1mv8YuczMUHXwz9qbXoyLRnmbYaKL",
+         "balance": 100000000000
+      },
+      {
+         "name":"waifei",
+         "key": "SPH8k1nMRRLhuLzS17xM6pzZWW1Msbz42wCgxBqMtVY8f1ZsFqBVo",
          "balance": 100000000000
       }
    ],
