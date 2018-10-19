@@ -51,8 +51,8 @@ namespace detail {
    public:
       witness_plugin_impl( boost::asio::io_service& io ) :
          _timer(io),
-         _chain_plugin( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >() ),
-         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _chain_plugin( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >()) {}
 
       void pre_transaction( const sophiatx::protocol::signed_transaction& trx );
       void pre_operation( const chain::operation_notification& note );

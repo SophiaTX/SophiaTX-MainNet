@@ -236,14 +236,21 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    const auto& props = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
+   asset to_pay;
+   if(o.fee.symbol == SOPHIATX_SYMBOL) {
+      to_pay = o.fee;
+   } else {
+      to_pay = _db.to_sophiatx(o.fee);
+   }
+
+   FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
    asset required_fee = asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
-   FC_ASSERT( o.fee >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
-              ("f", required_fee ) ("p", o.fee) );
+   FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
+              ("f", required_fee ) ("p", to_pay) );
 
-   asset excess_fee = o.fee - required_fee;
+   asset excess_fee = to_pay - required_fee;
    verify_authority_accounts_exist( _db, o.owner, new_account_name, authority::owner );
    verify_authority_accounts_exist( _db, o.active, new_account_name, authority::active );
 
@@ -556,8 +563,8 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    const auto& account = _db.get_account( o.account );
    const auto& gpo = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX Power for withdraw." );
-   FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX Power for withdraw." );
+   FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX VESTS for withdraw." );
+   FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX VESTS for withdraw." );
 
 
    if( o.vesting_shares.amount == 0 )
@@ -575,22 +582,22 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    {
       int vesting_withdraw_intervals = SOPHIATX_VESTING_WITHDRAW_INTERVALS; /// 13 weeks = 1 quarter of a year
 
+      auto new_vesting_withdraw_rate = asset( o.vesting_shares.amount / vesting_withdraw_intervals, VESTS_SYMBOL );
+
+      if( new_vesting_withdraw_rate.amount == 0 )
+         new_vesting_withdraw_rate.amount = 1;
+
+      FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
+
+      auto wit = _db.find_witness( o. account );
+      FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - account.to_withdraw >= gpo.witness_required_vesting.amount );
+
       _db.modify( account, [&]( account_object& a )
       {
-         auto new_vesting_withdraw_rate = asset( o.vesting_shares.amount / vesting_withdraw_intervals, VESTS_SYMBOL );
-
-         if( new_vesting_withdraw_rate.amount == 0 )
-            new_vesting_withdraw_rate.amount = 1;
-
-         FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
-
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
          a.to_withdraw = o.vesting_shares.amount;
          a.withdrawn = 0;
-
-         auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
@@ -765,7 +772,8 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = true;
-           c.data = o.data;
+           for( auto d: o.data)
+              c.data.push_back(d);
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;

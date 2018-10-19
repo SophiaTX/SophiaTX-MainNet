@@ -20,6 +20,8 @@ target_link_libraries( sophiatx_plugins appbase fc
 
    database_api_plugin
 
+   alexandria_api_plugin
+
    chain_api_plugin
 
    account_by_key_api_plugin

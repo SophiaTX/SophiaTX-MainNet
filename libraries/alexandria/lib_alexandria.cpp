@@ -969,8 +969,7 @@ authority alexandria_api::create_simple_multisig_managed_authority(vector<string
    auth.weight_threshold = required_signatures;
    for(const auto& account : managing_accounts)
    {
-      string decoded_name = make_random_fixed_string(account);
-      auth.add_authority(decoded_name, 1);
+      auth.add_authority(account, 1);
    }
    return auth;
 }
