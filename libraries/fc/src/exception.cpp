@@ -8,25 +8,27 @@
 
 namespace fc
 {
-   FC_REGISTER_EXCEPTIONS( (timeout_exception)
-                           (file_not_found_exception)
-                           (parse_error_exception)
-                           (invalid_arg_exception)
-                           (invalid_operation_exception)
-                           (key_not_found_exception)
-                           (bad_cast_exception)
-                           (out_of_range_exception)
-                           (canceled_exception)
-                           (assert_exception)
-                           (eof_exception)
-                           (unknown_host_exception)
-                           (null_optional)
-                           (udt_exception)
-                           (aes_exception)
-                           (overflow_exception)
-                           (underflow_exception)
-                           (divide_by_zero_exception)
-                         )
+   exception_factory::exception_factory() {
+      FC_REGISTER_EXCEPTIONS( (timeout_exception)
+                              (file_not_found_exception)
+                              (parse_error_exception)
+                              (invalid_arg_exception)
+                              (invalid_operation_exception)
+                              (key_not_found_exception)
+                              (bad_cast_exception)
+                              (out_of_range_exception)
+                              (canceled_exception)
+                              (assert_exception)
+                              (eof_exception)
+                              (unknown_host_exception)
+                              (null_optional)
+                              (udt_exception)
+                              (aes_exception)
+                              (overflow_exception)
+                              (underflow_exception)
+                              (divide_by_zero_exception)
+                            )
+   }
 
    namespace detail
    {
