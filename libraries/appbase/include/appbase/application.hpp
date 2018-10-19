@@ -79,12 +79,11 @@ namespace appbase {
          }
 
          /**
-          * @brief Loada external plugin
+          * @brief Loads external plugins specified in config
           *
-          * @param plugin_path to plugin *.so
-          * @return std::shared_ptr<abstract_plugin> to the loaded plugin
+          * @return
           */
-         std::shared_ptr<abstract_plugin> load_external_plugin(const std::string& plugin_path);
+         bool load_external_plugins();
 
          /**
           * @brief Registers external plugin into the list of all app plugins
@@ -98,7 +97,7 @@ namespace appbase {
           *
           * @param plugin
           */
-         void load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin);
+         void load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin, const std::string& cfg_plugin_name);
 
          template< typename Plugin >
          Plugin* find_plugin()const

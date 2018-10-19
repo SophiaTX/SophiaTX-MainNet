@@ -62,14 +62,17 @@ void application::set_program_options()
    options_description app_cli_opts( "Application Command Line Options" );
    app_cfg_opts.add_options()
          ("plugin", bpo::value< vector<string> >()->composing(), "Plugin(s) to enable, may be specified multiple times");
+
    app_cfg_opts.add_options()
-         ("external_plugin", bpo::value< vector<string> >()->composing(), "External plugin(s) to enable, may be specified multiple times");
+         ("external-plugins-dir", bpo::value<bfs::path>()->default_value( "external-plugins" ), "Directory containing external/runtime-loadable plugins binaries (absolute path or relative to the data-dir/)");
+   app_cfg_opts.add_options()
+         ("external-plugin", bpo::value< vector<string> >()->composing(), "External plugin(s) to enable, may be specified multiple times");
 
    app_cli_opts.add_options()
          ("help,h", "Print this help message and exit.")
          ("version,v", "Print version information.")
          ("data-dir,d", bpo::value<bfs::path>()->default_value( "sophia_app_data" ), "Directory containing configuration files, blockchain data and external plugins")
-         ("config,c", bpo::value<bfs::path>()->default_value( "config.ini" ), "Main configuration file name relative to data-dir/configs/");
+         ("config,c", bpo::value<bfs::path>()->default_value( "config.ini" ), "Main configuration file path (absolute path or relative to the data-dir/)");
 
    my->_cfg_options.add(app_cfg_opts);
    my->_app_options.add(app_cfg_opts);
@@ -100,19 +103,59 @@ plugin_program_options application::get_plugin_program_options(const std::shared
 }
 
 
-std::shared_ptr<abstract_plugin> application::load_external_plugin(const std::string& plugin_path) {
-   std::cout << "Loading external plugin" << plugin_path << std::endl;
+bool application::load_external_plugins() {
+   // plugins-dir par (even if it is default) must be always present
+   assert(my->_args.count( "external-plugins-dir" ));
 
-   try {
-      auto plugin_creator = boost::dll::import<std::shared_ptr<abstract_plugin>()>(plugin_path, "get_plugin", boost::dll::load_mode::append_decorations);
-      return plugin_creator();
+   boost::program_options::variable_value cfg_plugins_dir = my->_args["external-plugins-dir"];
+   bfs::path plugins_dir = cfg_plugins_dir.as<bfs::path>();
+   if (plugins_dir.is_relative() == true) {
+      plugins_dir = my->_data_dir / plugins_dir;
+
+      if (bfs::exists(plugins_dir) == false) {
+         bfs::create_directory(plugins_dir);
+      }
    }
-   catch ( const boost::exception& e )
+
+   if(my->_args.count("external-plugin") > 0)
    {
-      std::cerr << boost::diagnostic_information(e) << "\n";
+      auto plugins = my->_args.at("external-plugin").as<std::vector<std::string>>();
+      for(auto& arg : plugins)
+      {
+         vector<string> plugins_names;
+         boost::split(plugins_names, arg, boost::is_any_of(" \t,"));
+
+         for(const std::string& plugin_name : plugins_names) {
+            bfs::path plugin_binary_path = plugins_dir / std::string("lib" + plugin_name + "_plugin.so");
+            if (bfs::exists(plugin_binary_path) == false) {
+               std::cerr << "Missing binary: " << plugin_binary_path << " for plugin: \"" << plugin_name << "\"" << std::endl;
+               return false;
+            }
+
+            std::shared_ptr<abstract_plugin> loaded_plugin;
+            try {
+               auto plugin_creator = boost::dll::import<std::shared_ptr<abstract_plugin>()>(plugin_binary_path, "get_plugin", boost::dll::load_mode::append_decorations);
+               loaded_plugin = plugin_creator();
+            }
+            catch ( const boost::exception& e )
+            {
+               std::cerr << "Failed to load plugin. Error: " << boost::diagnostic_information(e) << std::endl;
+               return false;
+            }
+
+            // Registers loaded plugin for application
+            register_external_plugin(loaded_plugin);
+
+            // Loads plugins config parameters
+            load_external_plugin_config(loaded_plugin, plugin_name);
+
+            // Initializes plugin
+            loaded_plugin->initialize(my->_args);
+         }
+      }
    }
 
-   return nullptr;
+   return true;
 }
 
 void application::register_external_plugin(const std::shared_ptr<abstract_plugin>& plugin) {
@@ -120,15 +163,44 @@ void application::register_external_plugin(const std::shared_ptr<abstract_plugin
    plugin->register_dependencies();
 }
 
-void application::load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin) {
+void application::load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin, const std::string& cfg_plugin_name) {
    const plugin_program_options& plugin_options = get_plugin_program_options(plugin);
 
    // Writes config if it does not already exists
-   bfs::path config_file_path = write_default_config(plugin_options.get_cfg_options(),  bfs::path(plugin->get_name() + "_config.ini"));
+   bfs::path config_file_path = write_default_config(plugin_options.get_cfg_options(),  bfs::path(cfg_plugin_name + "_plugin_config.ini"));
 
    // Copies parameters from config_file into my->_args
    bpo::store(bpo::parse_config_file< char >( config_file_path.make_preferred().string().c_str(),
                                               plugin_options.get_cfg_options(), true ), my->_args );
+}
+
+// TODO: delete on 1.1.2020
+/**
+ * @brief Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
+ *        Applies fixes only when users did not specify some custom paths to data-dir and config file
+ *
+ * @param actual_data_dir
+ * @param cfg_data_dir
+ * @param cfg_config
+ */
+void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
+                                          const boost::program_options::variable_value& cfg_data_dir,
+                                          const boost::program_options::variable_value& cfg_config) {
+   // If data_dir has default(new) name and there is existing directory with old name -> rename it
+   if (cfg_data_dir.defaulted() == true) {
+      bfs::path deprecated_default_data_dir = bfs::current_path() / "witness_node_data_dir";
+      if (bfs::exists(deprecated_default_data_dir) == true) {
+         bfs::rename(deprecated_default_data_dir, actual_data_dir);
+      }
+   }
+
+   // If config with default name exists and is not in subdirectory configs -> move it there
+   if (cfg_config.defaulted() == true) {
+      bfs::path deprecated_default_config_path = actual_data_dir / "config.ini";
+      if (bfs::exists(deprecated_default_config_path) == true) {
+         bfs::rename(deprecated_default_config_path, actual_data_dir / "configs" / cfg_config.as<bfs::path>());
+      }
+   }
 }
 
 bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*> autostart_plugins)
@@ -149,19 +221,23 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
          return false;
       }
 
-      bfs::path data_dir = "data-dir";
-      if( my->_args.count("data-dir") )
-      {
-         data_dir = my->_args["data-dir"].as<bfs::path>();
-         if( data_dir.is_relative() )
-            data_dir = bfs::current_path() / data_dir;
-      }
-      my->_data_dir = data_dir;
 
+      // data-dir par (even if it is default) must be always present
+      assert(my->_args.count( "data-dir" ));
+
+      my->_data_dir = my->_args["data-dir"].as<bfs::path>();
+      if( my->_data_dir.is_relative() )
+         my->_data_dir = bfs::current_path() / my->_data_dir;
 
 
       // config par (even if it is default) must be always present
       assert(my->_args.count( "config" ));
+
+
+      // TODO: delete on 1.1.2020
+      // Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
+      fix_deprecated_data_folder_structure(my->_data_dir, my->_args["data-dir"], my->_args["config"]);
+
 
       // Writes config if it does not already exists
       bfs::path config_file_path = write_default_config(my->_cfg_options, my->_args["config"].as<bfs::path>());
@@ -183,27 +259,9 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
          }
       }
 
-      if(my->_args.count("external_plugin") > 0)
-      {
-         auto plugins = my->_args.at("external_plugin").as<std::vector<std::string>>();
-         for(auto& arg : plugins)
-         {
-            vector<string> plugins_paths;
-            boost::split(plugins_paths, arg, boost::is_any_of(" \t,"));
-
-            for(const std::string& path : plugins_paths) {
-               std::shared_ptr<abstract_plugin> plugin = load_external_plugin(path);
-               if (plugin == nullptr) {
-                  std::cerr << "Unable to load plugin: " << path << std::endl;
-                  return false;
-               }
-
-               register_external_plugin(plugin);
-               load_external_plugin_config(plugin);
-
-               plugin->initialize(my->_args);
-            }
-         }
+      // Loads external plugins specified in config
+      if (load_external_plugins() == false) {
+         return false;
       }
 
       for (const auto& plugin : autostart_plugins)
