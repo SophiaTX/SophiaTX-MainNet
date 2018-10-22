@@ -72,7 +72,7 @@ void application::set_program_options()
          ("help,h", "Print this help message and exit.")
          ("version,v", "Print version information.")
          ("data-dir,d", bpo::value<bfs::path>()->default_value( "sophia_app_data" ), "Directory containing configuration files, blockchain data and external plugins")
-         ("config,c", bpo::value<bfs::path>()->default_value( "config.ini" ), "Main configuration file path (absolute path or relative to the data-dir/)");
+         ("config,c", bpo::value<bfs::path>()->default_value( "config.ini" ), "Main configuration file path (absolute path or relative to the data-dir/configs/)");
 
    my->_cfg_options.add(app_cfg_opts);
    my->_app_options.add(app_cfg_opts);
