@@ -64,7 +64,7 @@ void application::set_program_options()
          ("plugin", bpo::value< vector<string> >()->composing(), "Plugin(s) to enable, may be specified multiple times");
 
    app_cfg_opts.add_options()
-         ("external-plugins-dir", bpo::value<bfs::path>()->default_value( "external-plugins" ), "Directory containing external/runtime-loadable plugins binaries (absolute path or relative to the data-dir/)");
+         ("external-plugins-dir", bpo::value<bfs::path>()->default_value( "external-plugins" ), "Directory containing external/runtime-loadable plugins binaries (absolute path or relative to the program option data-dir/)");
    app_cfg_opts.add_options()
          ("external-plugin", bpo::value< vector<string> >()->composing(), "External plugin(s) to enable, may be specified multiple times");
 
