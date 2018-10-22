@@ -4,17 +4,18 @@ Script connects to the server and automatically deploys node binaries and stores
 
 Created file structure on server:
  
-     ~                                      # home of specified user
+     ~                                          # home of specified user
      ├── ...                        
-     ├── sophiatx-binaries                  # Binaries folder
-     │   ├── sophiatx_#<NUM>.tar.gz         # SophiaTX archived binaries
-     │   ├── sophiatx_#<NUM>.tar.gz.old     # Previous version of SophiaTX archived binaries
-     │   ├── testnet_config.ini             # SophiaTX demon config file
-     │   ├── testnet_config.ini.old         # Previous version of SophiaTX demon config file
-     │   ├── sophiatxd                      # SophiaTX demon
-     │   ├── alexandria_deamon              # Alexandria demon
-     │   └── bc-data                        # Blokchain data folder
-     │       ├── config.ini                 # Copied testnet_config.ini
+     ├── sophiatx_binaries                      # Binaries folder
+     │   ├── sophiatx_#<NUM>.tar.gz             # SophiaTX archived binaries
+     │   ├── sophiatx_#<NUM>.tar.gz.old         # Previous version of SophiaTX archived binaries
+     │   ├── sophiatxd                          # SophiaTX demon
+     │   ├── alexandria_deamon                  # Alexandria demon
+     │   └── sophia_app_data                    # Master data folder
+     │       ├── configs                        # Configs data folder
+     │       │   ├── testnet_config.ini         # SophiaTX demon config file
+     │       │   ├── testnet_config.ini.old     # Previous version of SophiaTX demon config file
+     │       │   └── ...
      │       └── ...
      └── ... 
     
