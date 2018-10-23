@@ -1,11 +1,12 @@
 file(GLOB HEADERS "include/sophiatx/plugins/track_and_trace/*.hpp")
 
-add_library( track_and_trace_plugin
-             track_and_trace_plugin.cpp
+add_library( track_and_trace_plugin SHARED
              track_and_trace_api.cpp
-           )
+             track_and_trace_plugin.cpp
+             track_and_trace_plugin_export.cpp
+             )
 
-target_link_libraries( track_and_trace_plugin chain_plugin sophiatx_chain sophiatx_protocol sophiatx_utilities json_rpc_plugin )
+target_link_libraries( track_and_trace_plugin chain_plugin sophiatx_chain sophiatx_protocol sophiatx_utilities json_rpc_plugin)
 target_include_directories( track_and_trace_plugin
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 

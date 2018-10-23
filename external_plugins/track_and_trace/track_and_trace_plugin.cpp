@@ -131,9 +131,6 @@ void track_and_trace_plugin::plugin_initialize( const boost::program_options::va
 }
 
 void track_and_trace_plugin::plugin_startup() {}
-
-void track_and_trace_plugin::plugin_shutdown()
-{
-}
+void track_and_trace_plugin::plugin_shutdown() {}
 
 } } } // sophiatx::plugins::track_and_trace_plugin
