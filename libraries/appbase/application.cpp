@@ -196,13 +196,17 @@ void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
 
    // If config with default name exists and is not in subdirectory configs -> move it there
    if (cfg_config.defaulted() == true) {
-      bfs::path configs_dir = actual_data_dir / "configs/";
-      if (bfs::exists(configs_dir) == false) {
-         bfs::create_directory(configs_dir);
-      }
-
       bfs::path deprecated_default_config_path = actual_data_dir / "config.ini";
       if (bfs::exists(deprecated_default_config_path) == true) {
+         if (bfs::exists(actual_data_dir) == false) {
+            bfs::create_directory(actual_data_dir);
+         }
+
+         bfs::path configs_dir = actual_data_dir / "configs/";
+         if (bfs::exists(configs_dir) == false) {
+            bfs::create_directory(configs_dir);
+         }
+
          bfs::rename(deprecated_default_config_path, configs_dir / cfg_config.as<bfs::path>());
       }
    }
