@@ -590,7 +590,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
       FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
 
       auto wit = _db.find_witness( o. account );
-      FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - account.to_withdraw >= gpo.witness_required_vesting.amount );
+      FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - o.vesting_shares.amount >= gpo.witness_required_vesting.amount );
 
       _db.modify( account, [&]( account_object& a )
       {
