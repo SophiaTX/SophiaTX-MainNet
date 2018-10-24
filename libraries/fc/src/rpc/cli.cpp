@@ -108,6 +108,12 @@ void cli::run()
          }
          std::cout << line << "\n";
          line += char(EOF);
+
+         // Ignores lines that start with '#' -> comments
+         if (*line.begin() == '#') {
+            continue;
+         }
+
          fc::variants args = fc::json::variants_from_string(line);;
          if( args.size() == 0 )
             continue;
