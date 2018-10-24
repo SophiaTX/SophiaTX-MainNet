@@ -19,11 +19,6 @@
 
 #define SOPHIATX_MIN_ACCOUNT_CREATION_FEE          0
 
-#define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::seconds(60)
-#define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::seconds(12)
-#define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::seconds(0)
-#define SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 1
-
 #define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 #define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 
@@ -44,15 +39,15 @@
 
 #define SOPHIATX_MIN_ACCOUNT_CREATION_FEE           50000
 
-#define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
-#define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
-#define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::minutes(60)
-
 #define SOPHIATX_INIT_SUPPLY                     int64_t(350000000000000)
 #define SOPHIATX_TOTAL_SUPPLY                    int64_t(500000000000000)
 #define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #endif
+
+#define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
+#define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
+#define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::minutes(60)
 
 #define SOPHIATX_ADDRESS_PREFIX                  "SPH"
 
