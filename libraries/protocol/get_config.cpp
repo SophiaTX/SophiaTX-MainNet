@@ -13,7 +13,6 @@ fc::variant_object get_config()
 #ifdef IS_TEST_NET
    result["IS_TEST_NET"] = true;
    result["TESTNET_BLOCK_LIMIT"] = TESTNET_BLOCK_LIMIT;
-   result["SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM"] = SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM;
 #else
    result["IS_TEST_NET"] = false;
 #endif
