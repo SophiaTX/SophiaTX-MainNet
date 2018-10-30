@@ -58,6 +58,7 @@ http_api_connection::http_api_connection()
 variant http_api_connection::send_call(
    api_id_type api_id,
    string method_name,
+   bool args_as_object,
    variants args /* = variants() */ )
 {
    // HTTP has no way to do this, so do nothing
@@ -67,6 +68,7 @@ variant http_api_connection::send_call(
 variant http_api_connection::send_call(
    string api_name,
    string method_name,
+   bool args_as_object,
    variants args /* = variants() */ )
 {
    // HTTP has no way to do this, so do nothing
