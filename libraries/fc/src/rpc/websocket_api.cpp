@@ -73,9 +73,21 @@ variant websocket_api_connection::send_call(
    string method_name,
    variants args )
 {
-   auto request = _rpc_state.start_remote_call(  "call", {std::move(api_name), std::move(method_name), std::move(args) } );
-   _connection.send_message( fc::json::to_string(request) );
-   return _rpc_state.wait_for_response( *request.id );
+
+   request req;
+   // New format for alexandria_api -> call arguments are forwarded as json object {"par1_name":par1_value, ...}
+   if (api_name == "alexandria_api") {
+      FC_ASSERT(args.size() == 1 && args[0].is_object(), "Calls to alexandria_api must contain only 1 argument, which is formatted as object");
+      req = _rpc_state.start_remote_call(  "call", {std::move(api_name), std::move(method_name), std::move(args[0]) } );
+   }
+   // TODO: delete when alexandria_daemon is not in use + refactor this function so it does not take args as vector<variant>, but single variant(object_variant) instead
+   // Old format for condenser api -> call arguments are forwarded as general vector [par1, par2, ...]
+   else  {
+      req = _rpc_state.start_remote_call(  "call", {std::move(api_name), std::move(method_name), std::move(args) } );
+   }
+
+   _connection.send_message( fc::json::to_string(req) );
+   return _rpc_state.wait_for_response( *req.id );
 }
 
 variant websocket_api_connection::send_callback(
