@@ -91,17 +91,17 @@ class wallet_api
        *
        * @returns a multi-line string suitable for displaying on a terminal
        */
-      string                              help()const;
+      string                           help()const;
 
       /**
        * Returns info about the current state of the blockchain
        */
-      variant                             info();
+      alexandria_api::info_return      info() const;
 
       /** Returns info such as client version, git version of graphene/fc, version of boost, openssl.
        * @returns compile time info and client and dependencies versions
        */
-      variant_object                      about() const;
+      alexandria_api::about_return     about() const;
 
       /** Returns the information about a block
        *
@@ -109,37 +109,38 @@ class wallet_api
        *
        * @returns Public block data on the blockchain
        */
-      optional< database_api::api_signed_block_object > get_block( uint32_t num );
+      alexandria_api::get_block_return get_block( uint32_t num );
 
       /** Returns sequence of operations included/generated in a specified block
        *
        * @param block_num Block height of specified block
        * @param only_virtual Whether to only return virtual operations
        */
-      vector< condenser_api::api_operation_object > get_ops_in_block( uint32_t block_num, bool only_virtual = true );
+      alexandria_api::get_ops_in_block_return get_ops_in_block( uint32_t block_num, bool only_virtual = true );
 
       /** Return the current price feed history
        *
        * @returns Price feed history data on the blockchain
        */
-      condenser_api::api_feed_history_object get_feed_history( asset_symbol_type symbol)const;
+      alexandria_api::get_feed_history_return get_feed_history( std::string symbol )const;
 
       /**
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)
        */
-      vector< account_name_type > get_active_witnesses()const;
+      alexandria_api::get_active_witnesses_return get_active_witnesses()const;
 
       /**
        *  Gets the account information for all accounts for which this wallet has a private key
        */
-      vector< condenser_api::api_account_object > list_my_accounts();
+       // TODO: using get_key_references which is not in alexandria api
+      vector< alexandria_api::api_account_object > list_my_accounts();
 
       /** Returns information about the given account.
        *
        * @param account_name the name of the account to provide information about
        * @returns the public account data stored in the blockchain
        */
-      vector<condenser_api::api_account_object> get_account( string account_name ) const;
+      alexandria_api::get_account_return get_account( string account_name ) const;
 
       /** Returns the current wallet filename.
        *
@@ -167,7 +168,7 @@ class wallet_api
       /**
        * Returns transaction by ID.
        */
-      annotated_signed_transaction get_transaction( transaction_id_type trx_id )const;
+      alexandria_api::get_transaction_return get_transaction( transaction_id_type trx_id )const;
 
       /** Checks whether the wallet has just been created and has not yet had a password set.
        *
@@ -275,7 +276,8 @@ class wallet_api
        *          this returns a raw string that may have null characters embedded
        *          in it
        */
-      string serialize_transaction(signed_transaction tx) const;
+      // TODO: not implemented
+      //string serialize_transaction(signed_transaction tx) const;
 
       /** Imports a WIF Private Key into the wallet to be used to sign transactions by an account.
        *
@@ -435,7 +437,7 @@ class wallet_api
        * @param limit the maximum number of witnesss to return (max: 1000)
        * @returns a list of witnesss mapping witness names to witness ids
        */
-      vector< account_name_type > list_witnesses(const string& lowerbound, uint32_t limit);
+      alexandria_api::list_witnesses_return list_witnesses(const string& lowerbound, uint32_t limit);
 
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
@@ -785,7 +787,7 @@ class wallet_api
       /**
        * Checks memos against private keys on account and imported in wallet
        */
-      void check_memo( const string& memo, const condenser_api::api_account_object& account )const;
+      void check_memo( const string& memo, const alexandria_api::api_account_object& account )const;
 
       /**
        *  Returns the encrypted memo if memo starts with '#' otherwise returns memo

@@ -4,13 +4,22 @@ namespace sophiatx { namespace wallet{
 
 // This class exists only to provide method signature information to fc::api, not to execute calls.
 
+alexandria_api::info_return remote_node_api::info(json_rpc::void_type)
+{
+   FC_ASSERT( false );
+}
+
+alexandria_api::about_return about(json_rpc::void_type) {
+   FC_ASSERT( false );
+}
+
 condenser_api::get_version_return remote_node_api::get_version()
 {
    FC_ASSERT( false );
 }
 
 
-vector< account_name_type > remote_node_api::get_active_witnesses()
+alexandria_api::get_active_witnesses_return remote_node_api::get_active_witnesses(json_rpc::void_type)
 {
    FC_ASSERT( false );
 }
@@ -20,12 +29,16 @@ optional< block_header > remote_node_api::get_block_header( uint32_t )
    FC_ASSERT( false );
 }
 
-optional< database_api::api_signed_block_object > remote_node_api::get_block( uint32_t )
-{
+//optional< database_api::api_signed_block_object > remote_node_api::get_block( uint32_t )
+//{
+//   FC_ASSERT( false );
+//}
+
+alexandria_api::get_block_return remote_node_api::get_block( alexandria_api::get_block_args args ) {
    FC_ASSERT( false );
 }
 
-vector< condenser_api::api_operation_object > remote_node_api::get_ops_in_block( uint32_t, bool only_virtual )
+alexandria_api::get_ops_in_block_return remote_node_api::get_ops_in_block( alexandria_api::get_ops_in_block_args )
 {
    FC_ASSERT( false );
 }
@@ -50,7 +63,7 @@ condenser_api::legacy_price remote_node_api::get_current_median_history_price( a
    FC_ASSERT( false );
 }
 
-condenser_api::api_feed_history_object remote_node_api::get_feed_history( asset_symbol_type )
+alexandria_api::get_feed_history_return remote_node_api::get_feed_history( alexandria_api::get_feed_history_args )
 {
    FC_ASSERT( false );
 }
@@ -67,6 +80,15 @@ hardfork_version remote_node_api::get_hardfork_version()
 
 condenser_api::scheduled_hardfork remote_node_api::get_next_scheduled_hardfork()
 {
+   FC_ASSERT( false );
+}
+
+alexandria_api::get_account_return remote_node_api::get_account(alexandria_api::get_account_args)
+{
+   FC_ASSERT( false );
+}
+
+alexandria_api::create_account_return remote_node_api::create_account(alexandria_api::create_account_args) {
    FC_ASSERT( false );
 }
 
@@ -127,7 +149,7 @@ vector< condenser_api::api_witness_object > remote_node_api::get_witnesses_by_vo
    FC_ASSERT( false );
 }
 
-vector< account_name_type > remote_node_api::lookup_witness_accounts( string, uint32_t )
+alexandria_api::list_witnesses_return remote_node_api::list_witnesses( alexandria_api::list_witnesses_args )
 {
    FC_ASSERT( false );
 }
@@ -139,11 +161,6 @@ uint64_t remote_node_api::get_witness_count()
 
 
 string remote_node_api::get_transaction_hex( signed_transaction )
-{
-   FC_ASSERT( false );
-}
-
-annotated_signed_transaction remote_node_api::get_transaction( transaction_id_type )
 {
    FC_ASSERT( false );
 }
@@ -173,7 +190,7 @@ map< uint32_t, condenser_api::api_operation_object > remote_node_api::get_accoun
    FC_ASSERT( false );
 }
 
-void remote_node_api::broadcast_transaction( signed_transaction )
+alexandria_api::broadcast_transaction_return remote_node_api::broadcast_transaction( alexandria_api::broadcast_transaction_args )
 {
    FC_ASSERT( false );
 }
