@@ -96,12 +96,12 @@ class wallet_api
       /**
        * Returns info about the current state of the blockchain
        */
-      alexandria_api::info_return      info() const;
+      variant      info() const;
 
       /** Returns info such as client version, git version of graphene/fc, version of boost, openssl.
        * @returns compile time info and client and dependencies versions
        */
-      alexandria_api::about_return     about() const;
+      variant_object     about() const;
 
       /** Returns the information about a block
        *
@@ -109,25 +109,25 @@ class wallet_api
        *
        * @returns Public block data on the blockchain
        */
-      alexandria_api::get_block_return get_block( uint32_t num );
+      optional< database_api::api_signed_block_object >  get_block( uint32_t num );
 
       /** Returns sequence of operations included/generated in a specified block
        *
        * @param block_num Block height of specified block
        * @param only_virtual Whether to only return virtual operations
        */
-      alexandria_api::get_ops_in_block_return get_ops_in_block( uint32_t block_num, bool only_virtual = true );
+      vector< alexandria_api::api_operation_object > get_ops_in_block( uint32_t block_num, bool only_virtual = true );
 
       /** Return the current price feed history
        *
        * @returns Price feed history data on the blockchain
        */
-      alexandria_api::get_feed_history_return get_feed_history( std::string symbol )const;
+      alexandria_api::api_feed_history_object get_feed_history( std::string symbol )const;
 
       /**
        * Returns the list of witnesses producing blocks in the current round (21 Blocks)
        */
-      alexandria_api::get_active_witnesses_return get_active_witnesses()const;
+      vector< account_name_type > get_active_witnesses()const;
 
       /**
        *  Gets the account information for all accounts for which this wallet has a private key
@@ -140,7 +140,7 @@ class wallet_api
        * @param account_name the name of the account to provide information about
        * @returns the public account data stored in the blockchain
        */
-      alexandria_api::get_account_return get_account( string account_name ) const;
+      vector<alexandria_api::api_account_object> get_account( string account_name ) const;
 
       /** Returns the current wallet filename.
        *
@@ -168,7 +168,7 @@ class wallet_api
       /**
        * Returns transaction by ID.
        */
-      alexandria_api::get_transaction_return get_transaction( transaction_id_type trx_id )const;
+      annotated_signed_transaction get_transaction( transaction_id_type trx_id )const;
 
       /** Checks whether the wallet has just been created and has not yet had a password set.
        *
@@ -437,13 +437,13 @@ class wallet_api
        * @param limit the maximum number of witnesss to return (max: 1000)
        * @returns a list of witnesss mapping witness names to witness ids
        */
-      alexandria_api::list_witnesses_return list_witnesses(const string& lowerbound, uint32_t limit);
+      vector< account_name_type > list_witnesses(const string& lowerbound, uint32_t limit);
 
       /** Returns information about the given witness.
        * @param owner_account the name or id of the witness account owner, or the id of the witness
        * @returns the information about the witness stored in the block chain
        */
-      optional< condenser_api::api_witness_object > get_witness(string owner_account);
+      optional< alexandria_api::api_witness_object > get_witness(string owner_account);
 
       /**
        * Update a witness object owned by the given account.
@@ -699,7 +699,7 @@ class wallet_api
        *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
        *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
        */
-      map< uint32_t, condenser_api::api_operation_object > get_account_history(string account, int64_t from,
+      map< uint32_t, alexandria_api::api_operation_object > get_account_history(string account, int64_t from,
                                                                                uint32_t limit);
 
       /**
@@ -768,14 +768,14 @@ class wallet_api
        * @param count Number of items to retrieve
        * @return
        */
-      vector< condenser_api::api_application_buying_object >  get_application_buyings(string name, string search_type, uint32_t count);
+      vector< alexandria_api::api_application_buying_object >  get_application_buyings(string name, string search_type, uint32_t count);
 
      /**
       * Get all app objects
       * @param names - array of names of applications
       * @return array of application objects
       */
-      vector< condenser_api::api_application_object >  get_applications(vector<string> names);
+      vector< alexandria_api::api_application_object >  get_applications(vector<string> names);
 
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
@@ -830,7 +830,7 @@ class wallet_api
        * @param count Number of items to retrieve
        * @return
        */
-      map< uint64_t, condenser_api::api_received_object >  list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+      map< uint64_t, alexandria_api::api_received_object >  list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
       annotated_signed_transaction sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast);
 
