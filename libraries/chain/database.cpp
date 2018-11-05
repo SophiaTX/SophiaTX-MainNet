@@ -2484,7 +2484,6 @@ void database::create_vesting( const account_object& a, const asset& delta){
            acnt.update_considered_holding(delta.amount, head_block_num(), SOPHIATX_INTEREST_BLOCKS_HF_1_1);
         else
            acnt.update_considered_holding(delta.amount, head_block_num() );
-
    } );
    adjust_proxied_witness_votes(a, delta.amount);
 }
