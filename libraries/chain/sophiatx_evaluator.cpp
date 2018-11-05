@@ -244,7 +244,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    }
 
    if(_db.has_hardfork(SOPHIATX_HARDFORK_1_1))
-      FC_ASSERT( name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
+      FC_ASSERT( o.name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
 
    FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
