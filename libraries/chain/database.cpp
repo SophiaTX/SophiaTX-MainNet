@@ -2307,7 +2307,7 @@ void database::update_global_dynamic_data( const signed_block& b )
       if(has_hardfork(SOPHIATX_HARDFORK_1_1))
          switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 * SOPHIATX_BLOCKS_PER_DAY;
       else
-         switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY
+         switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY;
 
       if( head_block_num() >= switch_block ){
          dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
@@ -2484,9 +2484,9 @@ void database::create_vesting( const account_object& a, const asset& delta){
            acnt.update_considered_holding(delta.amount, head_block_num(), SOPHIATX_INTEREST_BLOCKS_HF_1_1);
         else
            acnt.update_considered_holding(delta.amount, head_block_num() );
-        adjust_proxied_witness_votes(a, delta.amount);
 
    } );
+   adjust_proxied_witness_votes(a, delta.amount);
 }
 
 
