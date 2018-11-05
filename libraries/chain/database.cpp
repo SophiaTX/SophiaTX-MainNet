@@ -2050,7 +2050,8 @@ struct process_header_visitor
 void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
-      uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
+      uint32_t interest_blocks = has_hardfork(SOPHIATX_HARDFORK_1_1)? SOPHIATX_INTEREST_BLOCKS_HF_1_1 : SOPHIATX_INTEREST_BLOCKS;
+      uint32_t batch = block_no % interest_blocks;
       const auto &econ = get_economic_model();
       share_type supply_increase = 0;
       uint64_t id = batch;
@@ -2060,20 +2061,20 @@ void database::process_interests() {
          if(head_block_num() > SOPHIATX_INTEREST_DELAY) {
             modify(econ, [ & ](economic_model_object &eo) {
                  interest = eo.withdraw_interests(a->holdings_considered_for_interests,
-                                                  std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), head_block_num()));
+                                                  std::min(uint32_t(interest_blocks), head_block_num()));
             });
          }
 
          supply_increase += interest;
          modify(*a, [ & ](account_object &ao) {
               ao.balance.amount += interest;
-              ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
+              ao.holdings_considered_for_interests = ao.total_balance() * interest_blocks;
          });
          if( has_hardfork( SOPHIATX_HARDFORK_1_1 ) )
             adjust_proxied_witness_votes(*a, interest);
          if(interest > 0)
             push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
-         id += SOPHIATX_INTEREST_BLOCKS;
+         id += interest_blocks;
       }
 
       adjust_supply(asset(supply_increase, SOPHIATX_SYMBOL));
@@ -2302,9 +2303,16 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
 #ifndef PRIVATE_NET
-      if( head_block_num() >= SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY){
+      uint64_t switch_block;
+      if(has_hardfork(SOPHIATX_HARDFORK_1_1))
+         switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 * SOPHIATX_BLOCKS_PER_DAY;
+      else
+         switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY
+
+      if( head_block_num() >= switch_block ){
          dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
-      }
+      }else
+         dgp.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
 #endif
    } );
 
@@ -2472,7 +2480,10 @@ void database::create_vesting( const account_object& a, const asset& delta){
    {
         acnt.vesting_shares.amount += delta.amount;
 
-        acnt.update_considered_holding(delta.amount, head_block_num());
+        if(has_hardfork(SOPHIATX_HARDFORK_1_1))
+           acnt.update_considered_holding(delta.amount, head_block_num(), SOPHIATX_INTEREST_BLOCKS_HF_1_1);
+        else
+           acnt.update_considered_holding(delta.amount, head_block_num() );
         adjust_proxied_witness_votes(a, delta.amount);
 
    } );
@@ -2487,7 +2498,10 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
    {
         acnt.balance.amount += delta.amount;
 
-        acnt.update_considered_holding(delta.amount, head_block_num());
+        if(has_hardfork(SOPHIATX_HARDFORK_1_1))
+           acnt.update_considered_holding(delta.amount, head_block_num(), SOPHIATX_INTEREST_BLOCKS_HF_1_1);
+        else
+           acnt.update_considered_holding(delta.amount, head_block_num() );
         if( check_balance )
         {
            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient SOPHIATX funds" );
