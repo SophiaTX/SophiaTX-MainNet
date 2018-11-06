@@ -484,7 +484,6 @@ namespace sophiatx { namespace chain {
          void modify_reward_balance( const account_object& a, const asset& delta, bool check_balance );
 
          void recalculate_all_votes();
-         void recalculate_interest_data();
 
          std::unique_ptr< database_impl > _my;
 
