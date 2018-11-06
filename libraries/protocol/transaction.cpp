@@ -61,11 +61,11 @@ public:
 digest_type transaction::sig_digest( const chain_id_type& chain_id )const
 {
 #ifndef NDEBUG
-   raw_bytes s,t;
-   fc::raw::pack( s, chain_id );
-   fc::raw::pack( s, *this );
-   for(uint32_t i = 0; i<s.size; i++) std::cout<<std::hex << std::setfill('0') << std::setw(2) <<std::uppercase << (static_cast<int>(s.data[i])&0xFF);
-   std::cout <<"\n";
+//   raw_bytes s,t;
+//   fc::raw::pack( s, chain_id );
+//   fc::raw::pack( s, *this );
+//   for(uint32_t i = 0; i<s.size; i++) std::cout<<std::hex << std::setfill('0') << std::setw(2) <<std::uppercase << (static_cast<int>(s.data[i])&0xFF);
+//   std::cout <<"\n";
 #endif
    digest_type::encoder enc;
    fc::raw::pack( enc, chain_id );

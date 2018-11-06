@@ -54,10 +54,11 @@ share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, 
    return reward_from_coinbase + reward_from_fees;
 }
 
-void economic_model_object::record_block(uint32_t generated_block, share_type current_supply){
-   if(generated_block>=SOPHIATX_INTEREST_BLOCKS)
-      accumulated_supply -= historic_supply[generated_block%SOPHIATX_INTEREST_BLOCKS];
-   historic_supply[generated_block%SOPHIATX_INTEREST_BLOCKS] = current_supply;
+void economic_model_object::record_block(uint32_t generated_block, share_type current_supply, bool has_hf_1_1){
+   uint32_t interest_blocks = has_hf_1_1? SOPHIATX_INTEREST_BLOCKS_HF_1_1 : SOPHIATX_INTEREST_BLOCKS;
+   if( generated_block >= interest_blocks )
+      accumulated_supply -= historic_supply[ generated_block % interest_blocks ];
+   historic_supply[ generated_block % interest_blocks ] = current_supply;
    accumulated_supply+=current_supply;
    //TODO_SOPHIATX - check invariants here.
    //check that current_supply + all_pools = total supply. Already in database.cpp

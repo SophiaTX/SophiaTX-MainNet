@@ -1992,7 +1992,7 @@ void database::_apply_block( const signed_block& next_block )
    const auto& gpo = get_dynamic_global_properties();
 
    modify(econ, [&](economic_model_object& e){
-      e.record_block(next_block_num, gpo.current_supply.amount);
+      e.record_block(next_block_num, gpo.current_supply.amount, has_hardfork(SOPHIATX_HARDFORK_1_1));
    });
 
 }
@@ -2058,22 +2058,24 @@ void database::process_interests() {
       while( const account_object *a = find_account(id)) {
          share_type interest = 0;
 
-         if(head_block_num() > SOPHIATX_INTEREST_DELAY) {
+         if( head_block_num() > SOPHIATX_INTEREST_DELAY) {
             modify(econ, [ & ](economic_model_object &eo) {
-                 interest = eo.withdraw_interests(a->holdings_considered_for_interests,
-                                                  std::min(uint32_t(interest_blocks), head_block_num()));
+               interest = eo.withdraw_interests(a->holdings_considered_for_interests,
+                     std::min(uint32_t(interest_blocks), head_block_num()));
             });
          }
 
-         supply_increase += interest;
+         if( interest > 0 ) {
+            supply_increase += interest;
+            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
+            if( has_hardfork(SOPHIATX_HARDFORK_1_1))
+               adjust_proxied_witness_votes(*a, interest);
+         }
+
          modify(*a, [ & ](account_object &ao) {
               ao.balance.amount += interest;
               ao.holdings_considered_for_interests = ao.total_balance() * interest_blocks;
          });
-         if( has_hardfork( SOPHIATX_HARDFORK_1_1 ) )
-            adjust_proxied_witness_votes(*a, interest);
-         if(interest > 0)
-            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
          id += interest_blocks;
       }
 
@@ -2682,6 +2684,7 @@ void database::apply_hardfork( uint32_t hardfork )
    {
       case SOPHIATX_HARDFORK_1_1:
          recalculate_all_votes();
+         recalculate_interest_data();
          break;
       default:
          break;
@@ -2705,7 +2708,7 @@ void database::recalculate_all_votes(){
    const auto& witness_idx = get_index< witness_index >().indices();
    for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
       //clear all witness votes
-      elog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+      ilog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
       modify(*itr, [&](witness_object &wo){
          wo.votes = 0;
       });
@@ -2714,9 +2717,23 @@ void database::recalculate_all_votes(){
       adjust_proxied_witness_votes(*itr, itr->total_balance());
    }
    for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
-      elog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+      ilog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
    }
+}
 
+void database::recalculate_interest_data(){
+   const auto& account_idx = get_index< account_index >().indices().get<by_id>();
+   for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr ){
+      modify(*itr, [&](account_object &ao){
+         ao.holdings_considered_for_interests = 0;
+      });
+   }
+   modify(get_economic_model(), [&](economic_model_object& eo){
+      eo.accumulated_supply = 0;
+      for(uint32_t i =0; i < SOPHIATX_INTEREST_BLOCKS; i++){
+         eo.historic_supply[i] = 0;
+      }
+   });
 }
 
 /**
