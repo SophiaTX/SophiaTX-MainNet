@@ -45,7 +45,7 @@ public:
    share_type accumulated_supply;   //< sum of coin supplies over last $SOPHIATX_INTEREST_BLOCKS blocks
 
    void init_economics(share_type init_supply, share_type total_supply);
-   void record_block(uint32_t block, share_type current_supply, bool has_hf_1_1 = false);
+   void record_block(uint32_t block, share_type current_supply);
    share_type get_mining_reward(uint32_t block_number) const;
    share_type withdraw_mining_reward(uint32_t block_number, uint32_t nominator, uint32_t denominator);
    share_type withdraw_interests(share_type holding, uint32_t period);

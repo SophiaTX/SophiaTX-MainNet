@@ -1992,7 +1992,7 @@ void database::_apply_block( const signed_block& next_block )
    const auto& gpo = get_dynamic_global_properties();
 
    modify(econ, [&](economic_model_object& e){
-      e.record_block(next_block_num, gpo.current_supply.amount, has_hardfork(SOPHIATX_HARDFORK_1_1));
+      e.record_block(next_block_num, gpo.current_supply.amount);
    });
 
 }
@@ -2050,7 +2050,7 @@ struct process_header_visitor
 void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
-      uint32_t interest_blocks = has_hardfork(SOPHIATX_HARDFORK_1_1)? SOPHIATX_INTEREST_BLOCKS_HF_1_1 : SOPHIATX_INTEREST_BLOCKS;
+      uint32_t interest_blocks = SOPHIATX_INTEREST_BLOCKS;
       uint32_t batch = block_no % interest_blocks;
       const auto &econ = get_economic_model();
       share_type supply_increase = 0;
@@ -2481,11 +2481,7 @@ void database::create_vesting( const account_object& a, const asset& delta){
    modify( a, [&]( account_object& acnt )
    {
         acnt.vesting_shares.amount += delta.amount;
-
-        if(has_hardfork(SOPHIATX_HARDFORK_1_1))
-           acnt.update_considered_holding(delta.amount, head_block_num(), SOPHIATX_INTEREST_BLOCKS_HF_1_1);
-        else
-           acnt.update_considered_holding(delta.amount, head_block_num() );
+        acnt.update_considered_holding(delta.amount, head_block_num() );
    } );
    adjust_proxied_witness_votes(a, delta.amount);
 }
@@ -2498,11 +2494,7 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
    modify( a, [&]( account_object& acnt )
    {
         acnt.balance.amount += delta.amount;
-
-        if(has_hardfork(SOPHIATX_HARDFORK_1_1))
-           acnt.update_considered_holding(delta.amount, head_block_num(), SOPHIATX_INTEREST_BLOCKS_HF_1_1);
-        else
-           acnt.update_considered_holding(delta.amount, head_block_num() );
+        acnt.update_considered_holding(delta.amount, head_block_num() );
         if( check_balance )
         {
            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient SOPHIATX funds" );
@@ -2684,7 +2676,6 @@ void database::apply_hardfork( uint32_t hardfork )
    {
       case SOPHIATX_HARDFORK_1_1:
          recalculate_all_votes();
-         recalculate_interest_data();
          break;
       default:
          break;
@@ -2721,20 +2712,6 @@ void database::recalculate_all_votes(){
    }
 }
 
-void database::recalculate_interest_data(){
-   const auto& account_idx = get_index< account_index >().indices().get<by_id>();
-   for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr ){
-      modify(*itr, [&](account_object &ao){
-         ao.holdings_considered_for_interests = 0;
-      });
-   }
-   modify(get_economic_model(), [&](economic_model_object& eo){
-      eo.accumulated_supply = 0;
-      for(uint32_t i =0; i < SOPHIATX_INTEREST_BLOCKS; i++){
-         eo.historic_supply[i] = 0;
-      }
-   });
-}
 
 /**
  * Verifies all supply invariantes check out

@@ -54,8 +54,8 @@ share_type economic_model_object::withdraw_mining_reward(uint32_t block_number, 
    return reward_from_coinbase + reward_from_fees;
 }
 
-void economic_model_object::record_block(uint32_t generated_block, share_type current_supply, bool has_hf_1_1){
-   uint32_t interest_blocks = has_hf_1_1? SOPHIATX_INTEREST_BLOCKS_HF_1_1 : SOPHIATX_INTEREST_BLOCKS;
+void economic_model_object::record_block(uint32_t generated_block, share_type current_supply){
+   uint32_t interest_blocks = SOPHIATX_INTEREST_BLOCKS;
    if( generated_block >= interest_blocks )
       accumulated_supply -= historic_supply[ generated_block % interest_blocks ];
    historic_supply[ generated_block % interest_blocks ] = current_supply;
