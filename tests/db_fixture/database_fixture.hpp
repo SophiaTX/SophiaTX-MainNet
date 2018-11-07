@@ -21,7 +21,7 @@
 
 #define INITIAL_TEST_SUPPLY (SOPHIATX_INIT_SUPPLY)
 
-extern uint32_t ( SOPHIATX_TESTING_GENESIS_TIMESTAMP );
+extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
 
 #define PUSH_TX \
    sophiatx::chain::test::_push_transaction
