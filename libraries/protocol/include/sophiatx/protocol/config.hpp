@@ -10,6 +10,7 @@
 
 #ifdef IS_TEST_NET
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     1 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
@@ -17,7 +18,7 @@
 #define SOPHIATX_SECOND_CASHOUT_WINDOW           (60*60*24*3) /// 3 days
 #define SOPHIATX_MAX_CASHOUT_WINDOW_SECONDS      (60*60*24) /// 1 day
 
-#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE          0
+#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE          50000
 
 #define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 #define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
@@ -30,6 +31,7 @@
 #else // IS LIVE SOPHIATX NETWORK
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
 
@@ -112,7 +114,6 @@
 
 
 
-#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define SOPHIATX_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
 #define SOPHIATX_MAX_NAME_SEED_SIZE              32
