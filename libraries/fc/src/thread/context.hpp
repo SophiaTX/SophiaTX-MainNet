@@ -2,7 +2,16 @@
 #include <fc/thread/thread.hpp>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
+
+#define BOOST_COROUTINES_NO_DEPRECATION_WARNING // Boost 1.61
+#define BOOST_COROUTINE_NO_DEPRECATION_WARNING // Boost 1.62
+
+#if BOOST_VERSION >= 106800
+#include <boost/context/continuation_fcontext.hpp>
+#else
 #include <boost/context/all.hpp>
+#endif
+
 #pragma GCC diagnostic pop
 #include <fc/exception/exception.hpp>
 #include <vector>
