@@ -1,5 +1,5 @@
 #include <boost/test/unit_test.hpp>
-
+#include <iostream>
 #include <fc/crypto/rand.hpp>
 
 #include <cmath>
@@ -21,6 +21,7 @@ static void check_randomness( const char* buffer, size_t len ) {
     double E = 1 + (zc + oc) / 2.0;
     double variance = (E - 1) * (E - 2) / (oc + zc - 1);
     double sigma = sqrt(variance);
+    std::cout << "rc :"<< rc <<"; E: "<< E <<"; sigma: " <<sigma <<"\n";
     BOOST_CHECK( rc > E - sigma && rc < E + sigma);
 }
 
@@ -28,8 +29,9 @@ BOOST_AUTO_TEST_SUITE(fc_crypto)
 
 BOOST_AUTO_TEST_CASE(rand_test)
 {
-    char buffer[128];
+    char buffer[8192];
     fc::rand_bytes( buffer, sizeof(buffer) );
+    std::cout <<"\n";
     check_randomness( buffer, sizeof(buffer) );
 }
 

@@ -2,42 +2,10 @@
 
 #include <fstream>
 #include <iostream>
-#include <fc/compress/smaz.hpp>
 #include <fc/compress/zlib.hpp>
 #include <fc/exception/exception.hpp>
 
 BOOST_AUTO_TEST_SUITE(compress)
-
-BOOST_AUTO_TEST_CASE(smaz_test)
-{
-    std::ifstream testfile;
-    testfile.open("README.md");
-
-    std::stringstream buffer;
-    std::string line;
-    std::getline( testfile, line );
-    while( testfile.good() )
-    {
-        buffer << line << "\n";
-        try {
-            std::string compressed = fc::smaz_compress( line );
-            std::string decomp = fc::smaz_decompress( compressed );
-            BOOST_CHECK_EQUAL( decomp, line );
-        }
-        catch ( fc::exception& e )
-        {
-           std::cout<<e.to_detail_string()<<"\n";
-        }
-
-        std::getline( testfile, line );
-    }
-
-    line = buffer.str();
-    std::string compressed = fc::smaz_compress( line );
-    std::string decomp = fc::smaz_decompress( compressed );
-    BOOST_CHECK_EQUAL( decomp, line );
-}
-
 
 extern "C" {
 
