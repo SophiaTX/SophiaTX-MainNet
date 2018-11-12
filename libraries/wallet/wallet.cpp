@@ -35,7 +35,7 @@
 
 namespace sophiatx { namespace wallet {
 
-using sophiatx::plugins::condenser_api::legacy_asset;
+using namespace sophiatx::plugins;
 
 namespace detail {
 
@@ -464,7 +464,7 @@ public:
       //first, get the correct chain_id
       if(sophiatx_chain_id == fc::sha256())
       {
-         auto v = _remote_api->get_version();
+         auto v = _remote_api->get_version( {} ).version_info;
          sophiatx_chain_id = fc::sha256(v.chain_id);
       }
 
@@ -599,7 +599,7 @@ public:
          }
       }
 
-      auto dyn_props = _remote_api->get_dynamic_global_properties();
+      auto dyn_props = _remote_api->get_dynamic_global_properties( {} ).properties;
       tx.set_reference_block( dyn_props.head_block_id );
       tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
       tx.signatures.clear();
@@ -668,20 +668,20 @@ public:
       m["list_my_accounts"] = [](variant result, const fc::variants& a ) {
          std::stringstream out;
 
-         auto accounts = result.as<vector<condenser_api::api_account_object>>();
+         auto accounts = result.as<vector<alexandria_api::api_account_object>>();
          asset total_sophiatx;
          asset total_vest(0, VESTS_SYMBOL );
          for( const auto& a : accounts ) {
-            total_sophiatx += a.balance.to_asset();
-            total_vest  += a.vesting_shares.to_asset();
+            total_sophiatx += a.balance;
+            total_vest  += a.vesting_shares;
             out << std::left << std::setw( 17 ) << std::string(a.name)
                 << std::right << std::setw(18) << fc::variant(a.balance).as_string() <<" "
                 << std::right << std::setw(26) << fc::variant(a.vesting_shares).as_string() <<" \n";
          }
          out << "-------------------------------------------------------------------------\n";
             out << std::left << std::setw( 17 ) << "TOTAL"
-                << std::right << std::setw(18) << legacy_asset::from_asset(total_sophiatx).to_string() <<" "
-                << std::right << std::setw(26) << legacy_asset::from_asset(total_vest).to_string() <<" \n";
+                << std::right << std::setw(18) << total_sophiatx.to_string() <<" "
+                << std::right << std::setw(26) << total_vest.to_string() <<" \n";
          return out.str();
       };
       m["get_account_history"] = []( variant result, const fc::variants& a ) {
@@ -712,7 +712,7 @@ public:
 
    string                                  _wallet_filename;
    wallet_data                             _wallet;
-   sophiatx::protocol::chain_id_type          sophiatx_chain_id;
+   sophiatx::protocol::chain_id_type        sophiatx_chain_id;
 
    map<public_key_type,string>             _keys;
    fc::sha512                              _checksum;
@@ -775,8 +775,7 @@ vector< alexandria_api::api_account_object > wallet_api::list_my_accounts()
    for( const auto& item : my->_keys )
       pub_keys.push_back(item.first);
 
-   // TODO: not in alexandria
-   auto refs = my->_remote_api->get_key_references( pub_keys );
+   auto refs = my->_remote_api->get_key_references( { pub_keys } ).accounts;
    set<string> names;
    for( const auto& item : refs )
       for( const auto& name : item )
