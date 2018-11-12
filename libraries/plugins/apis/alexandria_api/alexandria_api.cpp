@@ -69,6 +69,10 @@ void alexandria_api::init() {
    }
 }
 
+DEFINE_LOCKLESS_APIS( alexandria_api,
+      (get_version)
+      (broadcast_transaction)
+)
 
 DEFINE_READ_APIS(alexandria_api,
       (info)
@@ -78,6 +82,7 @@ DEFINE_READ_APIS(alexandria_api,
 		(get_feed_history)
 		(get_active_witnesses)
 		(get_account)
+		(get_accounts)
 		(get_transaction)
 		(create_account)
 		(update_account)
@@ -103,7 +108,7 @@ DEFINE_READ_APIS(alexandria_api,
 		(get_application_buyings)
 		(make_custom_json_operation)
 		(make_custom_binary_operation)
-		(broadcast_transaction)
+		//(broadcast_transaction)
 		(create_transaction)
 		(create_simple_transaction)
 		(get_applications)
@@ -140,6 +145,8 @@ DEFINE_READ_APIS(alexandria_api,
 		(fiat_to_sphtx)
 		(custom_object_subscription)
 		(sponsor_account_fees)
+		(get_key_references)
+		(get_dynamic_global_properties)
 )
 
 } } } // sophiatx::plugins::alexandria_api
