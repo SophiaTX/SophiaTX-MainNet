@@ -67,7 +67,7 @@ variant websocket_api_connection::send_call(
    request req;
    // Call arguments are forwarded as json object {"par1_name":par1_value, ...}
    if (args_as_object == true) {
-      FC_ASSERT(args.size() == 1 && args[0].is_object(), "Call arguments 1 parameter, which is formatted as object");
+      FC_ASSERT(args.size() == 1 && args[0].is_object(), "There must be only 1 call argument, which is formatted as object");
       req = _rpc_state.start_remote_call(  "call", {api_id, std::move(method_name), std::move(args[0]) } );
    }
       // Call arguments are forwarded as general vector [par1, par2, ...]
@@ -90,7 +90,7 @@ variant websocket_api_connection::send_call(
    request req;
    // Call arguments are forwarded as json object {"par1_name":par1_value, ...}
    if (args_as_object == true) {
-      FC_ASSERT(args.size() == 1 && args[0].is_object(), "Call arguments 1 parameter, which is formatted as object");
+      FC_ASSERT(args.size() == 1 && args[0].is_object(), "There must be only 1 call argument, which is formatted as object");
       req = _rpc_state.start_remote_call(  "call", {std::move(api_name), std::move(method_name), std::move(args[0]) } );
    }
    // Call arguments are forwarded as general vector [par1, par2, ...]
