@@ -82,47 +82,18 @@ void alexandria_api_impl::set_subscribe_api(const shared_ptr<subscribe::subscrib
    _subscribe_api = subscribe_api;
 }
 
-const chain_id_type &alexandria_api_impl::get_chain_id() const {
+const chain_id_type &alexandria_api_impl::get_chain_id() {
+   if(_chain_id == fc::sha256())
+   {
+      checkApiEnabled(_database_api);
+      set_chain_id(_database_api->get_dynamic_global_properties({}).chain_id);
+   }
+
    return _chain_id;
 }
 
 void alexandria_api_impl::set_chain_id(const chain_id_type & chain_id) {
    _chain_id = chain_id;
-}
-
-std::vector<extended_account> alexandria_api_impl::get_accounts(const std::vector<account_name_type>& account_names) {
-   const auto& idx  = _db.get_index< chain::account_index >().indices().get< chain::by_name >();
-   const auto& vidx = _db.get_index< chain::witness_vote_index >().indices().get< chain::by_account_witness >();
-   vector< extended_account > results;
-   results.reserve(account_names.size());
-
-   for( const auto& name: account_names )
-   {
-      auto itr = idx.find( name );
-      if ( itr != idx.end() )
-      {
-         results.emplace_back( extended_account( database_api::api_account_object( *itr, _db ) ) );
-
-         auto vitr = vidx.lower_bound( boost::make_tuple( itr->name, account_name_type() ) );
-         while( vitr != vidx.end() && vitr->account == itr->name ) {
-            results.back().witness_votes.insert( _db.get< chain::witness_object, chain::by_name >( vitr->witness ).owner );
-            ++vitr;
-         }
-      }
-   }
-
-   return results;
-}
-
-extended_dynamic_global_properties alexandria_api_impl::get_dynamic_global_properties() {
-   checkApiEnabled(_database_api);
-   checkApiEnabled(_witness_api);
-
-   extended_dynamic_global_properties props = _database_api->get_dynamic_global_properties( {} );
-   auto reserve_ratio = _witness_api->get_reserve_ratio( {} );
-   props.average_block_size = reserve_ratio.average_block_size;
-
-   return props;
 }
 
 /************************************************/
@@ -177,7 +148,7 @@ DEFINE_API_IMPL(alexandria_api_impl, info)
 {
    checkApiEnabled(_database_api);
 
-   auto dynamic_props = get_dynamic_global_properties();
+   auto dynamic_props = get_dynamic_global_properties( {} ).properties;
    fc::mutable_variant_object info_data(fc::variant(dynamic_props).get_object());
 
    info_data["witness_majority_version"] = fc::string( _database_api->get_witness_schedule( {} ).majority_version );
@@ -234,15 +205,12 @@ DEFINE_API_IMPL(alexandria_api_impl, about)
 
    try
    {
-      about_data["server_blockchain_version"] = fc::string( SOPHIATX_BLOCKCHAIN_VERSION );
-      about_data["server_sophiatx_revision"] = fc::string( sophiatx::utilities::git_revision_sha );
-      about_data["server_fc_revision"] = fc::string( fc::git_revision_sha );
-      if(get_chain_id() == fc::sha256())
-      {
-         checkApiEnabled(_database_api);
-         set_chain_id(_database_api->get_dynamic_global_properties({}).chain_id);
-      }
-      about_data["chain_id"] = fc::string( get_chain_id() );
+      get_version_info info = get_version({}).version_info;
+
+      about_data["server_blockchain_version"] = info.blockchain_version;
+      about_data["server_sophiatx_revision"] = info.sophiatx_revision;
+      about_data["server_fc_revision"] = info.fc_revision;
+      about_data["chain_id"] = info.chain_id;
    }
    catch( fc::exception& )
    {
@@ -372,7 +340,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_owner_history)
 
 DEFINE_API_IMPL(alexandria_api_impl, update_account)
 {
-   auto accounts = this->get_accounts( { args.account_name } );
+   auto accounts = get_accounts( { { args.account_name } } ).accounts;
    FC_ASSERT( !accounts.empty(), "Account does not exist" );
 
    update_account_return result;
@@ -390,7 +358,7 @@ DEFINE_API_IMPL(alexandria_api_impl, update_account)
 
 DEFINE_API_IMPL(alexandria_api_impl, update_account_auth)
 {
-   auto accounts = this->get_accounts( { args.account_name } );
+   auto accounts = get_accounts( { { args.account_name } } ).accounts;
    FC_ASSERT( !accounts.empty(), "Account does not exist" );
 
    update_account_auth_return result;
@@ -532,7 +500,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_transaction) {
 DEFINE_API_IMPL(alexandria_api_impl, get_account)
 {
    string decoded_name = make_random_fixed_string(args.account_name);
-   auto accounts = this->get_accounts( { args.account_name, decoded_name } );
+   auto accounts = get_accounts( { { args.account_name, decoded_name } } ).accounts;
    FC_ASSERT( !accounts.empty(), "Unknown account" );
 
    std::vector<api_account_object>  accounts_ret(std::make_move_iterator(accounts.begin()),
@@ -543,6 +511,33 @@ DEFINE_API_IMPL(alexandria_api_impl, get_account)
 
    return result;
 
+}
+
+DEFINE_API_IMPL(alexandria_api_impl, get_accounts) {
+   const auto& idx  = _db.get_index< chain::account_index >().indices().get< chain::by_name >();
+   const auto& vidx = _db.get_index< chain::witness_vote_index >().indices().get< chain::by_account_witness >();
+   vector< extended_account > accounts;
+   accounts.reserve(args.account_names.size());
+
+   for( const auto& name: args.account_names )
+   {
+      auto itr = idx.find( name );
+      if ( itr != idx.end() )
+      {
+         accounts.emplace_back( extended_account( database_api::api_account_object( *itr, _db ) ) );
+
+         auto vitr = vidx.lower_bound( boost::make_tuple( itr->name, account_name_type() ) );
+         while( vitr != vidx.end() && vitr->account == itr->name ) {
+            accounts.back().witness_votes.insert( _db.get< chain::witness_object, chain::by_name >( vitr->witness ).owner );
+            ++vitr;
+         }
+      }
+   }
+
+   get_accounts_return result;
+   result.accounts = accounts;
+
+   return result;
 }
 
 DEFINE_API_IMPL(alexandria_api_impl, delete_application)
@@ -773,7 +768,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
       tx.operations.push_back(op);
    }
 
-   auto dyn_props = get_dynamic_global_properties();
+   auto dyn_props = get_dynamic_global_properties( {} ).properties;
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -807,7 +802,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_transaction)
    op.visit(op_v);
    tx.operations.push_back(op);
 
-   auto dyn_props = get_dynamic_global_properties();
+   auto dyn_props = get_dynamic_global_properties( {} ).properties;
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -879,12 +874,6 @@ DEFINE_API_IMPL(alexandria_api_impl, get_applications_by_ids)
 
 DEFINE_API_IMPL(alexandria_api_impl, get_transaction_digest)
 {
-   if(get_chain_id() == fc::sha256())
-   {
-      checkApiEnabled(_database_api);
-      set_chain_id(_database_api->get_dynamic_global_properties({}).chain_id);
-   }
-
    get_transaction_digest_return result;
    result.tx_digest = args.tx.sig_digest(get_chain_id());
 
@@ -1079,14 +1068,13 @@ DEFINE_API_IMPL(alexandria_api_impl, decrypt_data)
 DEFINE_API_IMPL(alexandria_api_impl, account_exist) 
 {
    std::string decoded_name = make_random_fixed_string(args.account_name);
-   auto accounts = get_accounts( { args.account_name, decoded_name } );
+   auto accounts = get_accounts( { { args.account_name, decoded_name } } ).accounts;
 
    account_exist_return result;
    result.account_exist = accounts.empty() ? false : true;
    
    return result;
 }
-
 
 DEFINE_API_IMPL(alexandria_api_impl, get_active_authority)
 {
@@ -1315,7 +1303,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_required_signatures)
               req_owner_approvals.begin() , req_owner_approvals.end(),
               std::back_inserter( v_approving_account_names ) );
 
-   auto approving_account_objects = get_accounts( v_approving_account_names );
+   auto approving_account_objects = get_accounts( { v_approving_account_names } ).accounts;
 
    FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
 
@@ -1393,6 +1381,45 @@ DEFINE_API_IMPL(alexandria_api_impl, sponsor_account_fees)
    op.is_sponsoring = args.is_sponsoring;
 
    result.op = std::move(op);
+   return result;
+}
+
+DEFINE_API_IMPL(alexandria_api_impl, get_version)
+{
+   get_version_return result;
+   result.version_info = get_version_info (
+      fc::string( SOPHIATX_BLOCKCHAIN_VERSION ),
+      fc::string( sophiatx::utilities::git_revision_sha ),
+      fc::string( fc::git_revision_sha ),
+      fc::string( get_chain_id()  )
+      );
+
+   return result;
+}
+
+DEFINE_API_IMPL(alexandria_api_impl, get_dynamic_global_properties)
+{
+   checkApiEnabled(_database_api);
+   checkApiEnabled(_witness_api);
+
+   extended_dynamic_global_properties props = _database_api->get_dynamic_global_properties( {} );
+   auto reserve_ratio = _witness_api->get_reserve_ratio( {} );
+   props.average_block_size = reserve_ratio.average_block_size;
+
+
+   get_dynamic_global_properties_return result;
+   result.properties = std::move(props);
+
+   return result;
+}
+
+DEFINE_API_IMPL(alexandria_api_impl, get_key_references)
+{
+   checkApiEnabled(_account_by_key_api);
+
+   get_key_references_return result;
+   result.accounts = _account_by_key_api->get_key_references( { args.keys } ).accounts;
+
    return result;
 }
 

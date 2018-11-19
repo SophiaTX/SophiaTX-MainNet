@@ -35,7 +35,7 @@
 
 namespace sophiatx { namespace wallet {
 
-using sophiatx::plugins::condenser_api::legacy_asset;
+using namespace sophiatx::plugins;
 
 namespace detail {
 
@@ -255,80 +255,6 @@ public:
       return _checksum == fc::sha512();
    }
 
-   variant info() const
-   {
-      auto dynamic_props = _remote_api->get_dynamic_global_properties();
-      fc::mutable_variant_object result(fc::variant(dynamic_props).get_object());
-      result["witness_majority_version"] = fc::string( _remote_api->get_witness_schedule().majority_version );
-      result["hardfork_version"] = fc::string( _remote_api->get_hardfork_version() );
-      //result["head_block_id"] = dynamic_props.head_block_id;
-      result["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
-                                                                          time_point_sec(time_point::now()),
-                                                                          " old");
-      result["participation"] = (100*dynamic_props.recent_slots_filled.popcount()) / 128.0;
-      result["median_sbd1_price"] = _remote_api->get_current_median_history_price(SBD1_SYMBOL);
-      result["median_sbd2_price"] = _remote_api->get_current_median_history_price(SBD2_SYMBOL);
-      result["median_sbd3_price"] = _remote_api->get_current_median_history_price(SBD3_SYMBOL);
-      result["median_sbd4_price"] = _remote_api->get_current_median_history_price(SBD4_SYMBOL);
-      result["median_sbd5_price"] = _remote_api->get_current_median_history_price(SBD5_SYMBOL);
-
-      result["account_creation_fee"] = _remote_api->get_chain_properties().account_creation_fee;
-      return result;
-   }
-
-   variant_object about() const
-   {
-      string client_version( sophiatx::utilities::git_revision_description );
-      const size_t pos = client_version.find( '/' );
-      if( pos != string::npos && client_version.size() > pos )
-         client_version = client_version.substr( pos + 1 );
-
-      fc::mutable_variant_object result;
-      result["blockchain_version"]       = SOPHIATX_BLOCKCHAIN_VERSION;
-      result["client_version"]           = client_version;
-      result["sophiatx_revision"]           = sophiatx::utilities::git_revision_sha;
-      result["sophiatx_revision_age"]       = fc::get_approximate_relative_time_string( fc::time_point_sec( sophiatx::utilities::git_revision_unix_timestamp ) );
-      result["fc_revision"]              = fc::git_revision_sha;
-      result["fc_revision_age"]          = fc::get_approximate_relative_time_string( fc::time_point_sec( fc::git_revision_unix_timestamp ) );
-      result["compile_date"]             = "compiled on " __DATE__ " at " __TIME__;
-      result["boost_version"]            = boost::replace_all_copy(std::string(BOOST_LIB_VERSION), "_", ".");
-      result["openssl_version"]          = OPENSSL_VERSION_TEXT;
-
-      std::string bitness = boost::lexical_cast<std::string>(8 * sizeof(int*)) + "-bit";
-#if defined(__APPLE__)
-      std::string os = "osx";
-#elif defined(__linux__)
-      std::string os = "linux";
-#elif defined(_MSC_VER)
-      std::string os = "win32";
-#else
-      std::string os = "other";
-#endif
-      result["build"] = os + " " + bitness;
-
-      try
-      {
-         auto v = _remote_api->get_version();
-         result["server_blockchain_version"] = v.blockchain_version;
-         result["server_sophiatx_revision"] = v.sophiatx_revision;
-         result["server_fc_revision"] = v.fc_revision;
-      }
-      catch( fc::exception& )
-      {
-         result["server"] = "could not retrieve server version information";
-      }
-
-      return result;
-   }
-
-   vector<condenser_api::api_account_object> get_account( string account_name_or_seed ) const
-   {
-      auto accounts = _remote_api->get_accounts( { account_name_or_seed, get_account_name_from_seed(account_name_or_seed) } );
-      FC_ASSERT( !accounts.empty(), "Unknown account" );
-      std::vector<condenser_api::api_account_object>  accounts_ret(std::make_move_iterator(accounts.begin()),
-                                                                   std::make_move_iterator(accounts.end()));
-      return accounts_ret;
-   }
 
    string get_account_name_from_seed(string seed) const{
       return make_random_fixed_string(seed);
@@ -352,7 +278,7 @@ public:
    }
 
 
-   fc::ecc::private_key get_private_key_for_account(const condenser_api::api_account_object& account)const
+   fc::ecc::private_key get_private_key_for_account(const alexandria_api::api_account_object& account)const
    {
       vector<public_key_type> active_keys = account.active.get_keys();
       if (active_keys.size() != 1)
@@ -464,33 +390,33 @@ public:
       }
    }
 
-   signed_transaction create_account_with_private_key(fc::ecc::private_key owner_privkey,
-                                                      string account_name,
-                                                      string creator_account_name,
-                                                      bool broadcast = false,
-                                                      bool save_wallet = true)
+   signed_transaction create_account_with_private_key(
+         fc::ecc::private_key owner_privkey,
+         string account_name,
+         string creator_account_name,
+         bool broadcast = false,
+         bool save_wallet = true)
    { try {
          int active_key_index = find_first_unused_derived_key_index(owner_privkey);
          fc::ecc::private_key active_privkey = derive_private_key( key_to_wif(owner_privkey), active_key_index);
 
          int memo_key_index = find_first_unused_derived_key_index(active_privkey);
          fc::ecc::private_key memo_privkey = derive_private_key( key_to_wif(active_privkey), memo_key_index);
-
          sophiatx::chain::public_key_type owner_pubkey = owner_privkey.get_public_key();
          sophiatx::chain::public_key_type active_pubkey = active_privkey.get_public_key();
          sophiatx::chain::public_key_type memo_pubkey = memo_privkey.get_public_key();
 
-         account_create_operation account_create_op;
 
-         account_create_op.creator = creator_account_name;
-         account_create_op.name_seed = account_name;
-//         account_create_op.fee = _remote_api->get_chain_properties().account_creation_fee;
-         account_create_op.owner = authority(1, owner_pubkey, 1);
-         account_create_op.active = authority(1, active_pubkey, 1);
-         account_create_op.memo_key = memo_pubkey;
+         alexandria_api::create_account_args args;
+         args.creator = creator_account_name;
+         args.name_seed = account_name;
+         args.owner = owner_pubkey;
+         args.active = active_pubkey;
+         args.memo = memo_pubkey;
+
+         operation account_create_op = _remote_api->create_account( std::move(args) ).op;
 
          signed_transaction tx;
-
          tx.operations.push_back( account_create_op );
          tx.validate();
 
@@ -498,8 +424,9 @@ public:
             save_wallet_file();
          if( broadcast )
          {
-            //_remote_api->broadcast_transaction( tx );
-            auto result = _remote_api->broadcast_transaction_synchronous( tx );
+            alexandria_api::broadcast_transaction_args bt_args;
+            bt_args.tx = tx;
+            auto result = _remote_api->broadcast_transaction( std::move(bt_args) );
             FC_UNUSED(result);
          }
          return tx;
@@ -518,9 +445,12 @@ public:
       return sign_transaction( tx, broadcast );
    } FC_CAPTURE_AND_RETHROW( (account_to_modify)(proxy)(broadcast) ) }
 
-   optional< condenser_api::api_witness_object > get_witness( string owner_account )
+   alexandria_api::get_witness_return get_witness( string owner_account )
    {
-      return _remote_api->get_witness_by_account( owner_account );
+      alexandria_api::get_witness_args args;
+      args.owner_account = owner_account;
+
+      return _remote_api->get_witness( std::move(args) );
    }
 
    void set_transaction_expiration( uint32_t tx_expiration_seconds )
@@ -534,11 +464,11 @@ public:
       //first, get the correct chain_id
       if(sophiatx_chain_id == fc::sha256())
       {
-         auto v = _remote_api->get_version();
+         auto v = _remote_api->get_version( {} ).version_info;
          sophiatx_chain_id = fc::sha256(v.chain_id);
       }
 
-      //set fees first
+      //set fees firstlist_witnesses
       class op_visitor{
       public:
          op_visitor(){};
@@ -570,7 +500,7 @@ public:
       vector<account_name_type> v_accs;
       for(const auto& a: req_active_approvals)
          v_accs.push_back(a);
-      auto req_active_objects = _remote_api->get_accounts(v_accs);
+      auto req_active_objects = _remote_api->get_accounts( { v_accs } ).accounts;
       for(const auto& o: req_active_objects) {
          for( const auto a: o.active.account_auths )
             req_active_approvals.insert(a.first);
@@ -581,7 +511,7 @@ public:
       v_accs.clear();
       for(const auto& a: req_owner_approvals)
          v_accs.push_back(a);
-      auto req_owner_objects = _remote_api->get_accounts(v_accs);
+      auto req_owner_objects = _remote_api->get_accounts( { v_accs } ).accounts;
       for(const auto& o: req_owner_objects) {
          for( const auto a: o.owner.account_auths )
             req_owner_approvals.insert(a.first);
@@ -597,15 +527,15 @@ public:
 
       /// TODO: fetch the accounts specified via other_auths as well.
 
-      auto approving_account_objects = _remote_api->get_accounts( v_approving_account_names );
+      auto approving_account_objects = _remote_api->get_accounts( { v_approving_account_names } ).accounts;
       elog("Approving accounts: ${a}", ("a", v_approving_account_names));
 
 
       FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
 
-      flat_map< string, condenser_api::api_account_object > approving_account_lut;
+      flat_map< string, alexandria_api::api_account_object > approving_account_lut;
       size_t i = 0;
-      for( const optional< condenser_api::api_account_object >& approving_acct : approving_account_objects )
+      for( const optional< alexandria_api::api_account_object >& approving_acct : approving_account_objects )
       {
          if( !approving_acct.valid() )
          {
@@ -617,7 +547,7 @@ public:
          approving_account_lut[ approving_acct->name ] =  *approving_acct;
          i++;
       }
-      auto get_account_from_lut = [&]( const std::string& name ) -> const condenser_api::api_account_object&
+      auto get_account_from_lut = [&]( const std::string& name ) -> const alexandria_api::api_account_object&
       {
          auto it = approving_account_lut.find( name );
          FC_ASSERT( it != approving_account_lut.end() );
@@ -630,7 +560,7 @@ public:
          const auto it = approving_account_lut.find( acct_name );
          if( it == approving_account_lut.end() )
             continue;
-         const condenser_api::api_account_object& acct = it->second;
+         const alexandria_api::api_account_object& acct = it->second;
          vector<public_key_type> v_approving_keys = acct.active.get_keys();
          for( const public_key_type& approving_key : v_approving_keys )
          {
@@ -652,7 +582,7 @@ public:
          const auto it = approving_account_lut.find( acct_name );
          if( it == approving_account_lut.end() )
             continue;
-         const condenser_api::api_account_object& acct = it->second;
+         const alexandria_api::api_account_object& acct = it->second;
          vector<public_key_type> v_approving_keys = acct.owner.get_keys();
          for( const public_key_type& approving_key : v_approving_keys )
          {
@@ -669,7 +599,7 @@ public:
          }
       }
 
-      auto dyn_props = _remote_api->get_dynamic_global_properties();
+      auto dyn_props = _remote_api->get_dynamic_global_properties( {} ).properties;
       tx.set_reference_block( dyn_props.head_block_id );
       tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
       tx.signatures.clear();
@@ -709,11 +639,9 @@ public:
       elog("Transaction digest is: ${d}", ("d", tx.sig_digest(sophiatx_chain_id)));
       if( broadcast ) {
          try {
-            auto result = _remote_api->broadcast_transaction_synchronous( tx );
-            annotated_signed_transaction rtrx(tx);
-            rtrx.block_num = result.block_num;
-            rtrx.transaction_num = result.trx_num;
-            return rtrx;
+            alexandria_api::broadcast_transaction_args bt_args;
+            bt_args.tx = tx;
+            return _remote_api->broadcast_transaction( std::move(bt_args) ).tx;
          }
          catch (const fc::exception& e)
          {
@@ -740,20 +668,20 @@ public:
       m["list_my_accounts"] = [](variant result, const fc::variants& a ) {
          std::stringstream out;
 
-         auto accounts = result.as<vector<condenser_api::api_account_object>>();
+         auto accounts = result.as<vector<alexandria_api::api_account_object>>();
          asset total_sophiatx;
          asset total_vest(0, VESTS_SYMBOL );
          for( const auto& a : accounts ) {
-            total_sophiatx += a.balance.to_asset();
-            total_vest  += a.vesting_shares.to_asset();
+            total_sophiatx += a.balance;
+            total_vest  += a.vesting_shares;
             out << std::left << std::setw( 17 ) << std::string(a.name)
                 << std::right << std::setw(18) << fc::variant(a.balance).as_string() <<" "
                 << std::right << std::setw(26) << fc::variant(a.vesting_shares).as_string() <<" \n";
          }
          out << "-------------------------------------------------------------------------\n";
             out << std::left << std::setw( 17 ) << "TOTAL"
-                << std::right << std::setw(18) << legacy_asset::from_asset(total_sophiatx).to_string() <<" "
-                << std::right << std::setw(26) << legacy_asset::from_asset(total_vest).to_string() <<" \n";
+                << std::right << std::setw(18) << total_sophiatx.to_string() <<" "
+                << std::right << std::setw(26) << total_vest.to_string() <<" \n";
          return out.str();
       };
       m["get_account_history"] = []( variant result, const fc::variants& a ) {
@@ -784,7 +712,7 @@ public:
 
    string                                  _wallet_filename;
    wallet_data                             _wallet;
-   sophiatx::protocol::chain_id_type          sophiatx_chain_id;
+   sophiatx::protocol::chain_id_type        sophiatx_chain_id;
 
    map<public_key_type,string>             _keys;
    fc::sha512                              _checksum;
@@ -818,20 +746,28 @@ bool wallet_api::copy_wallet_file(string destination_filename)
    return my->copy_wallet_file(destination_filename);
 }
 
+
 optional< database_api::api_signed_block_object > wallet_api::get_block(uint32_t num)
 {
-   return my->_remote_api->get_block( num );
+   alexandria_api::get_block_args args;
+   args.num = num;
+
+   return my->_remote_api->get_block( std::move(args) ).block;
 }
 
-vector< condenser_api::api_operation_object > wallet_api::get_ops_in_block(uint32_t block_num, bool only_virtual)
+vector< alexandria_api::api_operation_object > wallet_api::get_ops_in_block(uint32_t block_num, bool only_virtual)
 {
-   return my->_remote_api->get_ops_in_block( block_num, only_virtual );
+   alexandria_api::get_ops_in_block_args args;
+   args.block_num = block_num;
+   args.only_virtual = only_virtual;
+
+   return my->_remote_api->get_ops_in_block( std::move(args) ).ops_in_block;
 }
 
-vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
+vector< alexandria_api::api_account_object > wallet_api::list_my_accounts()
 {
    FC_ASSERT( !is_locked(), "Wallet must be unlocked to list accounts" );
-   vector<condenser_api::api_account_object> result;
+   vector<alexandria_api::api_account_object> result;
 
    vector<public_key_type> pub_keys;
    pub_keys.reserve( my->_keys.size() );
@@ -839,7 +775,7 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
    for( const auto& item : my->_keys )
       pub_keys.push_back(item.first);
 
-   auto refs = my->_remote_api->get_key_references( pub_keys );
+   auto refs = my->_remote_api->get_key_references( { pub_keys } ).accounts;
    set<string> names;
    for( const auto& item : refs )
       for( const auto& name : item )
@@ -849,7 +785,7 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
    result.reserve( names.size() );
    for( const auto& name : names )
    {
-      auto accounts =  get_account( name );
+      auto accounts = get_account( name );
       if(accounts.size() == 1) {
          result.emplace_back( accounts.front());
       } else {
@@ -865,8 +801,8 @@ vector< condenser_api::api_account_object > wallet_api::list_my_accounts()
 }
 
 
-vector< account_name_type > wallet_api::get_active_witnesses()const {
-   return my->_remote_api->get_active_witnesses();
+vector< account_name_type >  wallet_api::get_active_witnesses()const {
+   return my->_remote_api->get_active_witnesses(json_rpc::void_type()).active_witnesses;
 }
 
 brain_key_info wallet_api::suggest_brain_key()const
@@ -906,9 +842,12 @@ string wallet_api::get_wallet_filename() const
 }
 
 
-vector<condenser_api::api_account_object> wallet_api::get_account( string account_name ) const
+vector<alexandria_api::api_account_object> wallet_api::get_account( string account_name ) const
 {
-   return my->get_account( account_name );
+   alexandria_api::get_account_args args;
+   args.account_name = account_name;
+
+   return my->_remote_api->get_account( std::move(args) ).account;
 }
 
 bool wallet_api::import_key(string wif_key)
@@ -935,14 +874,14 @@ string wallet_api::normalize_brain_key(string s) const
    return detail::normalize_brain_key( s );
 }
 
-variant wallet_api::info()
+variant wallet_api::info() const
 {
-   return my->info();
+   return  my->_remote_api->info(json_rpc::void_type()).info;
 }
 
 variant_object wallet_api::about() const
 {
-    return my->about();
+   return  my->_remote_api->about(json_rpc::void_type()).about;
 }
 
 /*
@@ -954,12 +893,16 @@ fc::ecc::private_key wallet_api::derive_private_key(const std::string& prefix_st
 
 vector< account_name_type > wallet_api::list_witnesses(const string& lowerbound, uint32_t limit)
 {
-   return my->_remote_api->lookup_witness_accounts( lowerbound, limit );
+   alexandria_api::list_witnesses_args args;
+   args.start = lowerbound;
+   args.limit = limit;
+
+   return my->_remote_api->list_witnesses( std::move(args) ).witnesses;
 }
 
-optional< condenser_api::api_witness_object > wallet_api::get_witness(string owner_account)
+optional< alexandria_api::api_witness_object > wallet_api::get_witness(string owner_account)
 {
-   return my->get_witness(owner_account);
+   return my->get_witness(owner_account).witness;
 }
 
 annotated_signed_transaction wallet_api::set_voting_proxy(string account_to_modify, string voting_account, bool broadcast /* = false */)
@@ -1086,8 +1029,11 @@ pair<public_key_type,string> wallet_api::get_private_key_from_password( string a
    return std::make_pair( public_key_type( priv.get_public_key() ), key_to_wif( priv ) );
 }
 
-condenser_api::api_feed_history_object wallet_api::get_feed_history(asset_symbol_type symbol)const {
-   return my->_remote_api->get_feed_history(symbol);
+alexandria_api::api_feed_history_object wallet_api::get_feed_history( std::string symbol )const {
+   alexandria_api::get_feed_history_args args;
+   args.symbol = symbol;
+
+   return my->_remote_api->get_feed_history(std::move(args)).feed_history;
 }
 
 /**
@@ -1104,17 +1050,19 @@ annotated_signed_transaction wallet_api::create_account_with_keys( string creato
                                       bool broadcast )const
 { try {
    FC_ASSERT( !is_locked() );
-   account_create_operation op;
-   op.creator = creator;
-   op.name_seed = name_seed;
-   op.owner = authority( 1, owner, 1 );
-   op.active = authority( 1, active, 1 );
-   op.memo_key = memo;
-   op.json_metadata = json_meta;
-   op.fee = my->_remote_api->get_chain_properties().account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
+
+   alexandria_api::create_account_args args;
+   args.creator = creator;
+   args.name_seed = name_seed;
+   args.owner = owner;
+   args.active = active;
+   args.memo = memo;
+   args.json_meta = json_meta;
+
+   operation account_create_op = my->_remote_api->create_account( std::move(args) ).op;
 
    signed_transaction tx;
-   tx.operations.push_back(op);
+   tx.operations.push_back(account_create_op);
    tx.validate();
 
    return my->sign_transaction( tx, broadcast );
@@ -1166,7 +1114,10 @@ annotated_signed_transaction wallet_api::change_recovery_account( string owner, 
 
 vector< database_api::api_owner_authority_history_object > wallet_api::get_owner_history( string account )const
 {
-   return my->_remote_api->get_owner_history( account );
+   alexandria_api::get_owner_history_args args;
+   args.account = account;
+
+   return my->_remote_api->get_owner_history( std::move(args) ).owner_history;
 }
 
 annotated_signed_transaction wallet_api::update_account(
@@ -1201,7 +1152,11 @@ annotated_signed_transaction wallet_api::update_account_auth_key( string account
 {
    FC_ASSERT( !is_locked() );
 
-   auto accounts = my->_remote_api->get_accounts( { account_name } );
+
+   alexandria_api::get_account_args args;
+   args.account_name = account_name;
+   auto accounts = my->_remote_api->get_account( std::move(args) ).account;
+
    FC_ASSERT( accounts.size() == 1, "Account does not exist" );
    FC_ASSERT( account_name == accounts[0].name, "Account name doesn't match?" );
 
@@ -1264,7 +1219,10 @@ annotated_signed_transaction wallet_api::update_account_auth_account( string acc
 {
    FC_ASSERT( !is_locked() );
 
-   auto accounts = my->_remote_api->get_accounts( { account_name } );
+   alexandria_api::get_account_args args;
+   args.account_name = account_name;
+   auto accounts = my->_remote_api->get_account( std::move(args) ).account;
+
    FC_ASSERT( accounts.size() == 1, "Account does not exist" );
    FC_ASSERT( account_name == accounts[0].name, "Account name doesn't match?" );
 
@@ -1327,7 +1285,10 @@ annotated_signed_transaction wallet_api::update_account_auth_threshold( string a
 {
    FC_ASSERT( !is_locked() );
 
-   auto accounts = my->_remote_api->get_accounts( { account_name } );
+   alexandria_api::get_account_args args;
+   args.account_name = account_name;
+   auto accounts = my->_remote_api->get_account( std::move(args) ).account;
+
    FC_ASSERT( accounts.size() == 1, "Account does not exist" );
    FC_ASSERT( account_name == accounts[0].name, "Account name doesn't match?" );
    FC_ASSERT( threshold != 0, "Authority is implicitly satisfied" );
@@ -1384,7 +1345,10 @@ annotated_signed_transaction wallet_api::update_account_meta( string account_nam
 {
    FC_ASSERT( !is_locked() );
 
-   auto accounts = my->_remote_api->get_accounts( { account_name } );
+   alexandria_api::get_account_args args;
+   args.account_name = account_name;
+   auto accounts = my->_remote_api->get_account( std::move(args) ).account;
+
    FC_ASSERT( accounts.size() == 1, "Account does not exist" );
    FC_ASSERT( account_name == accounts[0].name, "Account name doesn't match?" );
 
@@ -1404,7 +1368,10 @@ annotated_signed_transaction wallet_api::update_account_memo_key( string account
 {
    FC_ASSERT( !is_locked() );
 
-   auto accounts = my->_remote_api->get_accounts( { account_name } );
+   alexandria_api::get_account_args args;
+   args.account_name = account_name;
+   auto accounts = my->_remote_api->get_account( std::move(args) ).account;
+
    FC_ASSERT( accounts.size() == 1, "Account does not exist" );
    FC_ASSERT( account_name == accounts[0].name, "Account name doesn't match?" );
 
@@ -1448,7 +1415,8 @@ annotated_signed_transaction wallet_api::update_witness( string witness_account_
 
    witness_update_operation op;
 
-   optional< condenser_api::api_witness_object > wit = my->_remote_api->get_witness_by_account( witness_account_name );
+
+   optional< alexandria_api::api_witness_object > wit = my->get_witness( witness_account_name ).witness;
    if( !wit.valid() )
    {
       op.url = url;
@@ -1503,7 +1471,7 @@ annotated_signed_transaction wallet_api::vote_for_witness(string voting_account,
    return my->sign_transaction( tx, broadcast );
 } FC_CAPTURE_AND_RETHROW( (voting_account)(witness_to_vote_for)(approve)(broadcast) ) }
 
-void wallet_api::check_memo( const string& memo, const condenser_api::api_account_object& account )const
+void wallet_api::check_memo( const string& memo, const alexandria_api::api_account_object& account )const
 {
    vector< public_key_type > keys;
 
@@ -1811,13 +1779,18 @@ string wallet_api::decrypt_memo( string encrypted_memo ) {
    return encrypted_memo;
 }
 
-map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_history(string account, int64_t from,
+map< uint32_t, alexandria_api::api_operation_object > wallet_api::get_account_history(string account, int64_t from,
                                                                                      uint32_t limit) {
-   auto result = my->_remote_api->get_account_history( account, from, limit );
+   alexandria_api::get_account_history_args args;
+   args.account = account;
+   args.start = from;
+   args.limit = limit;
+
+   auto result = my->_remote_api->get_account_history( std::move(args) ).account_history;
    if( !is_locked() ) {
       for( auto& item : result ) {
-         if( item.second.op.which() == condenser_api::legacy_operation::tag<condenser_api::legacy_transfer_operation>::value ) {
-            auto& top = item.second.op.get<condenser_api::legacy_transfer_operation>();
+         if( item.second.op.which() == alexandria_api::api_operation::tag<alexandria_api::api_transfer_operation>::value ) {
+            auto& top = item.second.op.get<alexandria_api::api_transfer_operation>();
             top.memo = decrypt_memo( top.memo );
          }
       }
@@ -1827,7 +1800,10 @@ map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_his
 
 
 annotated_signed_transaction wallet_api::get_transaction( transaction_id_type id )const {
-   return my->_remote_api->get_transaction( id );
+   alexandria_api::get_transaction_args args;
+   args.tx_id = id;
+
+   return my->_remote_api->get_transaction( std::move(args) ).tx;
 }
 
 annotated_signed_transaction
@@ -1888,10 +1864,15 @@ annotated_signed_transaction wallet_api::cancel_application_buying(string app_ow
     FC_CAPTURE_AND_RETHROW( (app_owner)(buyer)(app_id)(broadcast) )
 }
 
-vector<condenser_api::api_application_buying_object> wallet_api::get_application_buyings(string name, string search_type, uint32_t count)
+vector<alexandria_api::api_application_buying_object> wallet_api::get_application_buyings(string name, string search_type, uint32_t count)
 {
     try{
-       return my->_remote_api->get_application_buyings(name, count, search_type);
+       alexandria_api::get_application_buyings_args args;
+       args.name = name;
+       args.search_type = search_type;
+       args.count = count;
+
+       return my->_remote_api->get_application_buyings(std::move(args)).application_buyings;
     }FC_CAPTURE_AND_RETHROW((name)(search_type)(count))
 }
 
@@ -1996,9 +1977,16 @@ annotated_signed_transaction wallet_api::sponsor_account_fees(string sponsoring_
    }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account)(broadcast) )
 }
 
-map< uint64_t, condenser_api::api_received_object >  wallet_api::list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+map< uint64_t, alexandria_api::api_received_object >  wallet_api::list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
-      return my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
+      alexandria_api::get_received_documents_args args;
+      args.app_id = app_id;
+      args.account_name = account_name;
+      args.search_type = search_type;
+      args.start = start;
+      args.count = count;
+
+      return my->_remote_api->get_received_documents( std::move(args) ).received_documents;
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
@@ -2016,9 +2004,12 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, boo
    }FC_CAPTURE_AND_RETHROW( (account_name)(broadcast))
 }
 
-vector<condenser_api::api_application_object> wallet_api::get_applications(vector<string> names) {
+vector<alexandria_api::api_application_object> wallet_api::get_applications(vector<string> names) {
    try{
-      return my->_remote_api->get_applications_by_names(names);
+      alexandria_api::get_applications_args args;
+      args.names = names;
+
+      return my->_remote_api->get_applications( std::move(args) ).applications;
    }FC_CAPTURE_AND_RETHROW((names))
 }
 
