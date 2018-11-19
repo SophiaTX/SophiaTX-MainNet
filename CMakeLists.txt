@@ -1,4 +1,11 @@
 # Defines SophiaTX library target.
+
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    MESSAGE(STATUS "Building with ccache")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
 
