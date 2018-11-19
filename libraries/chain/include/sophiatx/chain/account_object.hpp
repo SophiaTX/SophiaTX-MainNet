@@ -179,6 +179,7 @@ namespace sophiatx { namespace chain {
 
    struct by_name;
    struct by_proxy;
+   struct by_balance;
    struct by_next_vesting_withdrawal;
 
    /**
@@ -197,6 +198,8 @@ namespace sophiatx { namespace chain {
                member< account_object, account_name_type, &account_object::name >
             > /// composite key by proxy
          >,
+         ordered_non_unique< tag <by_balance>,
+            const_mem_fun< account_object, share_type, &account_object::total_balance> >,
          ordered_unique< tag< by_next_vesting_withdrawal >,
             composite_key< account_object,
                member< account_object, time_point_sec, &account_object::next_vesting_withdrawal >,
