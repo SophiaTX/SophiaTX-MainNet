@@ -1,4 +1,11 @@
 # Defines SophiaTX library target.
+
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    MESSAGE(STATUS "Building with ccache")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
 
@@ -47,8 +54,8 @@ get_git_head_revision( GIT_REFSPEC GIT_SHA2 )
 SET(BOOST_COMPONENTS)
 LIST(APPEND BOOST_COMPONENTS thread
                              date_time
-                             system
                              filesystem
+                             system
                              program_options
                              signals
                              serialization

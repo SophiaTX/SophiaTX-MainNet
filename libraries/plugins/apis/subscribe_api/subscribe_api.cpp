@@ -90,14 +90,14 @@ void subscribe_api_impl::on_operation( const chain::operation_notification& note
             try {
                if(!itr->invalid)
                   (*itr)();
-            }catch(fc::send_error_exception e){
+            } catch ( fc::send_error_exception& e ) {
                itr->invalid = true;
             }
             itr++;
          }
 
       }
-   }catch(fc::assert_exception){}
+   } catch (fc::assert_exception&){}
 }
 
 
