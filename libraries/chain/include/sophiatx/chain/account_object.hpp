@@ -73,7 +73,6 @@ namespace sophiatx { namespace chain {
 
 
          share_type        total_balance() const{ return balance.amount + vesting_shares.amount;}
-         int64_t           total_balance_ll() const{ return total_balance().value;}
          /// This function should be used only when the account votes for a witness directly
          share_type        witness_vote_weight()const {
             return proxied_vsf_votes_total() + balance.amount + vesting_shares.amount;
