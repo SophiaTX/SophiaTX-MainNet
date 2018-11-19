@@ -48,8 +48,7 @@ public:
    const shared_ptr<subscribe::subscribe_api> &get_subscribe_api() const;
    void set_subscribe_api(const shared_ptr<subscribe::subscribe_api> &subscribe_api);
 
-   const chain_id_type &get_chain_id() const;
-
+   const chain_id_type &get_chain_id();
    void set_chain_id(const chain_id_type &_chain_id);
 
 
@@ -64,6 +63,7 @@ public:
          (get_feed_history)
          (get_active_witnesses)
          (get_account)
+         (get_accounts)
          (get_transaction)
          (create_account)
          (update_account)
@@ -127,6 +127,9 @@ public:
          (fiat_to_sphtx)
          (custom_object_subscription)
          (sponsor_account_fees)
+         (get_key_references)
+         (get_version)
+         (get_dynamic_global_properties)
    )
 
    chain::database &_db;
@@ -155,10 +158,6 @@ private:
    void checkApiEnabled(const std::shared_ptr< T >& api) {
       FC_ASSERT(api != nullptr, "API: " + std::string(typeid(T).name()) + " plugin not enabled.");
    }
-
-
-   std::vector<extended_account> get_accounts(const std::vector<account_name_type>& account_names);
-   extended_dynamic_global_properties get_dynamic_global_properties();
 };
 
 } } } // sophiatx::plugins::alexandria_api
