@@ -73,6 +73,7 @@ namespace sophiatx { namespace chain {
 
 
          share_type        total_balance() const{ return balance.amount + vesting_shares.amount;}
+         int64_t           total_balance_ll() const{ return total_balance().value;}
          /// This function should be used only when the account votes for a witness directly
          share_type        witness_vote_weight()const {
             return proxied_vsf_votes_total() + balance.amount + vesting_shares.amount;
@@ -179,6 +180,7 @@ namespace sophiatx { namespace chain {
 
    struct by_name;
    struct by_proxy;
+   struct by_balance;
    struct by_next_vesting_withdrawal;
 
    /**
@@ -197,6 +199,8 @@ namespace sophiatx { namespace chain {
                member< account_object, account_name_type, &account_object::name >
             > /// composite key by proxy
          >,
+         ordered_non_unique< tag <by_balance>,
+            const_mem_fun< account_object, share_type, &account_object::total_balance> >,
          ordered_unique< tag< by_next_vesting_withdrawal >,
             composite_key< account_object,
                member< account_object, time_point_sec, &account_object::next_vesting_withdrawal >,

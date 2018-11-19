@@ -39,6 +39,7 @@ enum sort_order_type
    by_author,
    by_buyer_app,
    by_app_id,
+   by_balance,
    by_name_reverse,
    by_id_reverse,
    by_proxy_reverse,
@@ -161,7 +162,6 @@ struct list_accounts_return
 {
    vector< api_account_object > accounts;
 };
-
 
 struct find_accounts_args
 {
@@ -405,6 +405,7 @@ FC_REFLECT_ENUM( sophiatx::plugins::database_api::sort_order_type,
          (by_author)
          (by_buyer_app)
          (by_app_id)
+         (by_balance)
          (by_name_reverse)
          (by_id_reverse)
          (by_proxy_reverse)
