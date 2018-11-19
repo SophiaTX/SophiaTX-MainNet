@@ -47,8 +47,8 @@ get_git_head_revision( GIT_REFSPEC GIT_SHA2 )
 SET(BOOST_COMPONENTS)
 LIST(APPEND BOOST_COMPONENTS thread
                              date_time
-                             system
                              filesystem
+                             system
                              program_options
                              signals
                              serialization
