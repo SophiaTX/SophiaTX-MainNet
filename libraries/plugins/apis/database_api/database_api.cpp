@@ -329,6 +329,15 @@ DEFINE_API_IMPL( database_api_impl, list_accounts )
             [&]( const account_object& a ){ return api_account_object( a, _db ); }, reverse );
          break;
       }
+      case( by_balance ):
+      {
+         iterate_results< chain::account_index, chain::by_balance >(
+               args.start.as< protocol::share_type >(),
+               result.accounts,
+               args.limit,
+               [&]( const account_object& a ){ return api_account_object( a, _db ); }, true );
+         break;
+      }
       default:
          FC_ASSERT( false, "Unknown or unsupported sort order" );
    }
