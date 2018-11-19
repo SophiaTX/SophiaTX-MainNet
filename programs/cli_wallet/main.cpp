@@ -158,7 +158,7 @@ int main( int argc, char** argv )
       auto con  = client.connect( wdata.ws_server );
       auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
 
-      auto remote_api = apic->get_remote_api< sophiatx::wallet::remote_node_api >( 0, "condenser_api" );
+      auto remote_api = apic->get_remote_api< sophiatx::wallet::remote_node_api >( 0, "alexandria_api", true /* forward api calls arguments as object */ );
 
       auto wapiptr = std::make_shared<wallet_api>( wdata, _sophiatx_chain_id, remote_api );
       wapiptr->set_wallet_filename( wallet_file.generic_string() );
@@ -167,6 +167,7 @@ int main( int argc, char** argv )
       fc::api<wallet_api> wapi(wapiptr);
 
       auto wallet_cli = std::make_shared<fc::rpc::cli>();
+
       for( auto& name_formatter : wapiptr->get_result_formatters() )
          wallet_cli->format_result( name_formatter.first, name_formatter.second );
 

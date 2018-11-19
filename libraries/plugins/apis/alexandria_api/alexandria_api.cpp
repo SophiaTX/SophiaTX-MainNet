@@ -69,7 +69,6 @@ void alexandria_api::init() {
    }
 }
 
-
 DEFINE_READ_APIS(alexandria_api,
       (info)
       (about)
@@ -78,6 +77,7 @@ DEFINE_READ_APIS(alexandria_api,
 		(get_feed_history)
 		(get_active_witnesses)
 		(get_account)
+		(get_accounts)
 		(get_transaction)
 		(create_account)
 		(update_account)
@@ -140,6 +140,9 @@ DEFINE_READ_APIS(alexandria_api,
 		(fiat_to_sphtx)
 		(custom_object_subscription)
 		(sponsor_account_fees)
+		(get_key_references)
+		(get_dynamic_global_properties)
+		(get_version)
 )
 
 } } } // sophiatx::plugins::alexandria_api

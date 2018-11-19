@@ -458,10 +458,10 @@ struct scheduled_hardfork
 };
 
 
-struct get_version_return
+struct get_version_info
 {
-   get_version_return() {}
-   get_version_return( fc::string bc_v, fc::string s_v, fc::string fc_v, fc::string ci_v )
+   get_version_info() {}
+   get_version_info( fc::string bc_v, fc::string s_v, fc::string fc_v, fc::string ci_v )
          :blockchain_version( bc_v ), sophiatx_revision( s_v ), fc_revision( fc_v ), chain_id(ci_v) {}
 
    fc::string blockchain_version;
@@ -533,7 +533,7 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_escrow_object,
 FC_REFLECT( sophiatx::plugins::alexandria_api::scheduled_hardfork,
             (hf_version)(live_time) )
 
-FC_REFLECT( sophiatx::plugins::alexandria_api::get_version_return,
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_version_info,
             (blockchain_version)(sophiatx_revision)(fc_revision)(chain_id) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_application_object,
