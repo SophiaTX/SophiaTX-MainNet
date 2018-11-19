@@ -1,54 +1,11 @@
 #include <boost/test/unit_test.hpp>
-#include <fc/log/logger.hpp>
 
-#include <fc/container/flat.hpp>
-#include <fc/io/raw.hpp>
-#include <fc/reflect/variant.hpp>
 #include <fc/static_variant.hpp>
-#include <fc/log/logger_config.hpp>
-
-namespace fc { namespace test {
-
-struct item;
-inline bool operator == ( const item& a, const item& b );
-inline bool operator < ( const item& a, const item& b );
-
-struct item_wrapper
-{
-   item_wrapper() {}
-   item_wrapper(item&& it) { v.reserve(1); v.insert( it ); }
-   boost::container::flat_set<struct item> v;
-};
-
-inline bool operator == ( const item_wrapper& a, const item_wrapper& b )
-{ return ( std::tie( a.v ) == std::tie( b.v ) ); }
-inline bool operator < ( const item_wrapper& a, const item_wrapper& b )
-{ return ( std::tie( a.v ) < std::tie( b.v ) ); }
-
-struct item
-{
-   item(int32_t lvl = 0) : level(lvl) {}
-   item(item_wrapper&& wp, int32_t lvl = 0) : level(lvl), w(wp) {}
-   int32_t      level;
-   item_wrapper w;
-};
-
-inline bool operator == ( const item& a, const item& b )
-{ return ( std::tie( a.level, a.w ) == std::tie( b.level, b.w ) ); }
-inline bool operator < ( const item& a, const item& b )
-{ return ( std::tie( a.level, a.w ) < std::tie( b.level, b.w ) ); }
-
-
-} } // namespace fc::test
-
-FC_REFLECT( fc::test::item_wrapper, (v) );
-FC_REFLECT( fc::test::item, (level)(w) );
 
 BOOST_AUTO_TEST_SUITE(fc_variant_and_log)
 
 BOOST_AUTO_TEST_CASE( types_edge_cases_test )
 {
-   using namespace fc::test;
 
    class sv : public fc::static_variant<>
    {
