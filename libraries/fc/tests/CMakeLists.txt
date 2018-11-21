@@ -5,7 +5,7 @@ target_link_libraries( bip_lock fc )
 add_executable( api api.cpp )
 target_link_libraries( api fc )
 
-add_executable( ntp_test all_tests.cpp network/ntp_test.cpp )
+add_executable( ntp_test all_tests.cpp)
 target_link_libraries( ntp_test fc )
 
 add_executable( task_cancel_test all_tests.cpp thread/task_cancel.cpp )
@@ -41,7 +41,6 @@ target_link_libraries( sha_test fc )
 add_executable( all_tests all_tests.cpp
                           compress/compress.cpp
                           crypto/aes_test.cpp
-                          crypto/base_n_tests.cpp
                           crypto/bigint_test.cpp
                           crypto/blind.cpp
                           crypto/blowfish_test.cpp
@@ -49,7 +48,6 @@ add_executable( all_tests all_tests.cpp
                           crypto/rand_test.cpp
                           crypto/sha_tests.cpp
                           io/tcp_test.cpp
-                          network/ntp_test.cpp
                           network/http/websocket_test.cpp
                           thread/task_cancel.cpp
                           bloom_test.cpp
