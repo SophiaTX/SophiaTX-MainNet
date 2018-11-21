@@ -9,6 +9,8 @@ endif()
 project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
 
+add_compile_options("-Wall" "-Werror")
+
 set( BLOCKCHAIN_NAME "SophiaTX" )
 set( CMAKE_CXX_STANDARD 14 )
 
@@ -20,7 +22,7 @@ OPTION( BUILD_PIC "Build with -fPIC flag (ON OR OFF)" ON)
 if(BUILD_PIC)
     MESSAGE(STATUS "Building with -fPIC flag")
 else(BUILD_PIC)
-    MESSAGE(STATUS "Skipping libalexandria build, enable with -DBUILD_PIC flag")
+    MESSAGE(STATUS "Skipping libalexandria and external plugins build, enable with -DBUILD_PIC flag")
 endif(BUILD_PIC)
 
 if(WIN32)

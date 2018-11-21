@@ -266,18 +266,6 @@ class wallet_api
        */
       brain_key_info suggest_brain_key()const;
 
-      /** Converts a signed_transaction in JSON form to its binary representation.
-       *
-       * TODO: I don't see a broadcast_transaction() function, do we need one?
-       *
-       * @param tx the transaction to serialize
-       * @returns the binary form of the transaction.  It will not be hex encoded,
-       *          this returns a raw string that may have null characters embedded
-       *          in it
-       */
-      // TODO: not implemented
-      //string serialize_transaction(signed_transaction tx) const;
-
       /** Imports a WIF Private Key into the wallet to be used to sign transactions by an account.
        *
        * example: import_key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3

@@ -812,7 +812,9 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
    if( data_dir )
       db->wipe( data_dir->path(), data_dir->path(), true );
    return;
-} FC_CAPTURE_AND_RETHROW() }
+} FC_CAPTURE_AND_LOG( (data_dir->path()) )
+   exit(1);
+}
 
 fc::variant json_rpc_database_fixture::get_answer( std::string& request )
 {
