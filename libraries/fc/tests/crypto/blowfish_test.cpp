@@ -86,9 +86,9 @@ BOOST_AUTO_TEST_CASE(blowfish_ecb_test)
 {
     for ( int i = 0; i < 34; i++ ) {
         unsigned char key[8], plain[8], cipher[8], out[8];
-        BOOST_CHECK_EQUAL( 8, fc::from_hex( ecb_tests[i].key, (char*) key, sizeof(key) ) );
-        BOOST_CHECK_EQUAL( 8, fc::from_hex( ecb_tests[i].plain, (char*) plain, sizeof(plain) ) );
-        BOOST_CHECK_EQUAL( 8, fc::from_hex( ecb_tests[i].cipher, (char*) cipher, sizeof(cipher) ) );
+        BOOST_CHECK_EQUAL( size_t(8), fc::from_hex( ecb_tests[i].key, (char*) key, sizeof(key) ) );
+        BOOST_CHECK_EQUAL( size_t(8), fc::from_hex( ecb_tests[i].plain, (char*) plain, sizeof(plain) ) );
+        BOOST_CHECK_EQUAL( size_t(8), fc::from_hex( ecb_tests[i].cipher, (char*) cipher, sizeof(cipher) ) );
 
         fc::blowfish fish;
         fish.start( key, 8 );
@@ -106,11 +106,11 @@ BOOST_AUTO_TEST_CASE(blowfish_ecb_test)
 BOOST_AUTO_TEST_CASE(blowfish_key_test)
 {
     unsigned char key[24], plain[8], cipher[8], out[8];
-    BOOST_CHECK_EQUAL( 24, fc::from_hex( key_test_key.c_str(), (char*) key, sizeof(key) ) );
-    BOOST_CHECK_EQUAL( 8, fc::from_hex( key_test_plain.c_str(), (char*) plain, sizeof(plain) ) );
+    BOOST_CHECK_EQUAL( size_t(24), fc::from_hex( key_test_key.c_str(), (char*) key, sizeof(key) ) );
+    BOOST_CHECK_EQUAL( size_t(8), fc::from_hex( key_test_plain.c_str(), (char*) plain, sizeof(plain) ) );
 
     for ( unsigned int i = 0; i < sizeof(key); i++ ) {
-        BOOST_CHECK_EQUAL( 8, fc::from_hex( key_test_ciphers[i], (char*) cipher, sizeof(cipher) ) );
+        BOOST_CHECK_EQUAL( size_t(8), fc::from_hex( key_test_ciphers[i], (char*) cipher, sizeof(cipher) ) );
         fc::blowfish fish;
         fish.start( key, i + 1 );
         fish.encrypt( plain, out, 8, fc::blowfish::ECB );
@@ -134,9 +134,9 @@ static unsigned int from_bytes( const unsigned char* p ) {
 BOOST_AUTO_TEST_CASE(blowfish_chain_test)
 {
     unsigned char key[16], iv[8], cipher[32], out[32];
-    BOOST_CHECK_EQUAL( 16, fc::from_hex( chain_test_key.c_str(), (char*) key, 16 ) );
-    BOOST_CHECK_EQUAL( 8, fc::from_hex( chain_test_iv.c_str(), (char*) iv, 8 ) );
-    BOOST_CHECK_EQUAL( 32, fc::from_hex( chain_test_cbc.c_str(), (char*) cipher, 32 ) );
+    BOOST_CHECK_EQUAL( size_t(16), fc::from_hex( chain_test_key.c_str(), (char*) key, 16 ) );
+    BOOST_CHECK_EQUAL( size_t(8), fc::from_hex( chain_test_iv.c_str(), (char*) iv, 8 ) );
+    BOOST_CHECK_EQUAL( size_t(32), fc::from_hex( chain_test_cbc.c_str(), (char*) cipher, 32 ) );
     fc::blowfish fish;
     fish.start( key, sizeof(key), fc::sblock( from_bytes( iv ), from_bytes( iv + 4 ) ) );
     fish.encrypt( (unsigned char*) chain_test_plain.c_str(), out, sizeof(out), fc::blowfish::CBC );
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(blowfish_chain_test)
     fish.decrypt( cipher, out, sizeof(cipher), fc::blowfish::CBC );
     BOOST_CHECK( !memcmp( chain_test_plain.c_str(), out, 31 ) );
 
-    BOOST_CHECK_EQUAL( 32, fc::from_hex( chain_test_cfb.c_str(), (char*) cipher, sizeof(cipher) ) );
+    BOOST_CHECK_EQUAL( size_t(32), fc::from_hex( chain_test_cfb.c_str(), (char*) cipher, sizeof(cipher) ) );
     fish.reset_chain();
     fish.encrypt( (unsigned char*) chain_test_plain.c_str(), out, sizeof(out), fc::blowfish::CFB );
 //    for (size_t i = 0; sizeof(cipher) > i; ++i)std::cout << std::hex << std::setfill('0')  << std::setw(2) << static_cast<unsigned int>(static_cast<unsigned char>(cipher[i]));std::cout <<"\n";

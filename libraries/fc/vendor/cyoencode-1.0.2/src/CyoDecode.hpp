@@ -31,10 +31,6 @@
 
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Base16 Decoding */
 int    cyoBase16Validate( const char* src, size_t size );
 size_t cyoBase16DecodeGetLength( size_t size );
@@ -49,10 +45,6 @@ size_t cyoBase32Decode( void* dest, const char* src, size_t size );
 int    cyoBase64Validate( const char* src, size_t size );
 size_t cyoBase64DecodeGetLength( size_t size );
 size_t cyoBase64Decode( void* dest, const char* src, size_t size );
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /*__CYODECODE_H*/
 

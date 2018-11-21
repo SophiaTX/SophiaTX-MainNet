@@ -1,6 +1,6 @@
 #include <fc/crypto/base32.hpp>
-#include <CyoDecode.h>
-#include <CyoEncode.h>
+#include <CyoDecode.hpp>
+#include <CyoEncode.hpp>
 namespace fc
 {
     std::vector<char> from_base32( const std::string& b32 )

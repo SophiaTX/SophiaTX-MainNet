@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "CyoDecode.h"
+#include "CyoDecode.hpp"
 
 #include <assert.h>
 

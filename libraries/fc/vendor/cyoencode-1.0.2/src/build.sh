@@ -1,2 +1,2 @@
-gcc test.c CyoEncode.c CyoDecode.c -o test
+g++ test.c CyoEncode.c CyoDecode.c -o test
 

@@ -221,8 +221,8 @@ set( fc_sources
      src/network/url.cpp
      src/network/gntp.cpp
      src/compress/zlib.cpp
-     vendor/cyoencode-1.0.2/src/CyoDecode.c
-     vendor/cyoencode-1.0.2/src/CyoEncode.c
+        vendor/cyoencode-1.0.2/src/CyoDecode.cpp
+        vendor/cyoencode-1.0.2/src/CyoEncode.cpp
      )
 
 file( GLOB_RECURSE fc_headers ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h )
