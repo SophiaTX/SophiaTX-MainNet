@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       op.vesting_shares = asset( new_alice.vesting_shares.amount / 2, VESTS_SYMBOL );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       auto next_withdrawal = db->head_block_time() + SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS;
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       {
          txs[i].set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          txs[i].operations.push_back( ops[i] );
-         txs[i].sign( keys[i], db->get_chain_id() );
+         sign(txs[i], keys[i] );
          db->push_transaction( txs[i], 0 );
       }
 
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
             ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, SOPHIATX_SYMBOL ) );
             txs[j].set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
             txs[j].operations.push_back( ops[j] );
-            txs[j].sign( keys[j], db->get_chain_id() );
+            sign(txs[j], keys[j] );
             db->push_transaction( txs[j], 0 );
          }
 
@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( wop );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       SOPHIATX_REQUIRE_THROW(db->push_transaction( tx, 0 ), fc::exception);
 
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       tx.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
@@ -346,7 +346,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       tx.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -406,7 +406,7 @@ BOOST_AUTO_TEST_CASE( clear_null_account )
       tx.operations.push_back( save1);
       tx.operations.push_back( save2 );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
       validate_database();
 

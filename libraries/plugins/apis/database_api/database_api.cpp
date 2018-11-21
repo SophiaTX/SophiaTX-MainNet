@@ -646,7 +646,8 @@ DEFINE_API_IMPL( database_api_impl, get_required_signatures )
                                                    args.available_keys,
                                                    [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
                                                    [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
-                                                   SOPHIATX_MAX_SIG_CHECK_DEPTH );
+                                                   SOPHIATX_MAX_SIG_CHECK_DEPTH,
+                                                   _db.has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical);
 
    return result;
 }
@@ -671,7 +672,8 @@ DEFINE_API_IMPL( database_api_impl, get_potential_signatures )
             result.keys.insert( k );
          return authority( auth );
       },
-      SOPHIATX_MAX_SIG_CHECK_DEPTH
+      SOPHIATX_MAX_SIG_CHECK_DEPTH,
+      _db.has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical
    );
 
    return result;
@@ -682,7 +684,8 @@ DEFINE_API_IMPL( database_api_impl, verify_authority )
    args.trx.verify_authority(_db.get_chain_id(),
                            [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
                            [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
-                           SOPHIATX_MAX_SIG_CHECK_DEPTH );
+                           SOPHIATX_MAX_SIG_CHECK_DEPTH,
+                           _db.has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical);
    return verify_authority_return( { true } );
 }
 
