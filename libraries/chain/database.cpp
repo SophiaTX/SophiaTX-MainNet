@@ -92,7 +92,7 @@ database::~database()
    clear_pending();
 }
 
-void database::open( const open_args& args, const genesis_state_type& genesis )
+void database::open( const open_args& args, const genesis_state_type& genesis, const std::string& initPubkeyStr )
 {
    try
    {
@@ -105,7 +105,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis )
       if( !find< dynamic_global_property_object >() )
          with_write_lock( [&]()
          {
-            init_genesis( genesis );
+            init_genesis( genesis, initPubkeyStr );
          });
 
       _block_log.open( args.data_dir / "block_log" );
@@ -149,7 +149,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis )
    FC_CAPTURE_LOG_AND_RETHROW( (args.data_dir)(args.shared_mem_dir)(args.shared_file_size) )
 }
 
-uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis )
+uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis, const std::string& initPubkeyStr )
 {
    bool reindex_success = false;
    uint32_t last_block_number = 0; // result
@@ -164,7 +164,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 
       ilog( "Reindexing Blockchain" );
       wipe( args.data_dir, args.shared_mem_dir, false );
-      open( args, genesis );
+      open( args, genesis, initPubkeyStr );
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
       auto start = fc::time_point::now();
@@ -1545,7 +1545,7 @@ void database::init_schema()
    return;*/
 }
 
-void database::init_genesis( genesis_state_type genesis )
+void database::init_genesis( genesis_state_type genesis, const std::string& initPubkeyStr )
 {
    try
    {
@@ -1617,7 +1617,8 @@ void database::init_genesis( genesis_state_type genesis )
       create< witness_object >( [&]( witness_object& w )
                                 {
                                      w.owner        = SOPHIATX_INIT_MINER_NAME;
-                                     w.signing_key  = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+                                     // TODO: use initminer mining public key from get_config when solution is implemnted
+                                     w.signing_key  = public_key_type(initPubkeyStr);
                                      w.schedule = witness_object::top19;
                                 } );
 

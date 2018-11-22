@@ -145,7 +145,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       args.data_dir = data_dir->path();
       args.shared_mem_dir = args.data_dir;
       args.shared_file_size = size;
-      db->open( args, gen );
+      db->open( args, gen, SOPHIATX_INIT_PUBLIC_KEY_STR );
    }
    db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
@@ -205,7 +205,7 @@ live_database_fixture::live_database_fixture()
          database::open_args args;
          args.data_dir = _chain_dir;
          args.shared_mem_dir = args.data_dir;
-         db->open( args, gen );
+         db->open( args, gen, SOPHIATX_INIT_PUBLIC_KEY_STR );
       }
 
       validate_database();
@@ -286,7 +286,7 @@ void database_fixture::open_database()
       args.data_dir = data_dir->path();
       args.shared_mem_dir = args.data_dir;
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
-      db->open(args, gen);
+      db->open(args, gen, SOPHIATX_INIT_PUBLIC_KEY_STR);
    }
 }
 

@@ -93,6 +93,9 @@ class chain_plugin_impl
       boost::lockfree::queue< write_context* > write_queue;
 
       database  db;
+
+      // TODO: temporary solution. DELETE when proper solution is implemented -> shared config object, which will contain also initminer mining public key.
+      std::string initMiningPubkeyStr;
 };
 
 struct write_request_visitor
@@ -305,6 +308,8 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
          ("check-locks", bpo::bool_switch()->default_value(false), "Check correctness of chainbase locking" )
          ("validate-database-invariants", bpo::bool_switch()->default_value(false), "Validate all supply invariants check out" )
+         ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
+         ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
          ;
 }
 
@@ -328,7 +333,32 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    if( options.count( "shared-file-scale-rate" ) )
       my->shared_file_scale_rate = options.at( "shared-file-scale-rate" ).as< uint16_t >();
 
+
+   // TODO: temporary solution. DELETE when initminer mining public key is read from get_config
+   my->initMiningPubkeyStr = SOPHIATX_INIT_PUBLIC_KEY_STR;
+#ifdef PRIVATE_NET
+   if (options.count("initminer-mining-pubkey")) {
+      my->initMiningPubkeyStr = options.at( "initminer-mining-pubkey" ).as< std::string >();
+   }
+#endif //PRIVATE_NET
+
+
    auto initial_state = [&] {
+#ifdef PRIVATE_NET
+        if (options.count("initminer-account-pubkey")) {
+           // Creates genesis based on provided initminer account public key
+           genesis_state_type genesis;
+           genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
+           genesis.initial_balace = SOPHIATX_INIT_SUPPLY;
+           genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
+
+           fc::sha256::encoder enc;
+           fc::raw::pack( enc, genesis );
+           genesis.initial_chain_id = enc.result();
+
+           return genesis;
+        }
+#endif //PRIVATE_NET
         if( options.count("genesis-json") )
         {
            std::string genesis_str;
@@ -464,7 +494,7 @@ void chain_plugin::plugin_startup()
       ilog("Replaying blockchain on user request.");
       uint32_t last_block_number = 0;
       db_open_args.benchmark = sophiatx::chain::database::TBenchmark(my->benchmark_interval, benchmark_lambda);
-      last_block_number = my->db.reindex( db_open_args, my->genesis );
+      last_block_number = my->db.reindex( db_open_args, my->genesis, my->initMiningPubkeyStr );
 
       if( my->benchmark_interval > 0 )
       {
@@ -492,7 +522,7 @@ void chain_plugin::plugin_startup()
       {
          ilog("Opening shared memory from ${path}", ("path",my->shared_memory_dir.generic_string()));
 
-         my->db.open( db_open_args, my->genesis );
+         my->db.open( db_open_args, my->genesis, my->initMiningPubkeyStr );
 
          if( dump_memory_details )
             dumper.dump( true, get_indexes_memory_details );
@@ -503,12 +533,12 @@ void chain_plugin::plugin_startup()
 
          try
          {
-            my->db.reindex( db_open_args, my->genesis );
+            my->db.reindex( db_open_args, my->genesis, my->initMiningPubkeyStr );
          }
          catch( sophiatx::chain::block_log_exception& )
          {
             wlog( "Error opening block log. Having to resync from network..." );
-            my->db.open( db_open_args, my->genesis );
+            my->db.open( db_open_args, my->genesis, my->initMiningPubkeyStr );
          }
       }
    }
