@@ -229,7 +229,7 @@ class static_variant {
         new(storage.data()) X( std::move(x) );
     }
 
-    void init(tag_type tag)
+    void init_from_tag(tag_type tag)
     {
        FC_ASSERT( tag >= 0 );
        FC_ASSERT( tag < count() );
@@ -257,7 +257,7 @@ public:
 
     static_variant()
     {
-        init(0);
+        init_from_tag(0);
     }
 
     template<typename... Other>
@@ -355,7 +355,7 @@ public:
     void set_which( int64_t w ) {
       FC_ASSERT( w < count() && w >= 0 );
       clean();
-      init(w);
+      init_from_tag(w);
     }
 
     int64_t which() const {return _tag;}
