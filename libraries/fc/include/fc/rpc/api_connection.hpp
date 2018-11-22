@@ -231,19 +231,19 @@ namespace fc {
 
 
          template<typename T>
-         api<T> get_remote_api( api_id_type api_id = 0, string api_name = "" )
+         api<T> get_remote_api( api_id_type api_id = 0, string api_name = "", bool api_calls_args_as_object = false)
          {
             api<T> result;
             if( api_name.size() )
-               result->visit( api_visitor( api_id, api_name, this->shared_from_this() ) );
+               result->visit( api_visitor( api_id, api_name, api_calls_args_as_object, this->shared_from_this() ) );
             else
-               result->visit( api_visitor( api_id, this->shared_from_this() ) );
+               result->visit( api_visitor( api_id, api_calls_args_as_object, this->shared_from_this() ) );
             return result;
          }
 
          /** makes calls to the remote server */
-         virtual variant send_call( api_id_type api_id, string method_name, variants args = variants() ) = 0;
-         virtual variant send_call( string api_name, string method_name, variants args = variants() ) = 0;
+         virtual variant send_call( api_id_type api_id, string method_name, bool args_as_object, variants args = variants() ) = 0;
+         virtual variant send_call( string api_name, string method_name, bool args_as_object, variants args = variants() ) = 0;
          virtual variant send_callback( uint64_t callback_id, variants args = variants() ) = 0;
          virtual void    send_notice( uint64_t callback_id, variants args = variants() ) = 0;
 
@@ -295,15 +295,16 @@ namespace fc {
          {
             uint32_t                            _api_id;
             optional< string >                  _api_name;
+            bool                                _api_calls_args_object;
             std::shared_ptr<fc::api_connection> _connection;
 
-            api_visitor( uint32_t api_id, std::shared_ptr<fc::api_connection> con )
-            :_api_id(api_id),_connection(std::move(con))
+            api_visitor( uint32_t api_id, bool args_as_object, std::shared_ptr<fc::api_connection> con )
+            :_api_id(api_id), _api_calls_args_object(args_as_object), _connection(std::move(con))
             {
             }
 
-            api_visitor( uint32_t api_id, string& api_name, std::shared_ptr<fc::api_connection> con )
-            : _api_id(api_id), _api_name(api_name), _connection(std::move(con)) {}
+            api_visitor( uint32_t api_id, string& api_name, bool args_as_object, std::shared_ptr<fc::api_connection> con )
+            : _api_id(api_id), _api_name(api_name), _api_calls_args_object(args_as_object), _connection(std::move(con)) {}
 
             api_visitor() = delete;
 
@@ -351,12 +352,13 @@ namespace fc {
                 auto con   = _connection;
                 auto api_id = _api_id;
                 auto api_name = _api_name;
-                memb = [con,api_id,name,api_name]( Args... args ) {
+                bool api_args_as_object = _api_calls_args_object;
+                memb = [con,api_id,name,api_name,api_args_as_object]( Args... args ) {
                     variant var_result;
                     if( api_name )
-                      var_result = con->send_call( *api_name, name, { convert_callbacks(con,args)...} );
+                      var_result = con->send_call( *api_name, name, api_args_as_object, { convert_callbacks(con,args)...} );
                     else
-                      var_result = con->send_call( api_id, name, { convert_callbacks(con,args)...} );
+                      var_result = con->send_call( api_id, name, api_args_as_object, { convert_callbacks(con,args)...} );
                     return from_variant( var_result, (Result*)nullptr, con );
                 };
             }
@@ -366,11 +368,12 @@ namespace fc {
                 auto con   = _connection;
                 auto api_id = _api_id;
                 auto api_name = _api_name;
-                memb = [con,api_id,name,api_name]( Args... args ) {
+                bool api_args_as_object = _api_calls_args_object;
+                memb = [con,api_id,name,api_name,api_args_as_object]( Args... args ) {
                    if( api_name )
-                      con->send_call( *api_name, name, { convert_callbacks(con,args)...} );
+                      con->send_call( *api_name, name, api_args_as_object, { convert_callbacks(con,args)...} );
                     else
-                      con->send_call( api_id, name, { convert_callbacks(con,args)...} );
+                      con->send_call( api_id, name, api_args_as_object, { convert_callbacks(con,args)...} );
                 };
             }
          };
@@ -380,12 +383,12 @@ namespace fc {
    {
       public:
          /** makes calls to the remote server */
-         virtual variant send_call( api_id_type api_id, string method_name, variants args = variants() ) override
+         virtual variant send_call( api_id_type api_id, string method_name, bool args_as_object, variants args = variants() ) override
          {
             FC_ASSERT( _remote_connection );
             return _remote_connection->receive_call( api_id, method_name, std::move(args) );
          }
-         virtual variant send_call( string api_name, string method_name, variants args = variants() ) override
+         virtual variant send_call( string api_name, string method_name, bool args_as_object, variants args = variants() ) override
          {
             FC_ASSERT( false, "local call by name not supported" );
             return variant();

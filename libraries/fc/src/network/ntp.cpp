@@ -182,7 +182,7 @@ namespace fc
               }
             }
           } // try
-          catch (fc::canceled_exception)
+          catch (fc::canceled_exception&)
           {
             throw;
           }

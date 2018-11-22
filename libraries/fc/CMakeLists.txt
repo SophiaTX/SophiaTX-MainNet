@@ -37,7 +37,7 @@ endif()
 SET (ORIGINAL_LIB_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 SET(BOOST_COMPONENTS)
-LIST(APPEND BOOST_COMPONENTS thread date_time system filesystem program_options signals serialization chrono unit_test_framework context locale iostreams coroutine)
+LIST(APPEND BOOST_COMPONENTS thread date_time filesystem system program_options signals serialization chrono unit_test_framework context locale iostreams coroutine)
 SET( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
 
 # Configure secp256k1-zkp
@@ -220,7 +220,6 @@ set( fc_sources
      src/network/resolve.cpp
      src/network/url.cpp
      src/network/gntp.cpp
-     src/compress/smaz.cpp
      src/compress/zlib.cpp
      vendor/cyoencode-1.0.2/src/CyoDecode.c
      vendor/cyoencode-1.0.2/src/CyoEncode.c

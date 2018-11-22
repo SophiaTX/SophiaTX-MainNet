@@ -205,6 +205,7 @@ public:
 
 template<typename... Types>
 class static_variant {
+   protected:
     static_assert(impl::type_info<Types...>::no_reference_types, "Reference types are not permitted in static_variant.");
     static_assert(impl::type_info<Types...>::no_duplicates, "static_variant type arguments contain duplicate types.");
 
@@ -257,7 +258,7 @@ public:
 
     static_variant()
     {
-        init_from_tag(0);
+       init_from_tag(0);
     }
 
     template<typename... Other>
