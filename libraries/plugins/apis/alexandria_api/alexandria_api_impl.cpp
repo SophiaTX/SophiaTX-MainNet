@@ -1093,7 +1093,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_active_authority)
       }
    }
    
-   FC_ASSERT("Account name does not exist!");
+   FC_ASSERT(false, "Account name does not exist!");
    return result;
 }
 
@@ -1114,7 +1114,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_owner_authority)
       }
    }
    
-   FC_ASSERT("Account name does not exist!");
+   FC_ASSERT(false, "Account name does not exist!");
    return result;
 }
 
@@ -1135,7 +1135,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_memo_key)
       }
    }
    
-   FC_ASSERT("Account name does not exist!");
+   FC_ASSERT(false, "Account name does not exist!");
    return result;
 }
 
@@ -1156,7 +1156,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_account_balance)
       }
    }
    
-   FC_ASSERT("Account name does not exist!");
+   FC_ASSERT(false, "Account name does not exist!");
    return result;
 }
 
@@ -1176,8 +1176,8 @@ DEFINE_API_IMPL(alexandria_api_impl, get_vesting_balance)
          return result;
       }
    }
-   
-   FC_ASSERT("Account name does not exist!");
+
+   FC_ASSERT(false, "Account name does not exist!");
    return result;
 }
 
