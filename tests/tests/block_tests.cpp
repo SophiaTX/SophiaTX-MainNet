@@ -57,7 +57,7 @@ void open_test_database( database& db, const fc::path& dir )
    args.data_dir = dir;
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
-   db.open( args, gen, init_account_pub_key.to_base58() );
+   db.open( args, gen, std::string( SOPHIATX_ADDRESS_PREFIX + init_account_pub_key.to_base58()) );
    db.modify( db.get_witness( "initminer" ), [&]( witness_object& a )
    {
         a.signing_key = init_account_pub_key;
