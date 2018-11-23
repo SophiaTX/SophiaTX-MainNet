@@ -1264,7 +1264,7 @@ void database::process_funds()
 
    share_type witness_reward;
    uint32_t denominator = wso.witness_pay_normalization_factor;
-   uint32_t nominator;
+   uint32_t nominator = 0; // TODO: check with josef
 
    const auto& cwit = get_witness( props.current_witness );
    if( cwit.schedule == witness_object::timeshare )
