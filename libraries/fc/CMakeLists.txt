@@ -190,7 +190,6 @@ set( fc_sources
      src/crypto/aes.cpp
      src/crypto/crc.cpp
      src/crypto/city.cpp
-     src/crypto/base32.cpp
      src/crypto/base36.cpp
      src/crypto/base58.cpp
      src/crypto/base64.cpp
@@ -214,15 +213,11 @@ set( fc_sources
      src/network/http/http_connection.cpp
      src/network/http/http_server.cpp
      src/network/http/websocket.cpp
-     src/network/ntp.cpp
      src/network/ip.cpp
      src/network/rate_limiting.cpp
      src/network/resolve.cpp
      src/network/url.cpp
-     src/network/gntp.cpp
      src/compress/zlib.cpp
-     vendor/cyoencode-1.0.2/src/CyoDecode.c
-     vendor/cyoencode-1.0.2/src/CyoEncode.c
      )
 
 file( GLOB_RECURSE fc_headers ${CMAKE_CURRENT_SOURCE_DIR} *.hpp *.h )
