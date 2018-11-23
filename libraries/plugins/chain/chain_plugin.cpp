@@ -308,8 +308,10 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
          ("check-locks", bpo::bool_switch()->default_value(false), "Check correctness of chainbase locking" )
          ("validate-database-invariants", bpo::bool_switch()->default_value(false), "Validate all supply invariants check out" )
+#ifdef PRIVATE_NET
          ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
          ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
+#endif
          ;
 }
 
