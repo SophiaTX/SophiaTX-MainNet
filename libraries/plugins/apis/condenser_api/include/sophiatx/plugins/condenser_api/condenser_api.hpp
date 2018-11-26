@@ -7,6 +7,7 @@
 #include <sophiatx/plugins/network_broadcast_api/network_broadcast_api.hpp>
 #include <sophiatx/plugins/witness_api/witness_api.hpp>
 #include <sophiatx/plugins/custom_api/custom_api.hpp>
+#include <sophiatx/plugins/subscribe_api/subscribe_api.hpp>
 
 #include <sophiatx/plugins/condenser_api/condenser_api_legacy_objects.hpp>
 
@@ -354,7 +355,8 @@ struct get_version_return
 };
 
 typedef map< uint32_t, api_operation_object > get_account_history_return_type;
-typedef map< uint64_t, api_received_object >      get_received_documents_return_type;
+typedef map< uint64_t, api_received_object >      list_received_documents_return_type;
+typedef api_received_object get_received_document_return_type;
 typedef vector< api_application_buying_object > get_application_buyings_return_type;
 
 
@@ -396,13 +398,17 @@ DEFINE_API_ARGS( get_required_signatures,                vector< variant >,   se
 DEFINE_API_ARGS( get_potential_signatures,               vector< variant >,   set< public_key_type > )
 DEFINE_API_ARGS( verify_authority,                       vector< variant >,   bool )
 DEFINE_API_ARGS( verify_account_authority,               vector< variant >,   bool )
+DEFINE_API_ARGS( custom_object_subscription,             vector <variant >,   uint64_t )
 DEFINE_API_ARGS( get_account_history,                    vector< variant >,   get_account_history_return_type )
 DEFINE_API_ARGS( broadcast_transaction,                  vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( broadcast_transaction_synchronous,      vector< variant >,   network_broadcast_api::broadcast_transaction_synchronous_return )
 DEFINE_API_ARGS( broadcast_block,                        vector< variant >,   json_rpc::void_type )
 DEFINE_API_ARGS( get_applications,                       vector< variant >,   vector< api_application_object > )
+DEFINE_API_ARGS( get_applications_by_names,              vector< variant >,   vector< api_application_object > )
 DEFINE_API_ARGS( get_promotion_pool_balance,             vector< variant >,   legacy_asset)
-DEFINE_API_ARGS( get_received_documents,                 vector< variant >,   get_received_documents_return_type )
+DEFINE_API_ARGS( list_received_documents,                 vector< variant >,   list_received_documents_return_type )
+DEFINE_API_ARGS( get_received_document,                 vector< variant >,   get_received_document_return_type )
+
 DEFINE_API_ARGS( get_application_buyings,                vector< variant >,   get_application_buyings_return_type )
 
 #undef DEFINE_API_ARGS
@@ -448,12 +454,14 @@ public:
       (get_potential_signatures)
       (verify_authority)
       (verify_account_authority)
+      (custom_object_subscription)
       (get_account_history)
-      (get_received_documents)
+      (list_received_documents)
       (broadcast_transaction)
       (broadcast_transaction_synchronous)
       (broadcast_block)
       (get_applications)
+      (get_applications_by_names)
       (get_promotion_pool_balance)
       (get_application_buyings)
    )

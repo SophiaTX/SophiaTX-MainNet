@@ -104,7 +104,8 @@ class alexandria_api
        * @param block_num Block height of specified block
        * @param only_virtual Whether to only return virtual operations
        */
-      vector< condenser_api::api_operation_object > get_ops_in_block( uint32_t block_num, bool only_virtual = true );
+      vector< condenser_api::api_operation_object >
+            get_ops_in_block( uint32_t block_num, bool only_virtual = true );
 
       /** Return the current price feed history
        *
@@ -113,13 +114,13 @@ class alexandria_api
       condenser_api::api_feed_history_object get_feed_history( string symbol)const;
 
       /**
-       * Returns the list of witnesses producing blocks in the current round (21 Blocks)
+       * Returns the list of witnesses producing blocks in the current round (51 Blocks)
        */
       vector< account_name_type > get_active_witnesses()const;
 
       /** Returns information about the given account.
        *
-       * @param account_name the name of the account to provide information about
+       * @param account_name the name of the account to provide information about i.e. "account_name"
        * @returns the public account data stored in the blockchain
        */
       vector<condenser_api::api_account_object> get_account( string account_name ) const;
@@ -141,7 +142,7 @@ class alexandria_api
        * alexandria. There is a fee associated with account creation that is paid by the creator.
        * The current account creation fee can be found with the 'info' alexandria command.
        *
-       * @param creator The account creating the new account
+       * @param creator The account creating the new account i.e. "account_name"
        * @param seed The seed to generate the new account name
        * @param json_meta JSON Metadata associated with the new account
        * @param owner public owner key of the new account
@@ -160,7 +161,7 @@ class alexandria_api
       /**
        * This method updates the keys of an existing account.
        *
-       * @param accountname The name of the account
+       * @param accountname The name of the account i.e. "account_name"
        * @param json_meta New JSON Metadata to be associated with the account
        * @param owner New public owner key for the account
        * @param active New public active key for the account
@@ -175,7 +176,7 @@ class alexandria_api
      /**
       * This method deletes an existing account.
       *
-      * @param account_name The name of the account you wish to delete
+      * @param account_name The name of the account you wish to delete i.e. "account_name"
       */
       operation delete_account( string account_name);
 
@@ -199,8 +200,10 @@ class alexandria_api
        */
       vector< account_name_type > list_witnesses(const string& lowerbound, uint32_t limit);
 
+      vector< condenser_api::api_witness_object > list_witnesses_by_vote(const string& name, uint32_t limit);
+
       /** Returns information about the given witness.
-       * @param owner_account the name or id of the witness account owner, or the id of the witness
+       * @param owner_account the name or id of the witness account owner i.e. "account_name", or the id of the witness
        * @returns the information about the witness stored in the block chain
        */
       optional< condenser_api::api_witness_object > get_witness(string owner_account);
@@ -221,7 +224,7 @@ class alexandria_api
       /**
        * Stop being a witness, effectively deleting the witness object owned by the given account.
        *
-       * @param witness_name The name of the witness account.
+       * @param witness_name The name of the witness account i.e. "account_name"
        */
       operation stop_witness(string witness_name);
 
@@ -236,7 +239,7 @@ class alexandria_api
        *
        * This setting can be changed at any time.
        *
-       * @param account_to_modify the name or id of the account to update
+       * @param account_to_modify the name or id of the account to update i.e. "account_name"
        * @param proxy the name of account that should proxy to, or empty string to have no proxy
        */
       operation set_voting_proxy(string account_to_modify, string proxy);
@@ -247,8 +250,8 @@ class alexandria_api
        * votes or against with negative votes. The vote will remain until updated with another
        * vote. Vote strength is determined by the accounts vesting shares.
        *
-       * @param account_to_vote_with The account voting for a witness
-       * @param witness_to_vote_for The witness that is being voted for
+       * @param account_to_vote_with The account voting for a witness i.e. "account_name"
+       * @param witness_to_vote_for The witness that is being voted for i.e. "account_name"
        * @param approve true if the account is voting for the account to be able to be a block produce
        */
       operation vote_for_witness(string account_to_vote_with,
@@ -258,8 +261,8 @@ class alexandria_api
       /**
        * Transfer funds from one account to another. SPHTX can be transferred.
        *
-       * @param from The account the funds are coming from
-       * @param to The account the funds are going to
+       * @param from The account the funds are coming from i.e. "account_name"
+       * @param to The account the funds are going to i.e. "account_name"
        * @param amount The funds being transferred. i.e. "100.000 SPHTX"
        * @param memo A memo for the transaction, encrypted with the to account's public memo key       */
       operation transfer(string from, string to, asset amount, string memo);
@@ -269,8 +272,8 @@ class alexandria_api
        * for a minimum of one coin year and can be withdrawn once a week over a two year withdraw period.
        * VESTS are protected against dilution up until 90% of SPHTX is vesting.
        *
-       * @param from The account the SPHTX is coming from
-       * @param to The account getting the VESTS
+       * @param from The account the SPHTX is coming from i.e. "account_name"
+       * @param to The account getting the VESTS i.e. "account_name"
        * @param amount The amount of SPHTX to vest i.e. "100.00 SPHTX"
        */
       operation transfer_to_vesting(string from, string to, asset amount);
@@ -278,7 +281,7 @@ class alexandria_api
         /**
         * Set up a vesting withdraw request. The request is fulfilled once a week over the next two year (104 weeks).
         *
-        * @param from The account the VESTS are withdrawn from
+        * @param from The account the VESTS are withdrawn from i.e. "account_name"
         * @param vesting_shares The amount of VESTS to withdraw over the next two years. Each week (amount/104) shares are
         *    withdrawn and deposited back as SPHTX. i.e. "10.000000 VESTS"
         */
@@ -291,7 +294,7 @@ class alexandria_api
       *  that is paid by the creator. The current account creation fee can be found with the
       *  'info' alexandria command.
       *
-      *  @param author The account creating the new application
+      *  @param author The account creating the new application i.e. "account_name"
       *  @param app_name The unique name for new application
       *  @param url The url of the new application
       *  @param meta_data The meta data of new application
@@ -302,9 +305,9 @@ class alexandria_api
       /**
       *  This method will update existing application object.
       *
-      *  @param author The author of application
+      *  @param author The author of application i.e. "account_name"
       *  @param app_name The name of app that will be updated
-      *  @param new_author The new author
+      *  @param new_author The new author i.e. "account_name"
       *  @param url Updated url
       *  @param meta_data Updated meta data
       *  @param price_param Updated price param
@@ -315,7 +318,7 @@ class alexandria_api
       /**
       *  This method will delete specified application object.
       *
-      *  @param author The author of application that will be deleted
+      *  @param author The author of application that will be deleted i.e. "account_name"
       *  @param app_name The name of app that will be deleted
       */
       operation delete_application( string author, string app_name);
@@ -323,7 +326,7 @@ class alexandria_api
       /**
       *  This method will create application buy object
       *
-      *  @param buyer The buyer of application
+      *  @param buyer The buyer of application i.e. "account_name"
       *  @param app_id The id of app that buyer will buy
       */
       operation buy_application( string buyer, int64_t app_id);
@@ -331,15 +334,15 @@ class alexandria_api
       /**
       *  This method will cancel application buy object
       *
-      *  @param app_owner The owner of bought application
-      *  @param buyer The buyer of application
+      *  @param app_owner The owner of bought application i.e. "account_name"
+      *  @param buyer The buyer of application i.e. "account_name"
       *  @param app_id The id of bought app
       */
       operation cancel_application_buying( string app_owner, string buyer, int64_t app_id);
 
       /**
        * Get all app buyings by app_name or buyer
-       * @param name Application id or buyers name
+       * @param name Application id or buyers name i.e. "account_name"
        * @param search_type One of "by_buyer", "by_app_id"
        * @param count Number of items to retrieve
        * @return
@@ -353,8 +356,8 @@ class alexandria_api
       /**
        * Send custom JSON data
        * @param app_id Application ID
-       * @param from Sender
-       * @param to List of receivers
+       * @param from Sender i.e. "account_name"
+       * @param to List of receivers i.e. ["account_name"]
        * @param json Data formatted in JSON
        * @return
        */
@@ -363,9 +366,9 @@ class alexandria_api
       /**
        * Send custom data data
        * @param app_id Application ID
-       * @param from Sender
-       * @param to List of receivers
-       * @param data Data formatted in base58.
+       * @param from Sender i.e. "account_name"
+       * @param to List of receivers i.e. ["account_name"]
+       * @param data Data formatted in base64.
        * @return
        */
       operation make_custom_binary_operation(uint32_t app_id, string from, vector<string> to, string data);
@@ -398,6 +401,13 @@ class alexandria_api
       * @return array of application objects
       */
       vector< condenser_api::api_application_object >  get_applications(vector<string> names);
+
+      /**
+      * Get all app objects
+      * @param ids - array of ids of applications
+      * @return array of application objects
+      */
+      vector< condenser_api::api_application_object >  get_applications_by_ids(vector<uint32_t> ids);
 
       /**
        * Calculates digest of provided transaction
@@ -473,18 +483,18 @@ class alexandria_api
       public_key_type get_public_key(string private_key) const;
 
       /**
-       * Decode data to base58
+       * Decode data to base64
        * @param data - data to decode
        * @return
        */
-      std::vector<char> from_base58(string data) const;
+      string from_base64(string data) const;
 
       /**
-       * Encode data to base58
+       * Encode data to base64
        * @param data - data to encode
        * @return
        */
-      string to_base58(std::vector<char> data) const;
+      string to_base64(string data) const;
 
       /**
        * Encrypt data
@@ -537,16 +547,16 @@ class alexandria_api
       *  Account operations have sequence numbers from 0 to N where N is the most recent operation. This method
       *  returns operations in the range [from-limit, from]
       *
-      *  @param account - account whose history will be returned
+      *  @param account - account whose history will be returned i.e. "account_name"
       *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
       *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
       */
-      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
+      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, int64_t from, uint32_t limit );
 
       /**
        * Get all received custom jsons and data.
        * @param app_id Application ID
-       * @param account_name Name of the relevant (sender/recipient) account
+       * @param account_name Name of the relevant (sender/recipient) account i.e. "account_name"
        * @param search_type One of "by_sender", "by_recipient", "by_sender_datetime", "by_recipient_datetime"
        * @param start Either timestamp in ISO format or index
        * @param count Number of items to retrieve
@@ -556,31 +566,31 @@ class alexandria_api
 #endif
       /**
        * Returns active authority for given account
-       * @param account_name - account name
+       * @param account_name - account name i.e. "account_name"
        */
       authority get_active_authority(string account_name) const;
 
       /**
        * Returns owner authority for given account
-       * @param account_name
+       * @param account_name - account name i.e. "account_name"
        */
       authority get_owner_authority(string account_name) const;
 
       /**
        * Returns memo key for given account
-       * @param account_name
+       * @param account_name - account name i.e. "account_name"
         */
       public_key_type get_memo_key(string account_name) const;
 
       /**
        * Returns current balance for given account
-       * @param account_name
+       * @param account_name - account name i.e. "account_name"
        */
       int64_t get_account_balance(string account_name) const;
 
       /**
        * Returns vestig balance for given account
-       * @param account_name
+       * @param account_name - account name i.e. "account_name"
        */
       int64_t get_vesting_balance(string account_name) const;
 
@@ -600,13 +610,13 @@ class alexandria_api
 
       /**
        * Creates simple managed authority from provided account_name
-       * @param managing_account
+       * @param managing_account -  i.e. "account_name"
        */
       authority create_simple_managed_authority(string managing_account) const;
 
       /**
        * Creates simple multisig managed authority from provided account_name
-       * @param managing_accounts - vector of accounts
+       * @param managing_accounts - vector of accounts  i.e. ["account_name"]
        * @param required_signatures - number of required signatures
        */
       authority create_simple_multisig_managed_authority(vector<string> managing_accounts, uint32_t required_signatures) const;
@@ -639,6 +649,18 @@ class alexandria_api
         * @return Amount of SPHTX if conversion is possible, or returns back fiat if not.
         */
        asset fiat_to_sphtx(asset fiat)const;
+
+
+       uint64_t custom_object_subscription(std::function<void(const variant&)> callback, uint32_t app_id, string account_name, string search_type, uint64_t start)const;
+
+       /**
+        * Creates sonsor operation
+        * @param sponsoring_account - account name that will sponsor fees
+        * @param sponsored_account - account that will be sponsored
+        * @param is_sponsoring - true or false if you want to enable/disable this operation
+        * @return
+        */
+       operation sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring) const;
 };
 
 } }
@@ -655,12 +677,14 @@ FC_API( sophiatx::alexandria::alexandria_api,
         /// query api
         (info)
         (list_witnesses)
+        (list_witnesses_by_vote)
         (get_witness)
         (get_block)
         (get_ops_in_block)
         (get_feed_history)
         (get_application_buyings)
         (get_applications)
+        (get_applications_by_ids)
         (get_received_documents)
         (get_active_witnesses)
         (get_transaction)
@@ -689,6 +713,7 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (set_voting_proxy)
         (vote_for_witness)
         (transfer)
+        (sponsor_account_fees)
 
         (transfer_to_vesting)
         (withdraw_vesting)
@@ -720,9 +745,10 @@ FC_API( sophiatx::alexandria::alexandria_api,
         (generate_key_pair)
         (generate_key_pair_from_brain_key)
         (get_public_key)
-        (from_base58)
-        (to_base58)
+        (from_base64)
+        (to_base64)
         (encrypt_data)
         (decrypt_data)
+        (custom_object_subscription)
       )
 

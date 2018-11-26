@@ -260,6 +260,11 @@ vector< account_name_type > alexandria_api::list_witnesses(const string& lowerbo
    return my->_remote_api->lookup_witness_accounts( lowerbound, limit );
 }
 
+vector< condenser_api::api_witness_object > alexandria_api::list_witnesses_by_vote(const string& name, uint32_t limit)
+{
+   return my->_remote_api->get_witnesses_by_vote( name, limit );
+}
+
 optional< condenser_api::api_witness_object > alexandria_api::get_witness(string owner_account)
 {
    return my->get_witness(owner_account);
@@ -554,7 +559,8 @@ operation alexandria_api::make_custom_binary_operation(uint32_t app_id, string f
       op.sender = from;
       for(const auto& r: to)
          op.recipients.insert(r);
-      op.data = fc::from_base58(data);
+      auto out = fc::base64_decode(data);
+      std::copy(out.begin(), out.end(), std::back_inserter(op.data));
       return op;
    }FC_CAPTURE_AND_RETHROW( (app_id)(from)(to)(data))
 }
@@ -564,7 +570,7 @@ vector< condenser_api::api_received_object >  alexandria_api::get_received_docum
    try{
       typedef std::map< uint64_t, condenser_api::api_received_object > ObjectMap;
       std::vector<condenser_api::api_received_object> ret;
-      ObjectMap from_api = my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      ObjectMap from_api = my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
       std::transform( from_api.begin(), from_api.end(),
                    std::back_inserter(ret),
                    boost::bind(&ObjectMap::value_type::second,_1) );
@@ -572,7 +578,7 @@ vector< condenser_api::api_received_object >  alexandria_api::get_received_docum
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
-vector< condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+vector< condenser_api::api_operation_object > alexandria_api::get_account_history( string account, int64_t from, uint32_t limit ) {
    typedef std::map< uint32_t, condenser_api::api_operation_object > ObjectMap;
    ObjectMap from_api = my->_remote_api->get_account_history( account, from, limit );
    std::vector < condenser_api::api_operation_object > ret;
@@ -584,11 +590,11 @@ vector< condenser_api::api_operation_object > alexandria_api::get_account_histor
 #else
 map< uint64_t, condenser_api::api_received_object >  alexandria_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
-      return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      return my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
     }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
-map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+map< uint32_t, condenser_api::api_operation_object > alexandria_api::get_account_history( string account, int64_t from, uint32_t limit ) {
    auto result = my->_remote_api->get_account_history( account, from, limit );
    return result;
 }
@@ -679,8 +685,14 @@ operation alexandria_api::delete_account(string account_name) {
 
 vector<condenser_api::api_application_object> alexandria_api::get_applications(vector<string> names) {
    try{
-      return my->_remote_api->get_applications(names);
+      return my->_remote_api->get_applications_by_names(names);
    }FC_CAPTURE_AND_RETHROW((names))
+}
+
+vector<condenser_api::api_application_object> alexandria_api::get_applications_by_ids(vector<uint32_t> ids) {
+   try{
+      return my->_remote_api->get_applications(ids);
+   }FC_CAPTURE_AND_RETHROW((ids))
 }
 
 digest_type alexandria_api::get_transaction_digest(signed_transaction tx) {
@@ -697,7 +709,7 @@ digest_type alexandria_api::get_transaction_digest(signed_transaction tx) {
 signed_transaction alexandria_api::add_signature(signed_transaction tx, fc::ecc::compact_signature signature) const {
    try{
       tx.signatures.push_back(signature);
-      return  tx;
+      return tx;
    }FC_CAPTURE_AND_RETHROW((tx)(signature))
 }
 
@@ -719,8 +731,9 @@ operation alexandria_api::add_fee(operation op, asset fee)const {
 
 fc::ecc::compact_signature alexandria_api::sign_digest(digest_type digest, string pk) const {
    try{
-      auto priv_key = *sophiatx::utilities::wif_to_key(pk);
-      return priv_key.sign_compact(digest);
+      auto priv_key = sophiatx::utilities::wif_to_key(pk);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
+      return priv_key->sign_compact(digest);
    }FC_CAPTURE_AND_RETHROW((digest)(pk))
 }
 
@@ -766,28 +779,30 @@ key_pair alexandria_api::generate_key_pair_from_brain_key(string brain_key) cons
 
 public_key_type alexandria_api::get_public_key(string private_key) const {
    try{
-      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
-      return priv_key.get_public_key();
+      auto priv_key = sophiatx::utilities::wif_to_key(private_key);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
+      return priv_key->get_public_key();
    }FC_CAPTURE_AND_RETHROW((private_key))
 }
 
-std::vector<char> alexandria_api::from_base58(string data) const {
-   return fc::from_base58(data);
+string alexandria_api::from_base64(string data) const {
+   return fc::base64_decode(data);
 }
 
-string alexandria_api::to_base58(std::vector<char> data) const {
-   return fc::to_base58(data);
+string alexandria_api::to_base64(string data) const {
+   return fc::base64_encode(data);
 }
 
 string alexandria_api::encrypt_data(string data, public_key_type public_key, string private_key) const {
    try {
       memo_data m;
 
-      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+      auto priv_key = sophiatx::utilities::wif_to_key(private_key);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
 
       m.nonce = fc::time_point::now().time_since_epoch().count();
 
-      auto shared_secret = priv_key.get_shared_secret( public_key );
+      auto shared_secret = priv_key->get_shared_secret( public_key );
 
       fc::sha512::encoder enc;
       fc::raw::pack( enc, m.nonce );
@@ -807,9 +822,10 @@ string alexandria_api::decrypt_data(string data, public_key_type public_key, str
       FC_ASSERT(m , "Can not parse input!");
 
       fc::sha512 shared_secret;
-      auto priv_key = *sophiatx::utilities::wif_to_key(private_key);
+      auto priv_key = sophiatx::utilities::wif_to_key(private_key);
+      FC_ASSERT( priv_key.valid(), "Malformed private key" );
 
-      shared_secret = priv_key.get_shared_secret(public_key);
+      shared_secret = priv_key->get_shared_secret(public_key);
 
       fc::sha512::encoder enc;
       fc::raw::pack(enc, m->nonce);
@@ -936,8 +952,6 @@ authority alexandria_api::create_simple_managed_authority(string managing_accoun
    return authority(1, decoded_name, 1);
 }
 
-
-
 authority
 alexandria_api::create_simple_multisig_authority(vector<public_key_type> pub_keys, uint32_t required_signatures) const {
    authority auth;
@@ -962,7 +976,7 @@ authority alexandria_api::create_simple_multisig_managed_authority(vector<string
 }
 
 string alexandria_api::get_account_name_from_seed(string seed) const{
-   return make_random_fixed_string(seed);
+   return account_name_type(make_random_fixed_string(seed));
 }
 
 asset alexandria_api::calculate_fee(operation op, asset_symbol_type symbol)const{
@@ -1073,6 +1087,25 @@ set<public_key_type> alexandria_api::get_required_signatures(signed_transaction 
       return approving_key_set;
    } FC_CAPTURE_AND_RETHROW((tx))
 }
+
+uint64_t alexandria_api::custom_object_subscription(std::function<void(const variant&)> cb, uint32_t app_id, string account_name, string search_type, uint64_t start)const
+{
+   try{
+      return my->_remote_api->custom_object_subscription(cb, app_id, account_name, search_type, start);
+   }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start))
+}
+
+operation alexandria_api::sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring) const {
+   try{
+      sponsor_fees_operation op;
+      op.sponsor = sponsoring_account;
+      op.sponsored = sponsored_account;
+      op.is_sponsoring = is_sponsoring;
+      return op;
+
+   }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account))
+}
+
 
 } } // sophiatx::alexandria
 

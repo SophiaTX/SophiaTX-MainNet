@@ -1,4 +1,3 @@
-#ifdef IS_TEST_NET
 #include <boost/test/unit_test.hpp>
 
 #include <sophiatx/chain/account_object.hpp>
@@ -312,4 +311,3 @@ BOOST_AUTO_TEST_CASE( semantics_validation )
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-#endif

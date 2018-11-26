@@ -16,15 +16,15 @@ namespace sophiatx { namespace chain {
         public:
             template<typename Constructor, typename Allocator>
             application_object( Constructor&& c, allocator< Allocator > a )
-                    : metadata( a )
+                    :  url(a), metadata( a )
             {
                 c(*this);
             };
 
             id_type                 id;
-            string                  name;
+            application_name_type                  name;
             account_name_type       author;
-            string                  url;
+            shared_string                  url;
             shared_string           metadata;
             application_price_param price_param = none;
         };
@@ -53,7 +53,7 @@ namespace sophiatx { namespace chain {
                 application_object,
                 indexed_by<
                 ordered_unique< tag< by_id >, member< application_object, application_id_type, &application_object::id > >,
-                ordered_unique< tag< by_name >,  member<application_object, string, &application_object::name > >,
+                ordered_unique< tag< by_name >,  member<application_object, application_name_type, &application_object::name > >,
                 ordered_non_unique< tag< by_author >, member<application_object, account_name_type, &application_object::author > >
         >,
         allocator< application_object >

@@ -29,7 +29,7 @@ pipeline {
             BUILD_TYPE = "Debug"
           }
         }
-        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_160} -DOPENSSL_ROOT_DIR=${OPENSSL_102} -DFULL_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
+        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
         sh 'make -j4'
       }
     }
@@ -38,6 +38,7 @@ pipeline {
         script {
           if( !params.build_as_testnet ) {
             sh './tests/chain_test'
+            sh './tests/plugin_test'
           }
         }
       }
@@ -56,15 +57,22 @@ pipeline {
                 archiveArtifacts '*.gz'
             }
           dir('bin') {
+              sh 'rm -f test*' //remove test binaries
+
               script {
                   if( !params.build_as_debug ) {
                     sh 'strip -s *' //strip symbols
                   }
+
+                  if( params.build_as_testnet ) {
+                     sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
+                     sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
+                  } else {
+                     sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
+                     sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
+                     sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
+                  }
               }
-              sh 'rm -f test*' //remove test binaries
-              sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
-              sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
-              sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
               archiveArtifacts '*.gz'
           }
         }

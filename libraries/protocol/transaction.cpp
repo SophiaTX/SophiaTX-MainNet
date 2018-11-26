@@ -40,27 +40,54 @@ sophiatx::protocol::transaction_id_type sophiatx::protocol::transaction::id() co
    return result;
 }
 
+
+namespace{
+class raw_bytes
+{
+public:
+   raw_bytes(){};
+   ~raw_bytes(){};
+
+   void write( const char* d, uint32_t dlen ){ for(uint32_t i =0; i<dlen; i++){data[size++] = d[i]; }   };
+   void put( char c ) { write( &c, 1 ); }
+   void reset(){size = 0 ;};
+
+   unsigned char data[100000];
+   uint32_t size = 0;
+};
+}
+
+
 digest_type transaction::sig_digest( const chain_id_type& chain_id )const
 {
+#ifndef NDEBUG
+//   raw_bytes s,t;
+//   fc::raw::pack( s, chain_id );
+//   fc::raw::pack( s, *this );
+//   for(uint32_t i = 0; i<s.size; i++) std::cout<<std::hex << std::setfill('0') << std::setw(2) <<std::uppercase << (static_cast<int>(s.data[i])&0xFF);
+//   std::cout <<"\n";
+#endif
    digest_type::encoder enc;
    fc::raw::pack( enc, chain_id );
    fc::raw::pack( enc, *this );
    return enc.result();
 }
 
-const signature_type& sophiatx::protocol::signed_transaction::sign(const private_key_type& key, const chain_id_type& chain_id)
+const signature_type& sophiatx::protocol::signed_transaction::sign(const private_key_type& key, const chain_id_type& chain_id,
+      canonical_signature_type canon_type)
 {
    digest_type h = sig_digest( chain_id );
-   signatures.push_back(key.sign_compact(h));
+   signatures.push_back(key.sign_compact(h, canon_type));
    return signatures.back();
 }
 
-signature_type sophiatx::protocol::signed_transaction::sign(const private_key_type& key, const chain_id_type& chain_id)const
+signature_type sophiatx::protocol::signed_transaction::sign(const private_key_type& key, const chain_id_type& chain_id,
+      canonical_signature_type canon_type)const
 {
    digest_type::encoder enc;
    fc::raw::pack( enc, chain_id );
    fc::raw::pack( enc, *this );
-   return key.sign_compact(enc.result());
+   return key.sign_compact(enc.result(), canon_type);
 }
 
 void transaction::set_expiration( fc::time_point_sec expiration_time )
@@ -82,14 +109,15 @@ void transaction::get_required_authorities( flat_set< account_name_type >& activ
       operation_get_required_authorities( op, active, owner, other );
 }
 
-flat_set<public_key_type> signed_transaction::get_signature_keys( const chain_id_type& chain_id )const
+flat_set<public_key_type> signed_transaction::get_signature_keys( const chain_id_type& chain_id,
+      canonical_signature_type canon_type )const
 { try {
    auto d = sig_digest( chain_id );
    flat_set<public_key_type> result;
    for( const auto&  sig : signatures )
    {
       SOPHIATX_ASSERT(
-         result.insert( fc::ecc::public_key(sig,d) ).second,
+         result.insert( fc::ecc::public_key(sig, d, canon_type) ).second,
          tx_duplicate_sig,
          "Duplicate Signature detected" );
    }
@@ -103,7 +131,8 @@ set<public_key_type> signed_transaction::get_required_signatures(
    const flat_set<public_key_type>& available_keys,
    const authority_getter& get_active,
    const authority_getter& get_owner,
-   uint32_t max_recursion_depth )const
+   uint32_t max_recursion_depth,
+   canonical_signature_type canon_type )const
 {
    flat_set< account_name_type > required_active;
    flat_set< account_name_type > required_owner;
@@ -112,7 +141,7 @@ set<public_key_type> signed_transaction::get_required_signatures(
 
 
 
-   sign_state s(get_signature_keys( chain_id ),get_active,available_keys);
+   sign_state s(get_signature_keys( chain_id, canon_type ), get_active, available_keys);
    s.max_recursion = max_recursion_depth;
 
    for( const auto& auth : other )
@@ -139,10 +168,11 @@ set<public_key_type> signed_transaction::minimize_required_signatures(
    const flat_set< public_key_type >& available_keys,
    const authority_getter& get_active,
    const authority_getter& get_owner,
-   uint32_t max_recursion
+   uint32_t max_recursion,
+   canonical_signature_type canon_type
    ) const
 {
-   set< public_key_type > s = get_required_signatures( chain_id, available_keys, get_active, get_owner, max_recursion );
+   set< public_key_type > s = get_required_signatures( chain_id, available_keys, get_active, get_owner, max_recursion, canon_type );
    flat_set< public_key_type > result( s.begin(), s.end() );
 
    for( const public_key_type& k : s )
@@ -165,9 +195,10 @@ void signed_transaction::verify_authority(
    const chain_id_type& chain_id,
    const authority_getter& get_active,
    const authority_getter& get_owner,
-   uint32_t max_recursion )const
+   uint32_t max_recursion,
+   canonical_signature_type canon_type )const
 { try {
-   sophiatx::protocol::verify_authority( operations, get_signature_keys( chain_id ), get_active, get_owner, max_recursion );
+   sophiatx::protocol::verify_authority( operations, get_signature_keys( chain_id, canon_type ), get_active, get_owner, max_recursion );
 } FC_CAPTURE_AND_RETHROW( (*this) ) }
 
 } } // sophiatx::protocol

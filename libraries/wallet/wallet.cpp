@@ -696,14 +696,15 @@ public:
          { return (get_account_from_lut( account_name ).active); },
          [&]( const string& account_name ) -> const authority&
          { return (get_account_from_lut( account_name ).owner); },
-         SOPHIATX_MAX_SIG_CHECK_DEPTH
+         SOPHIATX_MAX_SIG_CHECK_DEPTH,
+         fc::ecc::fc_canonical
          );
 
       for( const public_key_type& k : minimal_signing_keys )
       {
          auto it = available_private_keys.find(k);
          FC_ASSERT( it != available_private_keys.end() );
-         tx.sign( it->second, sophiatx_chain_id );
+         tx.sign( it->second, sophiatx_chain_id, fc::ecc::fc_canonical );
       }
 
       elog("Transaction digest is: ${d}", ("d", tx.sig_digest(sophiatx_chain_id)));
@@ -1811,7 +1812,8 @@ string wallet_api::decrypt_memo( string encrypted_memo ) {
    return encrypted_memo;
 }
 
-map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_history( string account, uint32_t from, uint32_t limit ) {
+map< uint32_t, condenser_api::api_operation_object > wallet_api::get_account_history(string account, int64_t from,
+                                                                                     uint32_t limit) {
    auto result = my->_remote_api->get_account_history( account, from, limit );
    if( !is_locked() ) {
       for( auto& item : result ) {
@@ -1967,7 +1969,8 @@ annotated_signed_transaction wallet_api::send_custom_binary_document(uint32_t ap
       op.sender = from;
       for(const auto& r: to)
          op.recipients.insert(r);
-      op.data = fc::from_base58(data);
+      auto out = fc::base64_decode(data);
+      std::copy(out.begin(), out.end(), std::back_inserter(op.data));
       signed_transaction tx;
       tx.operations.push_back(op);
       tx.validate();
@@ -1994,9 +1997,9 @@ annotated_signed_transaction wallet_api::sponsor_account_fees(string sponsoring_
    }FC_CAPTURE_AND_RETHROW( (sponsoring_account)(sponsored_account)(broadcast) )
 }
 
-map< uint64_t, condenser_api::api_received_object >  wallet_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+map< uint64_t, condenser_api::api_received_object >  wallet_api::list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
    try{
-      return my->_remote_api->get_received_documents(app_id, account_name, search_type, start, count);
+      return my->_remote_api->list_received_documents(app_id, account_name, search_type, start, count);
    }FC_CAPTURE_AND_RETHROW((app_id)(account_name)(search_type)(start)(count))
 }
 
@@ -2016,16 +2019,16 @@ annotated_signed_transaction wallet_api::delete_account(string account_name, boo
 
 vector<condenser_api::api_application_object> wallet_api::get_applications(vector<string> names) {
    try{
-      return my->_remote_api->get_applications(names);
+      return my->_remote_api->get_applications_by_names(names);
    }FC_CAPTURE_AND_RETHROW((names))
 }
 
-string wallet_api::encode_to_base58(string what){
-   return fc::to_base58(what.c_str(), what.size());
+string wallet_api::encode_to_base64(string what){
+   return fc::base64_encode(what.c_str(), what.size());
 }
 
-vector<char> wallet_api::decode_from_base58(string what){
-   return fc::from_base58(what);
+string wallet_api::decode_from_base64(string what){
+   return fc::base64_decode(what);
 }
 
 string wallet_api::get_account_name_from_seed(string seed){

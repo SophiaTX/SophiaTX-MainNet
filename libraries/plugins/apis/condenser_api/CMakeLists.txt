@@ -14,6 +14,7 @@ target_link_libraries( condenser_api_plugin
    network_broadcast_api_plugin
    witness_api_plugin
    custom_api_plugin
+   subscribe_api_plugin
    sophiatx_utilities )
 target_include_directories( condenser_api_plugin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 

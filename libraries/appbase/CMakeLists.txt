@@ -25,12 +25,12 @@ if( APPLE )
 else( APPLE )
   # Linux Specific Options Here
   message( STATUS "Configuring AppBase on Linux" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -Wall" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -Wall -pthread" )
   set( rt_library rt )
   set( pthread_library pthread)
-  if ( FULL_STATIC_BUILD )
+  if ( SOPHIATX_STATIC_BUILD )
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
-  endif ( FULL_STATIC_BUILD )
+  endif ( SOPHIATX_STATIC_BUILD )
 endif( APPLE )
 
 

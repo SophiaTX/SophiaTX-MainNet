@@ -91,6 +91,22 @@ extern "C" {
     * @return - true if signature is correct
     */
     ALEXANDRIA_EXPORT bool decrypt_memo(const char *memo, const char *private_key, const char *public_key, char *decrypted_memo);
+
+    /**
+     * Decodes input from base64 to bytes
+     * @param input - base64 string
+     * @param output - array of raw bytes
+     * @return - true if is successful
+     */
+    ALEXANDRIA_EXPORT bool base64_decode(const char *input, char *output);
+
+    /**
+     * Encodes input to base64
+     * @param input - array of raw bytes
+     * @param output - base64 string
+     * @return - true if is successful
+     */
+    ALEXANDRIA_EXPORT bool base64_encode(const char *input, char *output);
 }
 
 #endif //SOPHIATX_ALEXANDRIA_HPP

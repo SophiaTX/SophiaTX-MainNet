@@ -8,6 +8,7 @@
 #include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 #include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
 #include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
+#include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
 
 #include <sophiatx/utilities/git_revision.hpp>
 
@@ -65,14 +66,16 @@ namespace detail
             (get_potential_signatures)
             (verify_authority)
             (verify_account_authority)
+            (custom_object_subscription)
   //          (get_account_votes)
             (get_account_history)
             (broadcast_transaction)
             (broadcast_transaction_synchronous)
             (broadcast_block)
+            (get_applications_by_names)
             (get_applications)
             (get_promotion_pool_balance)
-            (get_received_documents)
+            (list_received_documents)
             (get_application_buyings)
          )
 
@@ -87,6 +90,7 @@ namespace detail
          std::shared_ptr< network_broadcast_api::network_broadcast_api > _network_broadcast_api;
          std::shared_ptr< witness::witness_api > _witness_api;
          std::shared_ptr< custom::custom_api > _custom_api;
+         std::shared_ptr< subscribe::subscribe_api> _subscribe_api;
    };
 
    DEFINE_API_IMPL( condenser_api_impl, get_version )
@@ -137,7 +141,7 @@ namespace detail
                {
                   legacy_operation l_op;
                   legacy_operation_conversion_visitor visitor( l_op );
-                  auto history = _account_history_api->get_account_history( { acnt, uint64_t(-1), 1000 } ).history;
+                  auto history = _account_history_api->get_account_history( { acnt, int64_t(-1), 1000 } ).history;
                   for( auto& item : history )
                   {
                      switch( item.second.op.which() ) {
@@ -403,16 +407,20 @@ namespace detail
    DEFINE_API_IMPL( condenser_api_impl, lookup_accounts )
    {
       CHECK_ARG_SIZE( 2 )
-      account_name_type lower_bound_name = args[0].as< account_name_type >();
+      account_name_type lower_bound_name = args[0].as< string >();
       uint32_t limit = args[1].as< uint32_t >();
+
 
       FC_ASSERT( limit <= 1000 );
       const auto& accounts_by_name = _db.get_index< account_index, by_name >();
       set<string> result;
 
-      for( auto itr = accounts_by_name.lower_bound( lower_bound_name );
-           limit-- && itr != accounts_by_name.end();
-           ++itr )
+      auto itr = accounts_by_name.upper_bound( lower_bound_name );
+      itr--;
+
+      for( ;
+           limit-- && itr != accounts_by_name.begin();
+           --itr )
       {
          result.insert( itr->name );
       }
@@ -450,7 +458,7 @@ namespace detail
       CHECK_ARG_SIZE( 2 )
       get_escrow_return result;
 
-      auto escrows = _database_api->list_escrows( { { args }, 1, database_api::by_from_id } ).escrows;
+      auto escrows = _database_api->list_escrows( { { args }, 1, database_api::by_from_id_reverse } ).escrows;
 
       if( escrows.size()
          && escrows[0].from == args[0].as< account_name_type >()
@@ -515,7 +523,7 @@ namespace detail
       }
       else
       {
-         auto start = _database_api->list_witnesses( { args[0], 1, database_api::by_name } );
+         auto start = _database_api->list_witnesses( { args[0], 1, database_api::by_name_reverse } );
 
          if( start.witnesses.size() == 0 )
             return get_witnesses_by_vote_return();
@@ -525,7 +533,7 @@ namespace detail
       }
 
       auto limit = args[1].as< uint32_t >();
-      auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name } ).witnesses;
+      auto witnesses = _database_api->list_witnesses( { fc::variant( start_key ), limit, database_api::by_vote_name} ).witnesses;
 
       get_witnesses_by_vote_return result;
 
@@ -601,6 +609,15 @@ namespace detail
       return _database_api->verify_account_authority( { args[0].as< account_name_type >(), args[1].as< flat_set< public_key_type > >() } ).valid;
    }
 
+   DEFINE_API_IMPL( condenser_api_impl, custom_object_subscription )
+   {
+      CHECK_ARG_SIZE( 5 )
+      FC_ASSERT( _subscribe_api, "subscribe_api_plugin not enabled." );
+
+      return _subscribe_api->custom_object_subscription( { args[0].as< uint64_t>(), args[1].as< uint32_t>(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint64_t>() } );
+   }
+
+
 /*
    DEFINE_API_IMPL( condenser_api_impl, get_account_votes )
    {
@@ -636,7 +653,7 @@ namespace detail
       CHECK_ARG_SIZE( 3 )
       FC_ASSERT( _account_history_api, "account_history_api_plugin not enabled." );
 
-      auto history = _account_history_api->get_account_history( { args[0].as< account_name_type >(), args[1].as< uint64_t >(), args[2].as< uint32_t >() } ).history;
+      auto history = _account_history_api->get_account_history( { args[0].as< account_name_type >(), args[1].as< int64_t >(), args[2].as< uint32_t >(), true } ).history;
       get_account_history_return result;
 
       legacy_operation l_op;
@@ -653,12 +670,12 @@ namespace detail
       return result;
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_received_documents )
+   DEFINE_API_IMPL( condenser_api_impl, list_received_documents )
    {
       CHECK_ARG_SIZE( 5 )
       FC_ASSERT( _custom_api, "custom_api_plugin not enabled." );
 
-      return _custom_api->get_received_documents( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint32_t >() } ).history;
+      return _custom_api->list_received_documents( { args[0].as< uint32_t >(), args[1].as< string >(), args[2].as< string >(), args[3].as< string >(), args[4].as< uint32_t >() } );
    }
 
    DEFINE_API_IMPL( condenser_api_impl, broadcast_transaction )
@@ -685,7 +702,7 @@ namespace detail
       return _network_broadcast_api->broadcast_block( { signed_block( args[0].as< legacy_signed_block >() ) } );
    }
 
-   DEFINE_API_IMPL( condenser_api_impl, get_applications )
+   DEFINE_API_IMPL( condenser_api_impl, get_applications_by_names )
    {
       CHECK_ARG_SIZE( 1 )
       vector< string > app_names = args[0].as< vector< string > >();
@@ -704,6 +721,26 @@ namespace detail
       }
       return result;
    }
+
+DEFINE_API_IMPL( condenser_api_impl, get_applications )
+{
+   CHECK_ARG_SIZE( 1 )
+   vector< uint32_t > app_ids = args[0].as< vector< uint32_t > >();
+
+   vector< api_application_object > result;
+   result.reserve( app_ids.size() );
+
+   for( auto& id : app_ids )
+   {
+      auto itr = _db.find< application_object, by_id >( id );
+
+      if( itr )
+      {
+         result.push_back( api_application_object( database_api::api_application_object( *itr ) ) );
+      }
+   }
+   return result;
+}
 
    DEFINE_API_IMPL( condenser_api_impl, get_application_buyings )
    {
@@ -726,6 +763,7 @@ condenser_api::condenser_api()
    : my( new detail::condenser_api_impl() )
 {
    JSON_RPC_REGISTER_API( SOPHIATX_CONDENSER_API_PLUGIN_NAME );
+   appbase::app().get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >().add_api_subscribe_method("condenser_api", "custom_object_subscription" );
 }
 
 condenser_api::~condenser_api() {}
@@ -759,6 +797,10 @@ void condenser_api::api_startup()
    auto custom = appbase::app().find_plugin< custom::custom_api_plugin>();
    if( custom != nullptr )
       my->_custom_api = custom->api;
+
+   auto subscribe = appbase::app().find_plugin< subscribe::subscribe_api_plugin>();
+   if ( subscribe != nullptr)
+      my->_subscribe_api = subscribe->api;
 }
 
 DEFINE_LOCKLESS_APIS( condenser_api,
@@ -802,11 +844,13 @@ DEFINE_READ_APIS( condenser_api,
    (get_potential_signatures)
    (verify_authority)
    (verify_account_authority)
+   (custom_object_subscription)
  //  (get_account_votes)
    (get_account_history)
    (get_applications)
+   (get_applications_by_names)
    (get_promotion_pool_balance)
-   (get_received_documents)
+   (list_received_documents)
    (get_application_buyings)
 )
 

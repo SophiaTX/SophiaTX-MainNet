@@ -1,0 +1,131 @@
+---
+- hosts: "{{ host }}"
+  remote_user: "{{ user }}"
+  become: yes
+  become_user: "{{ user }}"
+  vars:
+    source_dir: ~/sophiatx-binaries/
+    bc_data_dir: ~/sophiatx-binaries/bc-data/
+    config_file_name: testnet_config.ini
+
+  tasks:
+  - block:
+    - name: "Checking folders \"{{source_dir}}\", \"{{bc_data_dir}}\" if they exist"
+      stat:
+        path: "{{item}}"
+      register: folder_stats
+      with_items: ["{{source_dir}}", "{{bc_data_dir}}"]
+    - name: "Creating non-existing folders"
+      file:
+        path: "{{item.item}}"
+        state: directory
+        mode: 0755
+        group: "{{ user }}"
+        owner: "{{ user }}"
+      when: item.stat.exists == false
+      with_items: "{{folder_stats.results}}"
+
+
+  - name: Finding all existing *.old files
+    find:
+      paths: "{{ source_dir }}"
+      patterns: "*.old"
+    register: files_to_delete
+  - name: Deleting existing *.old files
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ files_to_delete.files }}"
+
+
+  - block:
+    - name: Finding all existing *.gz files
+      find:
+        paths: "{{ source_dir }}"
+        patterns: "*.gz"
+      register: gz_files_to_rename
+    - name: Renaming files to *.gz.old files
+      command: mv "{{ item.path }}" "{{ item.path }}".old
+      with_items: "{{ gz_files_to_rename.files }}"
+
+    - name: Checking {{config_file_name}} file
+      stat:
+        path: "{{ source_dir }}{{config_file_name}}"
+      register: config_file_result
+    - name: Renaming {{config_file_name}} file to *.old
+      command: mv "{{ source_dir }}{{config_file_name}}" "{{ source_dir }}{{config_file_name}}".old
+      when: config_file_result.stat.exists == True
+
+
+
+  - name: Downloading source {{ sourceUrl }}
+    get_url:
+      url: "{{ sourceUrl }}"
+      dest: "{{ source_dir }}"
+      mode: 0440
+
+
+
+  - block:
+      - name: Installing unzip if not already installed
+        apt:
+          name: unzip
+          state: latest
+      - name: Unarchiving archive.zip
+        unarchive:
+          src: "{{ source_dir }}archive.zip"
+          dest: "{{ source_dir }}"
+          remote_src: yes
+      - name: Finding concrete unarchived sophiatx_#<...>.tar.gz file
+        find:
+          paths: "{{ source_dir }}/archive"
+          patterns: "sophiatx_*.tar.gz"
+        register: sophia_tar_file
+      - name: Moving found unarchived sophiatx_#<...>.tar.gz to the parent folder
+        command: mv "{{ item.path }}" "{{ source_dir }}"
+        with_items: "{{ sophia_tar_file.files }}"
+      - name: Deleting archive.zip and archive folder, which are not needed anymore
+        file:
+          state: absent
+          path: "{{item}}"
+        with_items: ["{{ source_dir }}archive.zip", "{{ source_dir }}archive"]
+    when: sourceUrl is match('.*\/archive\.zip$')
+
+
+  - find:
+      paths: "{{ source_dir }}"
+      patterns: "sophiatx_*.tar.gz"
+    register: sophia_tar_file
+  - name: Unarchiving sophiatx_#<NUM>.tar.gz
+    unarchive:
+      src: "{{ item.path }}"
+      dest: "{{ source_dir }}"
+      remote_src: yes
+    with_items: "{{ sophia_tar_file.files }}"
+
+
+  - name: Copying {{config_file_name}} to {{bc_data_dir}}
+    command: cp "{{ source_dir }}{{config_file_name}}" "{{bc_data_dir}}"config.ini
+
+
+  - name: Killing all screen sessions that are actually running
+    command: killall screen
+    ignore_errors: yes # ignore error when there are no running sessions
+
+
+  - name: Starting sophia demon with --replay-blockchain flag
+    command: screen -dmS sophia bash -c '{{ source_dir }}sophiatxd -d {{ source_dir }}bc-data/ --replay-blockchain; exec $SHELL'
+    when: replayBlockchain == "true"
+
+  - name: Starting sophia demon
+    command: screen -dmS sophia bash -c '{{ source_dir }}sophiatxd -d {{ source_dir }}bc-data/; exec $SHELL'
+    when: replayBlockchain == "false"
+
+
+  - name: Waiting 5 seconds for sophia demon to fully initialize and start.
+    pause:
+      seconds: 5
+
+
+  - name: Starting alexandria demon
+    command: screen -dmS alexandria bash -c '{{ source_dir }}alexandria_deamon -H0.0.0.0:9195 -C*; exec $SHELL'

@@ -1,6 +1,9 @@
 .idea
 libraries/manifest/sophiatx_manifest/__pycache__/
+ciscripts/deploy/ansible/playbooks/deploy-node.retry
 cmake-build-debug
 CMakeCache.txt
 CMakeFiles
 *.user
+cmake-build-release/
+

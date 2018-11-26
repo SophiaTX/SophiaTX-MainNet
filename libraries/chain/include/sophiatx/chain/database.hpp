@@ -200,7 +200,26 @@ namespace sophiatx { namespace chain {
           */
          void notify_pre_apply_operation( operation_notification& note );
          void notify_post_apply_operation( const operation_notification& note );
-         inline const void push_virtual_operation( const operation& op, bool force = false ); // vops are not needed for low mem. Force will push them on low mem.
+         inline const void push_virtual_operation( const operation& op, bool force = false ) // vops are not needed for low mem. Force will push them on low mem.
+         {
+            /*
+            if( !force )
+            {
+               #if defined( IS_LOW_MEM ) && ! defined( IS_TEST_NET )
+               return;
+               #endif
+            }
+            */
+
+            FC_ASSERT( is_virtual_operation( op ) );
+            operation_notification note(op);
+            ++_current_virtual_op;
+            _current_trx_id = transaction_id_type();
+            note.virtual_op = _current_virtual_op;
+            notify_pre_apply_operation( note );
+            notify_post_apply_operation( note );
+         }
+
          void notify_applied_block( const signed_block& block );
          void notify_on_pending_transaction( const signed_transaction& tx );
          void notify_on_pre_apply_transaction( const signed_transaction& tx );
@@ -464,6 +483,8 @@ namespace sophiatx { namespace chain {
          void modify_balance( const account_object& a, const asset& delta, bool check_balance );
          void modify_reward_balance( const account_object& a, const asset& delta, bool check_balance );
 
+         void recalculate_all_votes();
+
          std::unique_ptr< database_impl > _my;
 
          fork_database                 _fork_db;
@@ -480,7 +501,7 @@ namespace sophiatx { namespace chain {
 
          transaction_id_type           _current_trx_id;
          uint32_t                      _current_block_num    = 0;
-         uint16_t                      _current_trx_in_block = 0;
+         int32_t                       _current_trx_in_block = 0;
          uint16_t                      _current_op_in_trx    = 0;
          uint16_t                      _current_virtual_op   = 0;
 

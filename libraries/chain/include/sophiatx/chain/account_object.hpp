@@ -39,14 +39,14 @@ namespace sophiatx { namespace chain {
 
 
          share_type        holdings_considered_for_interests = 0;
-         share_type        update_considered_holding(share_type inserted, uint32_t block_no){
-            uint32_t my_turn = id._id % SOPHIATX_INTEREST_BLOCKS;
-            uint32_t block = block_no % SOPHIATX_INTEREST_BLOCKS;
+         share_type        update_considered_holding(share_type inserted, uint32_t block_no, uint32_t interest_blocks = SOPHIATX_INTEREST_BLOCKS){
+            uint32_t my_turn = id._id % interest_blocks;
+            uint32_t block = block_no % interest_blocks;
             int64_t to_my_turn;
             if ( my_turn >= block ){
                to_my_turn = my_turn - block;
             }else{
-               to_my_turn = my_turn + SOPHIATX_INTEREST_BLOCKS - block;
+               to_my_turn = my_turn + interest_blocks - block;
             }
             share_type to_add = (inserted * to_my_turn);
             holdings_considered_for_interests += to_add;
@@ -179,6 +179,7 @@ namespace sophiatx { namespace chain {
 
    struct by_name;
    struct by_proxy;
+   struct by_balance;
    struct by_next_vesting_withdrawal;
 
    /**
@@ -197,6 +198,8 @@ namespace sophiatx { namespace chain {
                member< account_object, account_name_type, &account_object::name >
             > /// composite key by proxy
          >,
+         ordered_non_unique< tag <by_balance>,
+            const_mem_fun< account_object, share_type, &account_object::total_balance> >,
          ordered_unique< tag< by_next_vesting_withdrawal >,
             composite_key< account_object,
                member< account_object, time_point_sec, &account_object::next_vesting_withdrawal >,

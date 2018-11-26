@@ -43,6 +43,7 @@ namespace detail
    DEFINE_API_IMPL( network_broadcast_api_impl, broadcast_transaction )
    {
       FC_ASSERT( !check_max_block_age( args.max_block_age ) );
+      FC_ASSERT( fc::raw::pack_size(args.trx) <= SOPHIATX_MAX_TRANSACTION_SIZE, "Transaction size is bigger than SOPHIATX_MAX_TRANSACTION_SIZE" );
       _chain.accept_transaction( args.trx );
       _p2p.broadcast_transaction( args.trx );
 
@@ -52,6 +53,7 @@ namespace detail
    DEFINE_API_IMPL( network_broadcast_api_impl, broadcast_transaction_synchronous )
    {
       FC_ASSERT( !check_max_block_age( args.max_block_age ) );
+      FC_ASSERT( fc::raw::pack_size(args.trx) <= SOPHIATX_MAX_TRANSACTION_SIZE, "Transaction size is bigger than SOPHIATX_MAX_TRANSACTION_SIZE" );
 
       auto txid = args.trx.id();
       boost::promise< broadcast_transaction_synchronous_return > p;
@@ -108,6 +110,7 @@ namespace detail
 
    DEFINE_API_IMPL( network_broadcast_api_impl, broadcast_block )
    {
+      FC_ASSERT( fc::raw::pack_size(args.block) <= SOPHIATX_MAX_BLOCK_SIZE, "Block size is bigger than SOPHIATX_MAX_BLOCK_SIZE" );
       _chain.accept_block( args.block, /*currently syncing*/ false, /*skip*/ chain::database::skip_nothing );
       _p2p.broadcast_block( args.block );
       return broadcast_block_return();

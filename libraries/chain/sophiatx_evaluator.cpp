@@ -13,7 +13,6 @@
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#include <diff_match_patch.h>
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 #include <boost/locale/encoding_utf.hpp>
@@ -237,14 +236,24 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
 
    const auto& props = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( creator.balance >= o.fee, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", o.fee ) );
+   asset to_pay;
+   if(o.fee.symbol == SOPHIATX_SYMBOL) {
+      to_pay = o.fee;
+   } else {
+      to_pay = _db.to_sophiatx(o.fee);
+   }
+
+   if(_db.has_hardfork(SOPHIATX_HARDFORK_1_1))
+      FC_ASSERT( o.name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
+
+   FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
    asset required_fee = asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
-   FC_ASSERT( o.fee >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
-              ("f", required_fee ) ("p", o.fee) );
+   FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
+              ("f", required_fee ) ("p", to_pay) );
 
-   asset excess_fee = o.fee - required_fee;
+   asset excess_fee = to_pay - required_fee;
    verify_authority_accounts_exist( _db, o.owner, new_account_name, authority::owner );
    verify_authority_accounts_exist( _db, o.active, new_account_name, authority::active );
 
@@ -557,8 +566,8 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    const auto& account = _db.get_account( o.account );
    const auto& gpo = _db.get_dynamic_global_properties();
 
-   FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX Power for withdraw." );
-   FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX Power for withdraw." );
+   FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX VESTS for withdraw." );
+   FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX VESTS for withdraw." );
 
 
    if( o.vesting_shares.amount == 0 )
@@ -576,22 +585,22 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    {
       int vesting_withdraw_intervals = SOPHIATX_VESTING_WITHDRAW_INTERVALS; /// 13 weeks = 1 quarter of a year
 
-      _db.modify( account, [&]( account_object& a )
+      auto new_vesting_withdraw_rate = asset( o.vesting_shares.amount / vesting_withdraw_intervals, VESTS_SYMBOL );
+
+      if( new_vesting_withdraw_rate.amount == 0 )
+         new_vesting_withdraw_rate.amount = 1;
+
+      FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
+
+      auto wit = _db.find_witness( o. account );
+      FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - o.vesting_shares.amount >= gpo.witness_required_vesting.amount );
+
+     _db.modify( account, [&]( account_object& a )
       {
-         auto new_vesting_withdraw_rate = asset( o.vesting_shares.amount / vesting_withdraw_intervals, VESTS_SYMBOL );
-
-         if( new_vesting_withdraw_rate.amount == 0 )
-            new_vesting_withdraw_rate.amount = 1;
-
-         FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
-
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
          a.to_withdraw = o.vesting_shares.amount;
          a.withdrawn = 0;
-
-         auto wit = _db.find_witness( o. account );
-         FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || a.vesting_shares.amount - a.to_withdraw >= gpo.witness_required_vesting.amount );
       });
    }
 }
@@ -617,7 +626,7 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
       /// check for proxy loops and fail to update the proxy if it would create a loop
       auto cprox = &new_proxy;
       while( cprox->proxy.size() != 0 ) {
-         const auto next_proxy = _db.get_account( cprox->proxy );
+         const auto& next_proxy = _db.get_account( cprox->proxy );
          FC_ASSERT( proxy_chain.insert( next_proxy.id ).second, "This proxy would create a proxy loop." );
          cprox = &next_proxy;
          FC_ASSERT( proxy_chain.size() <= SOPHIATX_MAX_PROXY_RECURSION_DEPTH, "Proxy chain is too long." );
@@ -684,16 +693,22 @@ void custom_evaluator::do_apply( const custom_operation& o ){}
 
 void custom_json_evaluator::do_apply( const custom_json_operation& o )
 {
-   database& d = db();
+    database& d = db();
 
-   //TODO: move this to plugin
-   const auto& send_idx = d.get_index< custom_content_index >().indices().get< by_sender >();
-   auto send_itr = send_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
-   uint64_t sender_sequence = 1;
-   if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
+    //TODO: move this to plugin
+    const auto& send_idx = d.get_index< custom_content_index >().indices().get< by_sender >();
+    auto send_itr = send_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
+    uint64_t sender_sequence = 1;
+    if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
       sender_sequence = send_itr->sender_sequence + 1;
 
-   for(const auto&r: o.recipients) {
+    const auto& app_msg_idx = d.get_index< custom_content_index >().indices().get< by_app_id >();
+    auto app_msg_itr = app_msg_idx.lower_bound( boost::make_tuple( o.app_id, uint64_t(-1) ) );
+    uint64_t app_message_sequence = 1;
+    if( app_msg_itr != app_msg_idx.end() && app_msg_itr->app_id == o.app_id )
+       app_message_sequence = app_msg_itr->app_message_sequence + 1;
+
+    for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
       const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
       auto recv_itr = recv_idx.lower_bound( boost::make_tuple( r, o.app_id, uint64_t(-1) ) );
@@ -702,13 +717,15 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = false;
-           c.json = o.json;
+           from_string( c.json, o.json );
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;
-           c.all_recipients = o.recipients;
+           for( auto o_r: o.recipients)
+              c.all_recipients.push_back(o_r);
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
+           c.app_message_sequence = app_message_sequence;
            c.received = d.head_block_time();
       });
    }
@@ -723,8 +740,7 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
    }
    catch( const fc::exception& e )
    {
-      if( d.is_producing() )
-         throw e;
+      edump((e));
    }
    catch(...)
    {
@@ -744,6 +760,12 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
    if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
       sender_sequence = send_itr->sender_sequence + 1;
 
+   const auto& app_msg_idx = d.get_index< custom_content_index >().indices().get< by_app_id >();
+   auto app_msg_itr = app_msg_idx.lower_bound( boost::make_tuple( o.app_id, uint64_t(-1) ) );
+   uint64_t app_message_sequence = 1;
+   if( app_msg_itr != app_msg_idx.end() && app_msg_itr->app_id == o.app_id )
+      app_message_sequence = app_msg_itr->app_message_sequence + 1;
+
    for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
       const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
@@ -753,13 +775,16 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
       d.create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = true;
-           c.data = o.data;
+           for( auto d: o.data)
+              c.data.push_back(d);
            c.app_id = o.app_id;
            c.sender = o.sender;
            c.recipient = r;
-           c.all_recipients = o.recipients;
+           for( auto o_r: o.recipients)
+              c.all_recipients.push_back(o_r);
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
+           c.app_message_sequence = app_message_sequence;
            c.received = d.head_block_time();
       });
    }
@@ -956,7 +981,7 @@ void application_create_evaluator::do_apply( const application_create_operation&
                                         app.name = o.name;
                                         app.author = o.author;
                                         app.price_param = static_cast<application_price_param>(o.price_param);
-                                        app.url = o.url;
+                                        from_string( app.url, o.url);
 #ifndef IS_LOW_MEM
                                         from_string( app.metadata, o.metadata );
 #endif
@@ -971,10 +996,10 @@ void application_update_evaluator::do_apply( const application_update_operation&
    if(o.new_author)
    {
       _db.get_account(*o.new_author);
-      const auto& account_auth = _db.get< account_authority_object, by_account >( *o.new_author );
+      _db.get< account_authority_object, by_account >( *o.new_author );
    }
 
-   FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
+   FC_ASSERT(application.author == o.author, "Provided author is not this application author" );
 
    _db.modify( application, [&]( application_object& app )
    {
@@ -987,13 +1012,11 @@ void application_update_evaluator::do_apply( const application_update_operation&
 #ifndef IS_LOW_MEM
         if ( o.metadata.size() > 0 )
            from_string( app.metadata, o.metadata );
+#endif
 
         if ( o.url.size() > 0 )
-           app.url = o.url;
-#endif
-   });
-
-
+           from_string(app.url, o.url);
+    });
 }
 
 void application_delete_evaluator::do_apply( const application_delete_operation& o )

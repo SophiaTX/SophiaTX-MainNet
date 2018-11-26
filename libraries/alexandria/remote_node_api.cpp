@@ -79,6 +79,11 @@ vector< vector< account_name_type > > remote_node_api::get_key_references( vecto
    FC_ASSERT( false );
 }
 
+vector< account_name_type > remote_node_api::lookup_accounts( account_name_type, uint32_t )
+{
+   FC_ASSERT( false );
+}
+
 vector< condenser_api::extended_account > remote_node_api::get_accounts( vector< account_name_type > )
 {
    FC_ASSERT( false );
@@ -94,10 +99,6 @@ vector< optional< condenser_api::api_account_object > > remote_node_api::lookup_
    FC_ASSERT( false );
 }
 
-vector< account_name_type > remote_node_api::lookup_accounts( account_name_type, uint32_t )
-{
-   FC_ASSERT( false );
-}
 
 uint64_t remote_node_api::get_account_count()
 {
@@ -176,7 +177,7 @@ bool remote_node_api::verify_account_authority( string, flat_set< public_key_typ
    FC_ASSERT( false );
 }
 
-map< uint32_t, condenser_api::api_operation_object > remote_node_api::get_account_history( account_name_type, uint64_t, uint32_t )
+map< uint32_t, condenser_api::api_operation_object > remote_node_api::get_account_history( account_name_type, int64_t, uint32_t )
 {
    FC_ASSERT( false );
 }
@@ -196,9 +197,14 @@ void remote_node_api::broadcast_block( signed_block )
    FC_ASSERT( false );
 }
 
-vector<condenser_api::api_application_object> remote_node_api::get_applications(vector<string>)
+vector<condenser_api::api_application_object> remote_node_api::get_applications(vector<uint32_t>)
 {
     FC_ASSERT( false );
+}
+
+vector<condenser_api::api_application_object> remote_node_api::get_applications_by_names(vector<string>)
+{
+   FC_ASSERT( false );
 }
 
 vector<condenser_api::api_application_buying_object> remote_node_api::get_application_buyings(std::string, uint32_t, std::string)
@@ -206,7 +212,11 @@ vector<condenser_api::api_application_buying_object> remote_node_api::get_applic
     FC_ASSERT( false );
 }
 
-map< uint64_t, condenser_api::api_received_object >  remote_node_api::get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+map< uint64_t, condenser_api::api_received_object >  remote_node_api::list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count){
+   FC_ASSERT( false);
+};
+
+condenser_api::api_received_object  remote_node_api::get_received_document(uint64_t id){
    FC_ASSERT( false);
 };
 

@@ -67,10 +67,11 @@ int main( int argc, char** argv )
       boost::program_options::options_description opts;
          opts.add_options()
          ("help,h", "Print this help message and exit.")
-         ("server-rpc-endpoint,s", bpo::value<string>()->implicit_value("ws://127.0.0.1:8090"), "Server websocket RPC endpoint")
-         ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:8091"), "Endpoint for alexandria websocket RPC to listen on")
-         ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:8093"), "Endpoint for alexandria HTTP RPC to listen on")
+         ("server-rpc-endpoint,s", bpo::value<string>()->implicit_value("ws://127.0.0.1:9191"), "Server websocket RPC endpoint")
+         ("rpc-endpoint,r", bpo::value<string>()->implicit_value("127.0.0.1:9192"), "Endpoint for alexandria websocket RPC to listen on")
+         ("rpc-http-endpoint,H", bpo::value<string>()->implicit_value("127.0.0.1:9195"), "Endpoint for alexandria HTTP RPC to listen on")
          ("rpc-http-cors,C", bpo::value<string>()->implicit_value("*"), "Access-Control-Allow-Origin response header")
+         ("rpc-http-no-error,E", bpo::value<bool>()->implicit_value(false), "Treat rpc error as 200 HTTP status code")
          ("daemon,d", "Run the alexandria in daemon mode" );
 
       bpo::variables_map options;
@@ -105,7 +106,7 @@ int main( int argc, char** argv )
       cfg.loggers.back().level = fc::log_level::debug;
       cfg.loggers.back().appenders = {"rpc"};
 
-      string ws_server = "ws://127.0.0.1:8090";
+      string ws_server = "ws://127.0.0.1:9191";
       // but allow CLI to override
       if( options.count("server-rpc-endpoint") )
          ws_server = options.at("server-rpc-endpoint").as<std::string>();
@@ -162,7 +163,7 @@ int main( int argc, char** argv )
                std::shared_ptr< fc::rpc::http_api_connection > conn =
                   std::make_shared< fc::rpc::http_api_connection>();
                conn->register_api( alex_api );
-               conn->on_request( req, resp );
+               conn->on_request( req, resp, !options.count( "rpc-http-no-error" ));
             } );
       }
 

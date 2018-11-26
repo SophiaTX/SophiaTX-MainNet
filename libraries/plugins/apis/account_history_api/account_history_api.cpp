@@ -1,5 +1,9 @@
 #include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_api.hpp>
+#include <appbase/application.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
+
 
 namespace sophiatx { namespace plugins { namespace account_history {
 
@@ -58,20 +62,47 @@ DEFINE_API_IMPL( account_history_api_impl, get_transaction )
 DEFINE_API_IMPL( account_history_api_impl, get_account_history )
 {
    FC_ASSERT( args.limit <= 10000, "limit of ${l} is greater than maxmimum allowed", ("l",args.limit) );
-   FC_ASSERT( args.start >= args.limit, "start must be greater than limit" );
+   FC_ASSERT( args.reverse_order || args.start >= args.limit, "start must be greater than limit" );
 
    const auto& idx = _db.get_index< chain::account_history_index, chain::by_account >();
-   auto itr = idx.lower_bound( boost::make_tuple( args.account, args.start ) );
-   auto end = idx.upper_bound( boost::make_tuple( args.account, std::max( int64_t(0), int64_t(itr->sequence) - args.limit ) ) );
-
    get_account_history_return result;
-   while( itr != end )
-   {
-      result.history[ itr->sequence ] = _db.get( itr->op );
-      ++itr;
-   }
 
+   if (args.reverse_order && args.start >=0 ) {
+
+      auto itr = idx.find (boost::make_tuple(args.account, args.start ));
+      auto end = idx.lower_bound( boost::make_tuple(args.account, args.start + args.limit ));
+
+      if(itr!=idx.end()){
+         while(result.history.size() < args.limit){
+            result.history[ itr->sequence ] = _db.get(itr->op);
+            if(itr == end)
+               break;
+            --itr;
+         }
+      }
+
+   } else if ( !args.reverse_order ) {
+
+      auto itr = idx.lower_bound(boost::make_tuple(args.account, args.start));
+      auto end = idx.upper_bound(boost::make_tuple(args.account, std::max(int64_t(0), int64_t(itr->sequence) - args.limit)));
+
+      while( itr != end ) {
+         result.history[ itr->sequence ] = _db.get(itr->op);
+         ++itr;
+      }
+
+   } else {
+
+      auto itr = idx.lower_bound(boost::make_tuple(args.account, uint64_t(0)-1 ));
+      auto end = idx.upper_bound(boost::make_tuple(args.account, std::max(int64_t(0), int64_t(itr->sequence) - args.limit)));
+
+      while(result.history.size() < args.limit && itr != end ) {
+         result.history[ itr->sequence ] = _db.get(itr->op);
+         ++itr;
+      }
+   }
    return result;
+
 }
 
 } // detail

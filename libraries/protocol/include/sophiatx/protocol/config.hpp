@@ -9,7 +9,7 @@
 // This is checked by get_config_check.sh called from Dockerfile
 
 #ifdef IS_TEST_NET
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 1, 0) )
 
 #define SOPHIATX_INIT_PRIVATE_KEY                (fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))))
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(SOPHIATX_INIT_PRIVATE_KEY.get_public_key()) ))
@@ -34,7 +34,7 @@
 
 #else // IS LIVE SOPHIATX NETWORK
 
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 1, 0) )
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
 
@@ -77,10 +77,13 @@
 #define SOPHIATX_COINBASE_BLOCKS ( SOPHIATX_BLOCKS_PER_YEAR * SOPHIATX_COINBASE_YEARS )
 #ifdef PRIVATE_NET
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( 0 )
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     1
 #else
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 250000 )
 #define SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 300000 )
 #define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 96 //January 1
+#define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 159 //January 1 - take into account missing blocks
+
 #endif //PRIVATE_NET
 
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
@@ -120,6 +123,7 @@
 #define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define SOPHIATX_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
+#define SOPHIATX_MAX_NAME_SEED_SIZE              32
 #define SOPHIATX_MAX_PROXY_RECURSION_DEPTH       4
 #define SOPHIATX_VESTING_WITHDRAW_INTERVALS      27
 #define SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS (60*60*24) /// 1 day per interval

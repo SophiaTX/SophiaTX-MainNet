@@ -23,6 +23,7 @@ struct remote_node_api
 {
    condenser_api::get_version_return get_version();
    condenser_api::state get_state( string );
+   vector< account_name_type > lookup_accounts( account_name_type, uint32_t );
    vector< account_name_type > get_active_witnesses();
    optional< block_header > get_block_header( uint32_t );
    optional< database_api::api_signed_block_object > get_block( uint32_t );
@@ -39,7 +40,6 @@ struct remote_node_api
    vector< condenser_api::extended_account > get_accounts( vector< account_name_type > );
    vector< account_id_type > get_account_references( account_id_type account_id );
    vector< optional< condenser_api::api_account_object > > lookup_account_names( vector< account_name_type > );
-   vector< account_name_type > lookup_accounts( account_name_type, uint32_t );
    uint64_t get_account_count();
    vector< database_api::api_owner_authority_history_object > get_owner_history( account_name_type );
    optional< database_api::api_account_recovery_request_object > get_recovery_request( account_name_type );
@@ -58,22 +58,27 @@ struct remote_node_api
    bool verify_account_authority( string, flat_set< public_key_type > );
    //vector< condenser_api::account_vote > get_account_votes( account_name_type );
 
-   map< uint32_t, condenser_api::api_operation_object > get_account_history( account_name_type, uint64_t, uint32_t );
+   map< uint32_t, condenser_api::api_operation_object > get_account_history( account_name_type, int64_t, uint32_t );
    void broadcast_transaction( signed_transaction );
    network_broadcast_api::broadcast_transaction_synchronous_return broadcast_transaction_synchronous( signed_transaction );
    void broadcast_block( signed_block );
    flat_set< uint32_t > get_market_history_buckets();
-   map< uint64_t, condenser_api::api_received_object > get_received_documents(uint32_t, string, string, string, uint32_t);
+   map< uint64_t, condenser_api::api_received_object > list_received_documents(uint32_t, string, string, string, uint32_t);
+   condenser_api::api_received_object get_received_document(uint64_t id);
 
-   vector<condenser_api::api_application_object> get_applications(vector<string>);
+   vector<condenser_api::api_application_object> get_applications_by_names(vector<string>);
+   vector<condenser_api::api_application_object> get_applications(vector<uint32_t>);
    vector<condenser_api::api_application_buying_object> get_application_buyings(string, uint32_t, string);
+
+   uint64_t custom_object_subscription(std::function<void(const variant&)>, uint32_t, string, string, uint64_t){FC_ASSERT( false );}
 };
 
 } }
 
 FC_API( sophiatx::alexandria::remote_node_api,
-        (get_version)
         (get_state)
+        (lookup_accounts)
+        (get_version)
         (get_active_witnesses)
         (get_block_header)
         (get_block)
@@ -90,7 +95,6 @@ FC_API( sophiatx::alexandria::remote_node_api,
         (get_accounts)
         (get_account_references)
         (lookup_account_names)
-        (lookup_accounts)
         (get_account_count)
         (get_owner_history)
         (get_recovery_request)
@@ -110,7 +114,10 @@ FC_API( sophiatx::alexandria::remote_node_api,
         (broadcast_transaction)
         (broadcast_transaction_synchronous)
         (broadcast_block)
+        (get_applications_by_names)
         (get_applications)
         (get_application_buyings)
-        (get_received_documents)
+        (list_received_documents)
+        (get_received_document)
+        (custom_object_subscription)
       )

@@ -220,22 +220,22 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
       //The two databases are on distinct forks now, but at the same height. Make a block on db2, make it invalid, then
       //pass it to db1 and assert that db1 doesn't switch to the new fork.
       signed_block good_block;
-      BOOST_CHECK_EQUAL(db1.head_block_num(), 13);
-      BOOST_CHECK_EQUAL(db2.head_block_num(), 13);
+      BOOST_CHECK_EQUAL(db1.head_block_num(), static_cast<uint32_t>(13));
+      BOOST_CHECK_EQUAL(db2.head_block_num(), static_cast<uint32_t>(13));
       {
          auto b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
          good_block = b;
          b.transactions.emplace_back(signed_transaction());
          b.transactions.back().operations.emplace_back(transfer_operation());
          b.sign( init_account_priv_key );
-         BOOST_CHECK_EQUAL(b.block_num(), 14);
+         BOOST_CHECK_EQUAL(b.block_num(), static_cast<uint32_t>(14));
          SOPHIATX_CHECK_THROW(PUSH_BLOCK( db1, b ), fc::exception);
       }
-      BOOST_CHECK_EQUAL(db1.head_block_num(), 13);
+      BOOST_CHECK_EQUAL(db1.head_block_num(), static_cast<uint32_t>(13));
       BOOST_CHECK_EQUAL(db1.head_block_id().str(), db1_tip);
 
       // assert that db1 switches to new fork with good block
-      BOOST_CHECK_EQUAL(db2.head_block_num(), 14);
+      BOOST_CHECK_EQUAL(db2.head_block_num(), static_cast<uint32_t>(14));
       PUSH_BLOCK( db1, good_block );
       BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
    } catch (fc::exception& e) {
@@ -270,7 +270,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.fee = asset(50000, SOPHIATX_SYMBOL);
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id() );
+      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
       PUSH_TX( db1, trx );
       //*/
       // generate blocks
@@ -332,7 +332,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id() );
+      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
       PUSH_TX( db1, trx, skip_sigs );
 
       trx = decltype(trx)();
@@ -343,7 +343,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       t.fee = asset(100000, SOPHIATX_SYMBOL);
       trx.operations.push_back(t);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id() );
+      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
       PUSH_TX( db1, trx, skip_sigs );
 
       SOPHIATX_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE( tapos )
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id() );
+      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
 
       BOOST_TEST_MESSAGE( "Pushing Pending Transaction" );
       idump((trx));
@@ -404,13 +404,13 @@ BOOST_AUTO_TEST_CASE( tapos )
       t.amount = asset(50,SOPHIATX_SYMBOL);
       trx.operations.push_back(t);
       trx.set_expiration( db1.head_block_time() + fc::seconds(2) );
-      trx.sign( init_account_priv_key, db1.get_chain_id() );
+      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
       idump((trx)(db1.head_block_time()));
       b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       idump((b));
       b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       trx.signatures.clear();
-      trx.sign( init_account_priv_key, db1.get_chain_id() );
+      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
       BOOST_REQUIRE_THROW( db1.push_transaction(trx, 0/*database::skip_transaction_signatures | database::skip_authority_check*/), fc::exception );
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
@@ -444,14 +444,14 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.ref_block_prefix = 0;
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign( tx, alice_private_key );
       PUSH_TX( *db, tx );
 
       BOOST_TEST_MESSAGE( "proper ref_block_num, ref_block_prefix" );
 
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign( tx, alice_private_key );
       PUSH_TX( *db, tx, database::skip_transaction_dupe_check );
 
       BOOST_TEST_MESSAGE( "ref_block_num=0, ref_block_prefix=12345678" );
@@ -460,7 +460,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.ref_block_prefix = 0x12345678;
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign( tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( PUSH_TX( *db, tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_TEST_MESSAGE( "ref_block_num=1, ref_block_prefix=12345678" );
@@ -469,7 +469,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.ref_block_prefix = 0x12345678;
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign( tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( PUSH_TX( *db, tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_TEST_MESSAGE( "ref_block_num=9999, ref_block_prefix=12345678" );
@@ -478,7 +478,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.ref_block_prefix = 0x12345678;
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign( tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( PUSH_TX( *db, tx, database::skip_transaction_dupe_check ), fc::exception );
    }
    catch (fc::exception& e)
@@ -516,19 +516,19 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    SOPHIATX_REQUIRE_THROW( db->push_transaction(trx, 0), fc::exception );
 
    BOOST_TEST_MESSAGE( "Verify that double-signing causes an exception" );
-   trx.sign( bob_private_key, db->get_chain_id() );
-   trx.sign( bob_private_key, db->get_chain_id() );
+   sign( trx, bob_private_key );
+   sign( trx, bob_private_key );
    SOPHIATX_REQUIRE_THROW( db->push_transaction(trx, 0), tx_duplicate_sig );
 
    BOOST_TEST_MESSAGE( "Verify that signing with an extra, unused key fails" );
    trx.signatures.pop_back();
-   trx.sign( generate_private_key("bogus" ), db->get_chain_id() );
+   sign( trx, generate_private_key( "bogus" ) );
    SOPHIATX_REQUIRE_THROW( db->push_transaction(trx, 0), tx_irrelevant_sig );
 
    BOOST_TEST_MESSAGE( "Verify that signing once with the proper key passes" );
    trx.signatures.pop_back();
    db->push_transaction(trx, 0);
-   trx.sign( bob_private_key, db->get_chain_id() );
+   sign( trx, bob_private_key );
 
 } FC_LOG_AND_RETHROW() }
 
@@ -601,7 +601,7 @@ BOOST_FIXTURE_TEST_CASE( rsf_missed_blocks, clean_database_fixture )
          "1111111111111111111111111111111111111111111111111111111111111111"
          "1111111111111111111111111111111111111111111111111111111111111111"
       );
-      BOOST_CHECK_EQUAL( db->witness_participation_rate(), SOPHIATX_100_PERCENT );
+      BOOST_CHECK_EQUAL( db->witness_participation_rate(), static_cast<uint32_t>(SOPHIATX_100_PERCENT) );
 
       BOOST_TEST_MESSAGE("Generating a block skipping 1" );
       generate_block( ~database::skip_fork_db, init_account_priv_key, 1 );
@@ -719,13 +719,13 @@ BOOST_FIXTURE_TEST_CASE( skip_block, clean_database_fixture )
       auto block_time = db->get_slot_time( miss_blocks );
       db->generate_block( block_time , witness, init_account_priv_key, 0 );
 
-      BOOST_CHECK_EQUAL( db->head_block_num(), init_block_num + 1 );
+      BOOST_CHECK_EQUAL( db->head_block_num(), static_cast<uint32_t>(init_block_num + 1) );
       BOOST_CHECK( db->head_block_time() == block_time );
 
       BOOST_TEST_MESSAGE( "Generating a block through fixture" );
       generate_block();
 
-      BOOST_CHECK_EQUAL( db->head_block_num(), init_block_num + 2 );
+      BOOST_CHECK_EQUAL( db->head_block_num(), static_cast<uint32_t>(init_block_num + 2) );
       BOOST_CHECK( db->head_block_time() == block_time + SOPHIATX_BLOCK_INTERVAL );
    }
    FC_LOG_AND_RETHROW();

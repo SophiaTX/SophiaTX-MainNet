@@ -4,11 +4,11 @@
 #include <sophiatx/manifest/plugins.hpp>
 
 
-#include <sophiatx/plugins/smt_test/smt_test_plugin.hpp>
-
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 
 #include <sophiatx/plugins/account_history_api/account_history_api_plugin.hpp>
+
+#include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
 
 #include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
@@ -17,6 +17,8 @@
 #include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
+
+#include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 
 #include <sophiatx/plugins/chain_api/chain_api_plugin.hpp>
 
@@ -36,9 +38,13 @@
 
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
+#include <sophiatx/plugins/template/template_plugin.hpp>
+
 #include <sophiatx/plugins/p2p/p2p_plugin.hpp>
 
 #include <sophiatx/plugins/block_log_info/block_log_info_plugin.hpp>
+
+#include <sophiatx/plugins/track_and_trace/track_and_trace_plugin.hpp>
 
 #include <sophiatx/plugins/account_by_key/account_by_key_plugin.hpp>
 
@@ -48,11 +54,11 @@ namespace sophiatx { namespace plugins {
 void register_plugins()
 {
    
-   appbase::app().register_plugin< sophiatx::plugins::smt_test::smt_test_plugin >();
-   
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_api_plugin >();
+   
+   appbase::app().register_plugin< sophiatx::plugins::subscribe::subscribe_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::custom::custom_api_plugin >();
    
@@ -61,6 +67,8 @@ void register_plugins()
    appbase::app().register_plugin< sophiatx::plugins::network_broadcast_api::network_broadcast_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
+   
+   appbase::app().register_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::chain::chain_api_plugin >();
    
@@ -80,9 +88,13 @@ void register_plugins()
    
    appbase::app().register_plugin< sophiatx::plugins::webserver::webserver_plugin >();
    
+   appbase::app().register_plugin< sophiatx::plugins::template_plugin::template_plugin >();
+   
    appbase::app().register_plugin< sophiatx::plugins::p2p::p2p_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::block_log_info::block_log_info_plugin >();
+   
+   appbase::app().register_plugin< sophiatx::plugins::track_and_trace_plugin::track_and_trace_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_by_key::account_by_key_plugin >();
    

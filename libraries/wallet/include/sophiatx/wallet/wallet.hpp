@@ -56,7 +56,7 @@ struct wallet_data
 {
    vector<char>              cipher_keys; /** encrypted keys */
 
-   string                    ws_server = "ws://localhost:8090";
+   string                    ws_server = "ws://localhost:9191";
    string                    ws_user;
    string                    ws_password;
 };
@@ -158,7 +158,6 @@ class wallet_api
 
       /**
        *  @param account  - the name of the account to retrieve key for
-       *  @param role     - active | owner  | memo
        *  @param password - the password to be used at key generation
        *  @return public key corresponding to generated private key, and private key in WIF format.
        */
@@ -698,7 +697,8 @@ class wallet_api
        *  @param from - the absolute sequence number, -1 means most recent, limit is the number of operations before from.
        *  @param limit - the maximum number of items that can be queried (0 to 1000], must be less than from
        */
-      map< uint32_t, condenser_api::api_operation_object > get_account_history( string account, uint32_t from, uint32_t limit );
+      map< uint32_t, condenser_api::api_operation_object > get_account_history(string account, int64_t from,
+                                                                               uint32_t limit);
 
       /**
       *  This method will create new application object. There is a fee associated with account creation
@@ -828,12 +828,12 @@ class wallet_api
        * @param count Number of items to retrieve
        * @return
        */
-      map< uint64_t, condenser_api::api_received_object >  get_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
+      map< uint64_t, condenser_api::api_received_object >  list_received_documents(uint32_t app_id, string account_name, string search_type, string start, uint32_t count);
 
       annotated_signed_transaction sponsor_account_fees(string sponsoring_account, string sponsored_account, bool is_sponsoring, bool broadcast);
 
-      string encode_to_base58(string what);
-      vector<char> decode_from_base58(string what);
+      string encode_to_base64(string what);
+      string decode_from_base64(string what);
       string get_account_name_from_seed(string seed);
 };
 
@@ -925,10 +925,10 @@ FC_API( sophiatx::wallet::wallet_api,
 
         (send_custom_json_document)
         (send_custom_binary_document)
-        (get_received_documents)
+        (list_received_documents)
 
 
-        (encode_to_base58)(decode_from_base58)(get_account_name_from_seed)
+        (encode_to_base64)(decode_from_base64)(get_account_name_from_seed)
       )
 
 FC_REFLECT( sophiatx::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )

@@ -10,8 +10,9 @@
 #include <fc/vector.hpp>
 #include <fc/crypto/base58.hpp>
 
-namespace sophiatx { namespace plugins { namespace custom {
+#define CUSTOM_API_SINGLE_QUERY_LIMIT 10000
 
+namespace sophiatx { namespace plugins { namespace custom {
 
 namespace detail { class custom_api_impl; }
 
@@ -20,19 +21,21 @@ struct received_object
 {
    received_object() {};
    received_object( const sophiatx::chain::custom_content_object& obj ) :
+         id(obj.id._id),
          sender( obj.sender ),
          app_id( obj.app_id ),
          binary( obj.binary ),
          received( obj.received)
    {
       if(binary)
-         data = fc::to_base58(obj.data);
+         data = fc::base64_encode(obj.data.data(), obj.data.size());
       else
-         data = obj.json;
-      for(const auto&r: obj.all_recipients)
+         data = chain::to_string(obj.json);
+      for(auto r: obj.all_recipients)
          recipients.push_back(r);
    }
 
+   uint64_t          id;
    string            sender;
    vector<string>    recipients;
    uint64_t          app_id;
@@ -43,7 +46,7 @@ struct received_object
 };
 
 
-struct get_received_documents_args
+struct list_received_documents_args
 {
    uint32_t app_id;
    string   account_name;
@@ -52,14 +55,21 @@ struct get_received_documents_args
    uint32_t count;
 };
 
-typedef get_received_documents_args get_received_documents_json_args;
-typedef get_received_documents_args get_received_documents_data_args;
-
-
-struct get_received_documents_return
+struct get_received_document_args
 {
-   std::map< uint64_t, received_object > history;
+   uint64_t id;
 };
+
+struct get_app_custom_messages_args
+{
+    uint64_t app_id;
+    uint64_t start;
+    uint32_t limit;
+};
+
+typedef std::map< uint64_t, received_object > list_received_documents_return;
+typedef received_object get_received_document_return;
+typedef map<uint64_t, received_object> get_app_custom_messages_return;
 
 
 class custom_api
@@ -69,7 +79,9 @@ public:
    ~custom_api();
 
    DECLARE_API(
-         (get_received_documents)
+           (list_received_documents)
+           (get_received_document)
+           (get_app_custom_messages)
    )
 
 private:
@@ -80,10 +92,13 @@ private:
 
 
 FC_REFLECT( sophiatx::plugins::custom::received_object,
-            (sender)(recipients)(app_id)(data)(received)(binary) )
+            (id)(sender)(recipients)(app_id)(data)(received)(binary) )
 
-FC_REFLECT( sophiatx::plugins::custom::get_received_documents_args,
+FC_REFLECT( sophiatx::plugins::custom::list_received_documents_args,
             (app_id)(account_name)(search_type)(start)(count) )
 
-FC_REFLECT( sophiatx::plugins::custom::get_received_documents_return,
-            (history) )
+FC_REFLECT( sophiatx::plugins::custom::get_received_document_args,
+            (id) )
+
+FC_REFLECT( sophiatx::plugins::custom::get_app_custom_messages_args,
+            (app_id)(start)(limit) )

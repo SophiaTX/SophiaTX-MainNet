@@ -305,7 +305,7 @@ struct api_application_object
         id( a.id ),
         name( a.name ),
         author( a.author ),
-        url( a.url ),
+        url( to_string(a.url) ),
         metadata( to_string( a.metadata ) ),
         price_param( a.price_param )
     {}
