@@ -33,7 +33,7 @@
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 0, 0) )
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( 0 )
-#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     1
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     7
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))).get_public_key()) ))
 #define SOPHIATX_CASHOUT_WINDOW_SECONDS          (60*60) /// 1 hr
@@ -42,8 +42,8 @@
 
 #define SOPHIATX_MIN_ACCOUNT_CREATION_FEE        uint64_t( 0 )
 
-#define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
-#define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+#define SOPHIATX_INIT_SUPPLY                     (int64_t( 0 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
+#define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 0 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 
 #define SOPHIATX_MIN_FEEDS                       0 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 

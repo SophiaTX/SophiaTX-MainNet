@@ -15,7 +15,7 @@ namespace sophiatx { namespace protocol {
    struct account_create_operation : public base_operation
    {
       account_name_type creator;
-      std::string        name_seed;
+      std::string       name_seed;
       authority         owner;
       authority         active;
       public_key_type   memo_key;

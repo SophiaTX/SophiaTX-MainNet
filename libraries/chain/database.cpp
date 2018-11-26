@@ -500,7 +500,7 @@ asset database::process_operation_fee( const operation& op )
       op_visitor(database* _db){db = _db;}; 
       typedef asset result_type;
       result_type operator()(const base_operation& bop){
-         if(bop.has_special_fee())
+         if(bop.has_special_fee() || db->is_private_net())
             return asset(0, SOPHIATX_SYMBOL);
          asset req_fee = bop.get_required_fee(bop.fee.symbol);
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
@@ -1971,14 +1971,13 @@ void database::_apply_block( const signed_block& next_block )
    create_block_summary(next_block);
    clear_expired_transactions();
    update_witness_schedule(*this);
-   process_interests();
-
-   update_median_feeds();
-
-   clear_null_account_balance();
-   process_funds();
-   process_vesting_withdrawals();
-
+   if(!is_private_net()) {
+      process_interests();
+      update_median_feeds();
+      clear_null_account_balance();
+      process_funds();
+      process_vesting_withdrawals();
+   }
    account_recovery_processing();
    expire_escrow_ratification();
 
@@ -1992,9 +1991,11 @@ void database::_apply_block( const signed_block& next_block )
    const auto& econ = get_economic_model();
    const auto& gpo = get_dynamic_global_properties();
 
-   modify(econ, [&](economic_model_object& e){
-      e.record_block(next_block_num, gpo.current_supply.amount);
-   });
+   if(!is_private_net()) {
+      modify(econ, [ & ](economic_model_object &e) {
+           e.record_block(next_block_num, gpo.current_supply.amount);
+      });
+   }
 
 }
 FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) )

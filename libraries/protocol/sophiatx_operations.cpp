@@ -91,11 +91,7 @@ namespace sophiatx { namespace protocol {
 
    void witness_update_operation::validate() const
    {
-#ifdef PRIVATE_NET
-      FC_ASSERT( owner == SOPHIATX_INIT_MINER_NAME );
-#endif //PRIVATE_NET
-
-      validate_account_name( owner );
+      sophiatx::protocol::validate_account_name( owner );
 
       FC_ASSERT( url.size() <= SOPHIATX_MAX_WITNESS_URL_LENGTH, "URL is too long" );
 

@@ -210,7 +210,7 @@ if( WIN32 )
 
       SET(TCL_LIBS "${TCL_LIBS}${TCL_LIB_PATH}/${TCL_LIB_NAME}g${TCL_LIB_EXT}")
       SET(TCL_LIBRARY ${TCL_LIBS})
-      # Needed to disable MSVC autolinking feature (#pragma comment)
+      # Needed to disable MSVC autolinking feature (#pragma comment)Ø
       ADD_DEFINITIONS("-DBOOST_ALL_NO_LIB")
       
    elseif( MINGW )
