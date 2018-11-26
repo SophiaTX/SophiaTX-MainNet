@@ -342,6 +342,9 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    if (options.count("initminer-mining-pubkey")) {
       my->initMiningPubkeyStr = options.at( "initminer-mining-pubkey" ).as< std::string >();
    }
+   else {
+      BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, \"initminer-mining-pubkey\" parameter must be provided.") );
+   }
 #endif //PRIVATE_NET
 
 
@@ -359,6 +362,12 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
            genesis.initial_chain_id = enc.result();
 
            return genesis;
+        }
+        // private net might be also started with custom genesis file
+        else {
+           if (options.count("genesis-json") == 0) {
+              BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, either \"initminer-account-pubkey\" or \"genesis-json\" parameter must be provided.") );
+           }
         }
 #endif //PRIVATE_NET
         if( options.count("genesis-json") )
