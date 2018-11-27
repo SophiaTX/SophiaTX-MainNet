@@ -16,7 +16,6 @@ set( GUI_CLIENT_EXECUTABLE_NAME SophiaTX )
 set( CUSTOM_URL_SCHEME "gcs" )
 set( INSTALLER_APP_ID "68ad7005-8eee-49c9-95ce-9eed97e5b347" )
 
-
 OPTION( BUILD_PIC "Build with -fPIC flag (ON OR OFF)" ON)
 if(BUILD_PIC)
     MESSAGE(STATUS "Building with -fPIC flag")
@@ -43,9 +42,6 @@ list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules" )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-#set (ENABLE_INSTALLER 1)
-#set (USE_PCH 1)
-
 if (USE_PCH)
   include (cotire)
 endif(USE_PCH)
@@ -58,8 +54,8 @@ get_git_head_revision( GIT_REFSPEC GIT_SHA2 )
 SET(BOOST_COMPONENTS)
 LIST(APPEND BOOST_COMPONENTS thread
                              date_time
-                             system
                              filesystem
+                             system
                              program_options
                              signals
                              serialization
@@ -252,7 +248,7 @@ else( WIN32 ) # Apple AND Linux
     endif( APPLE )
 
     if(BUILD_PIC)
-        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     endif(BUILD_PIC)
 
     if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
@@ -283,9 +279,12 @@ endif()
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing -DBOOST_THREAD_DONT_PROVIDE_PROMISE_LAZY" )
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing -DBOOST_THREAD_DONT_PROVIDE_PROMISE_LAZY" )
 
-# external_plugins needs to be compiled first because libraries/app depends on SOPHIATX_EXTERNAL_PLUGINS being fully populated
-add_subdirectory( external_plugins )
 add_subdirectory( libraries )
+
+if (BUILD_PIC)
+add_subdirectory( external_plugins )
+endif(BUILD_PIC)
+
 add_subdirectory( programs )
 
 add_subdirectory( tests )

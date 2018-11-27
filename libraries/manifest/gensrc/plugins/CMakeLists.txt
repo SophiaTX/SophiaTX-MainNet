@@ -46,8 +46,6 @@ target_link_libraries( sophiatx_plugins appbase fc
 
    block_log_info_plugin
 
-   track_and_trace_plugin
-
    account_by_key_plugin
 
 )

@@ -95,7 +95,7 @@ namespace sophiatx { namespace chain {
           *
           * @param data_dir Path to open or create database in
           */
-         void open( const open_args& args, const genesis_state_type& genesis );
+         void open( const open_args& args, const genesis_state_type& genesis, const std::string& initPubkeyStr /*TODO: delete when initminer pubkey is read from get_config */  );
 
          /**
           * @brief Rebuild object graph from block history and open detabase
@@ -105,7 +105,7 @@ namespace sophiatx { namespace chain {
           *
           * @return the last replayed block number.
           */
-         uint32_t reindex( const open_args& args, const genesis_state_type& genesis );
+         uint32_t reindex( const open_args& args, const genesis_state_type& genesis, const std::string& initPubkeyStr /*TODO: delete when initminer pubkey is read from get_config */  );
 
          /**
           * @brief wipe Delete database from disk, and potentially the raw chain as well.
@@ -379,7 +379,7 @@ namespace sophiatx { namespace chain {
          /// Reset the object graph in-memory
          void initialize_indexes();
          void init_schema();
-         void init_genesis( genesis_state_type genesis );
+         void init_genesis( genesis_state_type genesis, const std::string& initPubkeyStr /*TODO: delete when initminer pubkey is read from get_config */ );
 
          /**
           *  This method validates transactions without adding it to the pending state.

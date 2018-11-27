@@ -60,6 +60,11 @@ class alexandria_api
         (get_account)
 
         /**
+         *
+         */
+        (get_accounts)
+
+        /**
          * Returns transaction by ID.
          */
         (get_transaction)
@@ -534,6 +539,21 @@ class alexandria_api
          * @return
          */
         (sponsor_account_fees)
+
+        /**
+         *  Gets the account information for all accounts specified provided public keys
+         */
+        (get_key_references)
+
+        /**
+         *  Gets blockchain_version, sophiatx_revision, fc_revision, chain_id
+         */
+        (get_version)
+
+        /**
+         *  Gets current dynamic global properties
+         */
+        (get_dynamic_global_properties)
       )
 
    private:

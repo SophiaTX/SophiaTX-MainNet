@@ -595,7 +595,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
       auto wit = _db.find_witness( o. account );
       FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - o.vesting_shares.amount >= gpo.witness_required_vesting.amount );
 
-     _db.modify( account, [&]( account_object& a )
+      _db.modify( account, [&]( account_object& a )
       {
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);

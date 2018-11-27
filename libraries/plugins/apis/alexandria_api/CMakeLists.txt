@@ -6,6 +6,7 @@ add_library(
    alexandria_api_plugin.cpp
    alexandria_api_impl.cpp
    alexandria_api_operations.cpp
+   ${HEADERS}
 )
 
 target_link_libraries(
@@ -39,3 +40,5 @@ install( TARGETS
    LIBRARY DESTINATION lib
    ARCHIVE DESTINATION lib
 )
+
+install( FILES ${HEADERS} DESTINATION "include/sophiatx/alexandria_api_plugin" )

@@ -10,14 +10,6 @@
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
 /**
- * @brief Macro defining api method _args and _return types
- */
-#define DEFINE_API_ARGS( api_name, arg_type, return_type )  \
-typedef arg_type api_name ## _args;                         \
-typedef return_type api_name ## _return;
-
-
-/**
  * info
  */
 // variant                             info();
@@ -84,6 +76,17 @@ struct get_account_args {
 };
 struct get_account_return {
    vector<alexandria_api::api_account_object>	account;
+};
+
+
+/**
+ * get_accounts
+ */
+struct get_accounts_args {
+   std::vector<account_name_type> account_names;
+};
+struct get_accounts_return {
+   std::vector<extended_account>	accounts;
 };
 
 /**
@@ -869,6 +872,38 @@ struct sponsor_account_fees_return {
    operation	op;
 };
 
+/**
+ *  get_key_references
+ */
+struct get_key_references_args {
+   std::vector< sophiatx::protocol::public_key_type > keys;
+};
+struct get_key_references_return {
+   std::vector< std::vector< account_name_type > > accounts;
+};
+
+/**
+ *  get_version
+ */
+struct get_version_return {
+   get_version_info version_info;
+};
+
+/**
+ *  get_dynamic_global_properties
+ */
+struct get_dynamic_global_properties_return {
+   extended_dynamic_global_properties properties;
+};
+
+
+/**
+ * @brief Macro defining api method _args and _return types
+ */
+#define DEFINE_API_ARGS( api_name, arg_type, return_type )  \
+typedef arg_type api_name ## _args;                         \
+typedef return_type api_name ## _return;
+
 
 DEFINE_API_ARGS( info,			                                    json_rpc::void_type,			                           info_return);
 DEFINE_API_ARGS( about,			                                    json_rpc::void_type,			                           about_return);
@@ -877,6 +912,7 @@ DEFINE_API_ARGS( get_ops_in_block,			                        get_ops_in_block_ar
 DEFINE_API_ARGS( get_feed_history,			                        get_feed_history_args,			                        get_feed_history_return);
 DEFINE_API_ARGS( get_active_witnesses,			                     json_rpc::void_type,			                           get_active_witnesses_return);
 DEFINE_API_ARGS( get_account,			                              get_account_args,			                              get_account_return);
+DEFINE_API_ARGS( get_accounts,			                           get_accounts_args,			                           get_accounts_return);
 DEFINE_API_ARGS( get_transaction,			                        get_transaction_args,			                        get_transaction_return);
 DEFINE_API_ARGS( create_account,			                           create_account_args,			                           create_account_return);
 DEFINE_API_ARGS( update_account,			                           update_account_args,			                           update_account_return);
@@ -941,7 +977,11 @@ DEFINE_API_ARGS( calculate_fee,			                           calculate_fee_args,
 DEFINE_API_ARGS( fiat_to_sphtx,			                           fiat_to_sphtx_args,			                           fiat_to_sphtx_return);
 DEFINE_API_ARGS( custom_object_subscription,			               custom_object_subscription_args,			               custom_object_subscription_return);
 DEFINE_API_ARGS( sponsor_account_fees,			                     sponsor_account_fees_args,			                     sponsor_account_fees_return);
+DEFINE_API_ARGS( get_version,			                              json_rpc::void_type,			                           get_version_return);
+DEFINE_API_ARGS( get_dynamic_global_properties,			            json_rpc::void_type,			                           get_dynamic_global_properties_return);
+DEFINE_API_ARGS( get_key_references,			                     get_key_references_args,			                     get_key_references_return);
 
+#undef DEFINE_API_ARGS
 
 } } } // sophiatx::plugins::alexandria_api
 
@@ -996,6 +1036,14 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::get_account_args,
 			(account_name) )
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_account_return,
 			(account) )
+
+/**
+ * get_accounts
+ */
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_accounts_args,
+            (account_names) )
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_accounts_return,
+            (accounts) )
 
 /**
  * get_transaction
@@ -1493,3 +1541,23 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::sponsor_account_fees_args,
 			(sponsoring_account)(sponsored_account)(is_sponsoring) )
 FC_REFLECT( sophiatx::plugins::alexandria_api::sponsor_account_fees_return,
 			(op) )
+
+/**
+ * get_version
+ */
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_version_return,
+         (version_info) )
+
+/**
+ * get_dynamic_global_properties
+ */
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_dynamic_global_properties_return,
+         (properties) )
+
+/**
+ * get_key_references
+ */
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_key_references_args,
+            (keys) )
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_key_references_return,
+            (accounts) )
