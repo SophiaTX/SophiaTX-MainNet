@@ -836,6 +836,7 @@ class wallet_api
       string encode_to_base64(string what);
       string decode_from_base64(string what);
       string get_account_name_from_seed(string seed);
+      void flood_network( account_name_type initiator, uint32_t count, uint32_t reps, bool create_accounts, string account_prefix );
 };
 
 struct plain_keys {
@@ -930,6 +931,7 @@ FC_API( sophiatx::wallet::wallet_api,
 
 
         (encode_to_base64)(decode_from_base64)(get_account_name_from_seed)
+        (flood_network)
       )
 
 FC_REFLECT( sophiatx::wallet::memo_data, (from)(to)(nonce)(check)(encrypted) )

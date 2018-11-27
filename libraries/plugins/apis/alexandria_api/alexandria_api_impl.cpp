@@ -1405,7 +1405,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_dynamic_global_properties)
    extended_dynamic_global_properties props = _database_api->get_dynamic_global_properties( {} );
    auto reserve_ratio = _witness_api->get_reserve_ratio( {} );
    props.average_block_size = reserve_ratio.average_block_size;
-
+   props.account_creation_fee = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee;
 
    get_dynamic_global_properties_return result;
    result.properties = std::move(props);

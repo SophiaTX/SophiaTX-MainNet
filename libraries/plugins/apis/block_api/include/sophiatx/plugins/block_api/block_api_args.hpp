@@ -19,12 +19,13 @@ struct get_block_header_args
 struct get_block_header_return
 {
    optional< block_header > header;
+   uint32_t tx_count;
 };
 
 /* get_block */
 struct get_block_args
 {
-   uint32_t block_num;
+   uint32_t block_num=0;
 };
 
 struct get_block_return
@@ -38,7 +39,7 @@ FC_REFLECT( sophiatx::plugins::block_api::get_block_header_args,
    (block_num) )
 
 FC_REFLECT( sophiatx::plugins::block_api::get_block_header_return,
-   (header) )
+   (header)(tx_count) )
 
 FC_REFLECT( sophiatx::plugins::block_api::get_block_args,
    (block_num) )

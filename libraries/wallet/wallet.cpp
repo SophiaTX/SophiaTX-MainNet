@@ -474,7 +474,7 @@ public:
          op_visitor(){};
          typedef void result_type;
          result_type operator()( base_operation& bop){
-            if(bop.has_special_fee())
+            if(bop.has_special_fee() || bop.fee.amount != 0 )
                return;
             asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
             bop.fee = req_fee;
@@ -651,6 +651,28 @@ public:
          }
       }
       return tx;
+   }
+
+   void sign_transaction_fast(signed_transaction tx, string wif_key)
+   {
+      //first, get the correct chain_id
+      if(sophiatx_chain_id == fc::sha256())
+      {
+         auto v = _remote_api->get_version( {} ).version_info;
+         sophiatx_chain_id = fc::sha256(v.chain_id);
+      }
+      
+      fc::optional<fc::ecc::private_key> privkey = wif_to_key( wif_key );
+      tx.sign( *privkey, sophiatx_chain_id, fc::ecc::fc_canonical );
+      
+      try {
+         alexandria_api::broadcast_transaction_args bt_args;
+         bt_args.tx = tx;
+         _remote_api->broadcast_transaction( std::move(bt_args) );
+      } catch (const fc::exception& e) {
+         elog("Caught exception while broadcasting tx ${id}:  ${e}", ("id", tx.id().str())("e", e.to_detail_string()));
+         throw;
+      }
    }
 
    std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const
@@ -2025,6 +2047,103 @@ string wallet_api::decode_from_base64(string what){
 string wallet_api::get_account_name_from_seed(string seed){
    return my->get_account_name_from_seed(seed);
 }
+
+/*
+ * Use this as accounts' keys:
+ *   "wif_priv_key": "5JPknM1J8FFS6i17ZjtccDvVFjy2d96UH2KpyY8zHoBEY6gSjEZ"
+ *   "pub_key": "SPH84NWKyWzT2pPbK8DhypQTdNzdyAVJwjkWYcuzKPfvqtk8pjZKd"
+ *
+ */
+void wallet_api::flood_network( account_name_type initiator, uint32_t count, uint32_t reps, bool create_accounts, string account_prefix ){
+   string wifkey = "5JPknM1J8FFS6i17ZjtccDvVFjy2d96UH2KpyY8zHoBEY6gSjEZ";
+   string pubkey_string = "SPH84NWKyWzT2pPbK8DhypQTdNzdyAVJwjkWYcuzKPfvqtk8pjZKd";
+   sophiatx::chain::public_key_type pubkey(pubkey_string);
+   auto dyn_props = my->_remote_api->get_dynamic_global_properties( {} ).properties;
+   
+   if(create_accounts){
+      //create initiator account first
+      create_account_with_keys(initiator, account_prefix, "", pubkey, pubkey, pubkey, true);
+      account_name_type creator = get_account_name_from_seed(account_prefix);
+      transfer(initiator, creator, asset(11000000*count, SOPHIATX_SYMBOL), "test balance", true);
+
+      auto fee = dyn_props.account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
+      for(uint32_t i=0; i<count; i++){
+         account_create_operation op1, op2;
+         op1.creator = creator;
+         op1.name_seed = account_prefix+"a"+std::to_string(i);
+         op1.owner = authority( 1, pubkey, 1 );
+         op1.active = authority( 1, pubkey, 1 );
+         op1.memo_key = pubkey;
+         op1.json_metadata = "";
+         op1.fee = fee;
+         op2.creator = creator;
+         op2.name_seed = account_prefix+"b"+std::to_string(i);
+         op2.owner = authority( 1, pubkey, 1 );
+         op2.active = authority( 1, pubkey, 1 );
+         op2.memo_key = pubkey;
+         op2.json_metadata = "";
+         op2.fee = fee;
+          transfer_operation op3, op4;
+         op3.from = creator;
+         op3.to = get_account_name_from_seed(op1.name_seed);
+         op3.amount = asset(5400000, SOPHIATX_SYMBOL);
+         op3.fee = asset(10000, SOPHIATX_SYMBOL);
+         op4.from = creator;
+         op4.to = get_account_name_from_seed(op2.name_seed);
+         op4.amount = asset(5400000, SOPHIATX_SYMBOL);
+         op4.fee = asset(10000, SOPHIATX_SYMBOL);
+          signed_transaction tx;
+          tx.set_reference_block( dyn_props.head_block_id );
+         tx.set_expiration( dyn_props.time + fc::seconds(SOPHIATX_MAX_TIME_UNTIL_EXPIRATION) );
+         tx.signatures.clear();
+          tx.operations.push_back(op1);
+         tx.operations.push_back(op2);
+         tx.operations.push_back(op3);
+         tx.operations.push_back(op4);
+         tx.validate();
+          my->sign_transaction_fast( tx, wifkey );
+      }
+   }
+    struct transfer_pair{
+      account_name_type a;
+      account_name_type b;
+   };
+    vector<transfer_pair> transfer_pairs;transfer_pairs.reserve(count);
+    //prepare the transfer pairs
+   for(uint32_t i= 0; i< count; i++){
+      transfer_pair tp;
+      tp.a = get_account_name_from_seed(account_prefix+"a"+std::to_string(i));
+      tp.b = get_account_name_from_seed(account_prefix+"b"+std::to_string(i));
+      transfer_pairs.push_back(tp);
+   }
+    for(uint32_t j=0; j<reps; j++){
+      for(auto tp: transfer_pairs) {
+         custom_json_operation op1, op2;
+         op1.sender = tp.a;
+         op1.recipients.emplace(tp.b);
+         op1.app_id = 1;
+         op1.fee = asset(10000, SOPHIATX_SYMBOL);
+         op1.json = "{\"data\":\""+account_prefix+"a"+std::to_string(j) + " "+account_prefix+"b"+std::to_string(j)+" " + std::to_string(j) + "\"}";
+         op2.sender = tp.b;
+         op2.recipients.emplace(tp.a);
+         op2.app_id = 1;
+         op2.fee = asset(10000, SOPHIATX_SYMBOL);
+         op2.json = "{\"data\":\""+account_prefix+"b"+std::to_string(j) + " "+account_prefix+"a"+std::to_string(j)+" " + std::to_string(j) + "\"}";
+          signed_transaction tx;
+          tx.set_reference_block(dyn_props.head_block_id);
+         tx.set_expiration(dyn_props.time + fc::seconds(SOPHIATX_MAX_TIME_UNTIL_EXPIRATION));
+         tx.signatures.clear();
+          tx.operations.push_back(op1);
+         tx.validate();
+          my->sign_transaction_fast(tx, wifkey);
+          tx.signatures.clear();
+         tx.operations.clear();
+          tx.operations.push_back(op2);
+         tx.validate();
+          my->sign_transaction_fast(tx, wifkey);
+      }
+   }
+ }
 
 
 } } // sophiatx::wallet

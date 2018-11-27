@@ -51,8 +51,10 @@ DEFINE_API_IMPL( block_api_impl, get_block_header )
    get_block_header_return result;
    auto block = _db.fetch_block_by_number( args.block_num );
 
-   if( block )
+   if( block ){
       result.header = *block;
+      result.tx_count = block->transactions.size();
+   }
 
    return result;
 }

@@ -290,6 +290,7 @@ struct extended_dynamic_global_properties
    asset             total_vesting_shares;
 
    uint32_t          maximum_block_size = 0;
+   asset             account_creation_fee;
    uint64_t          current_aslot = 0;
    fc::uint128_t     recent_slots_filled;
    uint8_t           participation_count = 0;
@@ -506,7 +507,7 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::extended_dynamic_global_propertie
                   (current_witness)
                   (current_supply)
                   (total_vesting_shares)(witness_required_vesting)
-                  (maximum_block_size)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
+                  (maximum_block_size)(account_creation_fee)(current_aslot)(recent_slots_filled)(participation_count)(last_irreversible_block_num)
                   (average_block_size) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::api_chain_properties,
