@@ -199,7 +199,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
          while( itr.first.block_num() != last_block_num )
          {
             auto cur_block_num = itr.first.block_num();
-            if( cur_block_num % 100000 == 0 )
+            if( cur_block_num % 10000 == 0 )
                std::cerr << "   " << double( cur_block_num * 100 ) / last_block_num << "%   " << cur_block_num << " of " << last_block_num <<
                "   (" << (get_free_memory() / (1024*1024)) << "M free)\n";
             apply_block( itr.first, skip_flags );
@@ -890,7 +890,7 @@ signed_block database::_generate_block(
    }
 
    if( !(skip & skip_witness_signature) )
-      pending_block.sign( block_signing_private_key );
+      pending_block.sign( block_signing_private_key, has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical);
 
    // TODO:  Move this to _push_block() so session is restored.
    if( !(skip & skip_block_size_check) )
@@ -1873,7 +1873,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         ilog( "Processing ${n} genesis hardforks", ("n", n) );
+         elog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();
@@ -2052,28 +2052,33 @@ struct process_header_visitor
 void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
-      uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
+      uint32_t interest_blocks = SOPHIATX_INTEREST_BLOCKS;
+      uint32_t batch = block_no % interest_blocks;
       const auto &econ = get_economic_model();
       share_type supply_increase = 0;
       uint64_t id = batch;
       while( const account_object *a = find_account(id)) {
          share_type interest = 0;
 
-         if(head_block_num() > SOPHIATX_INTEREST_DELAY) {
+         if( head_block_num() > SOPHIATX_INTEREST_DELAY) {
             modify(econ, [ & ](economic_model_object &eo) {
-                 interest = eo.withdraw_interests(a->holdings_considered_for_interests,
-                                                  std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), head_block_num()));
+               interest = eo.withdraw_interests(a->holdings_considered_for_interests,
+                     std::min(uint32_t(interest_blocks), head_block_num()));
             });
          }
 
-         supply_increase += interest;
+         if( interest > 0 ) {
+            supply_increase += interest;
+            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
+            if( has_hardfork(SOPHIATX_HARDFORK_1_1))
+               adjust_proxied_witness_votes(*a, interest);
+         }
+
          modify(*a, [ & ](account_object &ao) {
               ao.balance.amount += interest;
-              ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
+              ao.holdings_considered_for_interests = ao.total_balance() * interest_blocks;
          });
-         if(interest > 0)
-            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
-         id += SOPHIATX_INTEREST_BLOCKS;
+         id += interest_blocks;
       }
 
       adjust_supply(asset(supply_increase, SOPHIATX_SYMBOL));
@@ -2158,7 +2163,8 @@ void database::_apply_transaction(const signed_transaction& trx)
 
       try
       {
-         trx.verify_authority( chain_id, get_active, get_owner, SOPHIATX_MAX_SIG_CHECK_DEPTH );
+         trx.verify_authority( chain_id, get_active, get_owner, SOPHIATX_MAX_SIG_CHECK_DEPTH,
+                               has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical);
       }
       catch( protocol::tx_missing_active_auth& e )
       {
@@ -2231,7 +2237,8 @@ const witness_object& database::validate_block_header( uint32_t skip, const sign
    const witness_object& witness = get_witness( next_block.witness );
 
    if( !(skip&skip_witness_signature) )
-      FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
+      FC_ASSERT( next_block.validate_signee( witness.signing_key,
+            has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical ) );
 
    if( !(skip&skip_witness_schedule_check) )
    {
@@ -2302,9 +2309,16 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
 #ifndef PRIVATE_NET
-      if( head_block_num() >= SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY){
+      uint64_t switch_block;
+      if(has_hardfork(SOPHIATX_HARDFORK_1_1))
+         switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 * SOPHIATX_BLOCKS_PER_DAY;
+      else
+         switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY;
+
+      if( head_block_num() >= switch_block ){
          dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
-      }
+      }else
+         dgp.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
 #endif
    } );
 
@@ -2471,11 +2485,9 @@ void database::create_vesting( const account_object& a, const asset& delta){
    modify( a, [&]( account_object& acnt )
    {
         acnt.vesting_shares.amount += delta.amount;
-
-        acnt.update_considered_holding(delta.amount, head_block_num());
-        adjust_proxied_witness_votes(a, delta.amount);
-
+        acnt.update_considered_holding(delta.amount, head_block_num() );
    } );
+   adjust_proxied_witness_votes(a, delta.amount);
 }
 
 
@@ -2486,16 +2498,14 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
    modify( a, [&]( account_object& acnt )
    {
         acnt.balance.amount += delta.amount;
-
-        acnt.update_considered_holding(delta.amount, head_block_num());
+        acnt.update_considered_holding(delta.amount, head_block_num() );
         if( check_balance )
         {
            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient SOPHIATX funds" );
         }
-        adjust_proxied_witness_votes(a, delta.amount);
 
    } );
-
+   adjust_proxied_witness_votes(a, delta.amount);
 }
 
 
@@ -2604,6 +2614,10 @@ void database::init_hardforks()
    _hardfork_times[ 0 ] = fc::time_point_sec( get_genesis_time() );
    _hardfork_versions[ 0 ] = hardfork_version( 1, 0 );
 
+   FC_ASSERT( SOPHIATX_HARDFORK_1_1 == 1, "Invalid hardfork configuration" );
+   _hardfork_times[ SOPHIATX_HARDFORK_1_1 ] = fc::time_point_sec( SOPHIATX_HARDFORK_1_1_TIME );
+   _hardfork_versions[ SOPHIATX_HARDFORK_1_1 ] = SOPHIATX_HARDFORK_1_1_VERSION;
+
    const auto& hardforks = get_hardfork_property_object();
    FC_ASSERT( hardforks.last_hardfork <= SOPHIATX_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("SOPHIATX_NUM_HARDFORKS",SOPHIATX_NUM_HARDFORKS) );
    FC_ASSERT( _hardfork_versions[ hardforks.last_hardfork ] <= SOPHIATX_BLOCKCHAIN_VERSION, "Blockchain version is older than last applied hardfork" );
@@ -2662,11 +2676,11 @@ void database::apply_hardfork( uint32_t hardfork )
    if( _log_hardforks )
       elog( "HARDFORK ${hf} at block ${b}", ("hf", hardfork)("b", head_block_num()) );
 
-
-
    switch( hardfork )
    {
-
+      case SOPHIATX_HARDFORK_1_1:
+         recalculate_all_votes();
+         break;
       default:
          break;
    }
@@ -2683,6 +2697,25 @@ void database::apply_hardfork( uint32_t hardfork )
 
    push_virtual_operation( hardfork_operation( hardfork ), true );
 }
+
+void database::recalculate_all_votes(){
+   const auto& account_idx = get_index< account_index >().indices().get<by_name>();
+   const auto& witness_idx = get_index< witness_index >().indices();
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      //clear all witness votes
+      ilog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+      modify(*itr, [&](witness_object &wo){
+         wo.votes = 0;
+      });
+   }
+   for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr ){
+      adjust_proxied_witness_votes(*itr, itr->total_balance());
+   }
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      ilog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+   }
+}
+
 
 /**
  * Verifies all supply invariantes check out

@@ -42,7 +42,7 @@ public:
    typedef bip::flat_map< uint32_t, share_type, std::less< uint32_t >, historic_supply_allocator_type > historic_supply_map;
 
    historic_supply_map historic_supply;
-   share_type accumulated_supply;
+   share_type accumulated_supply;   //< sum of coin supplies over last $SOPHIATX_INTEREST_BLOCKS blocks
 
    void init_economics(share_type init_supply, share_type total_supply);
    void record_block(uint32_t block, share_type current_supply);

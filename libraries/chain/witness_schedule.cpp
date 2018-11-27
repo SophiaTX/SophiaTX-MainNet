@@ -146,7 +146,6 @@ void update_witness_schedule4( database& db )
 
    auto majority_version = wso.majority_version;
 
-
    {
       flat_map< version, uint32_t, std::greater< version > > witness_versions;
       flat_map< std::tuple< hardfork_version, time_point_sec >, uint32_t > hardfork_version_votes;
