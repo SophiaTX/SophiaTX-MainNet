@@ -22,7 +22,7 @@
 #define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::seconds(60)
 #define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::seconds(12)
 #define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::seconds(0)
-#define SOPHIATX_OWNER_AUTH_HISTORY_TRACKING_START_BLOCK_NUM 1
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     1
 
 #define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 #define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
@@ -51,6 +51,8 @@
 #define SOPHIATX_INIT_SUPPLY                     int64_t(350000000000000)
 #define SOPHIATX_TOTAL_SUPPLY                    int64_t(500000000000000)
 #define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
+
+#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 
 #endif
 
@@ -118,9 +120,6 @@
 #define SOPHIATX_MAX_MINER_WITNESSES_HF0         0
 #define SOPHIATX_MAX_RUNNER_WITNESSES_HF0        4
 
-
-
-#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 #define SOPHIATX_MAX_TIME_UNTIL_EXPIRATION       (60*60) // seconds,  aka: 1 hour
 #define SOPHIATX_MAX_MEMO_SIZE                   2048
 #define SOPHIATX_MAX_NAME_SEED_SIZE              32
