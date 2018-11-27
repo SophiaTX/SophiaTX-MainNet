@@ -243,6 +243,9 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       to_pay = _db.to_sophiatx(o.fee);
    }
 
+   if(_db.has_hardfork(SOPHIATX_HARDFORK_1_1))
+      FC_ASSERT( o.name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
+
    FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
@@ -592,7 +595,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
       auto wit = _db.find_witness( o. account );
       FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - o.vesting_shares.amount >= gpo.witness_required_vesting.amount );
 
-     _db.modify( account, [&]( account_object& a )
+      _db.modify( account, [&]( account_object& a )
       {
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
