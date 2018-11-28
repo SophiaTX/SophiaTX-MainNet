@@ -174,6 +174,11 @@ else(JNI_FOUND)
     MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
 endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
 
+find_package (SQLite3 3.25.3)
+if (SQLite3_FOUND)
+    message (STATUS "Found SQLite version: ${SQLite3_VERSION}")
+endif (SQLite3_FOUND)
+
 
 if( WIN32 )
 
