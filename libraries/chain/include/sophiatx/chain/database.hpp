@@ -388,7 +388,7 @@ namespace sophiatx { namespace chain {
          /// Reset the object graph in-memory
          void initialize_indexes();
          void init_schema();
-         void init_genesis( genesis_state_type genesis, const std::string& initPubkeyStr /*TODO: delete when initminer pubkey is read from get_config */ );
+         void init_genesis( genesis_state_type genesis, chain_id_type chain_id, const std::string& initPubkeyStr /*TODO: delete when initminer pubkey is read from get_config */ );
 
          /**
           *  This method validates transactions without adding it to the pending state.

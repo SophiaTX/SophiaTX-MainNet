@@ -97,6 +97,9 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
    try
    {
       init_schema();
+      elog("initializing database...");
+      chain_id_type chain_id = genesis.compute_chain_id();
+
       chainbase::database::open( args.shared_mem_dir, args.chainbase_flags, args.shared_file_size );
 
       initialize_indexes();
@@ -105,7 +108,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
       if( !find< dynamic_global_property_object >() )
          with_write_lock( [&]()
          {
-            init_genesis( genesis, initPubkeyStr );
+            init_genesis( genesis, chain_id, initPubkeyStr );
          });
 
       _block_log.open( args.data_dir / "block_log" );
@@ -153,6 +156,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 {
    bool reindex_success = false;
    uint32_t last_block_number = 0; // result
+   chain_id_type chain_id = genesis.compute_chain_id();
 
    BOOST_SCOPE_EXIT(this_,&reindex_success,&last_block_number) {
       SOPHIATX_TRY_NOTIFY(this_->_on_reindex_done, reindex_success, last_block_number);
@@ -163,7 +167,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
       SOPHIATX_TRY_NOTIFY(_on_reindex_start);
 
       ilog( "Reindexing Blockchain" );
-      wipe( args.data_dir, args.shared_mem_dir, false );
+      wipe( args.data_dir , args.shared_mem_dir, false );
       open( args, genesis, initPubkeyStr );
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
@@ -1545,7 +1549,7 @@ void database::init_schema()
    return;*/
 }
 
-void database::init_genesis( genesis_state_type genesis, const std::string& initPubkeyStr )
+void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id, const std::string& initPubkeyStr )
 {
    try
    {
@@ -1663,7 +1667,7 @@ void database::init_genesis( genesis_state_type genesis, const std::string& init
          p.maximum_block_size = SOPHIATX_MAX_BLOCK_SIZE;
          p.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
          p.genesis_time = genesis.genesis_time;
-         p.chain_id = genesis.compute_chain_id();
+         p.chain_id = chain_id;
       } );
 
       create< economic_model_object >( [&]( economic_model_object& e )

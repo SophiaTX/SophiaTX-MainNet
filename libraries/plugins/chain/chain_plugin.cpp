@@ -316,7 +316,6 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
 }
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
-   my->shared_memory_dir = app().data_dir() / "blockchain";
 
    if( options.count("shared-file-dir") )
    {
@@ -425,13 +424,16 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 void chain_plugin::plugin_startup()
 {
    ilog( "Starting chain with shared_file_size: ${n} bytes", ("n", my->shared_memory_size) );
+   chain_id_type chain_id = my->genesis.compute_chain_id();
 
    my->start_write_processing();
+   if(my->shared_memory_dir.generic_string() == "")
+      my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
 
    if(my->resync)
    {
       wlog("resync requested: deleting block log and shared memory");
-      my->db.wipe( app().data_dir() / "blockchain", my->shared_memory_dir, true );
+      my->db.wipe( app().data_dir() / chain_id.str() / "blockchain", my->shared_memory_dir, true );
    }
 
    my->db.set_flush_interval( my->flush_interval );
@@ -459,7 +461,7 @@ void chain_plugin::plugin_startup()
    };
 
    database::open_args db_open_args;
-   db_open_args.data_dir = app().data_dir() / "blockchain";
+   db_open_args.data_dir = app().data_dir() / chain_id.str() / "blockchain";
    db_open_args.shared_mem_dir = my->shared_memory_dir;
    db_open_args.shared_file_size = my->shared_memory_size;
    db_open_args.shared_file_full_threshold = my->shared_file_full_threshold;
@@ -499,6 +501,8 @@ void chain_plugin::plugin_startup()
          ("cm", measure.current_mem)
          ("pm", measure.peak_mem) );
    };
+
+   elog("Starting node with chain id ${i}", ("i", chain_id));
 
    if(my->replay)
    {
