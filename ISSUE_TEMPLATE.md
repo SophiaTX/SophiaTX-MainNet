@@ -5,7 +5,7 @@ Please, fill the following template when reporting an issue.
  - [ ] Documentation issue
  - [ ] Improvement suggestion
  - [ ] Question / support request
- - [ ] OTher
+ - [ ] Other
 
 # General desription
 Use few sentences to describe the issue or suggestion, including used version, OS type etc.
