@@ -4,7 +4,7 @@
 
 
 properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
-                        booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
+                        booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
 
 
 pipeline {
