@@ -373,7 +373,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
            fc::read_file_contents( options.at("genesis-json").as<boost::filesystem::path>(), genesis_str );
            genesis_state_type genesis = fc::json::from_string( genesis_str ).as<genesis_state_type>();
            genesis.initial_chain_id = fc::sha256::hash( genesis_str);
-
+           genesis.private_net = private_net;
            return genesis;
         }
         else
