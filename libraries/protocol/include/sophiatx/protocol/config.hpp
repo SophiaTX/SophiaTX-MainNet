@@ -30,21 +30,6 @@
 /// Allows to limit number of total produced blocks.
 #define TESTNET_BLOCK_LIMIT                   (3000000)
 
-#elif PRIVATE_NET
-
-#define SOPHIATX_INIT_PUBLIC_KEY_STR             (std::string( sophiatx::protocol::public_key_type(fc::ecc::private_key::regenerate(fc::sha256::hash(std::string("init_key"))).get_public_key()) ))
-#define SOPHIATX_MIN_ACCOUNT_CREATION_FEE        uint64_t( 0 )
-
-#define SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD                  fc::days(30)
-#define SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD  fc::days(1)
-#define SOPHIATX_OWNER_UPDATE_LIMIT                          fc::minutes(60)
-#define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     7
-
-#define SOPHIATX_INIT_SUPPLY                     (int64_t( 0 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
-#define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 0 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
-
-#define SOPHIATX_MIN_FEEDS                       0 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
-
 #else // IS LIVE SOPHIATX NETWORK
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
@@ -83,15 +68,11 @@
 #define SOPHIATX_INTEREST_DELAY (SOPHIATX_BLOCKS_PER_DAY)
 #define SOPHIATX_COINBASE_YEARS (25)
 #define SOPHIATX_COINBASE_BLOCKS ( SOPHIATX_BLOCKS_PER_YEAR * SOPHIATX_COINBASE_YEARS )
-#ifdef PRIVATE_NET
-#define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( 0 )
-#else
+
 #define SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 250000 )
 #define SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE uint64_t( SOPHIATX_SATOSHIS * 300000 )
 #define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 96 //January 1
 #define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 159 //January 1 - take into account missing blocks
-
-#endif //PRIVATE_NET
 
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
 #define SOPHIATX_SYMBOL  ( sophiatx::protocol::asset_symbol_type( SOPHIATX_SYMBOL_SER ) )

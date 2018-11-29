@@ -345,14 +345,7 @@ namespace sophiatx { namespace chain {
 
          void process_interests();
 
-         bool is_private_net() {
-#ifdef PRIVATE_NET
-            return true;
-#else
-            return false;
-#endif
-
-         }
+         bool is_private_net() const;
 
       void process_funds();
 

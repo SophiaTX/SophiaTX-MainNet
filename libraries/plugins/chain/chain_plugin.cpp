@@ -308,10 +308,8 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
          ("check-locks", bpo::bool_switch()->default_value(false), "Check correctness of chainbase locking" )
          ("validate-database-invariants", bpo::bool_switch()->default_value(false), "Validate all supply invariants check out" )
-#ifdef PRIVATE_NET
          ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
          ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
-#endif
          ;
 }
 
@@ -337,38 +335,38 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 
    // TODO: temporary solution. DELETE when initminer mining public key is read from get_config
    my->initMiningPubkeyStr = SOPHIATX_INIT_PUBLIC_KEY_STR;
-#ifdef PRIVATE_NET
-   if (options.count("initminer-mining-pubkey")) {
+   bool private_net = false;
+   if (options.count("initminer-mining-pubkey") ) {
       my->initMiningPubkeyStr = options.at( "initminer-mining-pubkey" ).as< std::string >();
+      private_net = true;
    }
-   else {
-      BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, \"initminer-mining-pubkey\" parameter must be provided.") );
-   }
-#endif //PRIVATE_NET
 
 
    auto initial_state = [&] {
-#ifdef PRIVATE_NET
-        if (options.count("initminer-account-pubkey")) {
-           // Creates genesis based on provided initminer account public key
-           genesis_state_type genesis;
-           genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
-           genesis.initial_balace = SOPHIATX_INIT_SUPPLY;
-           genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
 
-           fc::sha256::encoder enc;
-           fc::raw::pack( enc, genesis );
-           genesis.initial_chain_id = enc.result();
+        if( private_net){
+           if ( options.count("initminer-account-pubkey")) {
+              // Creates genesis based on provided initminer account public key
+              genesis_state_type genesis;
+              genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
+              genesis.initial_balace = 0;
+              genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
+              genesis.is_private_net = true;
 
-           return genesis;
-        }
-        // private net might be also started with custom genesis file
-        else {
-           if (options.count("genesis-json") == 0) {
-              BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, either \"initminer-account-pubkey\" or \"genesis-json\" parameter must be provided.") );
+              fc::sha256::encoder enc;
+              fc::raw::pack( enc, genesis );
+              genesis.initial_chain_id = enc.result();
+
+              return genesis;
+           }
+           // private net might be also started with custom genesis file
+           else {
+              if (options.count("genesis-json") == 0) {
+                 BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, either \"initminer-account-pubkey\" or \"genesis-json\" parameter must be provided.") );
+              }
            }
         }
-#endif //PRIVATE_NET
+
         if( options.count("genesis-json") )
         {
            std::string genesis_str;

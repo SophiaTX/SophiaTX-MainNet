@@ -43,14 +43,7 @@ string& version_string()
 
 void info()
 {
-#ifdef PRIVATE_NET
-      std::cerr << "------------------------------------------------------\n\n";
-      std::cerr << "            STARTING PRIVATE NETWORK\n\n";
-      std::cerr << "------------------------------------------------------\n";
-      std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
-      std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
-      std::cerr << "------------------------------------------------------\n";
-#elif IS_TEST_NET
+#if IS_TEST_NET
       std::cerr << "------------------------------------------------------\n\n";
       std::cerr << "            STARTING TEST NETWORK\n\n";
       std::cerr << "------------------------------------------------------\n";

@@ -82,6 +82,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
                  w.signing_key        = o.block_signing_key;
                  w.created            = _db.head_block_time();
                  w.props = o.props;
+                 w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
                  w.props.price_feeds.clear();
             });
          }else{ //shut the witness down
@@ -100,6 +101,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
               if(o.block_signing_key == public_key_type())
                  w.stopped = true;
               w.props = o.props;
+              w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
               w.props.price_feeds.clear();
          });
       }

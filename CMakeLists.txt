@@ -116,13 +116,6 @@ endif()
 
 MESSAGE( STATUS "SOPHIATX_STATIC_BUILD: ${SOPHIATX_STATIC_BUILD}" )
 
-OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
-if(PRIVATE_NET)
-    MESSAGE(STATUS "Building as private net")
-    ADD_DEFINITIONS("-DPRIVATE_NET")
-else(PRIVATE_NET)
-    MESSAGE(STATUS "Building as public net")
-endif(PRIVATE_NET)
 
 OPTION(ABAP_INTERFACE "Build without map obejcts on the interface (ON OR OFF)" OFF )
 if(ABAP_INTERFACE)
