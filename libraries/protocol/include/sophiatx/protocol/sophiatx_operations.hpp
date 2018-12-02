@@ -309,7 +309,7 @@ namespace sophiatx { namespace protocol {
     *
     *  If the block_signing_key is null then the witness is removed from
     *  contention (effectively an witness_stop_operaton).  The network will pick
-    *  the top 21 witnesses for producing blocks.
+    *  the top 51 witnesses for producing blocks.
     */
    struct witness_update_operation : public base_operation
    {
@@ -323,6 +323,20 @@ namespace sophiatx { namespace protocol {
 
       void validate()const;
       void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(owner); }
+   };
+
+   struct admin_witness_update_operation : public base_operation
+   {
+      account_name_type owner;
+      string            url;
+      public_key_type   block_signing_key;
+      chain_properties  props;
+
+      asset get_required_fee(asset_symbol_type in_symbol)const{ return asset(0, in_symbol);};
+      account_name_type get_fee_payer()const { return owner;};
+
+      void validate()const{};
+      void get_required_active_authorities( flat_set<account_name_type>& a )const{ a.insert(SOPHIATX_INIT_MINER_NAME); }
    };
 
    struct witness_set_properties_operation : public base_operation
@@ -817,6 +831,8 @@ FC_REFLECT_DERIVED( sophiatx::protocol::transfer_operation, (sophiatx::protocol:
 FC_REFLECT_DERIVED( sophiatx::protocol::transfer_to_vesting_operation, (sophiatx::protocol::base_operation), (from)(to)(amount) )
 FC_REFLECT_DERIVED( sophiatx::protocol::withdraw_vesting_operation, (sophiatx::protocol::base_operation), (account)(vesting_shares) )
 FC_REFLECT_DERIVED( sophiatx::protocol::witness_update_operation, (sophiatx::protocol::base_operation), (owner)(url)(block_signing_key)(props) )
+FC_REFLECT_DERIVED( sophiatx::protocol::admin_witness_update_operation, (sophiatx::protocol::base_operation), (owner)(url)(block_signing_key)(props) )
+
 FC_REFLECT_DERIVED( sophiatx::protocol::witness_stop_operation, (sophiatx::protocol::base_operation), (owner) )
 FC_REFLECT_DERIVED( sophiatx::protocol::witness_set_properties_operation, (sophiatx::protocol::base_operation), (owner)(props)(extensions) )
 FC_REFLECT_DERIVED( sophiatx::protocol::account_witness_vote_operation, (sophiatx::protocol::base_operation), (account)(witness)(approve) )

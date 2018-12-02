@@ -66,45 +66,17 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
    if( _db.is_private_net() ){
       const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
-      if ( o.owner == SOPHIATX_INIT_MINER_NAME  ){
-         validate_account_name(o.url);
-         auto wit_itr = by_witness_name_idx.find( o.url );
-         if( _db.is_producing() )
-         {
-            FC_ASSERT( o.props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE );
-         }
-         if( wit_itr == by_witness_name_idx.end() ){ //first registration
-            FC_ASSERT(_db.count<witness_object>() <= SOPHIATX_MAX_VOTED_WITNESSES_HF0 );
-            const account_object& nwo = _db.get_account( o.url );
-            _db.create< witness_object >( [&]( witness_object& w ) {
-                 w.owner              = o.url;
-                 from_string( w.url, o.url );
-                 w.signing_key        = o.block_signing_key;
-                 w.created            = _db.head_block_time();
-                 w.props = o.props;
-                 w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
-                 w.props.price_feeds.clear();
-            });
-         }else{ //shut the witness down
-            _db.modify( *wit_itr, [&]( witness_object& w ){
-                 w.signing_key        = o.block_signing_key;
-                 if(o.block_signing_key == public_key_type())
-                    w.stopped = true;
-            });
-         }
-      }else {
-         auto wit_itr = by_witness_name_idx.find( o.owner );
-         FC_ASSERT( wit_itr != by_witness_name_idx.end(), "only initminer can select witnesses" );
-         _db.modify( *wit_itr, [&]( witness_object& w ) {
-              from_string( w.url, o.url );
-              w.signing_key        = o.block_signing_key;
-              if(o.block_signing_key == public_key_type())
-                 w.stopped = true;
-              w.props = o.props;
-              w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
-              w.props.price_feeds.clear();
-         });
-      }
+      auto wit_itr = by_witness_name_idx.find( o.owner );
+      FC_ASSERT( wit_itr != by_witness_name_idx.end(), "only initminer can select witnesses" );
+      _db.modify( *wit_itr, [&]( witness_object& w ) {
+            from_string( w.url, o.url );
+            w.signing_key        = o.block_signing_key;
+            if(o.block_signing_key == public_key_type())
+               w.stopped = true;
+            w.props = o.props;
+            w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+            w.props.price_feeds.clear();
+      });
       return;
    }
 
@@ -157,6 +129,36 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
          w.props.price_feeds.clear();
       });
    }
+}
+
+void admin_witness_update_evaluator::do_apply( const admin_witness_update_operation& o )
+{
+   FC_ASSERT( _db.is_private_net(), "this operation can be used only in private nets");
+   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   auto wit_itr = by_witness_name_idx.find( o.owner );
+   FC_ASSERT( wit_itr != by_witness_name_idx.end(), "only initminer can select witnesses" );
+   if(wit_itr == by_witness_name_idx.end()){
+      _db.create< witness_object >( [&]( witness_object& w ) {
+           w.owner              = o.owner;
+           from_string( w.url, o.url );
+           w.signing_key        = o.block_signing_key;
+           w.created            = _db.head_block_time();
+           w.props = o.props;
+           w.props.price_feeds.clear();
+      });
+   }else{
+      _db.modify( *wit_itr, [&]( witness_object& w ) {
+           from_string( w.url, o.url );
+           w.signing_key        = o.block_signing_key;
+           if(o.block_signing_key == public_key_type())
+              w.stopped = true;
+           w.props = o.props;
+           w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+           w.props.price_feeds.clear();
+      });
+   }
+   return;
+
 }
 
 void witness_set_properties_evaluator::do_apply( const witness_set_properties_operation& o )

@@ -1416,10 +1416,12 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
    _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
    _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
    _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
    _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
+   _my->_evaluator_registry.register_evaluator< admin_witness_update_evaluator            >();
+
 }
 
 

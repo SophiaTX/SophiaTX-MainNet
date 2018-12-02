@@ -42,14 +42,8 @@ SOPHIATX_DEFINE_EVALUATOR( cancel_application_buying )
 SOPHIATX_DEFINE_EVALUATOR( witness_set_properties )
 SOPHIATX_DEFINE_EVALUATOR( transfer_from_promotion_pool )
 SOPHIATX_DEFINE_EVALUATOR( sponsor_fees )
-#ifdef SOPHIATX_ENABLE_SMT
-SOPHIATX_DEFINE_EVALUATOR( smt_setup )
-SOPHIATX_DEFINE_EVALUATOR( smt_cap_reveal )
-SOPHIATX_DEFINE_EVALUATOR( smt_refund )
-SOPHIATX_DEFINE_EVALUATOR( smt_setup_emissions )
-SOPHIATX_DEFINE_EVALUATOR( smt_set_setup_parameters )
-SOPHIATX_DEFINE_EVALUATOR( smt_set_runtime_parameters )
-SOPHIATX_DEFINE_EVALUATOR( smt_create )
-#endif
+
+SOPHIATX_DEFINE_EVALUATOR( admin_witness_update )
+
 
 } } // sophiatx::chain
