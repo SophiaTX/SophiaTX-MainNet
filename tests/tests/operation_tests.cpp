@@ -3876,6 +3876,5 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
    FC_LOG_AND_RETHROW()
 }
 
-
 BOOST_AUTO_TEST_SUITE_END()
 //#endif

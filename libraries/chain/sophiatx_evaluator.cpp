@@ -136,7 +136,6 @@ void admin_witness_update_evaluator::do_apply( const admin_witness_update_operat
    FC_ASSERT( _db.is_private_net(), "this operation can be used only in private nets");
    const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
-   FC_ASSERT( wit_itr != by_witness_name_idx.end(), "only initminer can select witnesses" );
    if(wit_itr == by_witness_name_idx.end()){
       _db.create< witness_object >( [&]( witness_object& w ) {
            w.owner              = o.owner;
