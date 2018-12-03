@@ -365,7 +365,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
                  genesis_state_type genesis;
                  genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
                  genesis.initial_balace = 0;
-                 genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
+                 genesis.initial_public_key = public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
                  genesis.is_private_net = true;
 
                  fc::sha256::encoder enc;
