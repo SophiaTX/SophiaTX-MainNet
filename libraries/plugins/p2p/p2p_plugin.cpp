@@ -513,14 +513,14 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
       seeds.insert( seeds.end(), s.begin(), s.end() );
 
    }
-#if !defined (PRIVATE_NET) && !defined (IS_TEST_NET)
+#if !defined (IS_TEST_NET)
    else {
       for(int i=1; i<=6; i++){
          string seednode = string("seednode")+std::to_string(i)+string(".sophiatx.com:60000");
          seeds.push_back(seednode);
       }
    }
-#endif //!defined (PRIVATE_NET) || !defined (IS_TEST_NET)
+#endif //!defined (IS_TEST_NET)
 
    wlog("Starting with following list of seed nodes");
    for( const string& endpoint_string : seeds )

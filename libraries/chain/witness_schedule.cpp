@@ -128,9 +128,9 @@ void update_witness_schedule4( database& db )
       }
       db.modify( *(*itr), [&]( witness_object& wo )
       {
-         wo.virtual_position        = fc::uint128();
-         wo.virtual_last_update     = new_virtual_time;
-         wo.virtual_scheduled_time  = new_virtual_scheduled_time;
+           wo.virtual_position        = fc::uint128();
+           wo.virtual_last_update     = new_virtual_time;
+           wo.virtual_scheduled_time  = new_virtual_scheduled_time;
       } );
    }
    if( reset_virtual_time )
@@ -147,6 +147,7 @@ void update_witness_schedule4( database& db )
    auto majority_version = wso.majority_version;
 
    {
+      uint8_t hardfork_required_witnesses = db.is_private_net() ?  wso.num_scheduled_witnesses / 2 + 1 : wso.hardfork_required_witnesses;
       flat_map< version, uint32_t, std::greater< version > > witness_versions;
       flat_map< std::tuple< hardfork_version, time_point_sec >, uint32_t > hardfork_version_votes;
 
@@ -173,7 +174,7 @@ void update_witness_schedule4( database& db )
       {
          witnesses_on_version += ver_itr->second;
 
-         if( witnesses_on_version >= wso.hardfork_required_witnesses )
+         if( witnesses_on_version >= hardfork_required_witnesses )
          {
             majority_version = ver_itr->first;
             break;
@@ -186,7 +187,7 @@ void update_witness_schedule4( database& db )
 
       while( hf_itr != hardfork_version_votes.end() )
       {
-         if( hf_itr->second >= wso.hardfork_required_witnesses )
+         if( hf_itr->second >= hardfork_required_witnesses )
          {
             const auto& hfp = db.get_hardfork_property_object();
             if( hfp.next_hardfork != std::get<0>( hf_itr->first ) ||
