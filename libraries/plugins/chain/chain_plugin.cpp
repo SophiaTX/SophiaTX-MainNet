@@ -287,8 +287,6 @@ const sophiatx::chain::database& chain_plugin::db() const { return my->db; }
 void chain_plugin::set_program_options(options_description& cli, options_description& cfg)
 {
    cfg.add_options()
-         ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"),
-            "the location of the chain shared memory files (absolute path or relative to application data dir)")
          ("genesis-json", bpo::value<string>(), "genesis file in JSON format")
          ("shared-file-size", bpo::value<string>()->default_value("24G"), "Size of the shared memory file. Default: 24G. If running a full node, increase this value to 200G.")
          ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(0),
@@ -390,23 +388,6 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    };
 
    my->genesis             = initial_state();
-   chain_id_type chain_id = my->genesis.compute_chain_id();
-
-   if( options.count("shared-file-dir") )
-   {
-      auto sfd = options.at("shared-file-dir").as<bfs::path>();
-      if(sfd.is_relative())
-      {
-         my->shared_memory_dir = app().data_dir() / chain_id.str() / sfd;
-      }
-      else
-      {
-         my->shared_memory_dir = sfd;
-      }
-   }
-
-   elog("Starting node with chain id ${i}", ("i", chain_id));
-
    my->replay              = options.at( "replay-blockchain").as<bool>();
    my->resync              = options.at( "resync-blockchain").as<bool>();
    my->stop_replay_at      =
@@ -439,6 +420,20 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 void chain_plugin::plugin_startup()
 {
    ilog( "Starting chain with shared_file_size: ${n} bytes", ("n", my->shared_memory_size) );
+
+   chain_id_type chain_id = my->genesis.compute_chain_id();
+
+   if(my->shared_memory_dir.generic_string() == "") {
+      my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
+   }
+
+   //correct directories
+   if( ! my->genesis.is_private_net && bfs::exists( app().data_dir() / "blockchain" ) ){
+      bfs::create_directories ( my->shared_memory_dir );
+      bfs::rename( app().data_dir() / "blockchain", my->shared_memory_dir );
+   }
+
+   elog("Starting node with chain id ${i}", ("i", chain_id));
 
    my->start_write_processing();
 
