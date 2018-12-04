@@ -74,7 +74,6 @@ namespace sophiatx { namespace chain {
 
          struct open_args
          {
-            fc::path data_dir;
             fc::path shared_mem_dir;
             uint64_t shared_file_size = 0;
             uint16_t shared_file_full_threshold = 0;
@@ -113,7 +112,7 @@ namespace sophiatx { namespace chain {
           *
           * Will close the database before wiping. Database will be closed when this function returns.
           */
-         void wipe(const fc::path& data_dir, const fc::path& shared_mem_dir, bool include_blocks);
+         void wipe(const fc::path& shared_mem_dir, bool include_blocks);
          void close(bool rewind = true);
 
          //////////////////// db_block.cpp ////////////////////

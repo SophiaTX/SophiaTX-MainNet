@@ -111,7 +111,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
             init_genesis( genesis, chain_id, init_pubkey );
          });
 
-      _block_log.open( args.data_dir / "block_log" );
+      _block_log.open( args.shared_mem_dir / "block_log" );
 
       auto log_head = _block_log.head();
 
@@ -149,7 +149,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
       _shared_file_full_threshold = args.shared_file_full_threshold;
       _shared_file_scale_rate = args.shared_file_scale_rate;
    }
-   FC_CAPTURE_LOG_AND_RETHROW( (args.data_dir)(args.shared_mem_dir)(args.shared_file_size) )
+   FC_CAPTURE_LOG_AND_RETHROW( (args.shared_mem_dir)(args.shared_file_size) )
 }
 
 uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey )
@@ -166,7 +166,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
       SOPHIATX_TRY_NOTIFY(_on_reindex_start);
 
       ilog( "Reindexing Blockchain" );
-      wipe( args.data_dir , args.shared_mem_dir, false );
+      wipe( args.shared_mem_dir, false );
       open( args, genesis, init_pubkey );
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
@@ -231,18 +231,18 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 
       return last_block_number;
    }
-   FC_CAPTURE_AND_RETHROW( (args.data_dir)(args.shared_mem_dir) )
+   FC_CAPTURE_AND_RETHROW( (args.shared_mem_dir) )
 
 }
 
-void database::wipe( const fc::path& data_dir, const fc::path& shared_mem_dir, bool include_blocks)
+void database::wipe( const fc::path& shared_mem_dir, bool include_blocks)
 {
    close();
    chainbase::database::wipe( shared_mem_dir );
    if( include_blocks )
    {
-      fc::remove_all( data_dir / "block_log" );
-      fc::remove_all( data_dir / "block_log.index" );
+      fc::remove_all( shared_mem_dir / "block_log" );
+      fc::remove_all( shared_mem_dir / "block_log.index" );
    }
 }
 

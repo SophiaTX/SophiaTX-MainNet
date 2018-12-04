@@ -54,7 +54,6 @@ void open_test_database( database& db, const fc::path& dir )
    genesis_state_type gen;
    gen.genesis_time = fc::time_point_sec(1530644400);
    database::open_args args;
-   args.data_dir = dir;
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
    db.open( args, gen, public_key_type(init_account_pub_key) );
