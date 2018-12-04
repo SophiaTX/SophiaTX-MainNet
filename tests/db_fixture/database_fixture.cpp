@@ -142,7 +142,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
       database::open_args args;
-      args.shared_mem_dir = args.data_dir;
+      args.shared_mem_dir = data_dir->path();
       args.shared_file_size = size;
       db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
    }
@@ -291,7 +291,7 @@ live_database_fixture::live_database_fixture()
          genesis_state_type gen;
          gen.genesis_time = fc::time_point::now();
          database::open_args args;
-         args.shared_mem_dir = ejossev;
+         args.shared_mem_dir = _chain_dir;
          db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
       }
 
