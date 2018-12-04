@@ -156,7 +156,6 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 {
    bool reindex_success = false;
    uint32_t last_block_number = 0; // result
-   chain_id_type chain_id = genesis.compute_chain_id();
 
    BOOST_SCOPE_EXIT(this_,&reindex_success,&last_block_number) {
       SOPHIATX_TRY_NOTIFY(this_->_on_reindex_done, reindex_success, last_block_number);

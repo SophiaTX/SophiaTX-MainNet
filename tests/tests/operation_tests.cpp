@@ -974,13 +974,41 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
    FC_LOG_AND_RETHROW()
 }
 
+BOOST_AUTO_TEST_CASE( admin_witness_update )
+{
+   try{
+      BOOST_TEST_MESSAGE( "Testing: admin_witness_update" );
+      ACTORS( (alice)(bob) )
+      admin_witness_update_operation op;
+      op.owner = AN("alice");
+      op.url = "http://";
+      op.block_signing_key = public_key_type();
+      signed_transaction tx;
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      tx.signatures.clear();
+      sign(tx, alice_private_key );
+      BOOST_TEST_MESSAGE( "--- Test failure due to wrong signature" );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      validate_database();
+
+      tx.signatures.clear();
+      sign(tx, init_account_priv_key );
+      BOOST_TEST_MESSAGE( "--- Test failure on mainnet" );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::assert_exception );
+      validate_database();
+
+   }
+   FC_LOG_AND_RETHROW()
+}
+
 BOOST_AUTO_TEST_CASE( account_witness_vote_validate )
 {
    try
    {
       BOOST_TEST_MESSAGE( "Testing: account_witness_vote_validate" );
-
       validate_database();
+
    }
    FC_LOG_AND_RETHROW()
 }
@@ -3847,7 +3875,6 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
    }
    FC_LOG_AND_RETHROW()
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
 //#endif
