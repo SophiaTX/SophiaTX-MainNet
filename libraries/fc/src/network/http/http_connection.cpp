@@ -48,12 +48,14 @@ class fc::http::connection::impl
         while( (s = read_until( line.data(), line.data()+line.size(), '\n' )) > 1 ) {
           fc::http::header h;
           char* end = line.data();
-          while( *end != ':' )++end;
+          while( *end != ':' && end < line.data+s )++end;
+          FC_ASSERT( end < line.data+s );
           h.key = fc::string(line.data(),end);
           ++end; // skip ':'
           ++end; // skip space
           char* skey = end;
-          while( *end != '\r' ) ++end;
+          while( *end != '\r' && end < line.data+s ) ++end;
+          FC_ASSERT( end < line.data+s );
           h.val = fc::string(skey,end);
           rep.headers.push_back(h);
           if( boost::iequals(h.key, "Content-Length") ) {
