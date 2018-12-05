@@ -423,11 +423,9 @@ void chain_plugin::plugin_startup()
 
    chain_id_type chain_id = my->genesis.compute_chain_id();
 
-   if(my->shared_memory_dir.generic_string() == "") {
-      my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
-   }
+   my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
 
-   //correct directories
+   // correct directories, TODO can be removed after next HF2
    if( ! my->genesis.is_private_net && bfs::exists( app().data_dir() / "blockchain" ) ){
       bfs::create_directories ( my->shared_memory_dir );
       bfs::rename( app().data_dir() / "blockchain", my->shared_memory_dir );
