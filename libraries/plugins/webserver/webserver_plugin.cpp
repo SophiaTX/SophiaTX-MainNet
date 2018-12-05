@@ -395,7 +395,7 @@ void webserver_plugin_impl::handle_http_message(typename T::connection_ptr con) 
 void webserver_plugin_impl::send_ws_notice( websocket_server_type::connection_ptr con, const string& message )
 {
    try{
-      thread_pool_ios.post( [con, message, this]() {
+      thread_pool_ios.post( [con, message]() {
          try{
             con->send(message);
          }catch( ... )
@@ -418,7 +418,7 @@ void webserver_plugin_impl::handle_ws_message( websocket_server_type::connection
       try
       {
          if( msg->get_opcode() == websocketpp::frame::opcode::text )
-            con->send( api->call( msg->get_payload(), [&](const string& message) { send_ws_notice(con, message); } ));
+            con->send( api->call( msg->get_payload(), [this, con](const string& message) { send_ws_notice(con, message); } ));
          else
             con->send( "error: string payload expected" );
       }

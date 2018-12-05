@@ -74,7 +74,6 @@ class chain_plugin_impl
       bfs::path                        shared_memory_dir;
       bool                             replay = false;
       bool                             resync   = false;
-      bool                             readonly = false;
       bool                             check_locks = false;
       bool                             validate_invariants = false;
       bool                             dump_memory_details = false;
@@ -288,8 +287,6 @@ const sophiatx::chain::database& chain_plugin::db() const { return my->db; }
 void chain_plugin::set_program_options(options_description& cli, options_description& cfg)
 {
    cfg.add_options()
-         ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"),
-            "the location of the chain shared memory files (absolute path or relative to application data dir)")
          ("genesis-json", bpo::value<string>(), "genesis file in JSON format")
          ("shared-file-size", bpo::value<string>()->default_value("24G"), "Size of the shared memory file. Default: 24G. If running a full node, increase this value to 200G.")
          ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(0),
@@ -314,15 +311,6 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
 }
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
-
-   if( options.count("shared-file-dir") )
-   {
-      auto sfd = options.at("shared-file-dir").as<bfs::path>();
-      if(sfd.is_relative())
-         my->shared_memory_dir = app().data_dir() / sfd;
-      else
-         my->shared_memory_dir = sfd;
-   }
 
    my->shared_memory_size = fc::parse_size( options.at( "shared-file-size" ).as< string >() );
 
@@ -399,7 +387,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
         }
    };
 
-
+   my->genesis             = initial_state();
    my->replay              = options.at( "replay-blockchain").as<bool>();
    my->resync              = options.at( "resync-blockchain").as<bool>();
    my->stop_replay_at      =
@@ -409,7 +397,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    my->check_locks         = options.at( "check-locks" ).as< bool >();
    my->validate_invariants = options.at( "validate-database-invariants" ).as<bool>();
    my->dump_memory_details = options.at( "dump-memory-details" ).as<bool>();
-   my->genesis             = initial_state();
+
    if( options.count( "flush-state-interval" ) )
       my->flush_interval = options.at( "flush-state-interval" ).as<uint32_t>();
    else
@@ -432,16 +420,25 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 void chain_plugin::plugin_startup()
 {
    ilog( "Starting chain with shared_file_size: ${n} bytes", ("n", my->shared_memory_size) );
+
    chain_id_type chain_id = my->genesis.compute_chain_id();
 
+   my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
+
+   // correct directories, TODO can be removed after next HF2
+   if( ! my->genesis.is_private_net && bfs::exists( app().data_dir() / "blockchain" ) ){
+      bfs::create_directories ( my->shared_memory_dir );
+      bfs::rename( app().data_dir() / "blockchain", my->shared_memory_dir );
+   }
+
+   elog("Starting node with chain id ${i}", ("i", chain_id));
+
    my->start_write_processing();
-   if(my->shared_memory_dir.generic_string() == "")
-      my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
 
    if(my->resync)
    {
       wlog("resync requested: deleting block log and shared memory");
-      my->db.wipe( app().data_dir() / chain_id.str() / "blockchain", my->shared_memory_dir, true );
+      my->db.wipe( my->shared_memory_dir, true );
    }
 
    my->db.set_flush_interval( my->flush_interval );
@@ -469,7 +466,6 @@ void chain_plugin::plugin_startup()
    };
 
    database::open_args db_open_args;
-   db_open_args.data_dir = app().data_dir() / chain_id.str() / "blockchain";
    db_open_args.shared_mem_dir = my->shared_memory_dir;
    db_open_args.shared_file_size = my->shared_memory_size;
    db_open_args.shared_file_full_threshold = my->shared_file_full_threshold;
@@ -509,8 +505,6 @@ void chain_plugin::plugin_startup()
          ("cm", measure.current_mem)
          ("pm", measure.peak_mem) );
    };
-
-   elog("Starting node with chain id ${i}", ("i", chain_id));
 
    if(my->replay)
    {

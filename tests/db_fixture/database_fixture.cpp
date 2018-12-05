@@ -117,7 +117,7 @@ clean_database_fixture::~clean_database_fixture()
    }
 
    if( data_dir )
-      db->wipe( data_dir->path(), data_dir->path(), true );
+      db->wipe( data_dir->path(), true );
    return;
 } FC_CAPTURE_AND_LOG( (data_dir->path()) )
    exit(1);
@@ -125,7 +125,7 @@ clean_database_fixture::~clean_database_fixture()
 
 void clean_database_fixture::resize_shared_mem( uint64_t size )
 {
-   db->wipe( data_dir->path(), data_dir->path(), true );
+   db->wipe( data_dir->path(), true );
    int argc = boost::unit_test::framework::master_test_suite().argc;
    char** argv = boost::unit_test::framework::master_test_suite().argv;
    for( int i=1; i<argc; i++ )
@@ -142,8 +142,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
       database::open_args args;
-      args.data_dir = data_dir->path();
-      args.shared_mem_dir = args.data_dir;
+      args.shared_mem_dir = data_dir->path();
       args.shared_file_size = size;
       db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
    }
@@ -261,7 +260,7 @@ private_database_fixture::~private_database_fixture()
       }
 
       if( data_dir )
-         db->wipe( data_dir->path(), data_dir->path(), true );
+         db->wipe( data_dir->path(), true );
       return;
    } FC_CAPTURE_AND_LOG( (data_dir->path()) )
    exit(1);
@@ -292,8 +291,7 @@ live_database_fixture::live_database_fixture()
          genesis_state_type gen;
          gen.genesis_time = fc::time_point::now();
          database::open_args args;
-         args.data_dir = _chain_dir;
-         args.shared_mem_dir = args.data_dir;
+         args.shared_mem_dir = _chain_dir;
          db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
       }
 
@@ -372,8 +370,7 @@ void database_fixture::open_database()
       gen.genesis_time = fc::time_point::now();
 
       database::open_args args;
-      args.data_dir = data_dir->path();
-      args.shared_mem_dir = args.data_dir;
+      args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
       db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
    }
@@ -393,8 +390,7 @@ void database_fixture::open_database_private()
       gen.is_private_net = true;
 
       database::open_args args;
-      args.data_dir = data_dir->path();
-      args.shared_mem_dir = args.data_dir;
+      args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
       db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
    }
@@ -920,7 +916,7 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
    }
 
    if( data_dir )
-      db->wipe( data_dir->path(), data_dir->path(), true );
+      db->wipe( data_dir->path(), true );
    return;
 } FC_CAPTURE_AND_RETHROW() }
 

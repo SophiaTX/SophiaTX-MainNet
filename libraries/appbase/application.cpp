@@ -174,7 +174,7 @@ void application::load_external_plugin_config(const std::shared_ptr<abstract_plu
                                               plugin_options.get_cfg_options(), true ), my->_args );
 }
 
-// TODO: delete on 1.1.2020
+// TODO: delete after HF2
 /**
  * @brief Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
  *        Applies fixes only when users did not specify some custom paths to data-dir and config file
@@ -243,7 +243,7 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
       assert(my->_args.count( "config" ));
 
 
-      // TODO: delete on 1.1.2020
+      // TODO: delete after HF2
       // Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
       fix_deprecated_data_folder_structure(my->_data_dir, my->_args["data-dir"], my->_args["config"]);
 
