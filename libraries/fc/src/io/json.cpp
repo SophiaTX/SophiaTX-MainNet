@@ -757,8 +757,13 @@ namespace fc
                 ss<<',';
               }
               break;
+               //If we're in quotes and see a \n, \b, \f, \r, \t, or \u, just print it literally but unset the escape flag.
             case 'n':
-              //If we're in quotes and see a \n, just print it literally but unset the escape flag.
+            case 'b':
+            case 'f':
+            case 'r':
+            case 't':
+            case 'u':
               if( quote && escape )
                 escape = false;
               //No break; fall through to default case
