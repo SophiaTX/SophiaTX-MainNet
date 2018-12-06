@@ -1,4 +1,4 @@
-#include <fc/network/http/connection.hpp>
+#sinclude <fc/network/http/connection.hpp>
 #include <fc/network/tcp_socket.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/io/iostream.hpp>
@@ -48,14 +48,14 @@ class fc::http::connection::impl
         while( (s = read_until( line.data(), line.data()+line.size(), '\n' )) > 1 ) {
           fc::http::header h;
           char* end = line.data();
-          while( *end != ':' && end < line.data+s )++end;
-          FC_ASSERT( end < line.data+s );
+          while( *end != ':' && end < line.data() +s )++end;
+          FC_ASSERT( end < line.data() +s );
           h.key = fc::string(line.data(),end);
           ++end; // skip ':'
           ++end; // skip space
           char* skey = end;
-          while( *end != '\r' && end < line.data+s ) ++end;
-          FC_ASSERT( end < line.data+s );
+          while( *end != '\r' && end < line.data()+s ) ++end;
+          FC_ASSERT( end < line.data()+s );
           h.val = fc::string(skey,end);
           rep.headers.push_back(h);
           if( boost::iequals(h.key, "Content-Length") ) {
@@ -147,14 +147,14 @@ http::request    connection::read_request()const {
   while( (s = my->read_until( line.data(), line.data()+line.size(), '\n' )) > 1 ) {
     fc::http::header h;
     char* end = line.data();
-    while( *end != ':' && end < line.data+s )++end;
-    FC_ASSERT( end < line.data+s );
+    while( *end != ':' && end < line.data()+s )++end;
+    FC_ASSERT( end < line.data()+s );
     h.key = fc::string(line.data(),end);
     ++end; // skip ':'
     ++end; // skip space
     char* skey = end;
-    while( *end != '\r' && end < line.data+s ) ++end;
-    FC_ASSERT( end < line.data+s );
+    while( *end != '\r' && end < line.data()+s ) ++end;
+    FC_ASSERT( end < line.data()+s );
     h.val = fc::string(skey,end);
     req.headers.push_back(h);
     if( boost::iequals(h.key, "Content-Length")) {
