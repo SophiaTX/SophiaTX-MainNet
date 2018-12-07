@@ -123,7 +123,8 @@ namespace fc { namespace http {
         {
            wlog( "unable to read request ${1}", ("1", e.to_detail_string() ) );//fc::except_str().c_str());
         }
-
+        // If connection was not closed in try statement, there an exception happened, so we need to send
+        // appropriate HTTP status back and try to close it again
          try
          {
             if(c->get_socket().is_open()) {
