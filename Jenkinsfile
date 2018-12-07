@@ -9,7 +9,7 @@ properties([parameters([booleanParam(defaultValue: false, description: '', name:
 
 pipeline {
   options {
-    buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
+    buildDiscarder(logRotator(artifactNumToKeepStr: '5'))
   }
   environment {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
@@ -20,6 +20,11 @@ pipeline {
     label get_label_name()
   }
   stages {
+    stage('Prepare WS') {
+      steps {
+         cleanWs()
+      }
+    }
     stage('Build') {
       steps {
         script {
