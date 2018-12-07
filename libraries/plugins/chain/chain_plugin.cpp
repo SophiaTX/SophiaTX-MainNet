@@ -286,8 +286,8 @@ const sophiatx::chain::database& chain_plugin::db() const { return my->db; }
 
 void chain_plugin::set_program_options(options_description& cli, options_description& cfg)
 {
-   cfg.add_options()
-         ("genesis-json", bpo::value<string>(), "genesis file in JSON format")
+   cfg.add_options()      
+         ("genesis-json", bpo::value<bfs::path>(), "the location of the genesis file in JSON format")
          ("shared-file-size", bpo::value<string>()->default_value("24G"), "Size of the shared memory file. Default: 24G. If running a full node, increase this value to 200G.")
          ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(0),
             "A 2 precision percentage (0-10000) that defines the threshold for when to autoscale the shared memory file. Setting this to 0 disables autoscaling. Recommended value for consensus node is 9500 (95%). Full node is 9900 (99%)" )
