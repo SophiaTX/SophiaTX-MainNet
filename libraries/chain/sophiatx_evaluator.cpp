@@ -64,6 +64,22 @@ void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
 
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
+   if( _db.is_private_net() ){
+      const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+      auto wit_itr = by_witness_name_idx.find( o.owner );
+      FC_ASSERT( wit_itr != by_witness_name_idx.end(), "only initminer can select witnesses" );
+      _db.modify( *wit_itr, [&]( witness_object& w ) {
+            from_string( w.url, o.url );
+            w.signing_key        = o.block_signing_key;
+            if(o.block_signing_key == public_key_type())
+               w.stopped = true;
+            w.props = o.props;
+            w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+            w.props.price_feeds.clear();
+      });
+      return;
+   }
+
    const account_object& acn = _db.get_account( o.owner ); // verify owner exists
    const auto& gpo = _db.get_dynamic_global_properties();
    FC_ASSERT( acn.vesting_shares >= gpo.witness_required_vesting , "witness requires at least ${a} of vested balance", ("a", gpo.witness_required_vesting) );
@@ -115,6 +131,35 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
    }
 }
 
+void admin_witness_update_evaluator::do_apply( const admin_witness_update_operation& o )
+{
+   FC_ASSERT( _db.is_private_net(), "this operation can be used only in private nets");
+   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   auto wit_itr = by_witness_name_idx.find( o.owner );
+   if(wit_itr == by_witness_name_idx.end()){
+      _db.create< witness_object >( [&]( witness_object& w ) {
+           w.owner              = o.owner;
+           from_string( w.url, o.url );
+           w.signing_key        = o.block_signing_key;
+           w.created            = _db.head_block_time();
+           w.props = o.props;
+           w.props.price_feeds.clear();
+      });
+   }else{
+      _db.modify( *wit_itr, [&]( witness_object& w ) {
+           from_string( w.url, o.url );
+           w.signing_key        = o.block_signing_key;
+           if(o.block_signing_key == public_key_type())
+              w.stopped = true;
+           w.props = o.props;
+           w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+           w.props.price_feeds.clear();
+      });
+   }
+   return;
+
+}
+
 void witness_set_properties_evaluator::do_apply( const witness_set_properties_operation& o )
 {
    const auto& witness = _db.get< witness_object, by_name >( o.owner ); // verifies witness exists;
@@ -139,8 +184,8 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    FC_ASSERT( signing_key == witness.signing_key, "'key' does not match witness signing key.",
       ("key", signing_key)("signing_key", witness.signing_key) );
 
-   itr = o.props.find( "account_creation_fee" );
-   if( itr != o.props.end() )
+   itr = o.props.find( "account_creation_fee"  );
+   if( itr != o.props.end() && !_db.is_private_net() )
    {
       fc::raw::unpack_from_vector( itr->second, props.account_creation_fee );
       account_creation_changed = true;
@@ -162,7 +207,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    }
 
    itr = o.props.find( "exchange_rates" );
-   if( itr != o.props.end() )
+   if( itr != o.props.end() && !_db.is_private_net())
    {
       std::vector<price> exchange_rates;
       fc::raw::unpack_from_vector( itr->second, exchange_rates );
@@ -243,10 +288,13 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
       to_pay = _db.to_sophiatx(o.fee);
    }
 
+   if(_db.has_hardfork(SOPHIATX_HARDFORK_1_1))
+      FC_ASSERT( o.name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
+
    FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db.get_witness_schedule_object();
-   asset required_fee = asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
+   asset required_fee = _db.is_private_net() ? asset(0, SOPHIATX_SYMBOL) : asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
    FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
               ("f", required_fee ) ("p", to_pay) );
 
@@ -370,6 +418,7 @@ void account_delete_evaluator::do_apply(const account_delete_operation& o)
 
 void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    try
    {
       const auto& from_account = _db.get_account(o.from);
@@ -405,9 +454,9 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
 
 void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    try
    {
-
       const auto& escrow = _db.get_escrow( o.from, o.escrow_id );
 
       FC_ASSERT( escrow.to == o.to, "Operation 'to' (${o}) does not match escrow 'to' (${e}).", ("o", o.to)("e", escrow.to) );
@@ -463,6 +512,7 @@ void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 
 void escrow_dispute_evaluator::do_apply( const escrow_dispute_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    try
    {
       _db.get_account( o.from ); // Verify from account exists
@@ -484,6 +534,7 @@ void escrow_dispute_evaluator::do_apply( const escrow_dispute_operation& o )
 
 void escrow_release_evaluator::do_apply( const escrow_release_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    try
    {
       _db.get_account(o.from); // Verify from account exists
@@ -536,6 +587,7 @@ void escrow_release_evaluator::do_apply( const escrow_release_operation& o )
 
 void transfer_evaluator::do_apply( const transfer_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    FC_ASSERT( _db.get_balance( o.from, o.amount.symbol ) >= o.amount, "Account does not have sufficient funds for transfer." );
    _db.adjust_balance( o.from, -o.amount );
    _db.adjust_balance( o.to, o.amount );
@@ -543,6 +595,7 @@ void transfer_evaluator::do_apply( const transfer_operation& o )
 
 void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    const auto& from_account = _db.get_account(o.from);
    const auto& to_account = o.to.size() ? _db.get_account(o.to) : from_account;
 
@@ -560,6 +613,7 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
 
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    const auto& account = _db.get_account( o.account );
    const auto& gpo = _db.get_dynamic_global_properties();
 
@@ -592,7 +646,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
       auto wit = _db.find_witness( o. account );
       FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - o.vesting_shares.amount >= gpo.witness_required_vesting.amount );
 
-     _db.modify( account, [&]( account_object& a )
+      _db.modify( account, [&]( account_object& a )
       {
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
          a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
@@ -605,6 +659,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 
 void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    const auto& account = _db.get_account( o.account );
    FC_ASSERT( account.proxy != o.proxy, "Proxy must change." );
 
@@ -650,6 +705,7 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
 
 void account_witness_vote_evaluator::do_apply( const account_witness_vote_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    const auto& voter = _db.get_account( o.account );
    FC_ASSERT( voter.proxy.size() == 0, "A proxy is currently set, please clear the proxy before voting for a witness." );
 
@@ -808,6 +864,7 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
 void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    price new_rate;
    //ensure that base is always in SPHTX
    if(o.exchange_rate.base.symbol == SOPHIATX_SYMBOL)
@@ -1036,6 +1093,7 @@ void application_delete_evaluator::do_apply( const application_delete_operation&
 
 void buy_application_evaluator::do_apply( const buy_application_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    _db.get_application_by_id( o.app_id );
 
    const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_buyer_app >();
@@ -1052,6 +1110,7 @@ void buy_application_evaluator::do_apply( const buy_application_operation& o )
 
 void cancel_application_buying_evaluator::do_apply( const cancel_application_buying_operation& o )
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    const auto& application = _db.get_application_by_id( o.app_id );
    const auto& app_buying = _db.get_application_buying( o.buyer, o.app_id );
 
@@ -1061,6 +1120,7 @@ void cancel_application_buying_evaluator::do_apply( const cancel_application_buy
 }
 
 void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promotion_pool_operation& op){
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    const auto& econ = _db.get_economic_model();
    const auto& acnt = _db.get_account( op.transfer_to );
    share_type withdrawn;
@@ -1080,6 +1140,7 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
 
 void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
 {
+   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
    if( op.sponsor == account_name_type("") ){
       _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
       return;

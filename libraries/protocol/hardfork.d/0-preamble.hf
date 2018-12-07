@@ -13,7 +13,7 @@
 #include <set>
 
 #ifdef IS_TEST_NET
-#define SOPHIATX_NUM_HARDFORKS 0
+#define SOPHIATX_NUM_HARDFORKS 1
 #else
-#define SOPHIATX_NUM_HARDFORKS 0
+#define SOPHIATX_NUM_HARDFORKS 1
 #endif

@@ -43,7 +43,7 @@ string& version_string()
 
 void info()
 {
-#ifdef IS_TEST_NET
+#if IS_TEST_NET
       std::cerr << "------------------------------------------------------\n\n";
       std::cerr << "            STARTING TEST NETWORK\n\n";
       std::cerr << "------------------------------------------------------\n";

@@ -71,10 +71,8 @@ namespace sophiatx { namespace chain {
 
          chain_id_type chain_id;
          time_point_sec genesis_time;
+         bool private_net = false;
 
-#ifdef SOPHIATX_ENABLE_SMT
-         asset smt_creation_fee = asset( 1000000, SBD_SYMBOL );
-#endif
    };
 
    typedef multi_index_container<
@@ -103,6 +101,7 @@ FC_REFLECT( sophiatx::chain::dynamic_global_property_object,
              (recent_slots_filled)
              (participation_count)
              (last_irreversible_block_num)
+             (private_net)
 )
 
 CHAINBASE_SET_INDEX_TYPE( sophiatx::chain::dynamic_global_property_object, sophiatx::chain::dynamic_global_property_index )

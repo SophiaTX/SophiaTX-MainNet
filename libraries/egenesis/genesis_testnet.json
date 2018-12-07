@@ -1,6 +1,6 @@
 {
    "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
-   "initial_balace" : 346000000000000,
+   "initial_balace" : 345000000000000,
    "initial_accounts" : [
       {
          "name":"ejossev",
@@ -130,6 +130,56 @@
       {
          "name":"usercreator",
          "key": "SPH55k6JhyZ7pBKWsHKv4J7CkE3eNHnLJFauJjzr8uusUSARZRyUj",
+         "balance": 100000000000
+      },
+      {
+         "name":"company0",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company1",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company2",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company3",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company4",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company5",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company6",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company7",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company8",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
+         "balance": 100000000000
+      },
+      {
+         "name":"company9",
+         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
          "balance": 100000000000
       },
       {

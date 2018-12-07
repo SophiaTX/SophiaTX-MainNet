@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_TEST_MESSAGE( "--- Test normal account creation" );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( init_account_priv_key, db->get_chain_id() );
+      sign(tx, init_account_priv_key );
       tx.validate();
       db->push_transaction( tx, 0 );
 
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       op.fee = asset( db->get_account( SOPHIATX_INIT_MINER_NAME ).balance.amount + 1, SOPHIATX_SYMBOL );
       op.name_seed = "bob";
       tx.operations.push_back( op );
-      tx.sign( init_account_priv_key, db->get_chain_id() );
+      sign(tx, init_account_priv_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       tx.clear();
       op.fee = ASSET( "1.000000 SPHTX" );
       tx.operations.push_back( op );
-      tx.sign( init_account_priv_key, db->get_chain_id() );
+      sign(tx, init_account_priv_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE( account_update_validate )
          signed_transaction tx;
          tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
          tx.operations.push_back( op );
-         tx.sign( alice_private_key, db->get_chain_id() );
+         sign(tx, alice_private_key );
          db->push_transaction( tx, 0 );
 
          BOOST_FAIL( "An exception was not thrown for an invalid account name" );
@@ -221,27 +221,27 @@ BOOST_AUTO_TEST_CASE( account_update_authorities )
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when wrong signature" );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when containing additional incorrect signature" );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when containing duplicate signatures" );
       tx.signatures.clear();
-      tx.sign( active_key, db->get_chain_id() );
-      tx.sign( active_key, db->get_chain_id() );
+      sign(tx, active_key );
+      sign(tx, active_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success on active key" );
       tx.signatures.clear();
-      tx.sign( active_key, db->get_chain_id() );
+      sign(tx, active_key );
       db->push_transaction( tx, 0 );
 
       BOOST_TEST_MESSAGE( "--- Test success on owner key alone" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, database::skip_transaction_dupe_check );
 
       BOOST_TEST_MESSAGE( "  Tests when owner authority is updated ---" );
@@ -250,11 +250,11 @@ BOOST_AUTO_TEST_CASE( account_update_authorities )
       tx.operations.clear();
       op.owner = authority( 1, active_key.get_public_key(), 1 );
       tx.operations.push_back( op );
-      tx.sign( active_key, db->get_chain_id() );
+      sign(tx, active_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_owner_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure when owner key and active key are present" );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when incorrect signature" );
@@ -263,13 +263,13 @@ BOOST_AUTO_TEST_CASE( account_update_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate owner keys are present" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success when updating the owner authority with an owner key" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       validate_database();
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       signed_transaction tx;
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       const account_object& acct = db->get_account( AN("alice") );
@@ -324,7 +324,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       tx.signatures.clear();
       op.account = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( new_private_key, db->get_chain_id() );
+      sign(tx, new_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception )
       validate_database();
 
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE( account_update_apply )
       op.active->weight_threshold = 1;
       op.active->add_authorities( "dave", 1 );
       tx.operations.push_back( op );
-      tx.sign( new_private_key, db->get_chain_id() );
+      sign(tx, new_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
@@ -361,7 +361,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       signed_transaction tx;
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       validate_database();
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       tx.signatures.clear();
       op.account = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
 
@@ -388,7 +388,7 @@ BOOST_AUTO_TEST_CASE( account_delete_apply )
       op = account_delete_operation();
       op.account = AN("alice2");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       BOOST_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
    }
@@ -431,19 +431,19 @@ BOOST_AUTO_TEST_CASE( transfer_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       validate_database();
@@ -470,7 +470,7 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( update_op );
 
-      tx.sign( corp_private_key, db->get_chain_id() );
+      sign(tx, corp_private_key );
       db->push_transaction( tx, 0 );
 
       tx.operations.clear();
@@ -484,12 +484,12 @@ BOOST_AUTO_TEST_CASE( signature_stripping )
 
       tx.operations.push_back( transfer_op );
 
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       signature_type alice_sig = tx.signatures.back();
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       signature_type bob_sig = tx.signatures.back();
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       signature_type sam_sig = tx.signatures.back();
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
@@ -529,7 +529,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       BOOST_TEST_MESSAGE( "--- Test normal transaction" );
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.balance.amount.value >= ASSET( "5.100000 SPHTX" ).amount.value && alice.balance.amount.value < ASSET( "5.110000 SPHTX" ).amount.value);
@@ -551,7 +551,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.operations.clear();
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, database::skip_transaction_dupe_check );
 
       BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "0.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "0.010000 SPHTX" ).amount.value);
@@ -563,7 +563,7 @@ BOOST_AUTO_TEST_CASE( transfer_apply )
       tx.operations.clear();
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_REQUIRE( new_alice.balance.amount.value >= ASSET( "0.000000 SPHTX" ).amount.value && new_alice.balance.amount.value < ASSET( "0.010000 SPHTX" ).amount.value);
@@ -608,19 +608,19 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with from signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       validate_database();
@@ -647,7 +647,7 @@ BOOST_AUTO_TEST_CASE( transfer_to_vesting_apply )
       signed_transaction tx;
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.balance.amount.value == ASSET( "2.500000 SPHTX" ).amount.value );
@@ -691,17 +691,17 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_authorities )
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test success with account signature" );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, database::skip_transaction_dupe_check );
 
       BOOST_TEST_MESSAGE( "--- Test failure with duplicate signature" );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure with additional incorrect signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_irrelevant_sig );
 
       validate_database();
@@ -736,7 +736,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       signed_transaction tx;
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
@@ -752,7 +752,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       op.vesting_shares = asset( alice.vesting_shares.amount / 3, VESTS_SYMBOL );
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
@@ -769,7 +769,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       op.vesting_shares = asset( alice.vesting_shares.amount * 2, VESTS_SYMBOL );
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
@@ -784,7 +784,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       op.vesting_shares = asset( 0, VESTS_SYMBOL );
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( alice.vesting_shares.amount.value == old_vesting_shares.amount.value );
@@ -797,7 +797,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       op.vesting_shares = alice.vesting_shares;
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
       generate_block();
       }
@@ -819,7 +819,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       op.vesting_shares = ASSET( "0.000000 VESTS" );
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).vesting_withdraw_rate == ASSET( "0.000000 VESTS" ) );
@@ -866,23 +866,23 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       tx.signatures.clear();
-      tx.sign( signing_key, db->get_chain_id() );
+      sign(tx, signing_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
       validate_database();
    }
@@ -913,7 +913,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -941,7 +941,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       tx.operations.clear();
       op.url = "bar.foo";
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -967,9 +967,37 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       tx.operations.clear();
       op.owner = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
+   }
+   FC_LOG_AND_RETHROW()
+}
+
+BOOST_AUTO_TEST_CASE( admin_witness_update )
+{
+   try{
+      BOOST_TEST_MESSAGE( "Testing: admin_witness_update" );
+      ACTORS( (alice)(bob) )
+      admin_witness_update_operation op;
+      op.owner = AN("alice");
+      op.url = "http://";
+      op.block_signing_key = public_key_type();
+      signed_transaction tx;
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      tx.signatures.clear();
+      sign(tx, alice_private_key );
+      BOOST_TEST_MESSAGE( "--- Test failure due to wrong signature" );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_missing_active_auth );
+      validate_database();
+
+      tx.signatures.clear();
+      sign(tx, init_account_priv_key );
+      BOOST_TEST_MESSAGE( "--- Test failure on mainnet" );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::assert_exception );
+      validate_database();
+
    }
    FC_LOG_AND_RETHROW()
 }
@@ -979,8 +1007,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_validate )
    try
    {
       BOOST_TEST_MESSAGE( "Testing: account_witness_vote_validate" );
-
       validate_database();
+
    }
    FC_LOG_AND_RETHROW()
 }
@@ -1011,25 +1039,25 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_TEST_MESSAGE( "--- Test failure with proxy signature" );
       proxy( AN("bob"), AN("sam") );
       tx.signatures.clear();
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       validate_database();
@@ -1064,7 +1092,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1077,7 +1105,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
       BOOST_REQUIRE( sam_witness.votes.value == 0 );
@@ -1096,7 +1124,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       op.approve = true;
       op.account = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1109,7 +1137,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       tx.signatures.clear();
       op.account = AN("alice");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_REQUIRE( sam_witness.votes == ( bob.proxied_vsf_votes_total() + bob.vesting_shares.amount ) );
@@ -1122,7 +1150,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       op.account = AN("bob");
       op.approve = false;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1136,7 +1164,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       op.witness = AN("dave");
       op.approve = true;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
@@ -1146,7 +1174,7 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       tx.signatures.clear();
       op.witness = AN("alice");
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
@@ -1186,24 +1214,24 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_authorities )
 
       BOOST_TEST_MESSAGE( "--- Test failure when duplicate signatures" );
       tx.signatures.clear();
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure when signed by an additional signature not in the creator's authority" );
       tx.signatures.clear();
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness signature" );
       tx.signatures.clear();
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_TEST_MESSAGE( "--- Test failure with proxy signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       validate_database();
@@ -1237,7 +1265,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       signed_transaction tx;
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1256,7 +1284,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.signatures.clear();
       op.proxy = AN("sam");
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
       const auto& new_sam = db->get_account(AN("sam"));
@@ -1286,7 +1314,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       op.proxy = AN("dave");
       op.account = AN("sam");
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
 
       db->push_transaction( tx, 0 );
       const auto& new_dave = db->get_account(AN("dave"));
@@ -1310,7 +1338,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       op.proxy = AN("sam");
       op.account = AN("alice");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1332,7 +1360,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       op.proxy = SOPHIATX_PROXY_TO_SELF_ACCOUNT;
       op.account = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1353,7 +1381,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( vote );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1362,7 +1390,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       op.account = AN("alice");
       op.proxy = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
       BOOST_REQUIRE( db->get_witness( SOPHIATX_INIT_MINER_NAME ).votes == ( new_alice.total_balance() + new_bob.total_balance() ) );
@@ -1373,7 +1401,7 @@ BOOST_AUTO_TEST_CASE( account_witness_proxy_apply )
       tx.signatures.clear();
       tx.operations.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1494,19 +1522,19 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_missing_active_auth );
 
       BOOST_TEST_MESSAGE( "--- Test failure with duplicate signature" );
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_duplicate_sig );
 
       BOOST_TEST_MESSAGE( "--- Test failure with additional incorrect signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), tx_irrelevant_sig );
 
       BOOST_TEST_MESSAGE( "--- Test success with witness account signature" );
       tx.signatures.clear();
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, database::skip_transaction_dupe_check );
 
       validate_database();
@@ -1533,7 +1561,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1548,7 +1576,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       tx.operations.clear();
       tx.signatures.clear();
       op.publisher = AN("bob");
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       validate_database();
@@ -1562,7 +1590,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, SOPHIATX_SYMBOL ));
       op.publisher = AN("alice");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       db->push_transaction( tx, 0 );
 
@@ -1599,7 +1627,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       signed_transaction tx;
       tx.operations.push_back( acc_create );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       const auto& bob_auth = db->get< account_authority_object, by_account >( AN("bob") );
@@ -1618,7 +1646,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( acc_update );
-      tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "bob_owner" ) );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( bob_auth.owner == *acc_update.owner );
@@ -1636,7 +1664,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( request );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( bob_auth.owner == *acc_update.owner );
@@ -1657,8 +1685,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.operations.push_back( recover );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
-      tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "new_key" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "bob_owner" ) );
+      sign(tx, generate_private_key( "new_key" ) );
       db->push_transaction( tx, 0 );
       const auto& owner1 = db->get< account_authority_object, by_account >(AN("bob")).owner;
 
@@ -1673,7 +1701,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( request );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
 
@@ -1687,8 +1715,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( recover );
-      tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "idontknow" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "bob_owner" ) );
+      sign(tx, generate_private_key( "idontknow" ) );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner2 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner2 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
@@ -1704,8 +1732,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
 
       tx.operations.push_back( recover );
-      tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "idontknow" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "foo bar" ) );
+      sign(tx, generate_private_key( "idontknow" ) );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner3 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner3 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
@@ -1720,8 +1748,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( recover );
-      tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "bob_owner" ) );
+      sign(tx, generate_private_key( "foo bar" ) );
       db->push_transaction( tx, 0 );
 
       const auto& owner4 = db->get< account_authority_object, by_account >(AN("bob")).owner;
@@ -1735,7 +1763,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       tx.signatures.clear();
 
       tx.operations.push_back( request );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       const auto& request_idx = db->get_index< account_recovery_request_index >().indices();
@@ -1765,8 +1793,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.push_back( recover );
       tx.set_expiration( db->head_block_time() );
-      tx.sign( generate_private_key( "expire" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "expire" ) );
+      sign(tx, generate_private_key( "bob_owner" ) );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner5 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner5 == authority( 1, generate_private_key( "foo bar" ).get_public_key(), 1 ) );
@@ -1780,7 +1808,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.push_back( acc_update );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "foo bar" ) );
       db->push_transaction( tx, 0 );
 
       generate_blocks( db->head_block_time() + ( SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD - SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD ) );
@@ -1793,7 +1821,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.push_back( request );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       recover.new_owner_authority = request.new_owner_authority;
@@ -1804,8 +1832,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.push_back( recover );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( generate_private_key( "bob_owner" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "last key" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "bob_owner" ) );
+      sign(tx, generate_private_key( "last key" ) );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
       const auto& owner6 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner6 == authority( 1, generate_private_key( "new_key" ).get_public_key(), 1 ) );
@@ -1817,8 +1845,8 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       tx.operations.push_back( recover );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( generate_private_key( "foo bar" ), db->get_chain_id() );
-      tx.sign( generate_private_key( "last key" ), db->get_chain_id() );
+      sign(tx, generate_private_key( "foo bar" ) );
+      sign(tx, generate_private_key( "last key" ) );
       db->push_transaction( tx, 0 );
       const auto& owner7 = db->get< account_authority_object, by_account >(AN("bob")).owner;
       BOOST_REQUIRE( owner7 == authority( 1, generate_private_key( "last key" ).get_public_key(), 1 ) );
@@ -1843,7 +1871,7 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
          signed_transaction tx;
          tx.operations.push_back( op );
          tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-         tx.sign( alice_private_key, db->get_chain_id() );
+         sign(tx, alice_private_key );
          db->push_transaction( tx, 0 );
       };
 
@@ -1857,14 +1885,14 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
          signed_transaction tx;
          tx.operations.push_back( op );
          tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-         tx.sign( recent_owner_key, db->get_chain_id() );
+         sign(tx, recent_owner_key );
          // only Alice -> throw
          SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
          tx.signatures.clear();
-         tx.sign( new_owner_key, db->get_chain_id() );
+         sign(tx, new_owner_key );
          // only Sam -> throw
          SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
-         tx.sign( recent_owner_key, db->get_chain_id() );
+         sign(tx, recent_owner_key );
          // Alice+Sam -> OK
          db->push_transaction( tx, 0 );
       };
@@ -1879,7 +1907,7 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
          signed_transaction tx;
          tx.operations.push_back( op );
          tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-         tx.sign( recovery_account_key, db->get_chain_id() );
+         sign(tx, recovery_account_key );
          db->push_transaction( tx, 0 );
       };
 
@@ -1892,7 +1920,7 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
          signed_transaction tx;
          tx.operations.push_back( op );
          tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-         tx.sign( old_private_key, db->get_chain_id() );
+         sign(tx, old_private_key );
          db->push_transaction( tx, 0 );
       };
 
@@ -2042,7 +2070,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when ratification deadline is in the past" );
@@ -2051,7 +2079,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when expiration is in the past" );
@@ -2059,7 +2087,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- success" );
@@ -2068,7 +2096,7 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
 
       auto alice_sophiatx_balance = alice.balance - op.sophiatx_amount - op.escrow_fee;
       auto bob_sophiatx_balance = bob.balance;
@@ -2189,7 +2217,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       signed_transaction tx;
       tx.operations.push_back( et_op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
       tx.operations.clear();
       tx.signatures.clear();
@@ -2205,7 +2233,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       op.approve = true;
 
       tx.operations.push_back( op );
-      tx.sign( dave_private_key, db->get_chain_id() );
+      sign(tx, dave_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2217,7 +2245,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.signatures.clear();
 
       tx.operations.push_back( op );
-      tx.sign( dave_private_key, db->get_chain_id() );
+      sign(tx, dave_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2229,7 +2257,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.signatures.clear();
 
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       auto& escrow = db->get_escrow( op.from, op.escrow_id );
@@ -2248,7 +2276,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.signatures.clear();
 
       tx.set_expiration( db->head_block_time() + SOPHIATX_BLOCK_INTERVAL );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == AN("bob") );
@@ -2269,7 +2297,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       op.approve = false;
 
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == AN("bob") );
@@ -2290,7 +2318,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       op.who = op.agent;
 
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
@@ -2302,7 +2330,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( et_op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
@@ -2319,7 +2347,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.escrow_expiration = db->head_block_time() + 200;
       tx.operations.push_back( et_op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       tx.operations.clear();
@@ -2327,7 +2355,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       op.who = op.to;
       op.approve = true;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
@@ -2344,14 +2372,14 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.escrow_expiration = db->head_block_time() + 200;
       tx.operations.push_back( et_op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       tx.operations.clear();
       tx.signatures.clear();
       op.who = op.agent;
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
@@ -2368,21 +2396,21 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       et_op.escrow_expiration = db->head_block_time() + 200;
       tx.operations.push_back( et_op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       tx.operations.clear();
       tx.signatures.clear();
       op.who = op.to;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       tx.operations.clear();
       tx.signatures.clear();
       op.who = op.agent;
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       {
@@ -2514,8 +2542,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.operations.push_back( et_op );
       tx.operations.push_back( ea_b_op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
 
@@ -2530,7 +2558,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       const auto& escrow = db->get_escrow( et_op.from, et_op.escrow_id );
@@ -2557,7 +2585,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( ea_s_op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       op.to = AN("dave");
@@ -2565,7 +2593,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == AN("bob") );
@@ -2586,7 +2614,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.operations.clear();
       tx.signatures.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       BOOST_REQUIRE( escrow.to == AN("bob") );
@@ -2608,7 +2636,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       op.agent = AN("sam");
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       {
@@ -2637,16 +2665,16 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.operations.push_back( et_op );
       tx.operations.push_back( ea_b_op );
       tx.operations.push_back( ea_s_op );
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       tx.operations.clear();
       tx.signatures.clear();
       op.escrow_id = et_op.escrow_id;
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       {
@@ -2668,7 +2696,7 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       tx.signatures.clear();
       op.who = AN("bob");
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       {
@@ -2782,7 +2810,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.operations.push_back( et_op );
 
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
 
@@ -2798,7 +2826,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       escrow_approve_operation ea_b_op;
@@ -2818,15 +2846,15 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       tx.operations.push_back( ea_b_op );
       tx.operations.push_back( ea_s_op );
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_TEST_MESSAGE( "--- failure when 'agent' attempts to release non-disputed escrow to 'to'" );
       op.who = et_op.agent;
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2835,7 +2863,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2844,7 +2872,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2854,7 +2882,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( dave_private_key, db->get_chain_id() );
+      sign(tx, dave_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2863,7 +2891,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( dave_private_key, db->get_chain_id() );
+      sign(tx, dave_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2872,7 +2900,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( dave_private_key, db->get_chain_id() );
+      sign(tx, dave_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2882,7 +2910,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2891,7 +2919,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2900,7 +2928,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2909,7 +2937,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).sophiatx_balance == ASSET( "0.900000 SPHTX" ) );
@@ -2921,7 +2949,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2930,7 +2958,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2939,7 +2967,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2948,7 +2976,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_escrow( op.from, op.escrow_id ).sophiatx_balance == ASSET( "0.800000 SPHTX" ) );
@@ -2960,7 +2988,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2969,7 +2997,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -2983,7 +3011,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
       tx.clear();
       tx.operations.push_back( ed_op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       tx.clear();
@@ -2992,7 +3020,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.to;
       op.sophiatx_amount = ASSET( "0.100000 SPHTX" );
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3001,7 +3029,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.to;
       op.who = et_op.from;
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3010,7 +3038,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.agent;
       op.receiver = AN("dave");
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3019,7 +3047,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = AN("dave");
       op.receiver = et_op.from;
       tx.operations.push_back( op );
-      tx.sign( dave_private_key, db->get_chain_id() );
+      sign(tx, dave_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3028,7 +3056,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.to;
       op.who = et_op.agent;
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("bob") ).balance == ASSET( "1.000000 SPHTX" ) );
@@ -3040,7 +3068,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.from;
       op.who = et_op.agent;
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance == ASSET( "8.800000 SPHTX" ) );
@@ -3055,7 +3083,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.to;
       tx.operations.push_back( op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3064,7 +3092,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.to;
       op.who = et_op.from;
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3073,7 +3101,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.receiver = et_op.from;
       op.who = et_op.agent;
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.900000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.910000 SPHTX" ) );
@@ -3083,7 +3111,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.sophiatx_amount = ASSET( "0.500000 SPHTX" );
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.400000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.410000 SPHTX" ) );
@@ -3097,9 +3125,9 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.operations.push_back( ea_b_op );
       tx.operations.push_back( ea_s_op );
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( alice_private_key, db->get_chain_id() );
-      tx.sign( bob_private_key, db->get_chain_id() );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
+      sign(tx, bob_private_key );
+      sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
       generate_blocks( 2 );
 
@@ -3110,7 +3138,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.agent;
       op.sophiatx_amount = ASSET( "0.100000 SPHTX" );
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3118,7 +3146,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = et_op.from;
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3126,7 +3154,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = AN("dave");
       tx.operations.push_back( op );
-      tx.sign( sam_private_key, db->get_chain_id() );
+      sign(tx, sam_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3135,7 +3163,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.to;
       op.receiver = et_op.agent;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3143,7 +3171,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = AN("dave");
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3151,7 +3179,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = et_op.to;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("bob") ).balance >= ASSET( "0.900000 SPHTX" ) && db->get_account( AN("bob") ).balance < ASSET( "0.910000 SPHTX" ));
@@ -3162,7 +3190,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = et_op.from;
       tx.operations.push_back( op );
-      tx.sign( bob_private_key, db->get_chain_id() );
+      sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.300000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.310000 SPHTX" ) );
@@ -3174,7 +3202,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       op.who = et_op.from;
       op.receiver = et_op.agent;
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3182,7 +3210,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = AN("dave");
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
 
@@ -3190,7 +3218,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = et_op.to;
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
 
@@ -3202,7 +3230,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.receiver = et_op.from;
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
 
@@ -3214,7 +3242,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       tx.clear();
       op.sophiatx_amount = ASSET( "0.600000 SPHTX" );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "8.700000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "8.710000 SPHTX" ));
@@ -3246,7 +3274,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
       generate_block();
 
@@ -3351,7 +3379,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       BOOST_TEST_MESSAGE( "--- Test setting runtime parameters" );
@@ -3364,7 +3392,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       prop_op.props[ "account_creation_fee" ] = fc::raw::pack_to_vector( ASSET( "2.000000 SPHTX" ) );
       tx.clear();
       tx.operations.push_back( prop_op );
-      tx.sign( signing_key, db->get_chain_id() );
+      sign(tx, signing_key );
       db->push_transaction( tx, 0 );
       BOOST_REQUIRE( alice_witness.props.account_creation_fee == ASSET( "2.000000 SPHTX" ) );
 
@@ -3373,7 +3401,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 1 );
       tx.clear();
       tx.operations.push_back( prop_op );
-      tx.sign( signing_key, db->get_chain_id() );
+      sign(tx, signing_key );
       db->push_transaction( tx, 0 );
       BOOST_REQUIRE( alice_witness.props.maximum_block_size == SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 1 );
 
@@ -3386,7 +3414,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       prop_op.props[ "exchange_rates" ] = fc::raw::pack_to_vector( myfeeds );
       tx.clear();
       tx.operations.push_back( prop_op );
-      tx.sign( signing_key, db->get_chain_id() );
+      sign(tx, signing_key );
       db->push_transaction( tx, 0 );
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates.at(SBD1_SYMBOL).rate == price( ASSET( "1.000000 USD" ), ASSET( "100.000000 SPHTX" ) ) );
       BOOST_REQUIRE( alice_witness.submitted_exchange_rates.at(SBD1_SYMBOL).last_change == db->head_block_time() );
@@ -3396,7 +3424,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       prop_op.props[ "url" ] = fc::raw::pack_to_vector( "foo.bar" );
       tx.clear();
       tx.operations.push_back( prop_op );
-      tx.sign( signing_key, db->get_chain_id() );
+      sign(tx, signing_key );
       db->push_transaction( tx, 0 );
       BOOST_REQUIRE( alice_witness.url == "foo.bar" );
 
@@ -3405,7 +3433,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       prop_op.props[ "extraneous_property" ] = fc::raw::pack_to_vector( "foo" );
       tx.clear();
       tx.operations.push_back( prop_op );
-      tx.sign( signing_key, db->get_chain_id() );
+      sign(tx, signing_key );
       db->push_transaction( tx, 0 );
 
       validate_database();
@@ -3437,7 +3465,7 @@ BOOST_AUTO_TEST_CASE( application_create )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( alice_private_key, db->get_chain_id() );
+      sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
       const application_object& app = db->get_application( "test_app" );
@@ -3483,7 +3511,7 @@ BOOST_AUTO_TEST_CASE( application_update )
          signed_transaction tx;
          tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
-         tx.sign(alice_private_key, db->get_chain_id());
+         sign(tx,alice_private_key );
          db->push_transaction(tx, 0);
       }
       /////
@@ -3502,7 +3530,7 @@ BOOST_AUTO_TEST_CASE( application_update )
       signed_transaction tx;
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       const application_object& app = db->get_application( "test_app" );
@@ -3541,7 +3569,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
          signed_transaction tx;
          tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
-         tx.sign(alice_private_key, db->get_chain_id());
+         sign(tx,alice_private_key );
          db->push_transaction(tx, 0);
       }
       /////
@@ -3556,7 +3584,7 @@ BOOST_AUTO_TEST_CASE( application_delete )
       signed_transaction tx;
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       BOOST_REQUIRE_THROW( db->get_application( "test_app" ), fc::exception );
@@ -3588,7 +3616,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
          signed_transaction tx;
          tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
-         tx.sign(alice_private_key, db->get_chain_id());
+         sign(tx,alice_private_key );
          db->push_transaction(tx, 0);
       }
       /////
@@ -3605,7 +3633,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       signed_transaction tx;
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
-      tx.sign(bob_private_key, db->get_chain_id());
+      sign(tx,bob_private_key );
       db->push_transaction(tx, 0);
 
       const auto& app_buy = db->get_application_buying( AN("bob"), app.id._id );
@@ -3620,7 +3648,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
 
       BOOST_TEST_MESSAGE( "--- Test application buying with wrong authorities" );
       tx.signatures.clear();
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       BOOST_REQUIRE_THROW( db->push_transaction(tx, database::skip_transaction_dupe_check), fc::exception );
       validate_database();
 
@@ -3636,7 +3664,7 @@ BOOST_AUTO_TEST_CASE( application_buy )
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op_cancel);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       BOOST_REQUIRE_THROW( db->get_application_buying( AN("bob"), app.id._id ), fc::exception );
@@ -3668,7 +3696,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
          signed_transaction tx;
          tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
          tx.operations.push_back(op);
-         tx.sign(alice_private_key, db->get_chain_id());
+         sign(tx,alice_private_key );
          db->push_transaction(tx, 0);
       }
       /////
@@ -3685,7 +3713,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       signed_transaction tx;
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op);
-      tx.sign(bob_private_key, db->get_chain_id());
+      sign(tx,bob_private_key );
       db->push_transaction(tx, 0);
 
       const auto& app_buy = db->get_application_buying( AN("bob"), app.id._id );
@@ -3704,7 +3732,7 @@ BOOST_AUTO_TEST_CASE( deleting_bought_application )
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(op_d);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       BOOST_REQUIRE_THROW( db->get_application( "test_app" ), fc::exception );
@@ -3737,7 +3765,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       tx.operations.push_back( op );
-      tx.sign( init_account_priv_key, db->get_chain_id() );
+      sign(tx, init_account_priv_key );
 
       db->push_transaction( tx, 0 );
 
@@ -3749,7 +3777,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
       op.transfer_to = AN("alice");
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( init_account_priv_key, db->get_chain_id() );
+      sign(tx, init_account_priv_key );
       db->push_transaction( tx, 0 );
 
       BOOST_REQUIRE( new_alice.balance.amount == ASSET( "0.057077 SPHTX" ).amount || new_alice.balance.amount == ASSET( "0.057078 SPHTX" ).amount  );
@@ -3758,7 +3786,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
       tx.clear();
       tx.operations.push_back( op );
-      tx.sign( priv_key, db->get_chain_id() );
+      sign(tx, priv_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
    }
@@ -3782,7 +3810,7 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       signed_transaction tx;
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       generate_block();
@@ -3795,7 +3823,7 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(t_op);
-      tx.sign(bob_private_key, db->get_chain_id());
+      sign(tx,bob_private_key );
       db->push_transaction(tx, 0);
 
       generate_block();
@@ -3810,7 +3838,7 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       generate_block();
@@ -3818,14 +3846,14 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(t_op);
-      tx.sign(bob_private_key, db->get_chain_id());
+      sign(tx,bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
       sponsor_op.is_sponsoring = true;
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
-      tx.sign(alice_private_key, db->get_chain_id());
+      sign(tx,alice_private_key );
       db->push_transaction(tx, 0);
 
       generate_block();
@@ -3834,20 +3862,19 @@ BOOST_AUTO_TEST_CASE( sponsor_fees )
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(sponsor_op);
-      tx.sign(bob_private_key, db->get_chain_id());
+      sign(tx,bob_private_key );
       db->push_transaction(tx, 0);
       generate_block();
 
       tx.clear();
       tx.set_expiration(db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION);
       tx.operations.push_back(t_op);
-      tx.sign(bob_private_key, db->get_chain_id());
+      sign(tx,bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
    }
    FC_LOG_AND_RETHROW()
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
 //#endif

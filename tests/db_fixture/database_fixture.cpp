@@ -117,7 +117,7 @@ clean_database_fixture::~clean_database_fixture()
    }
 
    if( data_dir )
-      db->wipe( data_dir->path(), data_dir->path(), true );
+      db->wipe( data_dir->path(), true );
    return;
 } FC_CAPTURE_AND_LOG( (data_dir->path()) )
    exit(1);
@@ -125,7 +125,7 @@ clean_database_fixture::~clean_database_fixture()
 
 void clean_database_fixture::resize_shared_mem( uint64_t size )
 {
-   db->wipe( data_dir->path(), data_dir->path(), true );
+   db->wipe( data_dir->path(), true );
    int argc = boost::unit_test::framework::master_test_suite().argc;
    char** argv = boost::unit_test::framework::master_test_suite().argv;
    for( int i=1; i<argc; i++ )
@@ -142,10 +142,9 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
       database::open_args args;
-      args.data_dir = data_dir->path();
-      args.shared_mem_dir = args.data_dir;
+      args.shared_mem_dir = data_dir->path();
       args.shared_file_size = size;
-      db->open( args, gen );
+      db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
    }
    db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
@@ -178,6 +177,95 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    validate_database();
 }
 
+private_database_fixture::private_database_fixture()
+{
+   try {
+      int argc = boost::unit_test::framework::master_test_suite().argc;
+      char** argv = boost::unit_test::framework::master_test_suite().argv;
+      for( int i=1; i<argc; i++ )
+      {
+         const std::string arg = argv[i];
+         if( arg == "--record-assert-trip" )
+            fc::enable_record_assert_trip = true;
+         if( arg == "--show-test-names" )
+            std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
+      }
+
+      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+
+      db_plugin->logging = false;
+      appbase::app().initialize<
+            sophiatx::plugins::account_history::account_history_plugin,
+            sophiatx::plugins::debug_node::debug_node_plugin,
+            sophiatx::plugins::witness::witness_plugin
+      >( argc, argv );
+
+      db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      BOOST_REQUIRE( db );
+
+      init_account_pub_key = init_account_priv_key.get_public_key();
+
+      open_database_private();
+      db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
+      {
+           a.signing_key = init_account_pub_key;
+      });
+      db->modify( db->get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+      {
+           a.active.add_authority(init_account_pub_key, 1);
+           a.owner.add_authority(init_account_pub_key, 1);
+      });
+
+      db->modify( db->get_witness_schedule_object(), [&]( witness_schedule_object& wso )
+      {
+           wso.median_props.account_creation_fee = ASSET( "0.000000 SPHTX" );
+      });
+
+      generate_block();
+      db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
+      generate_block();
+
+      validate_database();
+
+//      // Fill up the rest of the required miners
+//      for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+//      {
+//         account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
+//         fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+//         vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+//      }
+
+//      validate_database();
+
+   } catch ( const fc::exception& e )
+   {
+      edump( (e.to_detail_string()) );
+      throw;
+   }
+
+   return;
+}
+
+private_database_fixture::~private_database_fixture()
+{
+   try {
+      // If we're unwinding due to an exception, don't do any more checks.
+      // This way, boost test's last checkpoint tells us approximately where the error was.
+      if( !std::uncaught_exception() )
+      {
+         BOOST_CHECK( db->get_node_properties().skip_flags == database::skip_nothing );
+      }
+
+      if( data_dir )
+         db->wipe( data_dir->path(), true );
+      return;
+   } FC_CAPTURE_AND_LOG( (data_dir->path()) )
+   exit(1);
+}
+
 live_database_fixture::live_database_fixture()
 {
    try
@@ -203,9 +291,8 @@ live_database_fixture::live_database_fixture()
          genesis_state_type gen;
          gen.genesis_time = fc::time_point::now();
          database::open_args args;
-         args.data_dir = _chain_dir;
-         args.shared_mem_dir = args.data_dir;
-         db->open( args, gen );
+         args.shared_mem_dir = _chain_dir;
+         db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
       }
 
       validate_database();
@@ -283,10 +370,29 @@ void database_fixture::open_database()
       gen.genesis_time = fc::time_point::now();
 
       database::open_args args;
-      args.data_dir = data_dir->path();
-      args.shared_mem_dir = args.data_dir;
+      args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
-      db->open(args, gen);
+      db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
+   }
+}
+
+void database_fixture::open_database_private()
+{
+   if( !data_dir )
+   {
+      data_dir = fc::temp_directory( sophiatx::utilities::temp_directory_path() );
+      db->_log_hardforks = false;
+
+      genesis_state_type gen;
+      gen.genesis_time = fc::time_point::now();
+      gen.initial_balace = 0;
+      gen.initial_public_key = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+      gen.is_private_net = true;
+
+      database::open_args args;
+      args.shared_mem_dir = data_dir->path();
+      args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
+      db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
    }
 }
 
@@ -331,7 +437,7 @@ const account_object& database_fixture::account_create(
       trx.operations.push_back( op );
 
       trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( creator_key, db->get_chain_id() );
+      sign( trx, creator_key );
       trx.validate();
       db->push_transaction( trx, 0 );
       trx.operations.clear();
@@ -355,7 +461,7 @@ const account_object& database_fixture::account_create(
          name,
          SOPHIATX_INIT_MINER_NAME,
          init_account_priv_key,
-         std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount, share_type( 100 ) ),
+         std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount, share_type( 0 ) ),
          key,
          "" );
    }
@@ -380,7 +486,7 @@ const witness_object& database_fixture::witness_create(
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( owner_key, db->get_chain_id() );
+      sign( trx, owner_key );
       trx.validate();
       db->push_transaction( trx, 0 );
       trx.operations.clear();
@@ -536,7 +642,7 @@ const asset& database_fixture::get_balance( const string& account_name )const
 
 void database_fixture::sign(signed_transaction& trx, const fc::ecc::private_key& key)
 {
-   trx.sign( key, db->get_chain_id() );
+   trx.sign( key, db->get_chain_id(), default_sig_canon );
 }
 
 vector< operation > database_fixture::get_last_operations( uint32_t num_ops )
@@ -688,7 +794,7 @@ void push_invalid_operation(const operation& invalid_op, const fc::ecc::private_
    signed_transaction tx;
    tx.operations.push_back( invalid_op );
    tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-   tx.sign( key, db->get_chain_id() );
+   tx.sign( key, db->get_chain_id(), fc::ecc::bip_0062 );
    SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::assert_exception );
 }
 
@@ -810,7 +916,7 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
    }
 
    if( data_dir )
-      db->wipe( data_dir->path(), data_dir->path(), true );
+      db->wipe( data_dir->path(), true );
    return;
 } FC_CAPTURE_AND_LOG( (data_dir->path()) )
    exit(1);

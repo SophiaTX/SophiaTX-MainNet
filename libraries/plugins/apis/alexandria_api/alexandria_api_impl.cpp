@@ -954,8 +954,8 @@ DEFINE_API_IMPL(alexandria_api_impl, send_and_sign_transaction)
 DEFINE_API_IMPL(alexandria_api_impl, verify_signature)
 {
    verify_signature_return result;
-   result.signature_valid = (args.pub_key == fc::ecc::public_key(args.signature, args.digest)) ? true : false;
-
+   result.signature_valid = (args.pub_key == fc::ecc::public_key(args.signature, args.digest,
+                                                                 _db.has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical)) ? true : false;
    return result;
 }
 

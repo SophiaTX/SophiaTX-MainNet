@@ -119,7 +119,7 @@ bool sign_digest(const char *digest, const char *private_key, char *signed_diges
          string private_k_str(private_key);
          auto priv_key = sophiatx::utilities::wif_to_key(private_k_str);
          if(priv_key) {
-            auto sig = priv_key->sign_compact(dig);
+            auto sig = priv_key->sign_compact(dig, fc::ecc::fc_canonical);
             string result = fc::json::to_string(sig);
             strcpy(signed_digest, result.substr(1, result.size() - 2).c_str());
             return true;
@@ -165,7 +165,7 @@ bool verify_signature(const char *digest, const char *public_key, const char *si
          compact_signature sig;
          fc::from_hex( string(signed_digest), (char*)sig.begin(), sizeof(compact_signature) );
 
-         if(pub_key == fc::ecc::public_key(sig, dig)) {
+         if(pub_key == fc::ecc::public_key(sig, dig, fc::ecc::fc_canonical)) {
             return true;
          }
 

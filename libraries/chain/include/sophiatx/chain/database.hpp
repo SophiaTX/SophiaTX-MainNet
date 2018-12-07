@@ -74,7 +74,6 @@ namespace sophiatx { namespace chain {
 
          struct open_args
          {
-            fc::path data_dir;
             fc::path shared_mem_dir;
             uint64_t shared_file_size = 0;
             uint16_t shared_file_full_threshold = 0;
@@ -95,7 +94,7 @@ namespace sophiatx { namespace chain {
           *
           * @param data_dir Path to open or create database in
           */
-         void open( const open_args& args, const genesis_state_type& genesis );
+         void open( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
 
          /**
           * @brief Rebuild object graph from block history and open detabase
@@ -105,7 +104,7 @@ namespace sophiatx { namespace chain {
           *
           * @return the last replayed block number.
           */
-         uint32_t reindex( const open_args& args, const genesis_state_type& genesis );
+         uint32_t reindex( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
 
          /**
           * @brief wipe Delete database from disk, and potentially the raw chain as well.
@@ -113,7 +112,7 @@ namespace sophiatx { namespace chain {
           *
           * Will close the database before wiping. Database will be closed when this function returns.
           */
-         void wipe(const fc::path& data_dir, const fc::path& shared_mem_dir, bool include_blocks);
+         void wipe(const fc::path& shared_mem_dir, bool include_blocks);
          void close(bool rewind = true);
 
          //////////////////// db_block.cpp ////////////////////
@@ -345,6 +344,8 @@ namespace sophiatx { namespace chain {
 
          void process_interests();
 
+         bool is_private_net() const;
+
       void process_funds();
 
       void account_recovery_processing();
@@ -379,7 +380,7 @@ namespace sophiatx { namespace chain {
          /// Reset the object graph in-memory
          void initialize_indexes();
          void init_schema();
-         void init_genesis( genesis_state_type genesis );
+         void init_genesis( genesis_state_type genesis, chain_id_type chain_id, const public_key_type& init_pubkey /*TODO: delete when initminer pubkey is read from get_config */ );
 
          /**
           *  This method validates transactions without adding it to the pending state.
@@ -482,6 +483,8 @@ namespace sophiatx { namespace chain {
 #endif
          void modify_balance( const account_object& a, const asset& delta, bool check_balance );
          void modify_reward_balance( const account_object& a, const asset& delta, bool check_balance );
+
+         void recalculate_all_votes();
 
          std::unique_ptr< database_impl > _my;
 

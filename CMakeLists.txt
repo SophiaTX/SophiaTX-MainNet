@@ -118,13 +118,6 @@ endif()
 
 MESSAGE( STATUS "SOPHIATX_STATIC_BUILD: ${SOPHIATX_STATIC_BUILD}" )
 
-OPTION( PRIVATE_NET "Building as private net (ON OR OFF)" OFF)
-if(PRIVATE_NET)
-    MESSAGE(STATUS "Building as private net")
-    ADD_DEFINITIONS("-DPRIVATE_NET")
-else(PRIVATE_NET)
-    MESSAGE(STATUS "Building as public net")
-endif(PRIVATE_NET)
 
 OPTION(ABAP_INTERFACE "Build without map obejcts on the interface (ON OR OFF)" OFF )
 if(ABAP_INTERFACE)
@@ -176,6 +169,11 @@ else(JNI_FOUND)
     MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
 endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
 
+find_package (SQLite3 3.25.3)
+if (SQLite3_FOUND)
+    message (STATUS "Found SQLite version: ${SQLite3_VERSION}")
+endif (SQLite3_FOUND)
+
 
 if( WIN32 )
 
@@ -212,7 +210,7 @@ if( WIN32 )
 
       SET(TCL_LIBS "${TCL_LIBS}${TCL_LIB_PATH}/${TCL_LIB_NAME}g${TCL_LIB_EXT}")
       SET(TCL_LIBRARY ${TCL_LIBS})
-      # Needed to disable MSVC autolinking feature (#pragma comment)
+      # Needed to disable MSVC autolinking feature (#pragma comment)Ø
       ADD_DEFINITIONS("-DBOOST_ALL_NO_LIB")
       
    elseif( MINGW )

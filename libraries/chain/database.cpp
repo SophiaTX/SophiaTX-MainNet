@@ -92,11 +92,14 @@ database::~database()
    clear_pending();
 }
 
-void database::open( const open_args& args, const genesis_state_type& genesis )
+void database::open( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey )
 {
    try
    {
       init_schema();
+      elog("initializing database...");
+      chain_id_type chain_id = genesis.compute_chain_id();
+
       chainbase::database::open( args.shared_mem_dir, args.chainbase_flags, args.shared_file_size );
 
       initialize_indexes();
@@ -105,10 +108,10 @@ void database::open( const open_args& args, const genesis_state_type& genesis )
       if( !find< dynamic_global_property_object >() )
          with_write_lock( [&]()
          {
-            init_genesis( genesis );
+            init_genesis( genesis, chain_id, init_pubkey );
          });
 
-      _block_log.open( args.data_dir / "block_log" );
+      _block_log.open( args.shared_mem_dir / "block_log" );
 
       auto log_head = _block_log.head();
 
@@ -146,10 +149,10 @@ void database::open( const open_args& args, const genesis_state_type& genesis )
       _shared_file_full_threshold = args.shared_file_full_threshold;
       _shared_file_scale_rate = args.shared_file_scale_rate;
    }
-   FC_CAPTURE_LOG_AND_RETHROW( (args.data_dir)(args.shared_mem_dir)(args.shared_file_size) )
+   FC_CAPTURE_LOG_AND_RETHROW( (args.shared_mem_dir)(args.shared_file_size) )
 }
 
-uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis )
+uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey )
 {
    bool reindex_success = false;
    uint32_t last_block_number = 0; // result
@@ -163,8 +166,8 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
       SOPHIATX_TRY_NOTIFY(_on_reindex_start);
 
       ilog( "Reindexing Blockchain" );
-      wipe( args.data_dir, args.shared_mem_dir, false );
-      open( args, genesis );
+      wipe( args.shared_mem_dir, false );
+      open( args, genesis, init_pubkey );
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
       auto start = fc::time_point::now();
@@ -199,7 +202,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
          while( itr.first.block_num() != last_block_num )
          {
             auto cur_block_num = itr.first.block_num();
-            if( cur_block_num % 100000 == 0 )
+            if( cur_block_num % 10000 == 0 )
                std::cerr << "   " << double( cur_block_num * 100 ) / last_block_num << "%   " << cur_block_num << " of " << last_block_num <<
                "   (" << (get_free_memory() / (1024*1024)) << "M free)\n";
             apply_block( itr.first, skip_flags );
@@ -228,18 +231,18 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 
       return last_block_number;
    }
-   FC_CAPTURE_AND_RETHROW( (args.data_dir)(args.shared_mem_dir) )
+   FC_CAPTURE_AND_RETHROW( (args.shared_mem_dir) )
 
 }
 
-void database::wipe( const fc::path& data_dir, const fc::path& shared_mem_dir, bool include_blocks)
+void database::wipe( const fc::path& shared_mem_dir, bool include_blocks)
 {
    close();
    chainbase::database::wipe( shared_mem_dir );
    if( include_blocks )
    {
-      fc::remove_all( data_dir / "block_log" );
-      fc::remove_all( data_dir / "block_log.index" );
+      fc::remove_all( shared_mem_dir / "block_log" );
+      fc::remove_all( shared_mem_dir / "block_log.index" );
    }
 }
 
@@ -500,7 +503,7 @@ asset database::process_operation_fee( const operation& op )
       op_visitor(database* _db){db = _db;}; 
       typedef asset result_type;
       result_type operator()(const base_operation& bop){
-         if(bop.has_special_fee())
+         if(bop.has_special_fee() || db->is_private_net())
             return asset(0, SOPHIATX_SYMBOL);
          asset req_fee = bop.get_required_fee(bop.fee.symbol);
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
@@ -890,7 +893,7 @@ signed_block database::_generate_block(
    }
 
    if( !(skip & skip_witness_signature) )
-      pending_block.sign( block_signing_private_key );
+      pending_block.sign( block_signing_private_key, has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical);
 
    // TODO:  Move this to _push_block() so session is restored.
    if( !(skip & skip_block_size_check) )
@@ -1412,23 +1415,12 @@ void database::initialize_evaluators()
    _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
    _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
    _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator                >();
-#ifdef SOPHIATX_ENABLE_SMT
-   _my->_evaluator_registry.register_evaluator< claim_reward_balance2_evaluator          >();
-#endif
+   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
    _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
    _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
    _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
+   _my->_evaluator_registry.register_evaluator< admin_witness_update_evaluator            >();
 
-#ifdef SOPHIATX_ENABLE_SMT
-   _my->_evaluator_registry.register_evaluator< smt_setup_evaluator                      >();
-   _my->_evaluator_registry.register_evaluator< smt_cap_reveal_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< smt_refund_evaluator                     >();
-   _my->_evaluator_registry.register_evaluator< smt_setup_emissions_evaluator            >();
-   _my->_evaluator_registry.register_evaluator< smt_set_setup_parameters_evaluator       >();
-   _my->_evaluator_registry.register_evaluator< smt_set_runtime_parameters_evaluator     >();
-   _my->_evaluator_registry.register_evaluator< smt_create_evaluator                     >();
-#endif
 }
 
 
@@ -1445,6 +1437,11 @@ std::shared_ptr< custom_operation_interpreter > database::get_custom_json_evalua
    if( it != _custom_operation_interpreters.end() )
       return it->second;
    return std::shared_ptr< custom_operation_interpreter >();
+}
+
+bool database::is_private_net()const
+{
+   return get_dynamic_global_properties().private_net;
 }
 
 void database::initialize_indexes()
@@ -1470,12 +1467,6 @@ void database::initialize_indexes()
    add_core_index< application_buying_index                >(*this);
    add_core_index< custom_content_index                    >(*this);
    add_core_index< account_fee_sponsor_index               >(*this);
-#ifdef SOPHIATX_ENABLE_SMT
-   add_core_index< smt_token_index                         >(*this);
-   add_core_index< account_regular_balance_index           >(*this);
-   add_core_index< account_rewards_balance_index           >(*this);
-#endif
-
    _plugin_index_signal();
 }
 
@@ -1545,7 +1536,7 @@ void database::init_schema()
    return;*/
 }
 
-void database::init_genesis( genesis_state_type genesis )
+void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id, const public_key_type& init_pubkey )
 {
    try
    {
@@ -1617,8 +1608,11 @@ void database::init_genesis( genesis_state_type genesis )
       create< witness_object >( [&]( witness_object& w )
                                 {
                                      w.owner        = SOPHIATX_INIT_MINER_NAME;
-                                     w.signing_key  = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+                                     // TODO: use initminer mining public key from get_config when solution is implemnted
+                                     w.signing_key  = init_pubkey;
                                      w.schedule = witness_object::top19;
+                                     if(genesis.is_private_net)
+                                        w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
                                 } );
 
       for( const auto &acc: genesis.initial_accounts) {
@@ -1660,9 +1654,10 @@ void database::init_genesis( genesis_state_type genesis )
          p.participation_count = 128;
          p.current_supply = asset( total_initial_balance, SOPHIATX_SYMBOL );
          p.maximum_block_size = SOPHIATX_MAX_BLOCK_SIZE;
-         p.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+         p.witness_required_vesting = asset(genesis.is_private_net? 0 : SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
          p.genesis_time = genesis.genesis_time;
-         p.chain_id = genesis.compute_chain_id();
+         p.chain_id = chain_id;
+         p.private_net = genesis.is_private_net;
       } );
 
       create< economic_model_object >( [&]( economic_model_object& e )
@@ -1872,7 +1867,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         ilog( "Processing ${n} genesis hardforks", ("n", n) );
+         elog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();
@@ -1970,14 +1965,13 @@ void database::_apply_block( const signed_block& next_block )
    create_block_summary(next_block);
    clear_expired_transactions();
    update_witness_schedule(*this);
-   process_interests();
-
-   update_median_feeds();
-
-   clear_null_account_balance();
-   process_funds();
-   process_vesting_withdrawals();
-
+   if(!is_private_net()) {
+      process_interests();
+      update_median_feeds();
+      clear_null_account_balance();
+      process_funds();
+      process_vesting_withdrawals();
+   }
    account_recovery_processing();
    expire_escrow_ratification();
 
@@ -1988,12 +1982,13 @@ void database::_apply_block( const signed_block& next_block )
 
    notify_changed_objects();
 
-   const auto& econ = get_economic_model();
-   const auto& gpo = get_dynamic_global_properties();
-
-   modify(econ, [&](economic_model_object& e){
-      e.record_block(next_block_num, gpo.current_supply.amount);
-   });
+   if(!is_private_net()) {
+      const auto& econ = get_economic_model();
+      const auto& gpo = get_dynamic_global_properties();
+      modify(econ, [ & ](economic_model_object &e) {
+           e.record_block(next_block_num, gpo.current_supply.amount);
+      });
+   }
 
 }
 FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) )
@@ -2050,28 +2045,33 @@ struct process_header_visitor
 void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
-      uint32_t batch = block_no % SOPHIATX_INTEREST_BLOCKS;
+      uint32_t interest_blocks = SOPHIATX_INTEREST_BLOCKS;
+      uint32_t batch = block_no % interest_blocks;
       const auto &econ = get_economic_model();
       share_type supply_increase = 0;
       uint64_t id = batch;
       while( const account_object *a = find_account(id)) {
          share_type interest = 0;
 
-         if(head_block_num() > SOPHIATX_INTEREST_DELAY) {
+         if( head_block_num() > SOPHIATX_INTEREST_DELAY) {
             modify(econ, [ & ](economic_model_object &eo) {
-                 interest = eo.withdraw_interests(a->holdings_considered_for_interests,
-                                                  std::min(uint32_t(SOPHIATX_INTEREST_BLOCKS), head_block_num()));
+               interest = eo.withdraw_interests(a->holdings_considered_for_interests,
+                     std::min(uint32_t(interest_blocks), head_block_num()));
             });
          }
 
-         supply_increase += interest;
+         if( interest > 0 ) {
+            supply_increase += interest;
+            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
+            if( has_hardfork(SOPHIATX_HARDFORK_1_1))
+               adjust_proxied_witness_votes(*a, interest);
+         }
+
          modify(*a, [ & ](account_object &ao) {
               ao.balance.amount += interest;
-              ao.holdings_considered_for_interests = ao.total_balance() * SOPHIATX_INTEREST_BLOCKS;
+              ao.holdings_considered_for_interests = ao.total_balance() * interest_blocks;
          });
-         if(interest > 0)
-            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
-         id += SOPHIATX_INTEREST_BLOCKS;
+         id += interest_blocks;
       }
 
       adjust_supply(asset(supply_increase, SOPHIATX_SYMBOL));
@@ -2156,7 +2156,8 @@ void database::_apply_transaction(const signed_transaction& trx)
 
       try
       {
-         trx.verify_authority( chain_id, get_active, get_owner, SOPHIATX_MAX_SIG_CHECK_DEPTH );
+         trx.verify_authority( chain_id, get_active, get_owner, SOPHIATX_MAX_SIG_CHECK_DEPTH,
+                               has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical);
       }
       catch( protocol::tx_missing_active_auth& e )
       {
@@ -2229,7 +2230,8 @@ const witness_object& database::validate_block_header( uint32_t skip, const sign
    const witness_object& witness = get_witness( next_block.witness );
 
    if( !(skip&skip_witness_signature) )
-      FC_ASSERT( next_block.validate_signee( witness.signing_key ) );
+      FC_ASSERT( next_block.validate_signee( witness.signing_key,
+            has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical ) );
 
    if( !(skip&skip_witness_schedule_check) )
    {
@@ -2299,11 +2301,18 @@ void database::update_global_dynamic_data( const signed_block& b )
       dgp.head_block_id = b.id();
       dgp.time = b.timestamp;
       dgp.current_aslot += missed_blocks+1;
-#ifndef PRIVATE_NET
-      if( head_block_num() >= SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY){
-         dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+      if(!is_private_net()){
+         uint64_t switch_block;
+         if(has_hardfork(SOPHIATX_HARDFORK_1_1))
+            switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 * SOPHIATX_BLOCKS_PER_DAY;
+         else
+            switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * SOPHIATX_BLOCKS_PER_DAY;
+
+         if( head_block_num() >= switch_block ){
+            dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+         }else
+            dgp.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
       }
-#endif
    } );
 
    if( !(get_node_properties().skip_flags & skip_undo_history_check) )
@@ -2417,51 +2426,6 @@ void database::clear_expired_transactions()
       remove( *dedupe_index.begin() );
 }
 
-#ifdef SOPHIATX_ENABLE_SMT
-template< typename smt_balance_object_type >
-void database::adjust_smt_balance( const account_name_type& name, const asset& delta, bool check_account )
-{
-   const smt_balance_object_type* bo =
-      find< smt_balance_object_type, by_owner_symbol >( boost::make_tuple( name, delta.symbol ) );
-   // Note that SMT related code, being post-20-hf needs no hf-guard to do balance checks.
-   if( bo == nullptr )
-   {
-      // No balance object related to the SMT means '0' balance. Check delta to avoid creation of negative balance.
-      FC_ASSERT( delta.amount.value >= 0, "Insufficient SMT ${smt} funds", ("smt", delta.symbol) );
-      // No need to create object with '0' balance (see comment above).
-      if( delta.amount.value == 0 )
-         return;
-
-      if( check_account )
-         get_account( name );
-
-      create< smt_balance_object_type >( [&]( smt_balance_object_type& smt_balance )
-      {
-         smt_balance.owner = name;
-         smt_balance.balance = delta;
-      } );
-   }
-   else
-   {
-      asset result = bo->balance + delta;
-      // Check result to avoid negative balance storing.
-      FC_ASSERT( result.amount.value >= 0, "Insufficient SMT ${smt} funds", ( "smt", delta.symbol ) );
-      // Zero balance is the same as non object balance at all.
-      if( result.amount.value == 0 )
-      {
-         remove( *bo );
-      }
-      else
-      {
-         modify( *bo, [&]( smt_balance_object_type& smt_balance )
-         {
-            smt_balance.balance = result;
-         } );
-      }
-   }
-}
-#endif
-
 void database::create_vesting( const account_object& a, const asset& delta){
    FC_ASSERT(delta.symbol == VESTS_SYMBOL, "invalid symbol");
    FC_ASSERT(delta.amount >= 0, "cannot remove vests");
@@ -2469,11 +2433,9 @@ void database::create_vesting( const account_object& a, const asset& delta){
    modify( a, [&]( account_object& acnt )
    {
         acnt.vesting_shares.amount += delta.amount;
-
-        acnt.update_considered_holding(delta.amount, head_block_num());
-        adjust_proxied_witness_votes(a, delta.amount);
-
+        acnt.update_considered_holding(delta.amount, head_block_num() );
    } );
+   adjust_proxied_witness_votes(a, delta.amount);
 }
 
 
@@ -2484,46 +2446,24 @@ void database::modify_balance( const account_object& a, const asset& delta, bool
    modify( a, [&]( account_object& acnt )
    {
         acnt.balance.amount += delta.amount;
-
-        acnt.update_considered_holding(delta.amount, head_block_num());
+        acnt.update_considered_holding(delta.amount, head_block_num() );
         if( check_balance )
         {
            FC_ASSERT( acnt.balance.amount.value >= 0, "Insufficient SOPHIATX funds" );
         }
-        adjust_proxied_witness_votes(a, delta.amount);
 
    } );
-
+   adjust_proxied_witness_votes(a, delta.amount);
 }
 
 
 void database::adjust_balance( const account_object& a, const asset& delta )
 {
-
-#ifdef SOPHIATX_ENABLE_SMT
-   // No account object modification for SMT balance, hence separate handling here.
-   // Note that SMT related code, being post-20-hf needs no hf-guard to do balance checks.
-   if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
-   {
-      adjust_smt_balance< account_regular_balance_object >( a.name, delta, false/*check_account*/ );
-      return;
-   }
-#endif
    modify_balance( a, delta, true );
 }
 
 void database::adjust_balance( const account_name_type& name, const asset& delta )
 {
-
-#ifdef SOPHIATX_ENABLE_SMT
-   // No account object modification for SMT balance, hence separate handling here.
-   // Note that SMT related code, being post-20-hf needs no hf-guard to do balance checks.
-   if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
-   {
-      adjust_smt_balance< account_regular_balance_object >( name, delta, true/*check_account*/ );
-      return;
-   }
-#endif
    const auto& a = get_account( name );
    modify_balance( a, delta, true );
 }
@@ -2535,20 +2475,6 @@ void database::create_vesting( const account_name_type& name, const asset& delta
 
 void database::adjust_supply( const asset& delta )
 {
-#ifdef SOPHIATX_ENABLE_SMT
-   if( delta.symbol.space() == asset_symbol_type::smt_nai_space )
-   {
-      const auto& smt = get< smt_token_object, by_symbol >( delta.symbol );
-      auto smt_new_supply = smt.current_supply + delta.amount;
-      FC_ASSERT( smt_new_supply >= 0 );
-      modify( smt, [smt_new_supply]( smt_token_object& smt )
-      {
-         smt.current_supply = smt_new_supply;
-      });
-      return;
-   }
-#endif
-
    const auto& props = get_dynamic_global_properties();
 
    modify( props, [&]( dynamic_global_property_object& props )
@@ -2578,21 +2504,7 @@ asset database::get_balance( const account_object& a, asset_symbol_type symbol )
 
       default:
       {
-#ifdef SOPHIATX_ENABLE_SMT
-         FC_ASSERT( symbol.space() == asset_symbol_type::smt_nai_space, "invalid symbol" );
-         const account_regular_balance_object* arbo =
-            find< account_regular_balance_object, by_owner_symbol >( boost::make_tuple(a.name, symbol) );
-         if( arbo == nullptr )
-         {
-            return asset(0, symbol);
-         }
-         else
-         {
-            return arbo->balance;
-         }
-#else
-      FC_ASSERT( false, "invalid symbol" );
-#endif
+         FC_ASSERT( false, "invalid symbol" );
       }
    }
 }
@@ -2601,6 +2513,10 @@ void database::init_hardforks()
 {
    _hardfork_times[ 0 ] = fc::time_point_sec( get_genesis_time() );
    _hardfork_versions[ 0 ] = hardfork_version( 1, 0 );
+
+   FC_ASSERT( SOPHIATX_HARDFORK_1_1 == 1, "Invalid hardfork configuration" );
+   _hardfork_times[ SOPHIATX_HARDFORK_1_1 ] = fc::time_point_sec( SOPHIATX_HARDFORK_1_1_TIME );
+   _hardfork_versions[ SOPHIATX_HARDFORK_1_1 ] = SOPHIATX_HARDFORK_1_1_VERSION;
 
    const auto& hardforks = get_hardfork_property_object();
    FC_ASSERT( hardforks.last_hardfork <= SOPHIATX_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("SOPHIATX_NUM_HARDFORKS",SOPHIATX_NUM_HARDFORKS) );
@@ -2660,11 +2576,11 @@ void database::apply_hardfork( uint32_t hardfork )
    if( _log_hardforks )
       elog( "HARDFORK ${hf} at block ${b}", ("hf", hardfork)("b", head_block_num()) );
 
-
-
    switch( hardfork )
    {
-
+      case SOPHIATX_HARDFORK_1_1:
+         recalculate_all_votes();
+         break;
       default:
          break;
    }
@@ -2682,6 +2598,25 @@ void database::apply_hardfork( uint32_t hardfork )
    push_virtual_operation( hardfork_operation( hardfork ), true );
 }
 
+void database::recalculate_all_votes(){
+   const auto& account_idx = get_index< account_index >().indices().get<by_name>();
+   const auto& witness_idx = get_index< witness_index >().indices();
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      //clear all witness votes
+      ilog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+      modify(*itr, [&](witness_object &wo){
+         wo.votes = 0;
+      });
+   }
+   for( auto itr = account_idx.begin(); itr != account_idx.end(); ++itr ){
+      adjust_proxied_witness_votes(*itr, itr->total_balance());
+   }
+   for( auto itr = witness_idx.begin(); itr != witness_idx.end(); ++itr ){
+      ilog("${w} - ${h}",("w", itr->owner)("h", itr->votes));
+   }
+}
+
+
 /**
  * Verifies all supply invariantes check out
  */
@@ -2689,6 +2624,8 @@ void database::validate_invariants()const
 {
    try
    {
+      if(is_private_net())
+         return;
       const auto& account_idx = get_index<account_index>().indices().get<by_name>();
       asset total_supply = asset( 0, SOPHIATX_SYMBOL );
       asset total_vesting = asset( 0, VESTS_SYMBOL );
@@ -2738,77 +2675,6 @@ void database::validate_invariants()const
    FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );
 }
 
-#ifdef SOPHIATX_ENABLE_SMT
-
-namespace {
-   typedef std::map< asset_symbol_type, asset > TTotalSupplyMap;
-
-   template <typename index_type>
-   void add_from_balance_index(const index_type& balance_idx, TTotalSupplyMap& theMap)
-   {
-      auto it = balance_idx.begin();
-      auto end = balance_idx.end();
-      for( ; it != end; ++it )
-      {
-         const auto& balance = *it;
-         auto insertInfo = theMap.emplace( balance.balance.symbol, balance.balance );
-         if( insertInfo.second == false )
-            insertInfo.first->second += balance.balance;
-      }
-   }
-}
-
-/**
- * SMT version of validate_invariants.
- */
-void database::validate_smt_invariants()const
-{
-   try
-   {
-      // Get total balances.
-      TTotalSupplyMap theMap;
-
-      // - Balances
-      const auto& balance_idx = get_index< account_regular_balance_index, by_id >();
-      add_from_balance_index( balance_idx, theMap );
-
-      // - Reward balances
-      const auto& rewards_balance_idx = get_index< account_rewards_balance_index, by_id >();
-      add_from_balance_index( rewards_balance_idx, theMap );
-
-      // - Total vesting
-#pragma message( "TODO: Add SMT vesting support here once it is implemented." )
-
-      // - Market orders
-      const auto& limit_order_idx = get_index< limit_order_index >().indices();
-      for( auto itr = limit_order_idx.begin(); itr != limit_order_idx.end(); ++itr )
-      {
-         if( itr->sell_price.base.symbol.space() == asset_symbol_type::smt_nai_space )
-         {
-            asset a( itr->for_sale, itr->sell_price.base.symbol );
-            auto insertInfo = theMap.emplace( a.symbol, a );
-            if( insertInfo.second == false )
-               insertInfo.first->second += a;
-         }
-      }
-
-      // - Escrow & savings - no support of SMT is expected.
-
-      // Do the verification of total balances.
-      auto itr = get_index< smt_token_index, by_id >().begin();
-      auto end = get_index< smt_token_index, by_id >().end();
-      for( ; itr != end; ++itr )
-      {
-         const smt_token_object& smt = *itr;
-         auto totalIt = theMap.find( smt.liquid_symbol );
-         asset total_liquid_supply = totalIt == theMap.end() ? asset(0, smt.liquid_symbol) : totalIt->second;
-         FC_ASSERT( asset(smt.current_supply, smt.liquid_symbol) == total_liquid_supply,
-                    "", ("smt current_supply",smt.current_supply)("total_liquid_supply",total_liquid_supply) );
-      }
-   }
-   FC_CAPTURE_LOG_AND_RETHROW( (head_block_num()) );
-}
-#endif
 
 void database::retally_witness_votes()
 {
@@ -2842,43 +2708,5 @@ void database::retally_witness_votes()
       }
    }
 }
-
-#ifdef SOPHIATX_ENABLE_SMT
-// 1. NAI number is stored in 32 bits, minus 4 for precision, minus 1 for control.
-// 2. NAI string has 8 characters (each between '0' and '9') available (11 minus '@@', minus checksum character is 8 )
-// 3. Max 27 bit decimal is 134,217,727 but only 8 characters are available to represent it as string so we are left
-//    with [0 : 99,999,999] range.
-// 4. The numbers starting with 0 decimal digit are reserved. Now we are left with 10 milions of reserved NAIs
-//    [0 : 09,999,999] and 90 millions available for SMT creators [10,000,000 : 99,999,999]
-// 5. The least significant bit is used as liquid/vesting variant indicator so the 10 and 90 milions are numbers
-//    of liquid/vesting *pairs* of reserved/available NAIs.
-// 6. 45 milions of SMT await for their creators.
-
-vector< asset_symbol_type > database::get_smt_next_identifier()
-{
-   // This is temporary dummy implementation using simple counter as nai source (_next_available_nai).
-   // Although a container of available nais is returned, it contains only one entry for simplicity.
-   // Note that no decimal places argument is required from SMT creator at this stage.
-   // This is because asset_symbol_type's to_string method omits the precision when serializing.
-   // For appropriate use of this method see e.g. smt_database_fixture::create_smt
-
-   uint8_t decimal_places = 0;
-
-   FC_ASSERT( _next_available_nai >= SMT_MIN_NON_RESERVED_NAI );
-   FC_ASSERT( _next_available_nai <= SMT_MAX_NAI, "Out of available NAI numbers." );
-   // Assume that _next_available_nai value shows the liquid version of NAI.
-   FC_ASSERT( (_next_available_nai & 0x1) == 0, "Can't start with vesting version of NAI." );
-   uint32_t new_nai = _next_available_nai;
-   // Skip vesting version of produced NAI - it differs only by least significant bit set.
-   _next_available_nai += 2;
-
-   uint32_t new_asset_num = (new_nai << 5) | 0x10 | decimal_places;
-   asset_symbol_type new_symbol = asset_symbol_type::from_asset_num( new_asset_num );
-   new_symbol.validate();
-   FC_ASSERT( new_symbol.space() == asset_symbol_type::smt_nai_space );
-
-   return vector< asset_symbol_type >( 1, new_symbol );
-}
-#endif
 
 } } //sophiatx::chain

@@ -125,7 +125,7 @@ Install Homebrew by following the instructions here: http://brew.sh/
         automake \
         cmake \
         git \
-        boost165 \
+        boost \
         libtool \
         openssl \
         python3
@@ -156,6 +156,7 @@ Install Homebrew by following the instructions here: http://brew.sh/
     cmake -DBOOST_ROOT="$BOOST_ROOT" -DCMAKE_BUILD_TYPE=Release ..
     make -j$(sysctl -n hw.logicalcpu)
 
+Please note, that actual version of `openssl` and `boost` might differ.
 Also, some useful build targets for `make` are:
 
     sophiatxd

@@ -626,14 +626,15 @@ public:
          { return (get_account_from_lut( account_name ).active); },
          [&]( const string& account_name ) -> const authority&
          { return (get_account_from_lut( account_name ).owner); },
-         SOPHIATX_MAX_SIG_CHECK_DEPTH
+         SOPHIATX_MAX_SIG_CHECK_DEPTH,
+         fc::ecc::fc_canonical
          );
 
       for( const public_key_type& k : minimal_signing_keys )
       {
          auto it = available_private_keys.find(k);
          FC_ASSERT( it != available_private_keys.end() );
-         tx.sign( it->second, sophiatx_chain_id );
+         tx.sign( it->second, sophiatx_chain_id, fc::ecc::fc_canonical );
       }
 
       elog("Transaction digest is: ${d}", ("d", tx.sig_digest(sophiatx_chain_id)));

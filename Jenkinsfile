@@ -3,7 +3,8 @@
 ////////////////////////////////////////
 
 
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'), booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
+properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
+                        booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
 
 
 pipeline {
@@ -29,7 +30,7 @@ pipeline {
             BUILD_TYPE = "Debug"
           }
         }
-        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
+        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
         sh 'make -j4'
       }
     }
