@@ -20,11 +20,6 @@ pipeline {
     label get_label_name()
   }
   stages {
-    stage('Prepare WS') {
-      steps {
-         cleanWs()
-      }
-    }
     stage('Build') {
       steps {
         script {
