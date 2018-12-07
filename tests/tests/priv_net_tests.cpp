@@ -308,6 +308,7 @@ BOOST_AUTO_TEST_CASE( priv_check_unsupported_ops )
 
       buy_application_operation ba_op;
       ba_op.buyer = AN("alice");
+      ba_op.app_id = 0;
       tx.operations.clear(); tx.signatures.clear();
       tx.operations.push_back( ba_op );
       sign(tx, alice_private_key );
@@ -316,6 +317,7 @@ BOOST_AUTO_TEST_CASE( priv_check_unsupported_ops )
       cancel_application_buying_operation ca_op;
       ca_op.app_owner = AN("alice");
       ca_op.buyer = AN("bob");
+      ca_op.app_id = 0;
       tx.operations.clear(); tx.signatures.clear();
       tx.operations.push_back( ca_op );
       sign(tx, alice_private_key );
