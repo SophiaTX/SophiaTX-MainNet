@@ -4,7 +4,7 @@ namespace sophiatx { namespace smart_contracts {
 
 db_connection_resource::db_connection_resource(const std::string& acc_name) :
    account_name(acc_name),
-   last_access(std::chrono::system_clock::from_time_t(time_t(nullptr))),
+   last_access(), // default is 1970-01-01 01:00:00
    db_handle(acc_name + ".db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE)
 {}
 

@@ -2,7 +2,6 @@
 #define SOPHIATX_DB_CONNECTION_RESOURCE_H
 
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <sophiatx/protocol/types.hpp>
 #include <chrono>
 
 namespace sophiatx { namespace smart_contracts {
