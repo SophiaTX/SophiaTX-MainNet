@@ -31,7 +31,7 @@ pipeline {
             BUILD_TYPE = "Debug"
           }
         }
-        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet} -DPRIVATE_NET=${params.build_as_privatenet}"
+        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet} -DPRIVATE_NET=${params.build_as_privatenet}"
         sh 'make -j4'
       }
     }
@@ -42,6 +42,7 @@ pipeline {
             sh './tests/chain_test'
             sh './tests/plugin_test'
             sh './libraries/fc/tests/all_tests'
+            sh './libraries/SQLiteCpp/SQLiteCpp_tests'
           }
         }
       }

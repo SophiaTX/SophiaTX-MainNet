@@ -174,12 +174,6 @@ else(JNI_FOUND)
     MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
 endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
 
-find_package (SQLite3 3.25.3)
-if (SQLite3_FOUND)
-    message (STATUS "Found SQLite version: ${SQLite3_VERSION}")
-endif (SQLite3_FOUND)
-
-
 if( WIN32 )
 
    message( STATUS "Configuring SophiaTX on WIN32")
@@ -290,8 +284,8 @@ if (BUILD_PIC)
 add_subdirectory( external_plugins )
 endif(BUILD_PIC)
 
+add_subdirectory( smart_contracts )
 add_subdirectory( programs )
-
 add_subdirectory( tests )
 
 if (ENABLE_INSTALLER)
