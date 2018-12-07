@@ -28,8 +28,17 @@ class db_connections_pool {
 public:
    db_connections_pool();
 
+   /**
+    * @brief Returns database according to provided account_name(smart_contract acc)
+    *
+    * @param account_name
+    * @return SQLite::Database&
+    */
+   SQLite::Database& get_database(const std::string& account_name);
 private:
    db_handles_index db_handles;
+
+   size_t max_handles;
 };
 
 
