@@ -490,6 +490,7 @@ DEFINE_API_IMPL(alexandria_api_impl, withdraw_vesting)
 
 DEFINE_API_IMPL(alexandria_api_impl, get_transaction) {
    checkApiEnabled(_account_history_api);
+   FC_ASSERT( args.tx_id != sophiatx::protocol::transaction_id_type(), "Invalid tx_id parameter" );
 
    get_transaction_return result;
    result.tx = _account_history_api->get_transaction( { args.tx_id } );
