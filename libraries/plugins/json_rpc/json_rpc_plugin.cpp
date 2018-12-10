@@ -482,11 +482,11 @@ string json_rpc_plugin::call( const string& message, bool& is_error)
             responses.reserve( messages.size() );
 
             for( auto& m : messages ){
-               const json_rpc_response response = my->rpc( m, [](string s){} );
+               auto response = my->rpc( m, [](string s){} );
                if(response.error) {
                   is_error = true;
                }
-               responses.push_back( response );
+               responses.push_back( std::move(response) );
             }
 
 
