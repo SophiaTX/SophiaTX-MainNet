@@ -21,22 +21,31 @@ using namespace sophiatx::chain;
 #define SOPHIATX_MULTIPARTY_MESSAGING_SPACE_ID 121
 #endif
 
-typedef fc::sha256 encrypted_key;
+typedef vector<char> encrypted_key;
 
 struct group_op{
    uint32_t                   version = 1;
    string                     type; //"create" "add" "delete" "disband" "update"
-   account_name_type          group_name;
    optional<account_name_type> new_group_name;
    optional<vector<string>>   user_list;
    public_key_type            senders_pubkey;
    std::map<public_key_type, encrypted_key> new_key;
 };
 
+struct message_wrapper{
+   enum message_type{
+      group_operation = 0,
+      message = 1
+   };
+   uint32_t type = message_type::group_operation ;
+   optional<vector<char>> message_data;
+   optional<group_op>  operation_data;
+};
+
 struct group_meta{
-   public_key_type sender;
-   public_key_type recipient;
-   fc::sha256      iv;
+   optional<public_key_type> sender;
+   optional<public_key_type> recipient;
+   optional<fc::sha256>      iv;
    vector<char>    data;
 };
 
@@ -132,6 +141,7 @@ FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_op, (version)(
 FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_meta, (sender)(recipient)(iv)(data))
 FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_object, (id)(group_name)(current_group_name)(members)(admin)(group_key)(current_seq) )
 FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::message_wrapper, (type)(message_data)(operation_data) )
 
 CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging_plugin::message_object, sophiatx::plugins::multiparty_messaging_plugin::message_index )
 CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging_plugin::group_object, sophiatx::plugins::multiparty_messaging_plugin::group_index )
