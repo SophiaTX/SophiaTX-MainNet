@@ -7,32 +7,6 @@
 #include <sophiatx/chain/block_summary_object.hpp>
 
 #include <fc/macros.hpp>
-
-#ifndef IS_LOW_MEM
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic push
-#if !defined(__has_warning) || __has_warning("-Wmaybe-uninitialized")
-#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-#endif
-#pragma GCC diagnostic pop
-#pragma GCC diagnostic pop
-#include <boost/locale/encoding_utf.hpp>
-
-using boost::locale::conv::utf_to_utf;
-
-std::wstring utf8_to_wstring(const std::string& str)
-{
-    return utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
-}
-
-std::string wstring_to_utf8(const std::wstring& str)
-{
-    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
-}
-
-#endif
-
 #include <fc/uint128.hpp>
 #include <fc/utf8.hpp>
 
