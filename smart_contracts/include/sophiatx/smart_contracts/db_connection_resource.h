@@ -17,7 +17,7 @@ public:
    db_connection_resource(const std::string& acc_name);
    ~db_connection_resource()                                         = default;
 
-   // Disables defautkt/copy/move ctors - database handle should not be copied
+   // Disables default/copy/move ctors - database handle should not be copied
    db_connection_resource()                                          = delete;
    db_connection_resource(const db_connection_resource&)             = delete;
    db_connection_resource& operator=(const db_connection_resource&)  = delete;
@@ -28,7 +28,7 @@ public:
    void update_access_time();
 
 private:
-   SQLite::Database                                      db_handle;
+   SQLite::Database                         db_handle;
 };
 
 
