@@ -52,6 +52,8 @@ namespace sophiatx { namespace protocol {
             cancel_application_buying_operation,
             transfer_from_promotion_pool_operation,
             sponsor_fees_operation,
+
+            admin_witness_update_operation,
            /// virtual operations below this point
 
             interest_operation,

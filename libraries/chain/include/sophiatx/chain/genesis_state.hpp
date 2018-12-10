@@ -60,6 +60,7 @@ struct genesis_state_type {
 
    chain_id_type                            initial_chain_id;
    time_point_sec                           genesis_time;
+   bool                                     is_private_net = false;
 
    /**
     * Get the chain_id corresponding to this genesis state.

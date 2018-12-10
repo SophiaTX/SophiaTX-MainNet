@@ -74,7 +74,6 @@ class chain_plugin_impl
       bfs::path                        shared_memory_dir;
       bool                             replay = false;
       bool                             resync   = false;
-      bool                             readonly = false;
       bool                             check_locks = false;
       bool                             validate_invariants = false;
       bool                             dump_memory_details = false;
@@ -95,7 +94,7 @@ class chain_plugin_impl
       database  db;
 
       // TODO: temporary solution. DELETE when proper solution is implemented -> shared config object, which will contain also initminer mining public key.
-      std::string initMiningPubkeyStr;
+      public_key_type init_mining_pubkey;
 };
 
 struct write_request_visitor
@@ -287,10 +286,8 @@ const sophiatx::chain::database& chain_plugin::db() const { return my->db; }
 
 void chain_plugin::set_program_options(options_description& cli, options_description& cfg)
 {
-   cfg.add_options()
-         ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"),
-            "the location of the chain shared memory files (absolute path or relative to application data dir)")
-         ("genesis-json", bpo::value<string>(), "genesis file in JSON format")
+   cfg.add_options()      
+         ("genesis-json", bpo::value<bfs::path>(), "the location of the genesis file in JSON format")
          ("shared-file-size", bpo::value<string>()->default_value("24G"), "Size of the shared memory file. Default: 24G. If running a full node, increase this value to 200G.")
          ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(0),
             "A 2 precision percentage (0-10000) that defines the threshold for when to autoscale the shared memory file. Setting this to 0 disables autoscaling. Recommended value for consensus node is 9500 (95%). Full node is 9900 (99%)" )
@@ -308,24 +305,12 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
          ("check-locks", bpo::bool_switch()->default_value(false), "Check correctness of chainbase locking" )
          ("validate-database-invariants", bpo::bool_switch()->default_value(false), "Validate all supply invariants check out" )
-#ifdef PRIVATE_NET
          ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
          ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
-#endif
          ;
 }
 
 void chain_plugin::plugin_initialize(const variables_map& options) {
-   my->shared_memory_dir = app().data_dir() / "blockchain";
-
-   if( options.count("shared-file-dir") )
-   {
-      auto sfd = options.at("shared-file-dir").as<bfs::path>();
-      if(sfd.is_relative())
-         my->shared_memory_dir = app().data_dir() / sfd;
-      else
-         my->shared_memory_dir = sfd;
-   }
 
    my->shared_memory_size = fc::parse_size( options.at( "shared-file-size" ).as< string >() );
 
@@ -337,46 +322,56 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 
 
    // TODO: temporary solution. DELETE when initminer mining public key is read from get_config
-   my->initMiningPubkeyStr = SOPHIATX_INIT_PUBLIC_KEY_STR;
-#ifdef PRIVATE_NET
-   if (options.count("initminer-mining-pubkey")) {
-      my->initMiningPubkeyStr = options.at( "initminer-mining-pubkey" ).as< std::string >();
+   my->init_mining_pubkey = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+   bool private_net = false;
+   if (options.count("initminer-mining-pubkey") ) {
+      my->init_mining_pubkey = public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
+      private_net = true;
    }
-   else {
-      BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, \"initminer-mining-pubkey\" parameter must be provided.") );
-   }
-#endif //PRIVATE_NET
 
 
    auto initial_state = [&] {
-#ifdef PRIVATE_NET
-        if (options.count("initminer-account-pubkey")) {
-           // Creates genesis based on provided initminer account public key
-           genesis_state_type genesis;
-           genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
-           genesis.initial_balace = SOPHIATX_INIT_SUPPLY;
-           genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
 
-           fc::sha256::encoder enc;
-           fc::raw::pack( enc, genesis );
-           genesis.initial_chain_id = enc.result();
+        if( private_net){
+           if ( options.count("initminer-account-pubkey")) {
+              // Creates genesis based on provided initminer account public key
+              genesis_state_type genesis;
+              genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
+              genesis.initial_balace = 0;
+              genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
+              genesis.is_private_net = true;
 
-           return genesis;
-        }
-        // private net might be also started with custom genesis file
-        else {
-           if (options.count("genesis-json") == 0) {
-              BOOST_THROW_EXCEPTION( std::runtime_error("To start private net, either \"initminer-account-pubkey\" or \"genesis-json\" parameter must be provided.") );
+              fc::sha256::encoder enc;
+              fc::raw::pack( enc, genesis );
+              genesis.initial_chain_id = enc.result();
+
+              return genesis;
+           }
+           // private net might be also started with custom genesis file
+           else {
+              if (options.count("genesis-json") == 0) {
+                 genesis_state_type genesis;
+                 genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
+                 genesis.initial_balace = 0;
+                 genesis.initial_public_key = public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
+                 genesis.is_private_net = true;
+
+                 fc::sha256::encoder enc;
+                 fc::raw::pack( enc, genesis );
+                 genesis.initial_chain_id = enc.result();
+
+                 return genesis;
+              }
            }
         }
-#endif //PRIVATE_NET
+
         if( options.count("genesis-json") )
         {
            std::string genesis_str;
            fc::read_file_contents( options.at("genesis-json").as<boost::filesystem::path>(), genesis_str );
            genesis_state_type genesis = fc::json::from_string( genesis_str ).as<genesis_state_type>();
            genesis.initial_chain_id = fc::sha256::hash( genesis_str);
-
+           genesis.is_private_net = private_net;
            return genesis;
         }
         else
@@ -392,7 +387,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
         }
    };
 
-
+   my->genesis             = initial_state();
    my->replay              = options.at( "replay-blockchain").as<bool>();
    my->resync              = options.at( "resync-blockchain").as<bool>();
    my->stop_replay_at      =
@@ -402,7 +397,7 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
    my->check_locks         = options.at( "check-locks" ).as< bool >();
    my->validate_invariants = options.at( "validate-database-invariants" ).as<bool>();
    my->dump_memory_details = options.at( "dump-memory-details" ).as<bool>();
-   my->genesis             = initial_state();
+
    if( options.count( "flush-state-interval" ) )
       my->flush_interval = options.at( "flush-state-interval" ).as<uint32_t>();
    else
@@ -426,12 +421,24 @@ void chain_plugin::plugin_startup()
 {
    ilog( "Starting chain with shared_file_size: ${n} bytes", ("n", my->shared_memory_size) );
 
+   chain_id_type chain_id = my->genesis.compute_chain_id();
+
+   my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
+
+   // correct directories, TODO can be removed after next HF2
+   if( ! my->genesis.is_private_net && bfs::exists( app().data_dir() / "blockchain" ) ){
+      bfs::create_directories ( my->shared_memory_dir );
+      bfs::rename( app().data_dir() / "blockchain", my->shared_memory_dir );
+   }
+
+   elog("Starting node with chain id ${i}", ("i", chain_id));
+
    my->start_write_processing();
 
    if(my->resync)
    {
       wlog("resync requested: deleting block log and shared memory");
-      my->db.wipe( app().data_dir() / "blockchain", my->shared_memory_dir, true );
+      my->db.wipe( my->shared_memory_dir, true );
    }
 
    my->db.set_flush_interval( my->flush_interval );
@@ -459,7 +466,6 @@ void chain_plugin::plugin_startup()
    };
 
    database::open_args db_open_args;
-   db_open_args.data_dir = app().data_dir() / "blockchain";
    db_open_args.shared_mem_dir = my->shared_memory_dir;
    db_open_args.shared_file_size = my->shared_memory_size;
    db_open_args.shared_file_full_threshold = my->shared_file_full_threshold;
@@ -505,7 +511,7 @@ void chain_plugin::plugin_startup()
       ilog("Replaying blockchain on user request.");
       uint32_t last_block_number = 0;
       db_open_args.benchmark = sophiatx::chain::database::TBenchmark(my->benchmark_interval, benchmark_lambda);
-      last_block_number = my->db.reindex( db_open_args, my->genesis, my->initMiningPubkeyStr );
+      last_block_number = my->db.reindex( db_open_args, my->genesis, my->init_mining_pubkey );
 
       if( my->benchmark_interval > 0 )
       {
@@ -533,7 +539,7 @@ void chain_plugin::plugin_startup()
       {
          ilog("Opening shared memory from ${path}", ("path",my->shared_memory_dir.generic_string()));
 
-         my->db.open( db_open_args, my->genesis, my->initMiningPubkeyStr );
+         my->db.open( db_open_args, my->genesis, my->init_mining_pubkey );
 
          if( dump_memory_details )
             dumper.dump( true, get_indexes_memory_details );
@@ -544,12 +550,12 @@ void chain_plugin::plugin_startup()
 
          try
          {
-            my->db.reindex( db_open_args, my->genesis, my->initMiningPubkeyStr );
+            my->db.reindex( db_open_args, my->genesis, my->init_mining_pubkey );
          }
          catch( sophiatx::chain::block_log_exception& )
          {
             wlog( "Error opening block log. Having to resync from network..." );
-            my->db.open( db_open_args, my->genesis, my->initMiningPubkeyStr );
+            my->db.open( db_open_args, my->genesis, my->init_mining_pubkey );
          }
       }
    }
