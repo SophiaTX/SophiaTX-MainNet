@@ -481,8 +481,14 @@ string json_rpc_plugin::call( const string& message, bool& is_error)
          {
             responses.reserve( messages.size() );
 
-            for( auto& m : messages )
-               responses.push_back( my->rpc( m, [](string s){} ) );
+            for( auto& m : messages ){
+               const json_rpc_response response = std::move( my->rpc( m, [](string s){} ));
+               if(response.error) {
+                  is_error = true;
+               }
+               responses.push_back( response );
+            }
+
 
             return fc::json::to_string( responses );
          }
