@@ -14,6 +14,7 @@ class tat_interpreter : public custom_operation_interpreter
 {
 public:
    tat_interpreter(database& db):_db(db){};
+   virtual ~tat_interpreter() = default;
    database&                     _db;
    virtual void apply( const protocol::custom_json_operation& op );
    virtual void apply( const protocol::custom_binary_operation & op ){ FC_ASSERT(false, "Track and trace handles only json operations");};
