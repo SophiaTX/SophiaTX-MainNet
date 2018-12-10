@@ -17,11 +17,12 @@ namespace fc { namespace http {
       {}
 
       void send_header() {
-         //ilog( "sending header..." );
          fc::stringstream ss;
          ss << "HTTP/1.1 " << rep.status << " ";
          switch( rep.status ) {
             case fc::http::reply::OK: ss << "OK\r\n"; break;
+            case fc::http::reply::BadRequest: ss << "BadRequest\r\n"; break;
+            case fc::http::reply::NotAuthorized: ss << "NotAuthorized\r\n"; break;
             case fc::http::reply::RecordCreated: ss << "Record Created\r\n"; break;
             case fc::http::reply::NotFound: ss << "Not Found\r\n"; break;
             case fc::http::reply::Found: ss << "Found\r\n"; break;
@@ -120,9 +121,23 @@ namespace fc { namespace http {
         } 
         catch ( fc::exception& e ) 
         {
-          wlog( "unable to read request ${1}", ("1", e.to_detail_string() ) );//fc::except_str().c_str());
+           wlog( "unable to read request ${1}", ("1", e.to_detail_string() ) );//fc::except_str().c_str());
         }
-        //wlog( "done handle connection" );
+        // If connection was not closed in try statement, there an exception happened, so we need to send
+        // appropriate HTTP status back and try to close it again
+         try
+         {
+            if(c->get_socket().is_open()) {
+               http::server::response rep( fc::shared_ptr<response::impl>( new response::impl(c) ) );
+               rep.set_status( http::reply::BadRequest );
+               rep.write( "", 0);
+               c->get_socket().close();
+            }
+         }
+         catch( const fc::exception& e )
+         {
+            wdump((e.to_detail_string()));
+         }
       }
 
       fc::future<void>                                                      accept_complete;

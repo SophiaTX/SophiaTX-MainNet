@@ -48,14 +48,20 @@ class fc::http::connection::impl
         while( (s = read_until( line.data(), line.data()+line.size(), '\n' )) > 1 ) {
           fc::http::header h;
           char* end = line.data();
-          while( *end != ':' && end < line.data() +s )++end;
-          FC_ASSERT( end < line.data() +s );
+          size_t size = line.size();
+          while( *end != ':') {
+             FC_ASSERT( --size, "Can not parse reply" );
+             ++end;
+          }
           h.key = fc::string(line.data(),end);
+          FC_ASSERT( size > 2, "Can not parse reply" );
           ++end; // skip ':'
           ++end; // skip space
           char* skey = end;
-          while( *end != '\r' && end < line.data()+s ) ++end;
-          FC_ASSERT( end < line.data()+s );
+          while( *end != '\r' ) {
+             FC_ASSERT( --size, "Can not parse reply" );
+             ++end;
+          }
           h.val = fc::string(skey,end);
           rep.headers.push_back(h);
           if( boost::iequals(h.key, "Content-Length") ) {
@@ -134,7 +140,7 @@ fc::tcp_socket& connection::get_socket()const {
   return my->sock;
 }
 
-http::request    connection::read_request()const {
+http::request    connection::read_request() const {
   http::request req;
   req.remote_endpoint = fc::variant(get_socket().remote_endpoint()).as_string();
   std::vector<char> line(1024*8);
@@ -147,14 +153,20 @@ http::request    connection::read_request()const {
   while( (s = my->read_until( line.data(), line.data()+line.size(), '\n' )) > 1 ) {
     fc::http::header h;
     char* end = line.data();
-    while( *end != ':' && end < line.data()+s )++end;
-    FC_ASSERT( end < line.data()+s );
+    size_t size = line.size();
+    while( *end != ':') {
+        FC_ASSERT( --size, "Can not read request" );
+        ++end;
+    }
     h.key = fc::string(line.data(),end);
+    FC_ASSERT( size > 2, "Can not read request" );
     ++end; // skip ':'
     ++end; // skip space
     char* skey = end;
-    while( *end != '\r' && end < line.data()+s ) ++end;
-    FC_ASSERT( end < line.data()+s );
+    while( *end != '\r' ) {
+       FC_ASSERT( --size, "Can not read request" );
+       ++end;
+    }
     h.val = fc::string(skey,end);
     req.headers.push_back(h);
     if( boost::iequals(h.key, "Content-Length")) {

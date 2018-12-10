@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_SUITE(fc_crypto)
          try {
             len = fc::from_base58( enc1, buffer, 10 );
             BOOST_CHECK( len <= 10 );
-         } catch ( fc::exception expected ) {}
+         } catch ( fc::exception &expected ) {}
       }
 
    }
