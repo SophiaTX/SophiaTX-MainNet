@@ -55,11 +55,9 @@ public:
    bool accept_block( const sophiatx::chain::signed_block& block, bool currently_syncing, uint32_t skip ) override;
    void accept_transaction( const sophiatx::chain::signed_transaction& trx ) override;
 
-   bool block_is_on_preferred_chain( const sophiatx::chain::block_id_type& block_id );
-
    void check_time_in_block( const sophiatx::chain::signed_block& block );
 
-   sophiatx::chain::signed_block generate_block( const fc::time_point_sec when, const account_name_type& witness_owner,
+   sophiatx::chain::signed_block generate_block( const fc::time_point_sec& when, const account_name_type& witness_owner,
                                                  const fc::ecc::private_key& block_signing_private_key,
                                                  uint32_t skip ) override;
 

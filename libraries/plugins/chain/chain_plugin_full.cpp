@@ -370,16 +370,16 @@ void chain_plugin_full::plugin_startup()
    db_.add_checkpoints( loaded_checkpoints );
    db_.set_require_locking( check_locks );
 
-   bool dump_memory_details = dump_memory_details;
+   bool dump_memory_details_ = dump_memory_details;
    sophiatx::utilities::benchmark_dumper dumper;
 
    const auto& abstract_index_cntr = db_.get_abstract_index_cntr();
 
    typedef sophiatx::utilities::benchmark_dumper::index_memory_details_cntr_t index_memory_details_cntr_t;
-   auto get_indexes_memory_details = [dump_memory_details, &abstract_index_cntr]
+   auto get_indexes_memory_details = [dump_memory_details_, &abstract_index_cntr]
       (index_memory_details_cntr_t& index_memory_details_cntr, bool onlyStaticInfo)
    {
-      if (dump_memory_details == false)
+      if (!dump_memory_details_)
          return;
 
       for (auto idx : abstract_index_cntr)
@@ -398,16 +398,16 @@ void chain_plugin_full::plugin_startup()
    db_open_args.do_validate_invariants = validate_invariants;
    db_open_args.stop_replay_at = stop_replay_at;
 
-   auto benchmark_lambda = [&dumper, &get_indexes_memory_details, dump_memory_details] ( uint32_t current_block_number,
+   auto benchmark_lambda = [&dumper, &get_indexes_memory_details, dump_memory_details_] ( uint32_t current_block_number,
       const chainbase::database::abstract_index_cntr_t& abstract_index_cntr )
    {
       if( current_block_number == 0 ) // initial call
       {
          typedef sophiatx::utilities::benchmark_dumper::database_object_sizeof_cntr_t database_object_sizeof_cntr_t;
-         auto get_database_objects_sizeofs = [dump_memory_details, &abstract_index_cntr]
+         auto get_database_objects_sizeofs = [dump_memory_details_, &abstract_index_cntr]
             (database_object_sizeof_cntr_t& database_object_sizeof_cntr)
          {
-            if (dump_memory_details == false)
+            if (!dump_memory_details_)
                return;
 
             for (auto idx : abstract_index_cntr)
@@ -458,7 +458,7 @@ void chain_plugin_full::plugin_startup()
    }
    else
    {
-      db_open_args.benchmark = sophiatx::chain::database::TBenchmark(dump_memory_details, benchmark_lambda);
+      db_open_args.benchmark = sophiatx::chain::database::TBenchmark(dump_memory_details_, benchmark_lambda);
 
       try
       {
@@ -466,7 +466,7 @@ void chain_plugin_full::plugin_startup()
 
          db_.open( db_open_args, genesis, init_mining_pubkey );
 
-         if( dump_memory_details )
+         if( dump_memory_details_ )
             dumper.dump( true, get_indexes_memory_details );
       }
       catch( const fc::exception& e )
@@ -539,16 +539,6 @@ void chain_plugin_full::accept_transaction( const sophiatx::chain::signed_transa
    return;
 }
 
-bool chain_plugin_full::block_is_on_preferred_chain(const sophiatx::chain::block_id_type& block_id )
-{
-   // If it's not known, it's not preferred.
-   if( !db().is_known_block(block_id) ) return false;
-
-   // Extract the block number from block_id, and fetch that block number's ID from the database.
-   // If the database's block ID matches block_id, then block_id is on the preferred chain. Otherwise, it's on a fork.
-   return db().get_block_id_for_num( sophiatx::chain::block_header::num_from_id( block_id ) ) == block_id;
-}
-
 void chain_plugin_full::check_time_in_block( const sophiatx::chain::signed_block& block )
 {
    time_point_sec now = fc::time_point::now();
@@ -558,7 +548,7 @@ void chain_plugin_full::check_time_in_block( const sophiatx::chain::signed_block
    FC_ASSERT( block.timestamp.sec_since_epoch() <= max_accept_time );
 }
 
-sophiatx::chain::signed_block chain_plugin_full::generate_block( const fc::time_point_sec when, const account_name_type& witness_owner,
+sophiatx::chain::signed_block chain_plugin_full::generate_block( const fc::time_point_sec& when, const account_name_type& witness_owner,
                                                          const fc::ecc::private_key& block_signing_private_key, uint32_t skip )
 {
    generate_block_request req( when, witness_owner, block_signing_private_key, skip );

@@ -39,7 +39,7 @@ public:
       FC_ASSERT(false, "Not implemented for lite version of chain_plugin");
    }
 
-   virtual sophiatx::chain::signed_block generate_block( const fc::time_point_sec when,
+   virtual sophiatx::chain::signed_block generate_block( const fc::time_point_sec& when,
                                                          const account_name_type& witness_owner,
                                                          const fc::ecc::private_key& block_signing_private_key,
                                                          uint32_t skip ) {
