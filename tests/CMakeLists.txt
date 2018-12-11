@@ -18,4 +18,6 @@ if(MSVC)
   set_source_files_properties( tests/serialization_tests.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
 endif(MSVC)
 
+add_subdirectory( smart_contracts )
+
 #add_subdirectory( generate_empty_blocks )

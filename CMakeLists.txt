@@ -8,7 +8,7 @@ endif()
 
 project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
-add_compile_options("-Wall" "-Werror")
+#add_compile_options("-Wall" "-Werror")
 
 set( BLOCKCHAIN_NAME "SophiaTX" )
 set( CMAKE_CXX_STANDARD 14 )

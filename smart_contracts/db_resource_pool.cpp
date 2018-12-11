@@ -11,30 +11,30 @@ db_resource_pool::db_resource_pool(uint32_t max_resources_count) :
    max_resources(max_resources_count)
 {}
 
-SQLite::Database& db_resource_pool::get_resource(const std::string &account_name) {
-   try {
-      auto found_db = db_resources_by_name.find(account_name);
-      if (found_db == db_resources_by_name.end()) {
+SQLite::Database& db_resource_pool::get_resource(const std::string &account_name, bool create_flag) {
+   auto resource = db_resources_by_name.find(account_name);
+   if (resource == db_resources_by_name.end()) {
+      if (create_flag == true) {
          return create_resource(account_name);
       }
 
-      // Adjusts last_access of the found db
-      db_resources_by_name.modify(found_db, [](db_resource &resource) { resource.update_access_time(); });
+      throw resource_error("There is no resource mapped to the acc name: " + account_name);
+   }
 
-      return found_db->db_handle;
+   // Adjusts last_access of the found db
+   if (db_resources_by_name.modify(resource, [](db_resource &resource) { resource.update_access_time(); }) == false) {
+      throw resource_error("Unable to modify last access time of resource mapped to the acc name: " + account_name);
    }
-   catch (const std::exception& e) {
-      throw sophiatx::smart_contracts::resource_error(e.what());
-   }
-   catch (const boost::exception& e) {
-      throw sophiatx::smart_contracts::resource_error(boost::diagnostic_information(e));
-   }
-   catch (...) {
-      throw sophiatx::smart_contracts::resource_error("Unknown");
-   }
+
+   return resource->db_handle;
 }
 
 SQLite::Database& db_resource_pool::create_resource(const std::string &account_name) {
+   auto resource = db_resources_by_name.find(account_name);
+   if (resource != db_resources_by_name.end()) {
+      return resource->db_handle;
+   }
+
    if (db_resources_by_name.size() >= max_resources) {
       pop_resource();
    }
@@ -42,7 +42,7 @@ SQLite::Database& db_resource_pool::create_resource(const std::string &account_n
    // Creates new database handle inside pool
    auto emplace_result = db_resources_by_name.emplace(account_name);
    if (emplace_result.second == false) {
-      throw std::runtime_error("Unable to create database resource for account: " + account_name + ". Possible problem: Such resource already exists");
+      throw resource_error("Unable to create database resource for account: " + account_name + ". Possible problem: Such resource already exists");
    }
 
    return emplace_result.first->db_handle;
@@ -54,10 +54,8 @@ void db_resource_pool::pop_resource() {
    }
 }
 
-void db_resource_pool::test() {
-   for (auto it = db_resources_by_last_access.begin(); it != db_resources_by_last_access.end(); it++) {
-      std::cout << "it->account_name: " << it->account_name << std::endl;
-   }
+const uint32_t db_resource_pool::size() const {
+   return db_resources.size();
 }
 
 }}

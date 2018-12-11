@@ -39,14 +39,28 @@ public:
    db_resource_pool(uint32_t max_handles_count = 500 /*TODO: read from config*/);
 
    /**
+    * @brief Creates new resource mapped to the account_name. In case there is already <max_resources> resources created, it deletes(from memory) the least used one.
+    *
+    * @throws sophiatx::smart_contracts::resource_error in case creation was not successful
+    * @param account_name
+    * @return created SQLite::Database&
+    */
+   SQLite::Database& create_resource(const std::string &account_name);
+
+   /**
     * @brief Returns database resource according to provided account_name(smart_contract acc). In case such resource does not exist, it creates one.
     *
-    * @throws sophiatx::smart_contracts::resource_error in case database could not been obtained
+    * @throws sophiatx::smart_contracts::resource_error in case resource does not exist(and create_flag==false) or there was error during processing
     * @param account_name
+    * @param create_flag if set to true, it will create resource in case it does not exist
     * @return SQLite::Database&
     */
-   SQLite::Database& get_resource(const std::string &account_name);
-   void test();
+   SQLite::Database& get_resource(const std::string &account_name, bool create_flag = true);
+
+   /**
+    * @return actual number of resources in the pool
+    */
+   const uint32_t size() const;
 private:
    /**
     * @brief Defines boost multiindex container that stores db resource objects
@@ -64,15 +78,10 @@ private:
    using db_resources_by_name_index = db_resources_index::index<by_account_name>::type;
    using db_resources_by_last_access_index = db_resources_index::index<by_last_access>::type;
 
-   /**
-    * @brief Creates new resource mapped to the account_name. In case there is already <max_resources> resources created, it deletes(from memory) the least used one.
-    *
-    * @param unmapped_account_name
-    */
-   SQLite::Database& create_resource(const std::string &account_name);
 
    /**
     * @brief Pops the least used resource
+    *
     */
    void pop_resource();
 
