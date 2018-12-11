@@ -24,10 +24,23 @@ using namespace sophiatx::chain;
 typedef vector<char> encrypted_key;
 
 struct group_op{
+   group_op(){}
+   group_op( string _type, account_name_type _name, string _description, vector<account_name_type> _user_list, public_key_type _senders_pubkey ):
+            type(_type), group_name(_name), description (_description), senders_pubkey(_senders_pubkey)
+   {
+      if(_user_list.size()){
+         vector<account_name_type> temp;
+         std::copy(_user_list.begin(), _user_list.end(), std::back_inserter(temp));
+         user_list = std::move(temp);
+      }
+   }
+
    uint32_t                   version = 1;
-   string                     type; //"create" "add" "delete" "disband" "update"
+   string                     type; //"add" "disband" "update"
+   account_name_type          group_name;
+   string                     description;
    optional<account_name_type> new_group_name;
-   optional<vector<string>>   user_list;
+   optional<vector<account_name_type>>   user_list;
    public_key_type            senders_pubkey;
    std::map<public_key_type, encrypted_key> new_key;
 };
@@ -46,7 +59,7 @@ struct group_meta{
    optional<public_key_type> sender;
    optional<public_key_type> recipient;
    optional<fc::sha256>      iv;
-   vector<char>    data;
+   vector<char>              data;
 };
 
 enum mpm_object_types
@@ -59,7 +72,7 @@ class group_object : public object< group_object_type, group_object >
 {
 public:
    template< typename Constructor, typename Allocator >
-   group_object( Constructor&& c, allocator< Allocator > a ): members(a.get_segment_manager())
+   group_object( Constructor&& c, allocator< Allocator > a ): description(a), members(a.get_segment_manager())
    {
       c( *this );
    }
@@ -67,6 +80,8 @@ public:
 
    account_name_type group_name;
    account_name_type current_group_name;
+
+   shared_string description;
 
    shared_vector < account_name_type > members;
    account_name_type admin;
@@ -137,9 +152,9 @@ typedef multi_index_container<
 } } } // sophiatx::plugins::multiparty_messaging
 
 
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_op, (version)(type)(group_name)(new_group_name)(user_list)(senders_pubkey)(new_key) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_op, (version)(type)(group_name)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
 FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_meta, (sender)(recipient)(iv)(data))
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_object, (id)(group_name)(current_group_name)(members)(admin)(group_key)(current_seq) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_object, (id)(group_name)(current_group_name)(description)(members)(admin)(group_key)(current_seq) )
 FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )
 FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::message_wrapper, (type)(message_data)(operation_data) )
 

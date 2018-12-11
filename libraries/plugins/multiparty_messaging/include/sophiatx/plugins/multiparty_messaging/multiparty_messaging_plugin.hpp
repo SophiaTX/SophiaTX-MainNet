@@ -4,13 +4,19 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 
-#define SOPHIATX_MM_PLUGIN_NAME "multiparty_messaging"
+#define SOPHIATX_MPM_PLUGIN_NAME "multiparty_messaging"
 
 namespace sophiatx { namespace plugins { namespace multiparty_messaging_plugin {
 
 namespace detail { class multiparty_messaging_plugin_impl; }
 
 using namespace appbase;
+
+namespace detail
+{
+class multiparty_messaging_api_impl;
+class multiparty_messaging_plugin_impl;
+}
 
 
 
@@ -20,6 +26,8 @@ using namespace appbase;
  */
 class multiparty_messaging_plugin : public plugin< multiparty_messaging_plugin >
 {
+   friend class detail::multiparty_messaging_api_impl;
+   friend class detail::multiparty_messaging_plugin_impl;
    public:
       multiparty_messaging_plugin();
       ~multiparty_messaging_plugin(){};
@@ -29,7 +37,7 @@ class multiparty_messaging_plugin : public plugin< multiparty_messaging_plugin >
             (sophiatx::plugins::json_rpc::json_rpc_plugin)
       )
 
-      static const std::string& name() { static std::string name = SOPHIATX_MM_PLUGIN_NAME; return name; }
+      static const std::string& name() { static std::string name = SOPHIATX_MPM_PLUGIN_NAME; return name; }
 
       virtual void set_program_options(
          options_description& cli,
@@ -42,7 +50,8 @@ class multiparty_messaging_plugin : public plugin< multiparty_messaging_plugin >
    private:
       std::shared_ptr< detail::multiparty_messaging_plugin_impl > my;
       std::shared_ptr< class multiparty_messaging_api > api;
-
+      std::map< sophiatx::protocol::public_key_type, fc::ecc::private_key > _private_keys;
+      std::set< sophiatx::protocol::account_name_type >                     _accounts;
 };
 
 } } } //sophiatx::plugins::multiparty_messaging_plugin
