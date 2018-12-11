@@ -4,7 +4,7 @@
 #include <sophiatx/protocol/hardfork.hpp>
 
 #include <sophiatx/chain/block_summary_object.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/history_object.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 

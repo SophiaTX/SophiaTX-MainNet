@@ -4,10 +4,9 @@
 #include <sophiatx/chain/global_property_object.hpp>
 #include <sophiatx/chain/history_object.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
-#include <sophiatx/chain/smt_objects.hpp>
 #include <sophiatx/chain/transaction_object.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/application_object.hpp>
 
 namespace sophiatx { namespace plugins { namespace database_api {

@@ -3,14 +3,13 @@
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/compound.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
-#include <sophiatx/chain/database.hpp>
-#include <sophiatx/chain/database_exceptions.hpp>
-#include <sophiatx/chain/db_with.hpp>
+#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_exceptions.hpp>
+#include <sophiatx/chain/database/db_with.hpp>
 #include <sophiatx/chain/evaluator_registry.hpp>
 #include <sophiatx/chain/global_property_object.hpp>
 #include <sophiatx/chain/history_object.hpp>
 #include <sophiatx/chain/index.hpp>
-#include <sophiatx/chain/smt_objects.hpp>
 #include <sophiatx/chain/sophiatx_evaluator.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/custom_content_object.hpp>

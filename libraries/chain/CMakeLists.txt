@@ -6,8 +6,7 @@ add_library( sophiatx_chain
              # As database takes the longest to compile, start it first
              database.cpp
 
-             smt_evaluator.cpp
-             sophiatx_evaluator.cpp
+        sophiatx_evaluator.cpp
              sophiatx_objects.cpp
 
              witness_schedule.cpp

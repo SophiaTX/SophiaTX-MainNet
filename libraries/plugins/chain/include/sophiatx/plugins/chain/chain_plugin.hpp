@@ -5,7 +5,7 @@
 #endif
 
 #include <appbase/application.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 
 #include <boost/signals2.hpp>
 

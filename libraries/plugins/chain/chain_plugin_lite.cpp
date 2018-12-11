@@ -1,4 +1,4 @@
-#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/database/database_exceptions.hpp>
 
 #include <sophiatx/plugins/chain/chain_plugin_lite.hpp>
 

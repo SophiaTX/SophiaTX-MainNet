@@ -418,17 +418,6 @@ namespace sophiatx { namespace chain {
          bool disable_low_mem_warning = true;
 #endif
 
-#ifdef SOPHIATX_ENABLE_SMT
-         ///Smart Media Tokens related methods
-         ///@{
-         void validate_smt_invariants()const;
-         /**
-          * @return a list of available NAIs.
-         */
-         vector< asset_symbol_type > get_smt_next_identifier();
-
-         ///@}
-#endif
          typedef void on_reindex_start_t();
          typedef void on_reindex_done_t(bool,uint32_t);
 
@@ -476,11 +465,6 @@ namespace sophiatx { namespace chain {
          void process_hardforks();
          void apply_hardfork( uint32_t hardfork );
 
-         ///@}
-#ifdef SOPHIATX_ENABLE_SMT
-         template< typename smt_balance_object_type >
-         void adjust_smt_balance( const account_name_type& name, const asset& delta, bool check_account );
-#endif
          void modify_balance( const account_object& a, const asset& delta, bool check_balance );
          void modify_reward_balance( const account_object& a, const asset& delta, bool check_balance );
 

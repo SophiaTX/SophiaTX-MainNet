@@ -26,7 +26,7 @@
 
 #include <sophiatx/protocol/exceptions.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/history_object.hpp>
 

@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/track_and_trace/track_and_trace_objects.hpp>
 #include <sophiatx/plugins/track_and_trace/track_and_trace_api.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/operation_notification.hpp>

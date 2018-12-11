@@ -1,5 +1,5 @@
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 #include <sophiatx/chain/witness_schedule.hpp>
 

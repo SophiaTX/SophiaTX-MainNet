@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 
 namespace sophiatx { namespace chain {
 

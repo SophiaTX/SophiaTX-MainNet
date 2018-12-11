@@ -1,7 +1,7 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/witness/witness_objects.hpp>
 
-#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/database/database_exceptions.hpp>
 #include <sophiatx/chain/account_object.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 #include <sophiatx/chain/index.hpp>

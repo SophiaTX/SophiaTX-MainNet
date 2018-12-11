@@ -1,7 +1,7 @@
 #pragma once
 
 #include <appbase/application.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <fc/io/json.hpp>
 #include <fc/smart_ref_impl.hpp>
 

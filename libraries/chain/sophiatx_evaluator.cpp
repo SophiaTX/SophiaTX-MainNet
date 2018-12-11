@@ -1,5 +1,5 @@
 #include <sophiatx/chain/sophiatx_evaluator.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/custom_content_object.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>

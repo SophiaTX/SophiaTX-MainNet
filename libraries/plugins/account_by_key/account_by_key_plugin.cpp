@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/account_by_key/account_by_key_objects.hpp>
 
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
 

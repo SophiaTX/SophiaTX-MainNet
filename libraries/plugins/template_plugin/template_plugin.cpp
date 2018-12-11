@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/template/template_objects.hpp>
 #include <sophiatx/plugins/template/template_api.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
 

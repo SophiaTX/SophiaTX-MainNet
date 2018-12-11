@@ -7,7 +7,7 @@
 
 #include <sophiatx/chain/block_log.hpp>
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 
 #include <sophiatx/utilities/key_conversion.hpp>

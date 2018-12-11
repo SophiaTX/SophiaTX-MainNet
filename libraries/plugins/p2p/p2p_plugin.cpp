@@ -3,7 +3,7 @@
 #include <graphene/net/node.hpp>
 #include <graphene/net/exceptions.hpp>
 
-#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/database/database_exceptions.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/network/resolve.hpp>

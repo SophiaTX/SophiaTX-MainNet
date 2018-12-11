@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/block_log_info/block_log_info_objects.hpp>
 
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/global_property_object.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
