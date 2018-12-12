@@ -111,7 +111,6 @@ fc::sha256 multiparty_messaging_plugin_impl::extract_key( const std::map<public_
 
 void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operation& op )
 {
-   account_name_type sender = op.sender;
    group_meta message_meta = fc::json::from_string(&op.json[ 0 ]).as<group_meta>();
 
    if( message_meta.iv ) //message sent to the group
