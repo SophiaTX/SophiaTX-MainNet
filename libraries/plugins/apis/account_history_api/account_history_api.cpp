@@ -43,6 +43,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_transaction )
 #ifdef SKIP_BY_TX_ID
    FC_ASSERT( false, "This node's operator has disabled operation indexing by transaction_id" );
 #else
+   FC_ASSERT( args.id != sophiatx::protocol::transaction_id_type(), "Invalid id parameter" );
    const auto& idx = _db.get_index< chain::operation_index, chain::by_transaction_id >();
    auto itr = idx.lower_bound( args.id );
    if( itr != idx.end() && itr->trx_id == args.id )

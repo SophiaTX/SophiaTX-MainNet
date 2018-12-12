@@ -110,7 +110,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
       void add_api_subscribe_method( const string& api_name, const string& method_name );
 
       void send_ws_notice( uint64_t registration_id, uint64_t subscription_id, fc::variant& message);
-      string call( const string& body );
+      string call( const string& body, bool& is_error);
       string call( const string& message, std::function<void(const string& )> callback);
 
    private:
