@@ -80,7 +80,7 @@ void register_plugins()
    
    appbase::app().register_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >();
    
-   appbase::app().register_plugin< sophiatx::plugins::multiparty_messaging_plugin::multiparty_messaging_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::multiparty_messaging::multiparty_messaging_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
    

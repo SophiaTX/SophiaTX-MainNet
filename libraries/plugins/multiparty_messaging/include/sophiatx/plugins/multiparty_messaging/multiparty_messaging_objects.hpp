@@ -2,7 +2,7 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <boost/multi_index/composite_key.hpp>
 
-namespace sophiatx { namespace plugins { namespace multiparty_messaging_plugin {
+namespace sophiatx { namespace plugins { namespace multiparty_messaging {
 
 using namespace std;
 using namespace sophiatx::chain;
@@ -132,7 +132,7 @@ typedef multi_index_container<
                member < message_object, account_name_type, &message_object::group_name >,
                member < message_object, uint32_t, &message_object::sequence >
             >,
-            composite_key_compare< std::less< account_name_type >, std::greater<uint64_t> >
+            composite_key_compare< std::less< account_name_type >, std::less<uint64_t> >
       >
    >,
    allocator< message_object >
@@ -152,11 +152,11 @@ typedef multi_index_container<
 } } } // sophiatx::plugins::multiparty_messaging
 
 
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_op, (version)(type)(group_name)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_meta, (sender)(recipient)(iv)(data))
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::group_object, (id)(group_name)(current_group_name)(description)(members)(admin)(group_key)(current_seq) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::message_wrapper, (type)(message_data)(operation_data) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_op, (version)(type)(group_name)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_meta, (sender)(recipient)(iv)(data))
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_object, (id)(group_name)(current_group_name)(description)(members)(admin)(group_key)(current_seq) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::message_wrapper, (type)(message_data)(operation_data) )
 
-CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging_plugin::message_object, sophiatx::plugins::multiparty_messaging_plugin::message_index )
-CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging_plugin::group_object, sophiatx::plugins::multiparty_messaging_plugin::group_index )
+CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging::message_object, sophiatx::plugins::multiparty_messaging::message_index )
+CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging::group_object, sophiatx::plugins::multiparty_messaging::group_index )

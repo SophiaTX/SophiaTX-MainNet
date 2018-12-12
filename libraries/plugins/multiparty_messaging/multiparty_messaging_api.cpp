@@ -4,7 +4,7 @@
 #include <sophiatx/chain/account_object.hpp>
 #include <fc/crypto/aes.hpp>
 
-namespace sophiatx { namespace plugins { namespace multiparty_messaging_plugin {
+namespace sophiatx { namespace plugins { namespace multiparty_messaging {
 
 namespace detail {
 
@@ -132,9 +132,11 @@ list_my_groups_return  multiparty_messaging_api_impl::list_my_groups(const list_
    list_my_groups_return ret;
    FC_ASSERT(args.count<1000);
    const auto& group_idx = _db.get_index< group_index >().indices().get< by_group_name >();
-   const auto& group_itr = group_idx.lower_bound(args.start);
-   while( group_itr != group_idx.end() && ret.size() < args.count)
+   auto group_itr = group_idx.lower_bound(args.start);
+   while( group_itr != group_idx.end() && ret.size() < args.count) {
       ret.push_back(*group_itr);
+      group_itr++;
+   }
    return ret;
 }
 
@@ -143,9 +145,11 @@ list_messages_return  multiparty_messaging_api_impl::list_messages(const list_me
    list_messages_return ret;
    FC_ASSERT(args.count<1000);
    const auto& message_idx = _db.get_index< message_index >().indices().get< by_group_seq >();
-   const auto& message_itr = message_idx.find( std::make_tuple(args.group_name, args.start));
-   while( message_itr != message_idx.end() && message_itr->group_name == args.group_name && ret.size() < args.count)
+   auto message_itr = message_idx.find( std::make_tuple(args.group_name, args.start));
+   while( message_itr != message_idx.end() && message_itr->group_name == args.group_name && ret.size() < args.count) {
       ret.push_back(*message_itr);
+      message_itr++;
+   }
    return ret;
 }
 
@@ -277,7 +281,7 @@ delete_group_participants_return  multiparty_messaging_api_impl::delete_group_pa
          vector<char> encrypted_key = fc::aes_encrypt( sc, new_group_key );
          g_op.new_key[member.memo_key] = encrypted_key;
       }
-      ret = encode_and_pack(g_ob->group_key, iv, g_op);
+      ret[g_ob->current_group_name] = encode_and_pack(g_ob->group_key, iv, g_op);
    }
 
    return ret;
@@ -309,7 +313,7 @@ update_group_return  multiparty_messaging_api_impl::update_group(const update_gr
       vector<char> encrypted_key = fc::aes_encrypt( g_ob->group_key, iv, new_group_key );
       g_op.new_key[public_key_type()] = encrypted_key;
 
-      ret = encode_and_pack(g_ob->group_key, iv, g_op);
+      ret[g_ob->current_group_name] = encode_and_pack(g_ob->group_key, iv, g_op);
    }
    return ret;
 }
@@ -331,7 +335,7 @@ disband_group_return  multiparty_messaging_api_impl::disband_group(const disband
       fc::sha256 iv( iv_v.data(), iv_v.size());
       group_op g_op( "disband", g_ob->group_name, "", {}, admin.memo_key);
 
-      ret = encode_and_pack(g_ob->group_key, iv, g_op);
+      ret[g_ob->current_group_name] = encode_and_pack(g_ob->group_key, iv, g_op);
    }
    return ret;
 }
@@ -359,7 +363,7 @@ send_group_message_return  multiparty_messaging_api_impl::send_group_message(con
       message_meta.data.clear();
       message_meta.data = encoded_message;
       message_meta.iv = iv;
-      ret = message_meta;
+      ret[g_ob->current_group_name] = message_meta;
    }
    return ret;
 }
@@ -376,4 +380,4 @@ multiparty_messaging_api::~multiparty_messaging_api() {}
 DEFINE_READ_APIS( multiparty_messaging_api, (get_group) (get_group_name) (list_my_groups) (list_messages)
                    (create_group) (add_group_participants) (delete_group_participants) (update_group) (disband_group) (send_group_message))
 
-} } } // sophiatx::plugins::multiparty_messaging_plugin
+} } } // sophiatx::plugins::multiparty_messaging

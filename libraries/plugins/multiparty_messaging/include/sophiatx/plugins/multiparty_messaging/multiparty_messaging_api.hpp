@@ -1,6 +1,7 @@
 #pragma once
 #include <sophiatx/plugins/json_rpc/utility.hpp>
 #include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_objects.hpp>
+#include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_plugin.hpp>
 
 #include <sophiatx/protocol/types.hpp>
 
@@ -8,7 +9,7 @@
 #include <fc/variant.hpp>
 #include <fc/vector.hpp>
 
-namespace sophiatx { namespace plugins { namespace multiparty_messaging_plugin {
+namespace sophiatx { namespace plugins { namespace multiparty_messaging {
 
 namespace detail
 {
@@ -107,7 +108,7 @@ struct delete_group_participants_args{
    bool check_members;
 };
 
-typedef group_meta delete_group_participants_return;
+typedef std::map<account_name_type, group_meta> delete_group_participants_return;
 
 struct update_group_args{
    account_name_type group_name;
@@ -115,14 +116,14 @@ struct update_group_args{
    account_name_type admin;
 };
 
-typedef group_meta update_group_return;
+typedef std::map<account_name_type, group_meta> update_group_return;
 
 struct disband_group_args{
    account_name_type group_name;
    account_name_type admin;
 };
 
-typedef group_meta disband_group_return;
+typedef std::map<account_name_type, group_meta> disband_group_return;
 
 struct send_group_message_args{
    account_name_type group_name;
@@ -130,7 +131,7 @@ struct send_group_message_args{
    vector<char> data;
 };
 
-typedef group_meta send_group_message_return;
+typedef std::map<account_name_type, group_meta> send_group_message_return;
 
 
 class multiparty_messaging_api
@@ -146,31 +147,31 @@ class multiparty_messaging_api
       std::unique_ptr< detail::multiparty_messaging_api_impl > my;
 };
 
-} } } // sophiatx::plugins::multiparty_messaging_plugin
+} } } // sophiatx::plugins::multiparty_messaging
 
 
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::api_group_object, (group_name)(current_group_name)(description)(members)(admin)(group_key)(messages) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::api_message_object, (group_name)(sender)(recipients)(data)(system_message)(sequence) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::api_group_object, (group_name)(current_group_name)(description)(members)(admin)(group_key)(messages) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::api_message_object, (group_name)(sender)(recipients)(data)(system_message)(sequence) )
 
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::get_group_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::get_group_args,
             (group_name) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::get_group_name_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::get_group_name_args,
             (current_group_name) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::list_my_groups_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::list_my_groups_args,
             (start)(count) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::list_messages_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::list_messages_args,
             (group_name)(start)(count) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::create_group_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::create_group_args,
             (members)(description)(admin) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::create_group_return,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::create_group_return,
             (group_name)(operation_payloads) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::add_group_participants_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::add_group_participants_args,
             (group_name)(new_members)(admin)(check_members) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::delete_group_participants_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::delete_group_participants_args,
             (group_name)(deleted_members)(admin)(check_members) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::update_group_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::update_group_args,
             (group_name)(description)(admin) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::disband_group_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::disband_group_args,
             (group_name)(admin) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging_plugin::send_group_message_args,
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::send_group_message_args,
             (group_name)(sender)(data) )

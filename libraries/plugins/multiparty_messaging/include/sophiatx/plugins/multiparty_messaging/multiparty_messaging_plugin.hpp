@@ -6,7 +6,7 @@
 
 #define SOPHIATX_MPM_PLUGIN_NAME "multiparty_messaging"
 
-namespace sophiatx { namespace plugins { namespace multiparty_messaging_plugin {
+namespace sophiatx { namespace plugins { namespace multiparty_messaging {
 
 namespace detail { class multiparty_messaging_plugin_impl; }
 
@@ -47,12 +47,12 @@ class multiparty_messaging_plugin : public plugin< multiparty_messaging_plugin >
       virtual void plugin_shutdown() override;
 
       uint64_t app_id;
+      std::shared_ptr< class multiparty_messaging_api > api;
    private:
       std::shared_ptr< detail::multiparty_messaging_plugin_impl > my;
-      std::shared_ptr< class multiparty_messaging_api > api;
       std::map< sophiatx::protocol::public_key_type, fc::ecc::private_key > _private_keys;
       std::set< sophiatx::protocol::account_name_type >                     _accounts;
 };
 
-} } } //sophiatx::plugins::multiparty_messaging_plugin
+} } } //sophiatx::plugins::multiparty_messaging
 

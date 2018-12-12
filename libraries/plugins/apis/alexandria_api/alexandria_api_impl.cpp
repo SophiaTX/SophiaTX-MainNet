@@ -82,6 +82,15 @@ void alexandria_api_impl::set_subscribe_api(const shared_ptr<subscribe::subscrib
    _subscribe_api = subscribe_api;
 }
 
+const shared_ptr<multiparty_messaging::multiparty_messaging_api> &alexandria_api_impl::get_mpm_api() const {
+   return _mpm_api;
+}
+
+void alexandria_api_impl::set_mpm_api(const shared_ptr<multiparty_messaging::multiparty_messaging_api> &multiparty_messaging_api) {
+   _mpm_api = multiparty_messaging_api;
+}
+
+
 const chain_id_type &alexandria_api_impl::get_chain_id() {
    if(_chain_id == fc::sha256())
    {
@@ -1422,5 +1431,8 @@ DEFINE_API_IMPL(alexandria_api_impl, get_key_references)
 
    return result;
 }
+
+
+
 
 } } } // sophiatx::plugins::alexandria_api

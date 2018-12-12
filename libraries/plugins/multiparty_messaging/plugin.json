@@ -1,5 +1,5 @@
 {
    "plugin_name": "multiparty_messaging",
-   "plugin_namespace": "multiparty_messaging_plugin",
+   "plugin_namespace": "multiparty_messaging",
    "plugin_project": "multiparty_messaging_plugin"
 }

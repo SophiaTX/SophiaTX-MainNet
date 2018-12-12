@@ -10,7 +10,7 @@
 #include <fc/crypto/aes.hpp>
 #include <fc/io/raw.hpp>
 
-namespace sophiatx { namespace plugins { namespace multiparty_messaging_plugin {
+namespace sophiatx { namespace plugins { namespace multiparty_messaging {
 
 namespace detail {
 
@@ -83,6 +83,18 @@ fc::sha256 multiparty_messaging_plugin_impl::extract_key( const std::map<public_
          fc::sha512 sc = pk.second.get_shared_secret(sender_key);
          vector<char> key_data = fc::aes_decrypt( sc, nkm_itr->second );
          fc::sha256 key( key_data.data(), key_data.size());
+         return key;
+      }
+      //in case we are the sender, there won't be our key in the map... Let's try this:
+      if( pk.first == sender_key) {
+         auto nkm_itr = new_key_map.begin();
+         while( nkm_itr!= new_key_map.end() && nkm_itr->first == public_key_type())
+            nkm_itr++;
+         if( nkm_itr== new_key_map.end() )
+            continue;
+         fc::sha512 sc = pk.second.get_shared_secret(nkm_itr->first);
+         vector<char> key_data = fc::aes_decrypt(sc, nkm_itr->second);
+         fc::sha256 key(key_data.data(), key_data.size());
          return key;
       }
    }
@@ -167,16 +179,19 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
 
       fc::sha256 new_key = extract_key( g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender );
       FC_ASSERT(new_key!=fc::sha256());
-      _db.create<group_object>([&](group_object& go){
+      const auto& g_ob = _db.create<group_object>([&](group_object& go){
            go.group_name = g_op.group_name;
            if(g_op.new_group_name)
               go.current_group_name = *g_op.new_group_name;
+           else
+              go.current_group_name = go.group_name;
            go.members.clear();
            std::copy( g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
            go.admin = op.sender;
            go.group_key = new_key;
            from_string( go.description, g_op.description);
       });
+      save_message<string>( g_ob, op.sender, true, fc::json::to_string<group_op>(*message_content.operation_data));
    }
 }
 
@@ -241,4 +256,4 @@ void multiparty_messaging_plugin::plugin_startup() {}
 
 void multiparty_messaging_plugin::plugin_shutdown() {}
 
-} } } // sophiatx::plugins::multiparty_messaging_plugin
+} } } // sophiatx::plugins::multiparty_messaging
