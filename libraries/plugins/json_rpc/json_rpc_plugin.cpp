@@ -465,8 +465,9 @@ void json_rpc_plugin::add_api_subscribe_method( const string& api_name, const st
    my->add_api_subscribe_method( api_name, method_name );
 }
 
-string json_rpc_plugin::call( const string& message )
+string json_rpc_plugin::call( const string& message, bool& is_error)
 {
+   is_error = false;
    try
    {
       fc::variant v = fc::json::from_string( message );
@@ -480,8 +481,14 @@ string json_rpc_plugin::call( const string& message )
          {
             responses.reserve( messages.size() );
 
-            for( auto& m : messages )
-               responses.push_back( my->rpc( m, [](string s){} ) );
+            for( auto& m : messages ){
+               auto response = my->rpc( m, [](string s){} );
+               if(response.error) {
+                  is_error = true;
+               }
+               responses.push_back( std::move(response) );
+            }
+
 
             return fc::json::to_string( responses );
          }
@@ -490,18 +497,24 @@ string json_rpc_plugin::call( const string& message )
             //For example: message == "[]"
             json_rpc_response response;
             response.error = json_rpc_error( JSON_RPC_SERVER_ERROR, "Array is invalid" );
+            is_error = true;
             return fc::json::to_string( response );
          }
       }
       else
       {
-         return fc::json::to_string( my->rpc( v, [](string s){} ) );
+         const json_rpc_response response = my->rpc( v, [](string s){} );
+         if(response.error) {
+            is_error = true;
+         }
+         return fc::json::to_string( response );
       }
    }
    catch( fc::exception& e )
    {
       json_rpc_response response;
       response.error = json_rpc_error( JSON_RPC_SERVER_ERROR, e.to_string(), fc::variant( *(e.dynamic_copy_exception()) ) );
+      is_error = true;
       return fc::json::to_string( response );
    }
    catch( ... )
@@ -509,6 +522,7 @@ string json_rpc_plugin::call( const string& message )
       json_rpc_response response;
       response.error = json_rpc_error( JSON_RPC_SERVER_ERROR, "Unknown exception", fc::variant(
          fc::unhandled_exception( FC_LOG_MESSAGE( warn, "Unknown Exception" ), std::current_exception() ).to_detail_string() ) );
+      is_error = true;
       return fc::json::to_string( response );
    }
 

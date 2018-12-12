@@ -924,7 +924,8 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
 
 fc::variant json_rpc_database_fixture::get_answer( std::string& request )
 {
-   return fc::json::from_string( rpc_plugin->call( request ) );
+   bool is_error = false;
+   return fc::json::from_string( rpc_plugin->call( request, is_error ) );
 }
 
 void check_id_equal( const fc::variant& id_a, const fc::variant& id_b )
