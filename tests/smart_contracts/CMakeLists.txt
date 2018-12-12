@@ -1,5 +1,6 @@
 file(GLOB HEADERS "include/sophiatx/smart_contracts/*.hpp")
 
-add_executable( db_resource_pool_tests main.cpp db_resource_pool_tests.cpp )
-target_link_libraries( db_resource_pool_tests smart_contracts db_fixture chainbase sophiatx_chain sophiatx_protocol account_history_plugin witness_plugin debug_node_plugin fc ${PLATFORM_SPECIFIC_LIBS})
-target_include_directories( db_resource_pool_tests PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+file(GLOB UNIT_TESTS "*.cpp")
+add_executable( smart_contracts_tests ${UNIT_TESTS} )
+target_link_libraries( smart_contracts_tests smart_contracts ${PLATFORM_SPECIFIC_LIBS})
+target_include_directories( smart_contracts_tests PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
