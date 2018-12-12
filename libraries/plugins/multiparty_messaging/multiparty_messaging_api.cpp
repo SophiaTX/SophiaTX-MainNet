@@ -85,7 +85,7 @@ group_meta multiparty_messaging_api_impl::encode_and_pack(const fc::sha512& shar
 
 string multiparty_messaging_api_impl::suggest_group_name( const string& description)const
 {
-   string seed = description + (string)fc::time_point::now();
+   string seed = description + fc::ecc::private_key::generate().get_secret().str();
    auto hash = fc::ripemd160::hash(seed);
    unsigned char data[21];
    memcpy(data, hash.data(), 20);
@@ -221,7 +221,6 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
       message_meta.recipient = member.memo_key;
       ret[member.name] = message_meta;
    }
-
    {
       vector<char> iv_v = generate_random_key();
       fc::sha256 iv( iv_v.data(), iv_v.size());
@@ -239,7 +238,49 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
 
 delete_group_participants_return  multiparty_messaging_api_impl::delete_group_participants(const delete_group_participants_args& args) const
 {
+   delete_group_participants_return ret;
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
+   FC_ASSERT( g_ob, "Group not found");
+   FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
+   const account_object& admin = _db.get_account(args.admin);
 
+   account_name_type new_group_name = suggest_group_name(to_string(g_ob->description));
+   vector<char> new_group_key = generate_random_key();
+   auto pk_itr = _plugin._private_keys.find(admin.memo_key);
+   FC_ASSERT( pk_itr != _plugin._private_keys.end(), "the respective key not imported" );
+
+   vector<account_name_type> all_members;
+   vector<account_name_type> to_remove;
+   vector<account_name_type> new_members;
+
+   std::copy(g_ob->members.begin(), g_ob->members.end(), std::back_inserter(all_members));
+   std::sort(all_members.begin(), all_members.end());
+   auto last1 = std::unique(all_members.begin(), all_members.end());
+   all_members.erase(last1, all_members.end());
+
+   std::copy(args.deleted_members.begin(), args.deleted_members.end(), std::back_inserter(to_remove));
+   std::sort(to_remove.begin(), to_remove.end());
+   auto last2 = std::unique(to_remove.begin(), to_remove.end());
+   to_remove.erase(last2, to_remove.end());
+
+   std::set_difference (all_members.begin(), all_members.end(), to_remove.begin(), to_remove.end(), std::back_inserter(new_members));
+
+   {
+      vector<char> iv_v = generate_random_key();
+      fc::sha256 iv( iv_v.data(), iv_v.size());
+      group_op g_op( "update", g_ob->group_name, to_string(g_ob->description), all_members, admin.memo_key);
+      g_op.new_group_name = new_group_name;
+      for( auto m: new_members ){
+         const account_object& member = _db.get_account(m);
+         fc::sha512 sc = pk_itr->second.get_shared_secret(member.memo_key);
+         vector<char> encrypted_key = fc::aes_encrypt( sc, new_group_key );
+         g_op.new_key[member.memo_key] = encrypted_key;
+      }
+      ret = encode_and_pack(g_ob->group_key, iv, g_op);
+   }
+
+   return ret;
 }
 
 
@@ -321,7 +362,6 @@ send_group_message_return  multiparty_messaging_api_impl::send_group_message(con
       ret = message_meta;
    }
    return ret;
-
 }
 
 } // detail
