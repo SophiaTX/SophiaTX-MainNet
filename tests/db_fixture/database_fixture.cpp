@@ -7,9 +7,10 @@
 #include <sophiatx/chain/history_object.hpp>
 #include <sophiatx/plugins/account_history/account_history_plugin.hpp>
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
-#include <sophiatx/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 #include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
+
 
 #include <fc/crypto/digest.hpp>
 #include <fc/smart_ref_impl.hpp>
@@ -57,6 +58,7 @@ clean_database_fixture::clean_database_fixture()
 
    db_plugin->logging = false;
    appbase::app().initialize<
+      sophiatx::plugins::chain::chain_plugin_full,
       sophiatx::plugins::account_history::account_history_plugin,
       sophiatx::plugins::debug_node::debug_node_plugin,
       sophiatx::plugins::witness::witness_plugin
@@ -197,6 +199,7 @@ private_database_fixture::private_database_fixture()
 
       db_plugin->logging = false;
       appbase::app().initialize<
+            sophiatx::plugins::chain::chain_plugin_full,
             sophiatx::plugins::account_history::account_history_plugin,
             sophiatx::plugins::debug_node::debug_node_plugin,
             sophiatx::plugins::witness::witness_plugin
@@ -281,6 +284,7 @@ live_database_fixture::live_database_fixture()
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
 
       appbase::app().initialize<
+         sophiatx::plugins::chain::chain_plugin_full,
          sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
          >( argc, argv );
 
@@ -339,18 +343,6 @@ asset_symbol_type database_fixture::name_to_asset_symbol( const std::string& nam
    return asset_symbol_type::from_string(name);
 
 }
-
-#ifdef SOPHIATX_ENABLE_SMT
-asset_symbol_type database_fixture::get_new_smt_symbol( uint8_t token_decimal_places, chain::database* db )
-{
-   // The list of available nais is not dependent on SMT desired precision (token_decimal_places).
-   auto available_nais =  db->get_smt_next_identifier();
-   FC_ASSERT( available_nais.size() > 0, "No available nai returned by get_smt_next_identifier." );
-   const asset_symbol_type& new_nai = available_nais[0];
-   // Note that token's precision is needed now, when creating actual symbol.
-   return asset_symbol_type::from_nai( new_nai.to_nai(), token_decimal_places );
-}
-#endif
 
 string database_fixture::generate_anon_acct_name()
 {
@@ -691,144 +683,9 @@ void database_fixture::validate_database( void )
    try
    {
       db->validate_invariants();
-#ifdef SOPHIATX_ENABLE_SMT
-      db->validate_smt_invariants();
-#endif
    }
    FC_LOG_AND_RETHROW();
 }
-
-#ifdef SOPHIATX_ENABLE_SMT
-
-template< typename T >
-asset_symbol_type t_smt_database_fixture< T >::create_smt( const string& account_name, const fc::ecc::private_key& key,
-   uint8_t token_decimal_places )
-{
-   smt_create_operation op;
-   signed_transaction tx;
-   try
-   {
-      fund( AN(account_name), 10 * 1000 * 1000 );
-      this->generate_block();
-
-      set_price_feed( price( ASSET( "1.000000 TBD" ), ASSET( "1.000000 TESTS" ) ) );
-      convert( account_name, ASSET( "5000.000000 TESTS" ) );
-
-      op.symbol = this->get_new_smt_symbol( token_decimal_places, this->db );
-      op.precision = op.symbol.decimals();
-      op.smt_creation_fee = ASSET( "1000.000000 TBD" );
-      op.control_account = account_name;
-
-      tx.operations.push_back( op );
-      tx.set_expiration( this->db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( key, this->db->get_chain_id() );
-
-      this->db->push_transaction( tx, 0 );
-
-      this->generate_block();
-   }
-   FC_LOG_AND_RETHROW();
-
-   return op.symbol;
-}
-
-void sub_set_create_op(smt_create_operation* op, account_name_type control_acount)
-{
-   op->precision = op->symbol.decimals();
-   op->smt_creation_fee = ASSET( "1000.000000 TBD" );
-   op->control_account = control_acount;
-}
-
-void set_create_op(chain::database* db, smt_create_operation* op, account_name_type control_account, uint8_t token_decimal_places)
-{
-   op->symbol = database_fixture::get_new_smt_symbol( token_decimal_places, db );
-   sub_set_create_op(op, control_account);
-}
-
-void set_create_op(smt_create_operation* op, account_name_type control_account, uint32_t token_nai, uint8_t token_decimal_places)
-{
-   op->symbol.from_nai(token_nai, token_decimal_places);
-   sub_set_create_op(op, control_account);
-}
-
-template< typename T >
-std::array<asset_symbol_type, 3> t_smt_database_fixture< T >::create_smt_3(const char* control_account_name, const fc::ecc::private_key& key)
-{
-   smt_create_operation op0;
-   smt_create_operation op1;
-   smt_create_operation op2;
-
-   try
-   {
-      fund( control_account_name, 10 * 1000 * 1000 );
-      this->generate_block();
-
-      set_price_feed( price( ASSET( "1.000000 TBD" ), ASSET( "1.000000 TESTS" ) ) );
-      convert( control_account_name, ASSET( "5000.000000 TESTS" ) );
-
-      set_create_op(this->db, &op0, control_account_name, 0);
-      set_create_op(this->db, &op1, control_account_name, 1);
-      set_create_op(this->db, &op2, control_account_name, 1);
-
-      signed_transaction tx;
-      tx.operations.push_back( op0 );
-      tx.operations.push_back( op1 );
-      tx.operations.push_back( op2 );
-      tx.set_expiration( this->db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      tx.sign( key, this->db->get_chain_id() );
-      this->db->push_transaction( tx, 0 );
-
-      this->generate_block();
-
-      std::array<asset_symbol_type, 3> retVal;
-      retVal[0] = op0.symbol;
-      retVal[1] = op1.symbol;
-      retVal[2] = op2.symbol;
-      return retVal;
-   }
-   FC_LOG_AND_RETHROW();
-}
-
-void push_invalid_operation(const operation& invalid_op, const fc::ecc::private_key& key, database* db)
-{
-   signed_transaction tx;
-   tx.operations.push_back( invalid_op );
-   tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-   tx.sign( key, db->get_chain_id(), fc::ecc::bip_0062 );
-   SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, database::skip_transaction_dupe_check ), fc::assert_exception );
-}
-
-template< typename T >
-void t_smt_database_fixture< T >::create_invalid_smt( const char* control_account_name, const fc::ecc::private_key& key )
-{
-   // Fail due to precision too big.
-   smt_create_operation op_precision;
-   SOPHIATX_REQUIRE_THROW( set_create_op(this->db, &op_precision, control_account_name, SOPHIATX_ASSET_MAX_DECIMALS + 1), fc::assert_exception );
-}
-
-template< typename T >
-void t_smt_database_fixture< T >::create_conflicting_smt( const asset_symbol_type existing_smt, const char* control_account_name,
-   const fc::ecc::private_key& key )
-{
-   // Fail due to the same nai & precision.
-   smt_create_operation op_same;
-   set_create_op( &op_same, control_account_name, existing_smt.to_nai(), existing_smt.decimals() );
-   push_invalid_operation( op_same, key, this->db );
-   // Fail due to the same nai (though different precision).
-   smt_create_operation op_same_nai;
-   set_create_op( &op_same_nai, control_account_name, existing_smt.to_nai(), existing_smt.decimals() == 0 ? 1 : 0 );
-   push_invalid_operation (op_same_nai, key, this->db );
-}
-
-template asset_symbol_type t_smt_database_fixture< clean_database_fixture >::create_smt( const string& account_name, const fc::ecc::private_key& key, uint8_t token_decimal_places );
-
-template asset_symbol_type t_smt_database_fixture< database_fixture >::create_smt( const string& account_name, const fc::ecc::private_key& key, uint8_t token_decimal_places );
-
-template void t_smt_database_fixture< clean_database_fixture >::create_invalid_smt( const char* control_account_name, const fc::ecc::private_key& key );
-template void t_smt_database_fixture< clean_database_fixture >::create_conflicting_smt( const asset_symbol_type existing_smt, const char* control_account_name, const fc::ecc::private_key& key );
-template std::array<asset_symbol_type, 3> t_smt_database_fixture< clean_database_fixture >::create_smt_3( const char* control_account_name, const fc::ecc::private_key& key );
-
-#endif
 
 json_rpc_database_fixture::json_rpc_database_fixture()
 {
@@ -854,6 +711,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
 
    db_plugin->logging = false;
    appbase::app().initialize<
+      sophiatx::plugins::chain::chain_plugin_full,
       sophiatx::plugins::account_history::account_history_plugin,
       sophiatx::plugins::debug_node::debug_node_plugin,
       sophiatx::plugins::witness::witness_plugin,

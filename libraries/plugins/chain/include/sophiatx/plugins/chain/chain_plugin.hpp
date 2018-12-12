@@ -22,7 +22,10 @@ class chain_plugin : public plugin< chain_plugin >
 public:
    APPBASE_PLUGIN_REQUIRES()
 
-   chain_plugin() {}
+   chain_plugin() {
+      FC_ASSERT(false, "Never use this constructor");
+   }
+
    virtual ~chain_plugin() {}
 
    static const std::string& name() { static std::string name = SOPHIATX_CHAIN_PLUGIN_NAME; return name; }

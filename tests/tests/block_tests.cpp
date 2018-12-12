@@ -31,6 +31,7 @@
 #include <sophiatx/chain/history_object.hpp>
 
 #include <sophiatx/plugins/account_history/account_history_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 
 #include <sophiatx/utilities/tempdir.hpp>
 
@@ -750,6 +751,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       init_account_pub_key = init_account_priv_key.get_public_key();
 
       appbase::app().initialize<
+         sophiatx::plugins::chain::chain_plugin_full,
          sophiatx::plugins::account_history::account_history_plugin,
          sophiatx::plugins::debug_node::debug_node_plugin
       >( argc, argv );

@@ -65,8 +65,8 @@ int main( int argc, char** argv )
       appbase::app().set_version_string( version_string() );
 
       bool initialized = appbase::app().initialize<
-                     sophiatx::plugins::json_rpc::json_rpc_plugin,
                      sophiatx::plugins::chain::chain_plugin_lite,
+                     sophiatx::plugins::json_rpc::json_rpc_plugin,
                      sophiatx::plugins::webserver::webserver_plugin >( argc, argv );
 
       info();
