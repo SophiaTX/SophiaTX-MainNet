@@ -52,6 +52,7 @@ clean_database_fixture::clean_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
+   appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
    db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
@@ -193,6 +194,7 @@ private_database_fixture::private_database_fixture()
             std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
       }
 
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
       appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
@@ -280,6 +282,7 @@ live_database_fixture::live_database_fixture()
       _chain_dir = fc::current_path() / "test_blockchain";
       FC_ASSERT( fc::exists( _chain_dir ), "Requires blockchain to test on in ./test_blockchain" );
 
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
 
@@ -701,6 +704,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
+   appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
    db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();

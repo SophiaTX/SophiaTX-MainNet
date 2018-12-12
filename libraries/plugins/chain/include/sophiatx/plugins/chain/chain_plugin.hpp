@@ -22,22 +22,32 @@ class chain_plugin : public plugin< chain_plugin >
 public:
    APPBASE_PLUGIN_REQUIRES()
 
-   chain_plugin() {
-      FC_ASSERT(false, "Never use this constructor");
-   }
+   chain_plugin() {}
 
    virtual ~chain_plugin() {}
 
    static const std::string& name() { static std::string name = SOPHIATX_CHAIN_PLUGIN_NAME; return name; }
 
-   void set_program_options(options_description &cli, options_description &cfg) override {}
-   void plugin_initialize(const variables_map &options) override {}
-   void plugin_startup() override {}
-   void plugin_shutdown() override {}
+   void set_program_options(options_description &cli, options_description &cfg) override {
+      FC_ASSERT(false, "Not implemented for base class of chain_plugin");
+   }
+
+   void plugin_initialize(const variables_map &options) override {
+      FC_ASSERT(false, "Not implemented for base class of chain_plugin");
+   }
+
+   void plugin_startup() override {
+      FC_ASSERT(false, "Not implemented for base class of chain_plugin");
+   }
+
+   void plugin_shutdown() override {
+      FC_ASSERT(false, "Not implemented for base class of chain_plugin");
+   }
 
    virtual bool accept_block( const sophiatx::chain::signed_block& block, bool currently_syncing, uint32_t skip ) {
       FC_ASSERT(false, "Not implemented for lite version of chain_plugin");
    }
+
    virtual void accept_transaction( const sophiatx::chain::signed_transaction& trx ) {
       FC_ASSERT(false, "Not implemented for lite version of chain_plugin");
    }

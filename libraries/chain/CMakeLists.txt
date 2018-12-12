@@ -1,12 +1,13 @@
-file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp")
+file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp" "include/sophiatx/chain/database/*.hpp")
 
 ## SORT .cpp by most likely to change / break compile
 add_library( sophiatx_chain
 
              # As database takes the longest to compile, start it first
              database.cpp
+             hybrid_database.cpp
 
-        sophiatx_evaluator.cpp
+             sophiatx_evaluator.cpp
              sophiatx_objects.cpp
 
              witness_schedule.cpp
@@ -16,7 +17,7 @@ add_library( sophiatx_chain
              block_log.cpp
              economics.cpp
 
-        util/impacted.cpp
+             util/impacted.cpp
 
              ${HEADERS}
        )

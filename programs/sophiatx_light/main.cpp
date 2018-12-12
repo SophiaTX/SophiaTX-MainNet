@@ -61,6 +61,7 @@ int main( int argc, char** argv )
 
       appbase::app().add_program_options( bpo::options_description(), options );
 
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_lite>();
       sophiatx::plugins::register_plugins();
       appbase::app().set_version_string( version_string() );
 

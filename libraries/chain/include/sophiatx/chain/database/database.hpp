@@ -412,9 +412,6 @@ namespace sophiatx { namespace chain {
          void check_free_memory( bool force_print, uint32_t current_block_num );
 
 #ifdef IS_TEST_NET
-         bool liquidity_rewards_enabled = true;
-         bool skip_price_feed_limit_check = true;
-         bool skip_transaction_delta_check = true;
          bool disable_low_mem_warning = true;
 #endif
 
