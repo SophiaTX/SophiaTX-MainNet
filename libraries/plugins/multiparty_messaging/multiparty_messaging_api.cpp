@@ -52,7 +52,36 @@ class multiparty_messaging_api_impl
 private:
    vector<char> generate_random_key() const;
    string suggest_group_name( const string& description)const;
+   group_meta encode_and_pack(const fc::sha256& key, const fc::sha256& iv, const group_op& op ) const;
+   group_meta encode_and_pack(const fc::sha512& shared_secret, const group_op& op )const;
 };
+
+group_meta multiparty_messaging_api_impl::encode_and_pack(const fc::sha256& key, const fc::sha256& iv, const group_op& op )const
+{
+   message_wrapper message_content;
+   message_content.type = message_wrapper::message_type::group_operation;
+   message_content.operation_data = op;
+
+   vector<char> encoded_message = encode_message(message_content, iv, key);
+   group_meta message_meta;
+   message_meta.data.clear();
+   message_meta.data = encoded_message;
+   message_meta.iv = iv;
+   return message_meta;
+}
+
+group_meta multiparty_messaging_api_impl::encode_and_pack(const fc::sha512& shared_secret, const group_op& op )const
+{
+   message_wrapper message_content;
+   message_content.type = message_wrapper::message_type::group_operation;
+   message_content.operation_data = op;
+
+   vector<char> encoded_message = encode_message(message_content, shared_secret);
+   group_meta message_meta;
+   message_meta.data.clear();
+   message_meta.data = encoded_message;
+   return message_meta;
+}
 
 string multiparty_messaging_api_impl::suggest_group_name( const string& description)const
 {
@@ -144,14 +173,7 @@ create_group_return  multiparty_messaging_api_impl::create_group(const create_gr
       vector<char> encrypted_key = fc::aes_encrypt( sc, group_key );
       g_op.new_key[member.memo_key] = encrypted_key;
 
-      message_wrapper message_content;
-      message_content.type = message_wrapper::message_type::group_operation;
-      message_content.operation_data = g_op;
-
-      vector<char> encoded_message = encode_message(message_content, sc);
-      group_meta message_meta;
-      message_meta.data.clear();
-      message_meta.data = encoded_message;
+      group_meta message_meta = encode_and_pack(sc, g_op);
       message_meta.sender = admin.memo_key;
       message_meta.recipient = member.memo_key;
       ret.operation_payloads[member.name] = message_meta;
@@ -194,14 +216,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
       vector<char> encrypted_key = fc::aes_encrypt( sc, new_group_key );
       g_op.new_key[member.memo_key] = encrypted_key;
 
-      message_wrapper message_content;
-      message_content.type = message_wrapper::message_type::group_operation;
-      message_content.operation_data = g_op;
-
-      vector<char> encoded_message = encode_message(message_content, sc);
-      group_meta message_meta;
-      message_meta.data.clear();
-      message_meta.data = encoded_message;
+      group_meta message_meta = encode_and_pack(sc, g_op);
       message_meta.sender = admin.memo_key;
       message_meta.recipient = member.memo_key;
       ret[member.name] = message_meta;
@@ -215,15 +230,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
       vector<char> encrypted_key = fc::aes_encrypt( g_ob->group_key, iv, new_group_key );
       g_op.new_key[public_key_type()] = encrypted_key;
 
-      message_wrapper message_content;
-      message_content.type = message_wrapper::message_type::group_operation;
-      message_content.operation_data = g_op;
-
-      vector<char> encoded_message = encode_message(message_content, iv, g_ob->group_key);
-      group_meta message_meta;
-      message_meta.data.clear();
-      message_meta.data = encoded_message;
-      message_meta.iv = iv;
+      group_meta message_meta = encode_and_pack(g_ob->group_key, iv, g_op);
       ret[g_ob->current_group_name] = message_meta;
    }
 
@@ -232,7 +239,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
 
 delete_group_participants_return  multiparty_messaging_api_impl::delete_group_participants(const delete_group_participants_args& args) const
 {
-   
+
 }
 
 
@@ -261,16 +268,7 @@ update_group_return  multiparty_messaging_api_impl::update_group(const update_gr
       vector<char> encrypted_key = fc::aes_encrypt( g_ob->group_key, iv, new_group_key );
       g_op.new_key[public_key_type()] = encrypted_key;
 
-      message_wrapper message_content;
-      message_content.type = message_wrapper::message_type::group_operation;
-      message_content.operation_data = g_op;
-
-      vector<char> encoded_message = encode_message(message_content, iv, g_ob->group_key);
-      group_meta message_meta;
-      message_meta.data.clear();
-      message_meta.data = encoded_message;
-      message_meta.iv = iv;
-      ret = message_meta;
+      ret = encode_and_pack(g_ob->group_key, iv, g_op);
    }
    return ret;
 }
@@ -292,16 +290,7 @@ disband_group_return  multiparty_messaging_api_impl::disband_group(const disband
       fc::sha256 iv( iv_v.data(), iv_v.size());
       group_op g_op( "disband", g_ob->group_name, "", {}, admin.memo_key);
 
-      message_wrapper message_content;
-      message_content.type = message_wrapper::message_type::group_operation;
-      message_content.operation_data = g_op;
-
-      vector<char> encoded_message = encode_message(message_content, iv, g_ob->group_key);
-      group_meta message_meta;
-      message_meta.data.clear();
-      message_meta.data = encoded_message;
-      message_meta.iv = iv;
-      ret = message_meta;
+      ret = encode_and_pack(g_ob->group_key, iv, g_op);
    }
    return ret;
 }
