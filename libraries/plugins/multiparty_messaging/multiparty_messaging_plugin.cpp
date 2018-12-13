@@ -177,16 +177,14 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
             group_op g_op = *message_content.operation_data;
             FC_ASSERT(g_op.version == 1 && g_op.type == "add");
             //check that this group is new to us
-            if( find_group(g_op.group_name)) return;
+            FC_ASSERT(g_op.new_group_name);
+            if( find_group(*g_op.new_group_name)) return;
 
             fc::sha256 new_key = extract_key(g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender);
             FC_ASSERT(new_key != fc::sha256());
             const auto &g_ob = _db.create<group_object>([ & ](group_object &go) {
-                 go.group_name = g_op.group_name;
-                 if( g_op.new_group_name )
-                    go.current_group_name = *g_op.new_group_name;
-                 else
-                    go.current_group_name = go.group_name;
+                 go.group_name = *g_op.new_group_name;
+                 go.current_group_name = go.group_name;
                  go.members.clear();
                  std::copy(g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
                  go.admin = op.sender;

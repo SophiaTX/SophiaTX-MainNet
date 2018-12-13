@@ -26,18 +26,19 @@ typedef vector<char> encrypted_key;
 struct group_op{
    group_op(){}
    group_op( string _type, account_name_type _name, string _description, vector<account_name_type> _user_list, public_key_type _senders_pubkey ):
-            type(_type), group_name(_name), description (_description), senders_pubkey(_senders_pubkey)
+            type(_type), description (_description), senders_pubkey(_senders_pubkey)
    {
       if(_user_list.size()){
          vector<account_name_type> temp;
          std::copy(_user_list.begin(), _user_list.end(), std::back_inserter(temp));
          user_list = std::move(temp);
       }
+      if(_name.size())
+         new_group_name = _name;
    }
 
    uint32_t                   version = 1;
    string                     type; //"add" "disband" "update"
-   account_name_type          group_name;
    string                     description;
    optional<account_name_type> new_group_name;
    optional<vector<account_name_type>>   user_list;
@@ -152,7 +153,7 @@ typedef multi_index_container<
 } } } // sophiatx::plugins::multiparty_messaging
 
 
-FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_op, (version)(type)(group_name)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
+FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_op, (version)(type)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
 FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_meta, (sender)(recipient)(iv)(data))
 FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_object, (id)(group_name)(current_group_name)(description)(members)(admin)(group_key)(current_seq) )
 FC_REFLECT( sophiatx::plugins::multiparty_messaging::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )

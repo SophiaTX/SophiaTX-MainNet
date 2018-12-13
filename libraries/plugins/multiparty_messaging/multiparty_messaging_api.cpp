@@ -213,8 +213,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
 
    for( auto m: new_members ){
       const account_object& member = _db.get_account(m);
-      group_op g_op( "add", g_ob->group_name, to_string(g_ob->description), all_members, admin.memo_key);
-      g_op.new_group_name = new_group_name;
+      group_op g_op( "add", new_group_name, to_string(g_ob->description), all_members, admin.memo_key);
 
       fc::sha512 sc = pk_itr->second.get_shared_secret(member.memo_key);
       vector<char> encrypted_key = fc::aes_encrypt( sc, new_group_key );
@@ -228,8 +227,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
    {
       vector<char> iv_v = generate_random_key();
       fc::sha256 iv( iv_v.data(), iv_v.size());
-      group_op g_op( "update", g_ob->group_name, to_string(g_ob->description), all_members, admin.memo_key);
-      g_op.new_group_name = new_group_name;
+      group_op g_op( "update", new_group_name, to_string(g_ob->description), all_members, admin.memo_key);
       vector<char> encrypted_key = fc::aes_encrypt( g_ob->group_key, iv, new_group_key );
       g_op.new_key[public_key_type()] = encrypted_key;
 
@@ -273,8 +271,8 @@ delete_group_participants_return  multiparty_messaging_api_impl::delete_group_pa
    {
       vector<char> iv_v = generate_random_key();
       fc::sha256 iv( iv_v.data(), iv_v.size());
-      group_op g_op( "update", g_ob->group_name, to_string(g_ob->description), all_members, admin.memo_key);
-      g_op.new_group_name = new_group_name;
+      group_op g_op( "update", new_group_name, to_string(g_ob->description), all_members, admin.memo_key);
+      //TODO - we should send two updates instead of one, so old members won't learn the new group name
       for( auto m: new_members ){
          const account_object& member = _db.get_account(m);
          fc::sha512 sc = pk_itr->second.get_shared_secret(member.memo_key);
@@ -308,8 +306,7 @@ update_group_return  multiparty_messaging_api_impl::update_group(const update_gr
    {
       vector<char> iv_v = generate_random_key();
       fc::sha256 iv( iv_v.data(), iv_v.size());
-      group_op g_op( "update", g_ob->group_name, args.description, all_members, admin.memo_key);
-      g_op.new_group_name = new_group_name;
+      group_op g_op( "update", new_group_name, args.description, all_members, admin.memo_key);
       vector<char> encrypted_key = fc::aes_encrypt( g_ob->group_key, iv, new_group_key );
       g_op.new_key[public_key_type()] = encrypted_key;
 
