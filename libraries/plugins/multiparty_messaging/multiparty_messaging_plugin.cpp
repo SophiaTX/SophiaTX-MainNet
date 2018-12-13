@@ -159,7 +159,10 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
 
    if (message_meta.sender && message_meta.recipient) //message sent to the recipient
    {
-      for( account_name_type r: op.recipients ) {
+      vector<account_name_type> involved_accounts;
+      std::copy(op.recipients.begin(), op.recipients.end(), std::back_inserter(involved_accounts));
+      involved_accounts.push_back(op.sender);
+      for( account_name_type r: involved_accounts ){
          if( _self._accounts.find(r) != _self._accounts.end()) {
             auto pk_r = _self._private_keys.find(*message_meta.recipient);
             auto pk_s = _self._private_keys.find(*message_meta.sender);
