@@ -1,6 +1,8 @@
 #include <boost/test/unit_test.hpp>
 #include <fc/exception/exception.hpp>
 #include <sophiatx/smart_contracts/db_resource_pool.h>
+#include <boost/filesystem/operations.hpp>
+#include <iostream>
 
 using namespace sophiatx::smart_contracts;
 
@@ -10,9 +12,11 @@ BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
 {
    try
    {
-      BOOST_TEST_MESSAGE( "Testing: db_resource_pool basic tests" );
+      BOOST_TEST_MESSAGE( "Testing: db_resource_pool" );
+      boost::filesystem::path data_dir(boost::filesystem::current_path() / "databases/");
       constexpr uint32_t max_pool_size = 3;
-      db_resource_pool resource_pool(max_pool_size);
+
+      db_resource_pool resource_pool(data_dir, max_pool_size);
       resource_pool.create_resource("acc1");
       resource_pool.create_resource("acc2");
       resource_pool.create_resource("acc3");
@@ -46,6 +50,8 @@ BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
       BOOST_CHECK_THROW( resource_pool.get_resource("acc4", false/*do not create resource*/), sophiatx::smart_contracts::resource_error );
+
+      boost::filesystem::remove_all(data_dir);
    }
    FC_LOG_AND_RETHROW()
 }

@@ -1,15 +1,23 @@
 #include "sophiatx/smart_contracts/db_resource_pool.h"
-#include <boost/exception/diagnostic_information.hpp>
+#include <boost/filesystem.hpp>
 #include <iostream>
 
 namespace sophiatx { namespace smart_contracts {
 
-db_resource_pool::db_resource_pool(uint32_t max_resources_count) :
-   db_resources(),
-   db_resources_by_name(db_resources.get<by_account_name>()),
-   db_resources_by_last_access(db_resources.get<by_last_access>()),
-   max_resources(max_resources_count)
-{}
+db_resource_pool::db_resource_pool(const boost::filesystem::path& data_directory, uint32_t max_resources_count) :
+      max_resources(max_resources_count),
+      data_dir(data_directory),
+      db_resources(),
+      db_resources_by_name(db_resources.get<by_account_name>()),
+      db_resources_by_last_access(db_resources.get<by_last_access>()) {
+   if (data_dir.is_relative() == true) {
+      throw resource_error("Provided data dir path for smart contracts must be absolute.");
+   }
+
+   if (boost::filesystem::exists(data_dir) == false) {
+      boost::filesystem::create_directory(data_dir);
+   }
+}
 
 SQLite::Database& db_resource_pool::get_resource(const std::string &account_name, bool create_flag) {
    auto resource = db_resources_by_name.find(account_name);
@@ -40,7 +48,7 @@ SQLite::Database& db_resource_pool::create_resource(const std::string &account_n
    }
 
    // Creates new database handle inside pool
-   auto emplace_result = db_resources_by_name.emplace(account_name);
+   auto emplace_result = db_resources_by_name.emplace(data_dir, account_name);
    if (emplace_result.second == false) {
       throw resource_error("Unable to create database resource for account: " + account_name + ". Possible problem: Such resource already exists");
    }

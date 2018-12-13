@@ -3,6 +3,7 @@
 
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <chrono>
+#include <boost/filesystem/path.hpp>
 
 namespace sophiatx { namespace smart_contracts {
 
@@ -13,7 +14,7 @@ public:
    std::chrono::system_clock::time_point    last_access;
    mutable SQLite::Database                 db_handle;
 
-   db_resource(const std::string& acc_name);
+   db_resource(const boost::filesystem::path& data_directory, const std::string& acc_name);
    ~db_resource()                              = default;
 
    // Disables default/copy/move ctors - database handle should not be copied

@@ -14,6 +14,8 @@ BOOST_AUTO_TEST_CASE( generic_object_tests )
 {
    try
    {
+      BOOST_TEST_MESSAGE( "Testing: generic_object" );
+
       // Creates generic object from json
       const std::string input_json("{\"name\":\"foo\",\"friends\":[\"alice\",\"bob\"],\"school_id\":\"1\"}");
       fc::mutable_variant_object generic_object = fc::json::from_string( input_json ).get_object();

@@ -4,6 +4,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <sophiatx/smart_contracts/db_resource.h>
 
@@ -36,13 +37,14 @@ private:
  */
 class db_resource_pool {
 public:
-   db_resource_pool(uint32_t max_handles_count = 500 /*TODO: read from config*/);
+   db_resource_pool(const boost::filesystem::path& data_dir, uint32_t max_handles_count);
 
    /**
     * @brief Creates new resource mapped to the account_name. In case there is already <max_resources> resources created, it deletes(from memory) the least used one.
     *
     * @throws sophiatx::smart_contracts::resource_error in case creation was not successful
-    * @param account_name
+    * @param data_dir whene databases files will be stored
+    * @param account_name fir which database resoiurce will be mapped
     * @return created SQLite::Database&
     */
    SQLite::Database& create_resource(const std::string &account_name);
@@ -85,14 +87,13 @@ private:
     */
    void pop_resource();
 
-
+   // maximum number of opened db resources/handles
+   uint32_t                              max_resources;
+   boost::filesystem::path               data_dir;
 
    db_resources_index                    db_resources;
    db_resources_by_name_index&           db_resources_by_name;
    db_resources_by_last_access_index&    db_resources_by_last_access;
-
-   // maximum number of opened db resources/handles
-   uint32_t                              max_resources;
 };
 
 

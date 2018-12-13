@@ -2,10 +2,10 @@
 
 namespace sophiatx { namespace smart_contracts {
 
-db_resource::db_resource(const std::string& acc_name) :
+db_resource::db_resource(const boost::filesystem::path& data_directory, const std::string& acc_name) :
    account_name(acc_name),
    last_access(std::chrono::system_clock::now()),
-   db_handle(account_name + ".db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE)
+   db_handle(data_directory.generic_string() + "/" + account_name + ".db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE)
 {}
 
 
