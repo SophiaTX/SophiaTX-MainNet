@@ -301,7 +301,10 @@ if (SQLITECPP_BUILD_TESTS)
     if (NOT EXISTS "${PROJECT_SOURCE_DIR}/googletest/CMakeLists.txt")
         message(FATAL_ERROR "Missing 'googletest' submodule! Either use 'git init submodule' and 'git update submodule' to get googletest according to the README, or deactivate unit tests with -DSQLITECPP_BUILD_TESTS=OFF")
     endif ()
+
+    add_compile_options(-Wno-inline)
     add_subdirectory(googletest)
+
     include_directories("${PROJECT_SOURCE_DIR}/googletest/googletest/include")
 
     # Add definitions to keep googletest from making the compilation fail

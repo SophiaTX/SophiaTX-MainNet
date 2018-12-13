@@ -33,7 +33,7 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
 #endif
 
 /// Get example path
-static inline std::string getExamplePath()
+static std::string getExamplePath()
 {
     std::string filePath(__FILE__);
     return filePath.substr( 0, filePath.length() - std::string("main.cpp").length());
@@ -408,6 +408,7 @@ int main ()
                 size = colBlob.getBytes ();
                 std::cout << "row (" << query.getColumn(0) << ", size=" << size << ")\n";
                 size_t sizew = fwrite(blob, 1, size, fp);
+                std::cout << sizew << " bytes written to file" << std::endl;
                 SQLITECPP_ASSERT(sizew == size, "fwrite failed");   // See SQLITECPP_ENABLE_ASSERT_HANDLER
                 fclose (fp);
             }
