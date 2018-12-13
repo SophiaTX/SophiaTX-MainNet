@@ -4,9 +4,9 @@
 
 using namespace sophiatx::smart_contracts;
 
-BOOST_AUTO_TEST_SUITE( db_resource_pool_tests )
+BOOST_AUTO_TEST_SUITE( smart_contracts_tests )
 
-BOOST_AUTO_TEST_CASE( basic_tests )
+BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
 {
    try
    {

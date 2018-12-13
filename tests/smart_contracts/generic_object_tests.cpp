@@ -8,9 +8,9 @@
 
 using namespace sophiatx::smart_contracts;
 
-BOOST_AUTO_TEST_SUITE( generic_object_tests )
+BOOST_AUTO_TEST_SUITE( smart_contracts_tests )
 
-BOOST_AUTO_TEST_CASE( basic_tests )
+BOOST_AUTO_TEST_CASE( generic_object_tests )
 {
    try
    {
