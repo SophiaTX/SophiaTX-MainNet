@@ -159,38 +159,43 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
 
    if (message_meta.sender && message_meta.recipient) //message sent to the recipient
    {
-      auto pk_r = _self._private_keys.find(*message_meta.recipient);
-      auto pk_s = _self._private_keys.find(*message_meta.sender);
-      fc::sha512 shared_secret;
-      if( pk_r != _self._private_keys.end())
-         shared_secret = pk_r->second.get_shared_secret(*message_meta.sender);
-      else if ( pk_s != _self._private_keys.end())
-         shared_secret = pk_s->second.get_shared_secret(*message_meta.recipient);
-      else
-         return;
+      for( account_name_type r: op.recipients ) {
+         if( _self._accounts.find(r) != _self._accounts.end()) {
+            auto pk_r = _self._private_keys.find(*message_meta.recipient);
+            auto pk_s = _self._private_keys.find(*message_meta.sender);
+            fc::sha512 shared_secret;
+            if( pk_r != _self._private_keys.end())
+               shared_secret = pk_r->second.get_shared_secret(*message_meta.sender);
+            else if( pk_s != _self._private_keys.end())
+               shared_secret = pk_s->second.get_shared_secret(*message_meta.recipient);
+            else
+               return;
 
-      message_wrapper message_content = decode_message( message_meta.data, shared_secret );
-      FC_ASSERT( message_content.type == message_wrapper::message_type::group_operation && message_content.operation_data);
-      group_op g_op = *message_content.operation_data;
-      FC_ASSERT( g_op.version == 1 && g_op.type == "add");
-      //check that this group is new to us
-      if( find_group(g_op.group_name) ) return;
+            message_wrapper message_content = decode_message(message_meta.data, shared_secret);
+            FC_ASSERT(message_content.type == message_wrapper::message_type::group_operation &&
+                      message_content.operation_data);
+            group_op g_op = *message_content.operation_data;
+            FC_ASSERT(g_op.version == 1 && g_op.type == "add");
+            //check that this group is new to us
+            if( find_group(g_op.group_name)) return;
 
-      fc::sha256 new_key = extract_key( g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender );
-      FC_ASSERT(new_key!=fc::sha256());
-      const auto& g_ob = _db.create<group_object>([&](group_object& go){
-           go.group_name = g_op.group_name;
-           if(g_op.new_group_name)
-              go.current_group_name = *g_op.new_group_name;
-           else
-              go.current_group_name = go.group_name;
-           go.members.clear();
-           std::copy( g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
-           go.admin = op.sender;
-           go.group_key = new_key;
-           from_string( go.description, g_op.description);
-      });
-      save_message<string>( g_ob, op.sender, true, fc::json::to_string<group_op>(*message_content.operation_data));
+            fc::sha256 new_key = extract_key(g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender);
+            FC_ASSERT(new_key != fc::sha256());
+            const auto &g_ob = _db.create<group_object>([ & ](group_object &go) {
+                 go.group_name = g_op.group_name;
+                 if( g_op.new_group_name )
+                    go.current_group_name = *g_op.new_group_name;
+                 else
+                    go.current_group_name = go.group_name;
+                 go.members.clear();
+                 std::copy(g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
+                 go.admin = op.sender;
+                 go.group_key = new_key;
+                 from_string(go.description, g_op.description);
+            });
+            save_message<string>(g_ob, op.sender, true, fc::json::to_string<group_op>(*message_content.operation_data));
+         }
+      }
    }
 }
 
