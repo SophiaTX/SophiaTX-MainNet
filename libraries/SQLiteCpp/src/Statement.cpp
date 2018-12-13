@@ -284,6 +284,10 @@ void Statement::bind(const char* apName)
 }
 
 void Statement::bind(const fc::mutable_variant_object& aValue) {
+    bind(fc::variant_object(aValue));
+}
+
+void Statement::bind(const fc::variant_object& aValue) {
     int lastParamIdx = sqlite3_bind_parameter_count(mStmtPtr);  // returns the index of the largest(rightmost) parameter
     int firstParamIdx = 1;                                      // The first host parameter has an index of 1, not 0.
 
@@ -310,6 +314,14 @@ void Statement::bind(const fc::mutable_variant_object& aValue) {
 
         bind(paramIdx, foundMember->value());
     }
+}
+
+void Statement::bind(const fc::variant& aValue) {
+    if (aValue.get_type() != fc::variant::type_id::object_type) {
+        throw SQLite::Exception("Invalid fc::variant bind parameter internal type. Must be object_type.");
+    }
+
+    bind(aValue.get_object());
 }
 
 // Execute a step of the query to fetch one row of results

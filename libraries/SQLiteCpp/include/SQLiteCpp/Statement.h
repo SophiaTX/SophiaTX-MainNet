@@ -282,15 +282,27 @@ public:
      */
     void bind(const char* apName); // bind NULL value
     /**
-     * @brief Bind fc::variant members to a named parameters "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1).
-     *        Function lists all named parameters from sql statement and binds to them fc::variant members with the same name/key
+     * @brief Bind fc::variant_object members to a named parameters "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1).
+     *        Function lists all named parameters from sql statement and binds to them fc::variant_object members with the same name/key
      *
      * @warning !!! Do not use with prepared statement, which uses bind parameters in format "?" or "?NNN". It works only with formats: ":VVV", "@VVV" or "$VVV"
      *
      * @throws SQLite::Exception in case statement contains unnamed parameters "?" or "aValue" has no member with the same key as named parameter from statement
      */
+    void bind(const fc::variant_object& aValue);
+    /**
+     * @brief Calls "void bind(const fc::variant_object& aValue)". See description above.
+     *
+     * @note Does copy from fc::mutable_variant_object to fc::variant_object
+     * @param aValue
+     */
     void bind(const fc::mutable_variant_object& aValue);
-
+    /**
+     * @brief Calls "void bind(const fc::variant_object& aValue)". See description above.
+     *
+     * @throws SQLite::Exception in case internal fc::variant::type != object_type
+     */
+    void bind(const fc::variant& aValue);
     /**
      * @brief Bind an int value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
      */
