@@ -47,6 +47,8 @@ namespace fc {
     std::vector<char> aes_encrypt( const fc::sha512& key, const std::vector<char>& plain_text  );
     std::vector<char> aes_decrypt( const fc::sha512& key, const std::vector<char>& cipher_text );
 
+    std::vector<char> aes_encrypt( const fc::sha256& key, const fc::sha256& iv, const std::vector<char>& plain_text  );
+    std::vector<char> aes_decrypt( const fc::sha256& key, const fc::sha256& iv, const std::vector<char>& cipher_text );
     /** encrypts plain_text and then includes a checksum that enables us to verify the integrety of
      * the file / key prior to decryption. 
      */
