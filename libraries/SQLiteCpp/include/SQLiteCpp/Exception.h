@@ -77,6 +77,11 @@ public:
      */
     Exception(sqlite3* apSQLite, int ret);
 
+    /**
+     * @brief default copy constructor
+     */
+    Exception(const Exception&) = default;
+
     /// Return the result code (if any, otherwise -1).
     inline int getErrorCode() const noexcept // nothrow
     {

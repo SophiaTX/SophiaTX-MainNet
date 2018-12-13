@@ -52,10 +52,11 @@ Statement::~Statement()
 // Reset the statement to make it ready for a new execution (see also #clearBindings() bellow)
 void Statement::reset()
 {
-    const int ret = tryReset();
+    tryReset();
     // Do not check ret value. sqlite3_reset return error if the most recent call to sqlite3_step returned error.
-    // If sqlite3_step returns error, it should be handled right away. We might want to call reset and start again with new
-    // data but it was not possible because reset always throws exception in case previous call to sqlite3_step returned error
+    // If sqlite3_step returns error, it should be handled right away. We might want to call reset and start
+    // again with new data but it was not possible because reset always throws exception in case previous call t
+    // o sqlite3_step returned error const int ret = tryReset();
     //check(ret);
 }
 
@@ -152,7 +153,8 @@ void Statement::bind(const int aIndex)
     check(ret);
 }
 
-// Bind fc::variant value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
+// Bind fc::variant value to a named parameter
+// "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
 void Statement::bind(const int aIndex, const fc::variant& aValue) {
     fc::variant::type_id variant_type = aValue.get_type();
     switch(variant_type) {
@@ -177,8 +179,10 @@ void Statement::bind(const int aIndex, const fc::variant& aValue) {
           return;
         case fc::variant::type_id::array_type:
         case fc::variant::type_id::object_type:
+        case fc::variant::type_id::blob_type:
         default:
-            throw SQLite::Exception("Invalid fc::variant::type_id: " + std::to_string(variant_type) + ". Unable to bind it to the SQL query.");
+            throw SQLite::Exception("Invalid fc::variant::type_id: " + std::to_string(variant_type) +
+            ". Unable to bind it to the SQL query.");
     }
 }
 
@@ -232,7 +236,7 @@ void Statement::bind(const char* apName, const char* apValue)
     check(ret);
 }
 
-// Bind fc::variant value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
+// Bind variant value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
 void Statement::bind(const char* apName, const fc::variant& aValue) {
     const int index = sqlite3_bind_parameter_index(mStmtPtr, apName);
     bind(index, aValue);
@@ -280,14 +284,16 @@ void Statement::bind(const char* apName)
 }
 
 void Statement::bind(const fc::mutable_variant_object& aValue) {
-    int lastParamIdx = sqlite3_bind_parameter_count(mStmtPtr);  // returns the index of the largest (rightmost) parameter.
+    int lastParamIdx = sqlite3_bind_parameter_count(mStmtPtr);  // returns the index of the largest(rightmost) parameter
     int firstParamIdx = 1;                                      // The first host parameter has an index of 1, not 0.
 
     for (int paramIdx = firstParamIdx; paramIdx <= lastParamIdx; paramIdx++) {
         // Check if statement bind parameter is named
         const char* paramName = sqlite3_bind_parameter_name(mStmtPtr, paramIdx);
         if (paramName == NULL) {
-            throw SQLite::Exception("Invalid bind parameter name format in prepared statement. To bind fc::mutable_variant_object members, format \"?\" and \"?NNN\" cannot be used!");
+            throw SQLite::Exception("Invalid bind parameter name format in prepared statement. "
+                                    "To bind fc::mutable_variant_object members, "
+                                    "format \"?\" and \"?NNN\" cannot be used!");
         }
 
         // Remove first character from paramName, which might be ":" or "$" or "@" or "?"
@@ -297,7 +303,9 @@ void Statement::bind(const fc::mutable_variant_object& aValue) {
         // Check if provided mutable_variant_object has key == newParamName
         fc::variant_object::iterator foundMember = aValue.find(newParamName);
         if (foundMember == aValue.end()) {
-            throw SQLite::Exception("Invalid bind parameter name in prepared statement. There is no fc::mutable_variant_object member with key: \"" + std::string(newParamName) + "\"");
+            throw SQLite::Exception("Invalid bind parameter name in prepared statement. "
+                                    "There is no fc::mutable_variant_object member with key: \"" +
+                                    std::string(newParamName) + "\"");
         }
 
         bind(paramIdx, foundMember->value());
