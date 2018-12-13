@@ -80,7 +80,7 @@ public:
     /**
      * @brief default copy constructor
      */
-    Exception(const Exception&) = default;
+    Exception(const Exception&);
 
     /// Return the result code (if any, otherwise -1).
     inline int getErrorCode() const noexcept // nothrow

@@ -57,6 +57,13 @@ Exception::Exception(sqlite3* apSQLite, int ret) :
 {
 }
 
+Exception::Exception(const Exception& e) :
+    std::runtime_error(e),
+    mErrcode(e.mErrcode),
+    mExtendedErrcode(e.mExtendedErrcode)
+{
+}
+
 // Return a string, solely based on the error code
 const char* Exception::getErrorStr() const noexcept // nothrow
 {
