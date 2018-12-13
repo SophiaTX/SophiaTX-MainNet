@@ -30,12 +30,3 @@ public:
 }}
 
 #endif //SOPHIATX_DB_RESOURCE_H
-
-
-
-
-
-
-
-
-

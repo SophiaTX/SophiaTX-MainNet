@@ -99,4 +99,3 @@ private:
 }}
 
 #endif //SOPHIATX_DB_RESOURCE_POOL_H
-
