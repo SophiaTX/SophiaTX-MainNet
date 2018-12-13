@@ -358,8 +358,14 @@ void webserver_plugin_impl::handle_http_message(typename T::connection_ptr con) 
 
       try
       {
-       con->set_body( api->call( body ) );
-       con->set_status( websocketpp::http::status_code::ok );
+       bool is_error = false;
+       con->set_body( api->call( body, is_error ) );
+
+       if(is_error) {
+          con->set_status( websocketpp::http::status_code::internal_server_error );
+       } else {
+          con->set_status( websocketpp::http::status_code::ok );
+       }
       }
       catch( fc::exception& e )
       {
