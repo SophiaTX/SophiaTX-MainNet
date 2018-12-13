@@ -40,6 +40,7 @@ pipeline {
           if( !params.build_as_testnet ) {
             sh './tests/chain_test'
             sh './tests/plugin_test'
+            sh './tests/smart_contracts_tests'
             sh './libraries/fc/tests/all_tests'
             sh './libraries/SQLiteCpp/SQLiteCpp_tests'
           }
