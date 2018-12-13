@@ -57,7 +57,7 @@ void Statement::reset()
     // If sqlite3_step returns error, it should be handled right away. We might want to call reset and start
     // again with new data but it was not possible because reset always throws exception in case previous call t
     // o sqlite3_step returned error const int ret = tryReset();
-    //check(ret);
+    // check(ret);
 }
 
 int Statement::tryReset() noexcept
@@ -157,7 +157,7 @@ void Statement::bind(const int aIndex)
 // "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
 void Statement::bind(const int aIndex, const fc::variant& aValue) {
     fc::variant::type_id variant_type = aValue.get_type();
-    switch(variant_type) {
+    switch (variant_type) {
         case fc::variant::type_id::null_type:
             bind(aIndex);
           return;
@@ -287,7 +287,7 @@ void Statement::bind(const fc::mutable_variant_object& aValue) {
     int lastParamIdx = sqlite3_bind_parameter_count(mStmtPtr);  // returns the index of the largest(rightmost) parameter
     int firstParamIdx = 1;                                      // The first host parameter has an index of 1, not 0.
 
-    for (int paramIdx = firstParamIdx; paramIdx <= lastParamIdx; paramIdx++) {
+    for (int paramIdx = firstParamIdx; paramIdx <= lastParamIdx; ++paramIdx) {
         // Check if statement bind parameter is named
         const char* paramName = sqlite3_bind_parameter_name(mStmtPtr, paramIdx);
         if (paramName == NULL) {
@@ -534,15 +534,15 @@ Statement::Ptr::~Ptr()
 }
 
 fc::mutable_variant_object Statement::getRow() {
-   checkRow();
+    checkRow();
 
-   fc::mutable_variant_object ret;
-   for (int colIdx = 0; colIdx < getColumnCount(); colIdx++) {
-       Column actCol = getColumn(colIdx);
-       ret.set(actCol.getName(), actCol.getVariant());
-   }
+    fc::mutable_variant_object ret;
+    for (int colIdx = 0; colIdx < getColumnCount(); ++colIdx) {
+        Column actCol = getColumn(colIdx);
+        ret.set(actCol.getName(), actCol.getVariant());
+    }
 
-   return ret;
+    return ret;
 }
 
 

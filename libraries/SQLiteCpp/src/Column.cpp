@@ -106,7 +106,7 @@ fc::variant Column::getVariant() const
     fc::variant ret;
 
     const int columnType = getType();
-    switch(columnType) {
+    switch (columnType) {
         case SQLite::INTEGER:
             ret = getInt();
             break;
@@ -121,7 +121,7 @@ fc::variant Column::getVariant() const
            break;
         case SQLite::BLOB:
         default:
-           throw SQLite::Exception("Invalid SQLite Column type: " + std::to_string(columnType) + " to create fc::variant");
+           throw SQLite::Exception("Invalid SQLite Column type: "+std::to_string(columnType)+" to create fc::variant");
     }
 
     return ret;

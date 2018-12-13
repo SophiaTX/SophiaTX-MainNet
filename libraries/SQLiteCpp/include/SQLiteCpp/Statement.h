@@ -289,7 +289,7 @@ public:
      *
      * @throws SQLite::Exception in case statement contains unnamed parameters "?" or "aValue" has no member with the same key as named parameter from statement
      */
-     void bind(const fc::mutable_variant_object& aValue);
+    void bind(const fc::mutable_variant_object& aValue);
 
     /**
      * @brief Bind an int value to a named parameter "?NNN", ":VVV", "@VVV" or "$VVV" in the SQL prepared statement (aIndex >= 1)
