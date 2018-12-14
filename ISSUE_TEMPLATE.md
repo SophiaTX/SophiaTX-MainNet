@@ -24,4 +24,4 @@ Please describe how the system behaves now.
 
 
 # Attachments and references
-Please include all relevant attachents, links etc.
+Please include all relevant attachments, links etc.
