@@ -1,4 +1,4 @@
-#include "sophiatx/smart_contracts/db_resource.h"
+#include "sophiatx/smart_contracts/db_resource.hpp"
 
 namespace sophiatx { namespace smart_contracts {
 

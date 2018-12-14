@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <fc/exception/exception.hpp>
-#include <sophiatx/smart_contracts/db_resource_pool.h>
+#include <sophiatx/smart_contracts/db_resource_pool.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
 

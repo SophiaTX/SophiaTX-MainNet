@@ -1,4 +1,4 @@
-#include "sophiatx/smart_contracts/db_resource_pool.h"
+#include "sophiatx/smart_contracts/db_resource_pool.hpp"
 #include <boost/filesystem.hpp>
 #include <iostream>
 

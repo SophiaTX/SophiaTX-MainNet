@@ -6,7 +6,7 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/filesystem/path.hpp>
 
-#include <sophiatx/smart_contracts/db_resource.h>
+#include <sophiatx/smart_contracts/db_resource.hpp>
 
 namespace sophiatx { namespace smart_contracts {
 
