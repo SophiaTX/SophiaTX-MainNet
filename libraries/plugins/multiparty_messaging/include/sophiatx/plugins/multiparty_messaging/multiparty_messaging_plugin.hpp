@@ -49,7 +49,7 @@ class multiparty_messaging_plugin : public plugin< multiparty_messaging_plugin >
       uint64_t app_id;
       std::shared_ptr< class multiparty_messaging_api > api;
    private:
-      std::shared_ptr< detail::multiparty_messaging_plugin_impl > my;
+      std::shared_ptr< detail::multiparty_messaging_plugin_impl > _my;
       std::map< sophiatx::protocol::public_key_type, fc::ecc::private_key > _private_keys;
       std::set< sophiatx::protocol::account_name_type >                     _accounts;
 };

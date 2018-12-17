@@ -123,9 +123,9 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
          message_wrapper message_content = decode_message( message_meta.data, *message_meta.iv, g_ob->group_key);
          if( message_content.type == message_wrapper::message_type::group_operation ){
             //process_group_operation( *message_content.operation_data);
-            FC_ASSERT(message_content.operation_data);
+            FC_ASSERT(message_content.operation_data, "Message has incorrect format");
             group_op g_op = *message_content.operation_data;
-            FC_ASSERT(g_op.version == 1 && op.sender == g_ob->admin);
+            FC_ASSERT(g_op.version == 1 && op.sender == g_ob->admin, "Wrong version or wrong admin");
             fc::sha256 new_key = extract_key( g_op.new_key, g_ob->group_key, *message_meta.iv, g_op.senders_pubkey );
 
             if(g_op.type == "disband"){ //current_name changed to "" and perticipant list emptied
@@ -223,7 +223,7 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
       return;
    }
 
-   my = std::make_shared< detail::multiparty_messaging_plugin_impl >( *this );
+   _my = std::make_shared< detail::multiparty_messaging_plugin_impl >( *this );
    api = std::make_shared< multiparty_messaging_api >(*this);
 
    if( options.count("mpm-account") ) {
@@ -250,7 +250,7 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
       ilog( "Initializing multiparty_messaging_plugin_impl plugin" );
       chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      db.set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::multiparty_messaging_plugin_impl>(my));
+      db.set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::multiparty_messaging_plugin_impl>(_my));
       add_plugin_index< group_index >(db);
       add_plugin_index< message_index >(db);
    }
