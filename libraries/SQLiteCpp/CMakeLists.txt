@@ -150,6 +150,12 @@ set(SQLITECPP_EXAMPLES
 )
 source_group(example1 FILES ${SQLITECPP_EXAMPLES})
 
+set(SQLITECPP_FC_VARIANT_EXAMPLES
+        examples/example2/fc_variant_example.cpp
+        )
+source_group(example_fc_variant FILES ${SQLITECPP_FC_VARIANT_EXAMPLES})
+
+
 # list of doc files of the library
 set(SQLITECPP_DOC
  README.md
@@ -271,7 +277,7 @@ else (SQLITECPP_RUN_DOXYGEN)
     message(STATUS "SQLITECPP_RUN_DOXYGEN OFF")
 endif (SQLITECPP_RUN_DOXYGEN)
 
-option(SQLITECPP_BUILD_EXAMPLES "Build examples." OFF)
+option(SQLITECPP_BUILD_EXAMPLES "Build examples." ON)
 if (SQLITECPP_BUILD_EXAMPLES)
     # add the basic example executable
     add_executable(SQLiteCpp_example1 ${SQLITECPP_EXAMPLES})
@@ -285,6 +291,20 @@ if (SQLITECPP_BUILD_EXAMPLES)
     elseif (MSYS OR MINGW)
         target_link_libraries(SQLiteCpp_example1 ssp)
     endif ()
+
+
+    add_executable(SQLiteCpp_example_fc_variant ${SQLITECPP_FC_VARIANT_EXAMPLES})
+    target_link_libraries(SQLiteCpp_example_fc_variant SQLiteCpp sqlite3 fc)
+    # Link target with pthread and dl for linux
+    if (UNIX)
+        target_link_libraries(SQLiteCpp_example_fc_variant pthread)
+        if (NOT APPLE)
+            target_link_libraries(SQLiteCpp_example_fc_variant dl)
+        endif ()
+    elseif (MSYS OR MINGW)
+        target_link_libraries(SQLiteCpp_example_fc_variant ssp)
+    endif ()
+
 else (SQLITECPP_BUILD_EXAMPLES)
     message(STATUS "SQLITECPP_BUILD_EXAMPLES OFF")
 endif (SQLITECPP_BUILD_EXAMPLES)
