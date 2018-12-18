@@ -1,9 +1,9 @@
+[submodule "libraries/SQLiteCpp/googletest"]
+	path = libraries/SQLiteCpp/googletest
+	url = https://github.com/google/googletest.git
 [submodule "libraries/fc/vendor/secp256k1-zkp"]
 	path = libraries/fc/vendor/secp256k1-zkp
 	url = https://github.com/cryptonomex/secp256k1-zkp.git
 [submodule "libraries/fc/vendor/websocketpp"]
-        path = libraries/fc/vendor/websocketpp
-        url = https://github.com/SophiaTX/websocketpp.git
-[submodule "libraries/SQLiteCpp/googletest"]
-	path = libraries/SQLiteCpp/googletest
-	url = https://github.com/google/googletest.git
+	path = libraries/fc/vendor/websocketpp
+	url = https://github.com/SophiaTX/websocketpp.git
