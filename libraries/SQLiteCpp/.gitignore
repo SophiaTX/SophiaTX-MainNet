@@ -1,7 +1,7 @@
 Debug
 Release
 build
-example1
+#example1
 *.a
 
 /SQLiteCpp.sln
