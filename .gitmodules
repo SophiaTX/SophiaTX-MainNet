@@ -1,3 +1,6 @@
 [submodule "libraries/fc"]
 	path = libraries/fc
 	url = https://github.com/SophiaTX/fc.git
+[submodule "libraries/SQLiteCpp/googletest"]
+	path = libraries/SQLiteCpp/googletest
+	url = https://github.com/google/googletest.git
