@@ -72,7 +72,7 @@ namespace fc
          template<typename T>
          static void save_to_file( const T& v, const std::string& p, bool pretty = true, output_formatting format = stringify_large_ints_and_doubles ) 
          {
-            save_to_file( variant(v), fc::path(p), pretty );
+            save_to_file( variant(v), fc::path(p), pretty, format );
          } 
    };
 
