@@ -17,5 +17,3 @@ extern "C" BOOST_SYMBOL_EXPORT std::shared_ptr<abstract_plugin> get_plugin() {
 
 
 } } } // sophiatx::plugins::track_and_trace_plugin
-
-
