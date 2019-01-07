@@ -15,6 +15,7 @@
 #include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 #include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
 #include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
+#include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_plugin.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
@@ -67,6 +68,11 @@ void alexandria_api::init() {
    if ( subscribe != nullptr) {
       my->set_subscribe_api(subscribe->api);
    }
+
+   auto multiparty_messaging = appbase::app().find_plugin< multiparty_messaging::multiparty_messaging_plugin>();
+	if ( multiparty_messaging != nullptr) {
+		my->set_mpm_api(multiparty_messaging->api);
+	}
 }
 
 DEFINE_READ_APIS(alexandria_api,
