@@ -357,7 +357,7 @@ const signed_transaction database::get_recent_transaction( const transaction_id_
    auto itr = index.find(trx_id);
    FC_ASSERT(itr != index.end());
    signed_transaction trx;
-   fc::raw::unpack_from_buffer( itr->packed_trx, trx );
+   fc::raw::unpack_from_buffer( itr->packed_trx, trx, 0 );
    return trx;;
 } FC_CAPTURE_AND_RETHROW() }
 

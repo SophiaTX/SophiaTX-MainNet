@@ -21,14 +21,16 @@ template< typename T > inline void pack_to_buffer( sophiatx::chain::buffer_type&
    pack( ds, v );
 }
 
-template< typename T > inline void unpack_from_buffer( const sophiatx::chain::buffer_type& raw, T& v )
+template< typename T > inline void unpack_from_buffer( const sophiatx::chain::buffer_type& raw, T& v, uint32_t depth )
 {
+   FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
    datastream< const char* > ds( raw.data(), raw.size() );
    unpack( ds, v );
 }
 
-template< typename T > inline T unpack_from_buffer( const sophiatx::chain::buffer_type& raw )
+template< typename T > inline T unpack_from_buffer( const sophiatx::chain::buffer_type& raw, uint32_t depth )
 {
+   FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
    T v;
    datastream< const char* > ds( raw.data(), raw.size() );
    unpack( ds, v );

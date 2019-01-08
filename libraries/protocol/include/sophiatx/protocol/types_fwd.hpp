@@ -19,12 +19,12 @@ namespace fc { namespace raw {
 template<typename Stream>
 inline void pack( Stream& s, const uint128& u );
 template<typename Stream>
-inline void unpack( Stream& s, uint128& u );
+inline void unpack( Stream& s, uint128& u, uint32_t depth );
 
 template< typename Stream, typename Storage >
 inline void pack( Stream& s, const sophiatx::protocol::fixed_string_impl< Storage >& u );
 template< typename Stream, typename Storage >
-inline void unpack( Stream& s, sophiatx::protocol::fixed_string_impl< Storage >& u );
+inline void unpack( Stream& s, sophiatx::protocol::fixed_string_impl< Storage >& u, uint32_t depth );
 
 /*template< typename Stream >
 inline void pack( Stream& s, const sophiatx::protocol::asset_symbol_type& sym );
@@ -35,7 +35,7 @@ inline void unpack( Stream& s, sophiatx::protocol::asset_symbol_type& sym );
 template< typename Stream >
 inline void pack( Stream& s, const sophiatx::protocol::legacy_sophiatx_asset_symbol_type& sym );
 template< typename Stream >
-inline void unpack( Stream& s, sophiatx::protocol::legacy_sophiatx_asset_symbol_type& sym );
+inline void unpack( Stream& s, sophiatx::protocol::legacy_sophiatx_asset_symbol_type& sym, uint32_t depth );
 
 } // raw
 
