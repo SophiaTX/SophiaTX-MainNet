@@ -1,4 +1,5 @@
 #include <fc/uint128.hpp>
+#include <fc/io/raw_fwd.hpp>
 #include <fc/variant.hpp>
 #include <fc/crypto/bigint.hpp>
 #include <boost/multiprecision/cpp_int.hpp>

@@ -76,10 +76,11 @@ namespace fc {
     namespace raw
     {
         template<typename Stream>
-        void unpack( Stream& s, fc::public_key& pk)
+        void unpack( Stream& s, fc::public_key& pk, uint32_t depth = 0 )
         {
+            FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
             bytes ser;
-            fc::raw::unpack(s,ser);
+            fc::raw::unpack(s,ser, depth);
             pk = fc::public_key( ser );
         }
 
@@ -90,10 +91,11 @@ namespace fc {
         }
 
         template<typename Stream>
-        void unpack( Stream& s, fc::private_key& pk)
+        void unpack( Stream& s, fc::private_key& pk, uint32_t depth = 0 )
         {
+            FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
             bytes ser;
-            fc::raw::unpack(s,ser);
+            fc::raw::unpack(s,ser, depth);
             pk = fc::private_key( ser );
         }
 
