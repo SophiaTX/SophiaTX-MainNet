@@ -586,7 +586,7 @@ bool chain_plugin::accept_block( const sophiatx::chain::signed_block& block, boo
    boost::promise< void > prom;
    write_context cxt;
    cxt.req_ptr = &block;
-   cxt.skip = skip;
+   cxt.skip = currently_syncing? skip | database::skip_validate_invariants : skip;
    cxt.prom_ptr = &prom;
 
    my->write_queue.push( &cxt );
