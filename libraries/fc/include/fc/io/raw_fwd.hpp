@@ -12,7 +12,7 @@
 #include <set>
 
 #define MAX_ARRAY_ALLOC_SIZE (1024*1024*10) 
-#define MAX_RECURSION_DEPTH  (20)
+#define MAX_RECURSION_DEPTH  (25)
 
 namespace fc { 
    class time_point;

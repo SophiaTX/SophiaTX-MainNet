@@ -340,7 +340,7 @@ namespace fc {
         template<typename Stream, typename T>
         static inline void pack( Stream& s, const T& v ) { s << v; }
         template<typename Stream, typename T>
-        static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) { FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); s >> v; }
+        static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) { FC_ASSERT( depth <= MAX_RECURSION_DEPTH ); s >> v; }
       };
 
       template<>
@@ -351,7 +351,7 @@ namespace fc {
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) {
-          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
+          FC_ASSERT( depth <= MAX_RECURSION_DEPTH ); 
           s.read( (char*)&v, sizeof(v) );
         }
       };
@@ -364,7 +364,7 @@ namespace fc {
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) {
-          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
+          FC_ASSERT( depth <= MAX_RECURSION_DEPTH ); 
           fc::reflector<T>::visit( unpack_object_visitor<Stream,T>( v, s, depth ) );
         }
       };
@@ -376,7 +376,7 @@ namespace fc {
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) {
-          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
+          FC_ASSERT( depth <= MAX_RECURSION_DEPTH ); 
           int64_t temp;
           fc::raw::unpack(s, temp, depth);
           v = (T)temp;
@@ -391,7 +391,7 @@ namespace fc {
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) {
-          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
+          FC_ASSERT( depth <= MAX_RECURSION_DEPTH ); 
           if_class<typename fc::is_class<T>::type>::unpack(s,v,depth);
         }
       };
@@ -403,7 +403,7 @@ namespace fc {
         }
         template<typename Stream, typename T>
         static inline void unpack( Stream& s, T& v, uint32_t depth = 0 ) {
-          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
+          FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
           if_enum< typename fc::reflector<T>::is_enum >::unpack(s,v,depth);
         }
       };
@@ -515,6 +515,7 @@ namespace fc {
       FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
       unsigned_int size; fc::raw::unpack( s, size, depth );
       FC_ASSERT( size.value*sizeof(T) < MAX_ARRAY_ALLOC_SIZE );
+      value.clear();
       value.resize(size.value);
       auto itr = value.begin();
       auto end = value.end();
@@ -540,6 +541,7 @@ namespace fc {
       FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
       unsigned_int size; fc::raw::unpack( s, size, depth );
       FC_ASSERT( size.value*sizeof(T) < MAX_ARRAY_ALLOC_SIZE );
+      value.clear();
       value.resize(size.value);
       auto itr = value.begin();
       auto end = value.end();
@@ -564,6 +566,7 @@ namespace fc {
     inline void unpack( Stream& s, std::set<T>& value, uint32_t depth ) {
       FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
       unsigned_int size; fc::raw::unpack( s, size, depth );
+      value.clear();
       for( uint64_t i = 0; i < size.value; ++i )
       {
         T tmp;
