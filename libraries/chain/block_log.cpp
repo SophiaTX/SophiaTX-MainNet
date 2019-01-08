@@ -257,7 +257,7 @@ namespace sophiatx { namespace chain {
 
          my->block_stream.seekg( pos );
          std::pair<signed_block,uint64_t> result;
-         fc::raw::unpack( my->block_stream, result.first );
+         fc::raw::unpack( my->block_stream, result.first, 0 );
          result.second = uint64_t(my->block_stream.tellg()) + 8;
          return result;
       }
@@ -370,7 +370,7 @@ namespace sophiatx { namespace chain {
 
          while( pos < end_pos )
          {
-            fc::raw::unpack( my->block_stream, tmp );
+            fc::raw::unpack( my->block_stream, tmp, 0 );
             my->block_stream.read( (char*)&pos, sizeof( pos ) );
             my->index_stream.write( (char*)&pos, sizeof( pos ) );
          }

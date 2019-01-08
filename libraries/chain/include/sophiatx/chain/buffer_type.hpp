@@ -25,7 +25,7 @@ template< typename T > inline void unpack_from_buffer( const sophiatx::chain::bu
 {
    FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
    datastream< const char* > ds( raw.data(), raw.size() );
-   unpack( ds, v );
+   unpack( ds, v, depth );
 }
 
 template< typename T > inline T unpack_from_buffer( const sophiatx::chain::buffer_type& raw, uint32_t depth )
@@ -33,7 +33,7 @@ template< typename T > inline T unpack_from_buffer( const sophiatx::chain::buffe
    FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
    T v;
    datastream< const char* > ds( raw.data(), raw.size() );
-   unpack( ds, v );
+   unpack( ds, v, depth );
    return v;
 }
 

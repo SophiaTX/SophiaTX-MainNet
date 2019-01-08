@@ -195,7 +195,7 @@ namespace fc { namespace raw {
    }
 
    template< typename Stream, typename Storage >
-   inline void unpack( Stream& s, sophiatx::protocol::fixed_string_impl< Storage >& u, uint32_t depth = 0 )
+   inline void unpack( Stream& s, sophiatx::protocol::fixed_string_impl< Storage >& u, uint32_t depth  )
    {
       FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
       std::string str;
