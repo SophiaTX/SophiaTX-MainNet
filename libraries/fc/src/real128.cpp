@@ -1,6 +1,7 @@
 #include <fc/real128.hpp>
 #include <fc/crypto/bigint.hpp>
 #include <fc/exception/exception.hpp>
+#include <fc/io/raw_fwd.hpp>
 #include <sstream>
 #include <stdint.h>
 

@@ -149,7 +149,7 @@ namespace fc {
          R call_generic( const std::function<R(std::function<Signature>,Args...)>& f, datastream<const char*>& ds )
          {
             uint64_t callback_id = 0;
-            fc::raw::unpack( ds, callback_id );
+            fc::raw::unpack( ds, callback_id, 0 );
             detail::callback_functor<Signature> arg0( get_connection(), callback_id );
             return  call_generic<R,Args...>( this->bind_first_arg<R,std::function<Signature>,Args...>( f, std::function<Signature>(arg0) ), ds );
          }
@@ -157,7 +157,7 @@ namespace fc {
          R call_generic( const std::function<R(const std::function<Signature>&,Args...)>& f, fc::datastream<const char*>& ds )
          {
             uint64_t callback_id = 0;
-            fc::raw::unpack( ds, callback_id );
+            fc::raw::unpack( ds, callback_id, 0 );
             detail::callback_functor<Signature> arg0( get_connection(), callback_id );
             return  call_generic<R,Args...>( this->bind_first_arg<R,const std::function<Signature>&,Args...>( f, arg0 ), ds );
          }
@@ -166,7 +166,7 @@ namespace fc {
          R call_generic( const std::function<R(Arg0,Args...)>& f, fc::datastream<const char*>& ds )
          {
             std::decay<Arg0>::type a0;
-            fc::raw::unpack( ds, a0 );
+            fc::raw::unpack( ds, a0, 0 );
             return  call_generic<R,Args...>( this->bind_first_arg<R,Arg0,Args...>( f, a0 ), ds );
          }
 
@@ -290,7 +290,7 @@ namespace fc {
             template<typename Result>
             static Result from_vector( const vector<char>& v, Result*, const std::shared_ptr<fc::binary_api_connection>&  )
             {
-               return fc::raw::unpack<Result>( v ); 
+               return fc::raw::unpack<Result>( v, 0 ); 
             }
 
             template<typename ResultInterface>
@@ -299,7 +299,7 @@ namespace fc {
                                                           const std::shared_ptr<fc::binary_api_connection>&  con 
                                                         )
             {
-               return con->get_remote_api<ResultInterface>( fc::raw::unpack<uint64_t>( v ) );
+               return con->get_remote_api<ResultInterface>( fc::raw::unpack<uint64_t>( v, 0 ) );
             }
 
             static fc::api_ptr from_vector(
@@ -308,7 +308,7 @@ namespace fc {
                const std::shared_ptr<fc::binary_api_connection>&  con
             )
             {
-               return fc::api_ptr( new detail::any_api( fc::raw::unpack<uint64_t>(v), con ) );
+               return fc::api_ptr( new detail::any_api( fc::raw::unpack<uint64_t>(v, 0), con ) );
             }
 
             template<typename T>

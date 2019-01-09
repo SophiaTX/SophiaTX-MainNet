@@ -355,8 +355,8 @@ std::vector<char> aes_load( const fc::path& file, const fc::sha512& key )
    fc::sha512 check;
    std::vector<char> cipher;
 
-   fc::raw::unpack( in, check );
-   fc::raw::unpack( in, cipher );
+   fc::raw::unpack( in, check, 0 );
+   fc::raw::unpack( in, cipher, 0 );
 
    fc::sha512::encoder check_enc;
    fc::raw::pack( check_enc, key );

@@ -105,9 +105,10 @@ namespace fc {
     }
 
     template<typename Stream, typename Storage>
-    inline void unpack( Stream& s, fc::fixed_string<Storage>& u ) {
+    inline void unpack( Stream& s, fc::fixed_string<Storage>& u, uint32_t depth ) {
+       FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
        unsigned_int size;
-       fc::raw::unpack( s, size );
+       fc::raw::unpack( s, size, depth );
        if( size.value > 0 ) {
           if( size.value > sizeof(Storage) ) {
              s.read( (char*)&u.data, sizeof(Storage) );

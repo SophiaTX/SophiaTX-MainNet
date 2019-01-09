@@ -5,6 +5,7 @@
 
 #include <fc/exception/exception.hpp>
 #include <fc/crypto/city.hpp>
+#include <fc/io/raw_fwd.hpp>
 
 #ifdef _MSC_VER
   #pragma warning (push)
@@ -128,7 +129,7 @@ namespace fc
     template<typename Stream>
     inline void pack( Stream& s, const uint128& u ) { s.write( (char*)&u, sizeof(u) ); }
     template<typename Stream>
-    inline void unpack( Stream& s, uint128& u ) { s.read( (char*)&u, sizeof(u) ); }
+    inline void unpack( Stream& s, uint128& u, uint64_t depth ) { FC_ASSERT( depth <= MAX_RECURSION_DEPTH ); s.read( (char*)&u, sizeof(u) ); }
   }
 
   size_t city_hash_size_t(const char *buf, size_t len);

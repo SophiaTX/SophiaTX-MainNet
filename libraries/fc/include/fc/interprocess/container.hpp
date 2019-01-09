@@ -135,12 +135,13 @@ namespace fc {
          }
        }
        template<typename Stream, typename T, typename... A>
-       inline void unpack( Stream& s, bip::vector<T,A...>& value ) {
+       inline void unpack( Stream& s, bip::vector<T,A...>& value, uint32_t depth = 0 ) {
+         FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH ); 
          unsigned_int size;
-         unpack( s, size );
+         unpack( s, size, depth );
          value.clear(); value.resize(size);
          for( auto& item : value )
-             fc::raw::unpack( s, item );
+             fc::raw::unpack( s, item, depth );
        }
    }
 
