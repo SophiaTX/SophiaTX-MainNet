@@ -237,7 +237,7 @@ namespace fc { namespace ecc {
                         FC_THROW_EXCEPTION( exception, "unable to construct recoverable key");
                     }
                     unsigned char* result = nullptr;
-                    //auto bytes = i2d_ECDSA_SIG( sig, &result );
+                    i2d_ECDSA_SIG( sig, &result );
                     auto lenR = result[3];
                     auto lenS = result[5+lenR];
                     //idump( (result[0])(result[1])(result[2])(result[3])(result[3+lenR])(result[4+lenR])(bytes)(lenR)(lenS) );
@@ -265,4 +265,12 @@ namespace fc { namespace ecc {
             } // while true
         } FC_RETHROW_EXCEPTIONS( warn, "sign ${digest}", ("digest", digest)("private_key",*this) );
     }
+
+    extended_public_key::extended_public_key( const public_key& k, const fc::sha256& c,
+                                          int child, int parent, uint8_t depth )
+      : public_key(k), c(c), child_num(child), parent_fp(parent), depth(depth) { }
+
+    extended_private_key::extended_private_key( const private_key& k, const sha256& c,
+                                            int child, int parent, uint8_t depth )
+      : private_key(k), c(c), child_num(child), parent_fp(parent), depth(depth) { }
 } }
