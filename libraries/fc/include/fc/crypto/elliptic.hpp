@@ -248,10 +248,11 @@ namespace fc {
   namespace raw
   {
       template<typename Stream>
-      void unpack( Stream& s, fc::ecc::public_key& pk)
+      void unpack( Stream& s, fc::ecc::public_key& pk, uint32_t depth )
       {
+          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
           ecc::public_key_data ser;
-          fc::raw::unpack(s,ser);
+          fc::raw::unpack(s,ser,depth);
           pk = fc::ecc::public_key( ser );
       }
 
@@ -262,10 +263,12 @@ namespace fc {
       }
 
       template<typename Stream>
-      void unpack( Stream& s, fc::ecc::private_key& pk)
+      void unpack( Stream& s, fc::ecc::private_key& pk, uint32_t depth )
       {
+          FC_ASSERT( depth++ <= MAX_RECURSION_DEPTH );
+        
           fc::sha256 sec;
-          unpack( s, sec );
+          unpack( s, sec, depth );
           pk = ecc::private_key::regenerate(sec);
       }
 

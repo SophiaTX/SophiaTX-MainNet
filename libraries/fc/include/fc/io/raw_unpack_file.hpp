@@ -17,7 +17,7 @@ namespace fc
                auto cs  = (const char*)mapr.get_address();
 
                fc::datastream<const char*> ds( cs, mapr.get_size() );
-               fc::raw::unpack(ds,obj);
+               fc::raw::unpack(ds,obj, 0);
            } FC_RETHROW_EXCEPTIONS( info, "unpacking file ${file}", ("file",filename) );
         }
    }
