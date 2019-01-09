@@ -72,10 +72,10 @@ namespace fc { namespace ecc {
             return _derive_message( *key.begin(), key.begin() + 1, i );
         }
 
-        static chr37 _derive_message( const private_key_secret& key, int i )
-        {
-            return _derive_message( 0, key.data(), i );
-        }
+//        static chr37 _derive_message( const private_key_secret& key, int i )
+//        {
+//            return _derive_message( 0, key.data(), i );
+//        }
 
         const ec_group& get_curve()
         {
@@ -280,11 +280,11 @@ namespace fc { namespace ecc {
         }
     }
 
-    extended_public_key extended_public_key::derive_child(int i) const
+    /*extended_public_key extended_public_key::derive_child(int i) const
     {
         FC_ASSERT( !(i&0x80000000), "Can't derive hardened public key!" );
         return derive_normal_child(i);
-    }
+    }*/
 
     extended_key_data extended_public_key::serialize_extended() const
     {
@@ -331,27 +331,27 @@ namespace fc { namespace ecc {
         return extended_public_key( get_public_key(), c, child_num, parent_fp, depth );
     }
 
-    extended_private_key extended_private_key::derive_child(int i) const
-    {
-        return i < 0 ? derive_hardened_child(i) : derive_normal_child(i);
-    }
-
-    extended_private_key extended_private_key::derive_normal_child(int i) const
-    {
-        const detail::chr37 data = detail::_derive_message( get_public_key().serialize(), i );
-        hmac_sha512 mac;
-        fc::sha512 l = mac.digest( c.data(), c.data_size(), data.begin(), data.size() );
-        return private_derive_rest( l, i );
-    }
-
-    extended_private_key extended_private_key::derive_hardened_child(int i) const
-    {
-        hmac_sha512 mac;
-        private_key_secret key = get_secret();
-        const detail::chr37 data = detail::_derive_message( key, i );
-        fc::sha512 l = mac.digest( c.data(), c.data_size(), data.begin(), data.size() );
-        return private_derive_rest( l, i );
-    }
+//    extended_private_key extended_private_key::derive_child(int i) const
+//    {
+//        return i < 0 ? derive_hardened_child(i) : derive_normal_child(i);
+//    }
+//
+//    extended_private_key extended_private_key::derive_normal_child(int i) const
+//    {
+//        const detail::chr37 data = detail::_derive_message( get_public_key().serialize(), i );
+//        hmac_sha512 mac;
+//        fc::sha512 l = mac.digest( c.data(), c.data_size(), data.begin(), data.size() );
+//        return private_derive_rest( l, i );
+//    }
+//
+//    extended_private_key extended_private_key::derive_hardened_child(int i) const
+//    {
+//        hmac_sha512 mac;
+//        private_key_secret key = get_secret();
+//        const detail::chr37 data = detail::_derive_message( key, i );
+//        fc::sha512 l = mac.digest( c.data(), c.data_size(), data.begin(), data.size() );
+//        return private_derive_rest( l, i );
+//    }
 
     extended_key_data extended_private_key::serialize_extended() const
     {
