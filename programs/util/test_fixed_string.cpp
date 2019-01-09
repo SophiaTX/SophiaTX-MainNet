@@ -77,7 +77,7 @@ void check_pack( const std::string& s, const sophiatx::protocol::fixed_string_im
 
    ss.seekg(0);
    sophiatx::protocol::fixed_string_impl< Storage > unpacked;
-   fc::raw::unpack( ss, unpacked );
+   fc::raw::unpack( ss, unpacked, 0 );
    if( unpacked != fs )
    {
       std::cout << "check_pack() check failed on " << s << std::endl;

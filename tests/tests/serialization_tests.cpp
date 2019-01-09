@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE( serialization_raw_test )
 
       trx.operations.push_back( op );
       auto packed = fc::raw::pack_to_vector( trx );
-      signed_transaction unpacked = fc::raw::unpack_from_vector<signed_transaction>(packed);
+      signed_transaction unpacked = fc::raw::unpack_from_vector<signed_transaction>(packed, 0);
       unpacked.validate();
       BOOST_CHECK( trx.digest() == unpacked.digest() );
    } catch (fc::exception& e) {
@@ -357,7 +357,7 @@ BOOST_AUTO_TEST_CASE( asset_raw_test )
             // check raw::unpack() works
             std::istringstream ss( string(v_cur.begin(), v_cur.end()) );
             asset a2;
-            fc::raw::unpack( ss, a2 );
+            fc::raw::unpack( ss, a2, 0 );
             BOOST_CHECK( a == a2 );
 
             // check conversion to JSON works

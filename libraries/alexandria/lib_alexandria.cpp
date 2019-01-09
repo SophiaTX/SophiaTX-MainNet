@@ -837,7 +837,7 @@ string alexandria_api::decrypt_data(string data, public_key_type public_key, str
       FC_ASSERT(check == m->check, "Checksum does not match!");
 
       vector<char> decrypted = fc::aes_decrypt(encryption_key, m->encrypted);
-      return fc::raw::unpack_from_vector<std::string>(decrypted);
+      return fc::raw::unpack_from_vector<std::string>(decrypted, 0);
 
    } FC_CAPTURE_AND_RETHROW((data)(public_key)(private_key))
 }

@@ -26,7 +26,7 @@ namespace sophiatx { namespace protocol {
        FC_ASSERT( base58str.size() > prefix_len );
        FC_ASSERT( base58str.substr( 0, prefix_len ) ==  prefix , "", ("base58str", base58str) );
        auto bin = fc::from_base58( base58str.substr( prefix_len ) );
-       auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin);
+       auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin, 0);
        key_data = bin_key.data;
        FC_ASSERT( fc::ripemd160::hash( key_data.data, key_data.size() )._hash[0] == bin_key.check );
     };
@@ -86,7 +86,7 @@ namespace sophiatx { namespace protocol {
        FC_ASSERT( base58str.size() > prefix_len );
        FC_ASSERT( base58str.substr( 0, prefix_len ) ==  prefix , "", ("base58str", base58str) );
        auto bin = fc::from_base58( base58str.substr( prefix_len ) );
-       auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin);
+       auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin, 0);
        FC_ASSERT( fc::ripemd160::hash( bin_key.data.data, bin_key.data.size() )._hash[0] == bin_key.check );
        key_data = bin_key.data;
     }
@@ -140,7 +140,7 @@ namespace sophiatx { namespace protocol {
        FC_ASSERT( base58str.size() > prefix_len );
        FC_ASSERT( base58str.substr( 0, prefix_len ) ==  prefix , "", ("base58str", base58str) );
        auto bin = fc::from_base58( base58str.substr( prefix_len ) );
-       auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin);
+       auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin, 0);
        FC_ASSERT( fc::ripemd160::hash( bin_key.data.data, bin_key.data.size() )._hash[0] == bin_key.check );
        key_data = bin_key.data;
     }

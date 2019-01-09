@@ -41,7 +41,7 @@ message_wrapper decode_message( const vector<char>& message, const fc::sha256& i
 {
    vector<char> raw_msg = fc::aes_decrypt(key, iv, message);
    message_wrapper ret;
-   fc::raw::unpack_from_vector( raw_msg, ret );
+   fc::raw::unpack_from_vector( raw_msg, ret, 0 );
    return ret;
 }
 
@@ -50,7 +50,7 @@ message_wrapper decode_message( const vector<char>& message, const fc::sha512& k
 {
    vector<char> raw_msg = fc::aes_decrypt(key, message);
    message_wrapper ret;
-   fc::raw::unpack_from_vector( raw_msg, ret );
+   fc::raw::unpack_from_vector( raw_msg, ret, 0 );
    return ret;
 }
 

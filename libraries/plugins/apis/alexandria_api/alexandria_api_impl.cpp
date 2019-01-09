@@ -1070,7 +1070,7 @@ DEFINE_API_IMPL(alexandria_api_impl, decrypt_data)
    vector<char> decrypted = fc::aes_decrypt(encryption_key, m->encrypted);
 
    decrypt_data_return result;
-   result.decrypted_data = fc::raw::unpack_from_vector<std::string>(decrypted);
+   result.decrypted_data = fc::raw::unpack_from_vector<std::string>(decrypted, 0);
 
    return result;
 }
