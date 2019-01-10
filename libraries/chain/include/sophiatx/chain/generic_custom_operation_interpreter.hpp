@@ -22,14 +22,14 @@ using protocol::operation;
 using protocol::authority;
 using protocol::account_name_type;
 
-class database;
+class database_interface;
 
 template< typename CustomOperationType >
 class generic_custom_operation_interpreter
    : public custom_operation_interpreter, public evaluator_registry< CustomOperationType >
 {
    public:
-      generic_custom_operation_interpreter( database& db ) : evaluator_registry< CustomOperationType >(db) {}
+      generic_custom_operation_interpreter( std::shared_ptr<database_interface>& db ) : evaluator_registry< CustomOperationType >(db) {}
 
       void apply_operations( const vector< CustomOperationType >& custom_operations, const operation& outer_o )
       {

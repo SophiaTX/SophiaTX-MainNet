@@ -24,6 +24,7 @@ namespace asio = boost::asio;
 
 chain_plugin_lite::chain_plugin_lite() {
    flush_interval = 10000;
+   //db_ = std::make_shared<database>();
 }
 chain_plugin_lite::~chain_plugin_lite(){}
 
@@ -78,12 +79,12 @@ void chain_plugin_lite::plugin_startup()
    if(resync)
    {
       wlog("resync requested: deleting block log and shared memory");
-      db_.wipe( shared_memory_dir, true );
+      db_->wipe( shared_memory_dir, true );
    }
 
-   db_.set_flush_interval( flush_interval );
+   db_->set_flush_interval( flush_interval );
 
-   database::open_args db_open_args;
+   database_interface::open_args db_open_args;
    db_open_args.shared_mem_dir = shared_memory_dir;
    db_open_args.shared_file_size = shared_memory_size;
    db_open_args.shared_file_full_threshold = shared_file_full_threshold;
@@ -91,7 +92,7 @@ void chain_plugin_lite::plugin_startup()
 
    elog("Starting node with chain id ${i}", ("i", chain_id));
 
-   ilog( "Started on blockchain with ${n} blocks", ("n", db_.head_block_num()) );
+   ilog( "Started on blockchain with ${n} blocks", ("n", db_->head_block_num()) );
    on_sync();
 }
 
@@ -99,7 +100,7 @@ void chain_plugin_lite::plugin_shutdown()
 {
    ilog("closing chain database");
 //   stop_write_processing();
-   db_.close();
+   db_->close();
    ilog("database closed successfully");
 }
 

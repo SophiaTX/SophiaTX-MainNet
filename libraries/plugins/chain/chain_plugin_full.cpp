@@ -2,6 +2,7 @@
 #include <sophiatx/chain/genesis_state.hpp>
 
 #include <sophiatx/plugins/chain/chain_plugin_full.hpp>
+#include <sophiatx/chain/database/database.hpp>
 
 #include <sophiatx/utilities/benchmark_dumper.hpp>
 
@@ -28,14 +29,17 @@ using sophiatx::chain::block_id_type;
 namespace asio = boost::asio;
 
 
-chain_plugin_full::chain_plugin_full() : write_queue( 64 ) {}
+chain_plugin_full::chain_plugin_full() : write_queue( 64 ) {
+   db_ = std::make_shared<database>();
+}
+
 chain_plugin_full::~chain_plugin_full() { stop_write_processing(); }
 
 struct write_request_visitor
 {
    write_request_visitor() {}
 
-   database* db;
+   std::shared_ptr<database> db;
    uint32_t  skip = 0;
    fc::optional< fc::exception >* except;
 
@@ -131,7 +135,7 @@ void chain_plugin_full::start_write_processing()
                                                                   write_context* cxt;
                                                                   fc::time_point_sec start = fc::time_point::now();
                                                                   write_request_visitor req_visitor;
-                                                                  req_visitor.db = &db_;
+                                                                  req_visitor.db = std::static_pointer_cast<database>(db_);
 
                                                                   request_promise_visitor prom_visitor;
 
@@ -161,7 +165,7 @@ void chain_plugin_full::start_write_processing()
 
                                                                      if( write_queue.pop( cxt ) )
                                                                      {
-                                                                        db_.with_write_lock( [&]()
+                                                                        db_->with_write_lock( [&]()
                                                                                             {
                                                                                                  while( true )
                                                                                                  {
@@ -170,7 +174,7 @@ void chain_plugin_full::start_write_processing()
                                                                                                     cxt->success = cxt->req_ptr.visit( req_visitor );
                                                                                                     cxt->prom_ptr.visit( prom_visitor );
 
-                                                                                                    //elog("head_block_time is: ${h}, start is:${s}, diff: ${d}, minute: ${m}, syncing ${sync}, holding ${hold}", ("h", db_.head_block_time())("s", start)("d", start - db_.head_block_time())("m",fc::minutes(1))("sync", is_syncing)("hold", write_lock_hold_time));
+                                                                                                    //elog("head_block_time is: ${h}, start is:${s}, diff: ${d}, minute: ${m}, syncing ${sync}, holding ${hold}", ("h", db_->head_block_time())("s", start)("d", start - db_->head_block_time())("m",fc::minutes(1))("sync", is_syncing)("hold", write_lock_hold_time));
                                                                                                     if( !is_syncing && write_lock_hold_time >= 0 && fc::time_point::now() - start > fc::milliseconds( write_lock_hold_time ) )
                                                                                                     {
 
@@ -363,17 +367,17 @@ void chain_plugin_full::plugin_startup()
    if(resync)
    {
       wlog("resync requested: deleting block log and shared memory");
-      db_.wipe( shared_memory_dir, true );
+      db_->wipe( shared_memory_dir, true );
    }
 
-   db_.set_flush_interval( flush_interval );
-   db_.add_checkpoints( loaded_checkpoints );
-   db_.set_require_locking( check_locks );
+   db_->set_flush_interval( flush_interval );
+   db_->add_checkpoints( loaded_checkpoints );
+   db_->set_require_locking( check_locks );
 
    bool dump_memory_details_ = dump_memory_details;
    sophiatx::utilities::benchmark_dumper dumper;
 
-   const auto& abstract_index_cntr = db_.get_abstract_index_cntr();
+   const auto& abstract_index_cntr = db_->get_abstract_index_cntr();
 
    typedef sophiatx::utilities::benchmark_dumper::index_memory_details_cntr_t index_memory_details_cntr_t;
    auto get_indexes_memory_details = [dump_memory_details_, &abstract_index_cntr]
@@ -436,7 +440,7 @@ void chain_plugin_full::plugin_startup()
       ilog("Replaying blockchain on user request.");
       uint32_t last_block_number = 0;
       db_open_args.benchmark = sophiatx::chain::database::TBenchmark(benchmark_interval, benchmark_lambda);
-      last_block_number = db_.reindex( db_open_args, genesis, init_mining_pubkey );
+      last_block_number = db_->reindex( db_open_args, genesis, init_mining_pubkey );
 
       if( benchmark_interval > 0 )
       {
@@ -464,7 +468,7 @@ void chain_plugin_full::plugin_startup()
       {
          ilog("Opening shared memory from ${path}", ("path",shared_memory_dir.generic_string()));
 
-         db_.open( db_open_args, genesis, init_mining_pubkey );
+         db_->open( db_open_args, genesis, init_mining_pubkey );
 
          if( dump_memory_details_ )
             dumper.dump( true, get_indexes_memory_details );
@@ -475,17 +479,17 @@ void chain_plugin_full::plugin_startup()
 
          try
          {
-            db_.reindex( db_open_args, genesis, init_mining_pubkey );
+            db_->reindex( db_open_args, genesis, init_mining_pubkey );
          }
          catch( sophiatx::chain::block_log_exception& )
          {
             wlog( "Error opening block log. Having to resync from network..." );
-            db_.open( db_open_args, genesis, init_mining_pubkey );
+            db_->open( db_open_args, genesis, init_mining_pubkey );
          }
       }
    }
 
-   ilog( "Started on blockchain with ${n} blocks", ("n", db_.head_block_num()) );
+   ilog( "Started on blockchain with ${n} blocks", ("n", db_->head_block_num()) );
    on_sync();
 }
 
@@ -493,7 +497,7 @@ void chain_plugin_full::plugin_shutdown()
 {
    ilog("closing chain database");
    stop_write_processing();
-   db_.close();
+   db_->close();
    ilog("database closed successfully");
 }
 

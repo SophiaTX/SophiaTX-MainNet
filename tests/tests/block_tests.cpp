@@ -26,7 +26,7 @@
 
 #include <sophiatx/protocol/exceptions.hpp>
 
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/history_object.hpp>
 
@@ -47,7 +47,7 @@ using namespace sophiatx::protocol;
 
 BOOST_AUTO_TEST_SUITE(block_tests)
 
-void open_test_database( database& db, const fc::path& dir )
+void open_test_database( std::shared_ptr<database_interface>& db, const fc::path& dir )
 {
    fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
    public_key_type init_account_pub_key = init_account_priv_key.get_public_key();

@@ -5,6 +5,7 @@ add_library( sophiatx_chain
 
              # As database takes the longest to compile, start it first
              database.cpp
+             database_interface.cpp
              hybrid_database.cpp
 
              sophiatx_evaluator.cpp

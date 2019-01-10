@@ -55,7 +55,7 @@ class database_api_impl
       template< typename IndexType, typename OrderType, typename ValueType, typename ResultType, typename OnPush >
       void iterate_results( ValueType start, vector< ResultType >& result, uint32_t limit, OnPush&& on_push = &database_api_impl::on_push_default< ResultType >, bool reverse = false )
       {
-         const auto& idx = _db.get_index< IndexType, OrderType >();
+         const auto& idx = _db->get_index< IndexType, OrderType >();
          auto itr = reverse? (idx.upper_bound(start)): idx.lower_bound( start );
          auto end = reverse? idx.begin() : idx.end();
 
@@ -69,7 +69,7 @@ class database_api_impl
 
 
 
-      chain::database& _db;
+      std::shared_ptr<database_interface> _db;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -105,27 +105,27 @@ DEFINE_API_IMPL( database_api_impl, get_config )
 
 DEFINE_API_IMPL( database_api_impl, get_dynamic_global_properties )
 {
-   return _db.get_dynamic_global_properties();
+   return _db->get_dynamic_global_properties();
 }
 
 DEFINE_API_IMPL( database_api_impl, get_witness_schedule )
 {
-   return api_witness_schedule_object( _db.get_witness_schedule_object() );
+   return api_witness_schedule_object( _db->get_witness_schedule_object() );
 }
 
 DEFINE_API_IMPL( database_api_impl, get_hardfork_properties )
 {
-   return _db.get_hardfork_property_object();
+   return _db->get_hardfork_property_object();
 }
 
 DEFINE_API_IMPL( database_api_impl, get_current_price_feed )
 {
-   return _db.get_feed_history( args.symbol ).current_median_history;;
+   return _db->get_feed_history( args.symbol ).current_median_history;;
 }
 
 DEFINE_API_IMPL( database_api_impl, get_feed_history )
 {
-   return _db.get_feed_history( args.symbol );
+   return _db->get_feed_history( args.symbol );
 }
 
 
@@ -183,7 +183,7 @@ DEFINE_API_IMPL( database_api_impl, list_witnesses )
       case( by_schedule_time_reverse ):
       {
          auto key = args.start.as< std::pair< fc::uint128, account_name_type > >();
-         auto wit_id = _db.get< chain::witness_object, chain::by_name >( key.second ).id;
+         auto wit_id = _db->get< chain::witness_object, chain::by_name >( key.second ).id;
          iterate_results< chain::witness_index, chain::by_schedule_time >(
             boost::make_tuple( key.first, wit_id ),
             result.witnesses,
@@ -208,7 +208,7 @@ DEFINE_API_IMPL( database_api_impl, find_witnesses )
 
    for( auto& o : args.owners )
    {
-      auto witness = _db.find< chain::witness_object, chain::by_name >( o );
+      auto witness = _db->find< chain::witness_object, chain::by_name >( o );
 
       if( witness != nullptr )
          result.witnesses.push_back( api_witness_object( *witness ) );
@@ -260,7 +260,7 @@ DEFINE_API_IMPL( database_api_impl, list_witness_votes )
 
 DEFINE_API_IMPL( database_api_impl, get_active_witnesses )
 {
-   const auto& wso = _db.get_witness_schedule_object();
+   const auto& wso = _db->get_witness_schedule_object();
    size_t n = wso.current_shuffled_witnesses.size();
    get_active_witnesses_return result;
    result.witnesses.reserve( n );
@@ -352,7 +352,7 @@ DEFINE_API_IMPL( database_api_impl, find_accounts )
 
    for( auto& a : args.accounts )
    {
-      auto acct = _db.find< chain::account_object, chain::by_name >( a );
+      auto acct = _db->find< chain::account_object, chain::by_name >( a );
       if( acct != nullptr )
          result.accounts.push_back( api_account_object( *acct, _db ) );
    }
@@ -384,7 +384,7 @@ DEFINE_API_IMPL( database_api_impl, find_owner_histories )
 {
    find_owner_histories_return result;
 
-   const auto& hist_idx = _db.get_index< chain::owner_authority_history_index, chain::by_account >();
+   const auto& hist_idx = _db->get_index< chain::owner_authority_history_index, chain::by_account >();
    auto itr = hist_idx.lower_bound( args.owner );
 
    while( itr != hist_idx.end() && itr->account == args.owner && result.owner_auths.size() <= DATABASE_API_SINGLE_QUERY_LIMIT )
@@ -444,7 +444,7 @@ DEFINE_API_IMPL( database_api_impl, find_account_recovery_requests )
 
    for( auto& a : args.accounts )
    {
-      auto request = _db.find< chain::account_recovery_request_object, chain::by_account >( a );
+      auto request = _db->find< chain::account_recovery_request_object, chain::by_account >( a );
 
       if( request != nullptr )
          result.requests.push_back( api_account_recovery_request_object( *request ) );
@@ -501,7 +501,7 @@ DEFINE_API_IMPL( database_api_impl, find_change_recovery_account_requests )
 
    for( auto& a : args.accounts )
    {
-      auto request = _db.find< chain::change_recovery_account_request_object, chain::by_account >( a );
+      auto request = _db->find< chain::change_recovery_account_request_object, chain::by_account >( a );
 
       if( request != nullptr )
          result.requests.push_back( *request );
@@ -557,7 +557,7 @@ DEFINE_API_IMPL( database_api_impl, find_escrows )
 {
    find_escrows_return result;
 
-   const auto& escrow_idx = _db.get_index< chain::escrow_index, chain::by_from_id >();
+   const auto& escrow_idx = _db->get_index< chain::escrow_index, chain::by_from_id >();
    auto itr = escrow_idx.lower_bound( args.from );
 
    while( itr != escrow_idx.end() && itr->from == args.from && result.escrows.size() <= DATABASE_API_SINGLE_QUERY_LIMIT )
@@ -651,12 +651,12 @@ DEFINE_API_IMPL( database_api_impl, get_transaction_hex )
 DEFINE_API_IMPL( database_api_impl, get_required_signatures )
 {
    get_required_signatures_return result;
-   result.keys = args.trx.get_required_signatures( _db.get_chain_id(),
+   result.keys = args.trx.get_required_signatures( _db->get_chain_id(),
                                                    args.available_keys,
-                                                   [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
-                                                   [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
+                                                   [&]( string account_name ){ return authority( _db->get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
+                                                   [&]( string account_name ){ return authority( _db->get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
                                                    SOPHIATX_MAX_SIG_CHECK_DEPTH,
-                                                   _db.has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical);
+                                                   _db->has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical);
 
    return result;
 }
@@ -665,24 +665,24 @@ DEFINE_API_IMPL( database_api_impl, get_potential_signatures )
 {
    get_potential_signatures_return result;
    args.trx.get_required_signatures(
-      _db.get_chain_id(),
+      _db->get_chain_id(),
       flat_set< public_key_type >(),
       [&]( account_name_type account_name )
       {
-         const auto& auth = _db.get< chain::account_authority_object, chain::by_account >( account_name ).active;
+         const auto& auth = _db->get< chain::account_authority_object, chain::by_account >( account_name ).active;
          for( const auto& k : auth.get_keys() )
             result.keys.insert( k );
          return authority( auth );
       },
       [&]( account_name_type account_name )
       {
-         const auto& auth = _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner;
+         const auto& auth = _db->get< chain::account_authority_object, chain::by_account >( account_name ).owner;
          for( const auto& k : auth.get_keys() )
             result.keys.insert( k );
          return authority( auth );
       },
       SOPHIATX_MAX_SIG_CHECK_DEPTH,
-      _db.has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical
+      _db->has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical
    );
 
    return result;
@@ -690,11 +690,11 @@ DEFINE_API_IMPL( database_api_impl, get_potential_signatures )
 
 DEFINE_API_IMPL( database_api_impl, verify_authority )
 {
-   args.trx.verify_authority(_db.get_chain_id(),
-                           [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
-                           [&]( string account_name ){ return authority( _db.get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
+   args.trx.verify_authority(_db->get_chain_id(),
+                           [&]( string account_name ){ return authority( _db->get< chain::account_authority_object, chain::by_account >( account_name ).active  ); },
+                           [&]( string account_name ){ return authority( _db->get< chain::account_authority_object, chain::by_account >( account_name ).owner   ); },
                            SOPHIATX_MAX_SIG_CHECK_DEPTH,
-                           _db.has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical);
+                           _db->has_hardfork( SOPHIATX_HARDFORK_1_1 ) ? fc::ecc::canonical_signature_type::bip_0062 : fc::ecc::canonical_signature_type::fc_canonical);
    return verify_authority_return( { true } );
 }
 
@@ -702,7 +702,7 @@ DEFINE_API_IMPL( database_api_impl, verify_authority )
 // returns false because the TX is not signed.
 DEFINE_API_IMPL( database_api_impl, verify_account_authority )
 {
-   auto account = _db.find< chain::account_object, chain::by_name >( args.account );
+   auto account = _db->find< chain::account_object, chain::by_name >( args.account );
    FC_ASSERT( account != nullptr, "no such account" );
 
    /// reuse trx.verify_authority by creating a dummy transfer
@@ -735,8 +735,8 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
       sophiatx::protocol::verify_authority< verify_signatures_args >(
          { args },
          sig_keys,
-         [this]( const string& name ) { return authority( _db.get< chain::account_authority_object, chain::by_account >( name ).owner ); },
-         [this]( const string& name ) { return authority( _db.get< chain::account_authority_object, chain::by_account >( name ).active ); },
+         [this]( const string& name ) { return authority( _db->get< chain::account_authority_object, chain::by_account >( name ).owner ); },
+         [this]( const string& name ) { return authority( _db->get< chain::account_authority_object, chain::by_account >( name ).active ); },
          SOPHIATX_MAX_SIG_CHECK_DEPTH );
    }
    catch( fc::exception& ) { result.valid = false; }
@@ -746,13 +746,13 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
 
 DEFINE_API_IMPL( database_api_impl, get_promotion_pool_balance )
 {
-   return asset(_db.get_economic_model().get_available_promotion_pool(_db.head_block_num()), SOPHIATX_SYMBOL);
+   return asset(_db->get_economic_model().get_available_promotion_pool(_db->head_block_num()), SOPHIATX_SYMBOL);
 }
 
 
 DEFINE_API_IMPL( database_api_impl, get_burned_balance )
 {
-   return asset(_db.get_economic_model().burn_pool, SOPHIATX_SYMBOL);
+   return asset(_db->get_economic_model().burn_pool, SOPHIATX_SYMBOL);
 }
 
 #ifdef SOPHIATX_ENABLE_SMT
@@ -765,7 +765,7 @@ DEFINE_API_IMPL( database_api_impl, get_burned_balance )
 DEFINE_API_IMPL( database_api_impl, get_smt_next_identifier )
 {
    get_smt_next_identifier_return result;
-   result.nais = _db.get_smt_next_identifier();
+   result.nais = _db->get_smt_next_identifier();
    return result;
 }
 #endif

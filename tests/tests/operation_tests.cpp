@@ -4,7 +4,7 @@
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/hardfork.hpp>
 
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/database/database_exceptions.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/application_object.hpp>
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       BOOST_TEST_MESSAGE( "--- Test failure covering witness fee" );
       generate_block();
-      db_plugin->debug_update( [=]( database& db )
+      db_plugin->debug_update( [=]( std::shared_ptr<database>& db )
       {
          db.modify( db.get_witness_schedule_object(), [&]( witness_schedule_object& wso )
          {
@@ -802,7 +802,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       generate_block();
       }
 
-      db_plugin->debug_update( [=]( database& db )
+      db_plugin->debug_update( [=]( std::shared_ptr<database>& db )
       {
          auto& wso = db.get_witness_schedule_object();
 

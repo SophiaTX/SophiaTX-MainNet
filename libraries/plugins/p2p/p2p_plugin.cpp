@@ -118,14 +118,14 @@ public:
 ////////////////////////////// Begin node_delegate Implementation //////////////////////////////
 bool p2p_plugin_impl::has_item( const graphene::net::item_id& id )
 {
-   return chain.db().with_read_lock( [&]()
+   return chain.db()->with_read_lock( [&]()
    {
       try
       {
          if( id.item_type == graphene::net::block_message_type )
-            return chain.db().is_known_block(id.item_hash);
+            return chain.db()->is_known_block(id.item_hash);
          else
-            return chain.db().is_known_transaction(id.item_hash);
+            return chain.db()->is_known_transaction(id.item_hash);
       }
       FC_CAPTURE_LOG_AND_RETHROW( (id) )
    });
@@ -136,9 +136,9 @@ bool p2p_plugin_impl::handle_block( const graphene::net::block_message& blk_msg,
    if( running )
    {
       uint32_t head_block_num;
-      chain.db().with_read_lock( [&]()
+      chain.db()->with_read_lock( [&]()
       {
-         head_block_num = chain.db().head_block_num();
+         head_block_num = chain.db()->head_block_num();
       });
       if (sync_mode)
          fc_ilog(fc::logger::get("sync"),
@@ -158,7 +158,7 @@ bool p2p_plugin_impl::handle_block( const graphene::net::block_message& blk_msg,
          // you can help the network code out by throwing a block_older_than_undo_history exception.
          // when the net code sees that, it will stop trying to push blocks from that chain, but
          // leave that peer connected so that they can get sync blocks from us
-         bool result = chain.accept_block( blk_msg.block, sync_mode, ( block_producer | force_validate ) ? chain::database::skip_nothing : chain::database::skip_transaction_signatures );
+         bool result = chain.accept_block( blk_msg.block, sync_mode, ( block_producer | force_validate ) ? chain::database_interface::skip_nothing : chain::database_interface::skip_transaction_signatures );
 
          if( !sync_mode )
          {
@@ -207,11 +207,11 @@ void p2p_plugin_impl::handle_message( const graphene::net::message& message_to_p
 
 std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_block_ids( const std::vector< graphene::net::item_hash_t >& blockchain_synopsis, uint32_t& remaining_item_count, uint32_t limit )
 { try {
-   return chain.db().with_read_lock( [&]()
+   return chain.db()->with_read_lock( [&]()
    {
       vector<block_id_type> result;
       remaining_item_count = 0;
-      if( chain.db().head_block_num() == 0 )
+      if( chain.db()->head_block_num() == 0 )
          return result;
 
       result.reserve( limit );
@@ -232,7 +232,7 @@ std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_block_ids( const 
          for( const item_hash_t& block_id_in_synopsis : boost::adaptors::reverse(blockchain_synopsis) )
          {
             if (block_id_in_synopsis == block_id_type() ||
-               (chain.db().is_known_block(block_id_in_synopsis) && is_included_block(block_id_in_synopsis)))
+               (chain.db()->is_known_block(block_id_in_synopsis) && is_included_block(block_id_in_synopsis)))
             {
                last_known_block_id = block_id_in_synopsis;
                found_a_block_in_synopsis = true;
@@ -245,15 +245,15 @@ std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_block_ids( const 
       }
 
       for( uint32_t num = block_header::num_from_id(last_known_block_id);
-            num <= chain.db().head_block_num() && result.size() < limit;
+            num <= chain.db()->head_block_num() && result.size() < limit;
             ++num )
       {
          if( num > 0 )
-            result.push_back(chain.db().get_block_id_for_num(num));
+            result.push_back(chain.db()->get_block_id_for_num(num));
       }
 
-      if( !result.empty() && block_header::num_from_id(result.back()) < chain.db().head_block_num() )
-         remaining_item_count = chain.db().head_block_num() - block_header::num_from_id(result.back());
+      if( !result.empty() && block_header::num_from_id(result.back()) < chain.db()->head_block_num() )
+         remaining_item_count = chain.db()->head_block_num() - block_header::num_from_id(result.back());
 
       return result;
    });
@@ -263,38 +263,38 @@ graphene::net::message p2p_plugin_impl::get_item( const graphene::net::item_id& 
 { try {
    if( id.item_type == graphene::net::block_message_type )
    {
-      return chain.db().with_read_lock( [&]()
+      return chain.db()->with_read_lock( [&]()
       {
-         auto opt_block = chain.db().fetch_block_by_id(id.item_hash);
+         auto opt_block = chain.db()->fetch_block_by_id(id.item_hash);
          if( !opt_block )
             elog("Couldn't find block ${id} -- corresponding ID in our chain is ${id2}",
-               ("id", id.item_hash)("id2", chain.db().get_block_id_for_num(block_header::num_from_id(id.item_hash))));
+               ("id", id.item_hash)("id2", chain.db()->get_block_id_for_num(block_header::num_from_id(id.item_hash))));
          FC_ASSERT( opt_block.valid() );
          // ilog("Serving up block #${num}", ("num", opt_block->block_num()));
          return block_message(std::move(*opt_block));
       });
    }
-   return chain.db().with_read_lock( [&]()
+   return chain.db()->with_read_lock( [&]()
    {
-      return trx_message( chain.db().get_recent_transaction( id.item_hash ) );
+      return trx_message( chain.db()->get_recent_transaction( id.item_hash ) );
    });
 } FC_CAPTURE_AND_RETHROW( (id) ) }
 
 sophiatx::protocol::chain_id_type p2p_plugin_impl::get_chain_id() const
 {
-   return chain.db().get_chain_id();
+   return chain.db()->get_chain_id();
 }
 
 std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_blockchain_synopsis( const graphene::net::item_hash_t& reference_point, uint32_t number_of_blocks_after_reference_point )
 {
    try {
    std::vector<item_hash_t> synopsis;
-   chain.db().with_read_lock( [&]()
+   chain.db()->with_read_lock( [&]()
    {
       synopsis.reserve(30);
       uint32_t high_block_num;
       uint32_t non_fork_high_block_num;
-      uint32_t low_block_num = chain.db().last_non_undoable_block_num();
+      uint32_t low_block_num = chain.db()->last_non_undoable_block_num();
       std::vector<block_id_type> fork_history;
 
       if (reference_point != item_hash_t())
@@ -330,7 +330,7 @@ std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_blockchain_synops
             // block is a block we know about, but it is on a fork
             try
             {
-               fork_history = chain.db().get_block_ids_on_fork(reference_point);
+               fork_history = chain.db()->get_block_ids_on_fork(reference_point);
                // returns a vector where the last element is the common ancestor with the preferred chain,
                // and the first element is the reference point you passed in
                assert(fork_history.size() >= 2);
@@ -372,7 +372,7 @@ std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_blockchain_synops
       else
       {
          // no reference point specified, summarize the whole block chain
-         high_block_num = chain.db().head_block_num();
+         high_block_num = chain.db()->head_block_num();
          non_fork_high_block_num = high_block_num;
          if (high_block_num == 0)
             return; // we have no blocks
@@ -395,7 +395,7 @@ std::vector< graphene::net::item_hash_t > p2p_plugin_impl::get_blockchain_synops
          // if it's <= non_fork_high_block_num, we grab it from the main blockchain;
          // if it's not, we pull it from the fork history
          if( low_block_num <= non_fork_high_block_num )
-            synopsis.push_back(chain.db().get_block_id_for_num(low_block_num));
+            synopsis.push_back(chain.db()->get_block_id_for_num(low_block_num));
          else
             synopsis.push_back(fork_history[low_block_num - non_fork_high_block_num - 1]);
          low_block_num += (true_high_block_num - low_block_num + 2) / 2;
@@ -429,9 +429,9 @@ fc::time_point_sec p2p_plugin_impl::get_block_time( const graphene::net::item_ha
 {
    try
    {
-      return chain.db().with_read_lock( [&]()
+      return chain.db()->with_read_lock( [&]()
       {
-         auto opt_block = chain.db().fetch_block_by_id( block_id );
+         auto opt_block = chain.db()->fetch_block_by_id( block_id );
          if( opt_block.valid() ) return opt_block->timestamp;
          return fc::time_point_sec::min();
       });
@@ -440,9 +440,9 @@ fc::time_point_sec p2p_plugin_impl::get_block_time( const graphene::net::item_ha
 
 graphene::net::item_hash_t p2p_plugin_impl::get_head_block_id() const
 { try {
-   return chain.db().with_read_lock( [&]()
+   return chain.db()->with_read_lock( [&]()
    {
-      return chain.db().head_block_id();
+      return chain.db()->head_block_id();
    });
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -463,10 +463,10 @@ fc::time_point_sec p2p_plugin_impl::get_blockchain_now()
 
 bool p2p_plugin_impl::is_included_block(const block_id_type& block_id)
 { try {
-   return chain.db().with_read_lock( [&]()
+   return chain.db()->with_read_lock( [&]()
    {
       uint32_t block_num = block_header::num_from_id(block_id);
-      block_id_type block_id_in_preferred_chain = chain.db().get_block_id_for_num(block_num);
+      block_id_type block_id_in_preferred_chain = chain.db()->get_block_id_for_num(block_num);
       return block_id == block_id_in_preferred_chain;
    });
 } FC_CAPTURE_AND_RETHROW() }
@@ -586,9 +586,9 @@ void p2p_plugin::plugin_startup()
       my->node->listen_to_p2p_network();
       my->node->connect_to_p2p_network();
       block_id_type block_id;
-      my->chain.db().with_read_lock( [&]()
+      my->chain.db()->with_read_lock( [&]()
       {
-         block_id = my->chain.db().head_block_id();
+         block_id = my->chain.db()->head_block_id();
       });
       my->node->sync_from(graphene::net::item_id(graphene::net::block_message_type, block_id), std::vector<uint32_t>());
       ilog("P2P node listening at ${ep}", ("ep", my->node->get_actual_listening_endpoint()));

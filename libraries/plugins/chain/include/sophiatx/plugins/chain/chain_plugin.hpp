@@ -5,7 +5,7 @@
 #endif
 
 #include <appbase/application.hpp>
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 
 #include <boost/signals2.hpp>
 
@@ -66,42 +66,42 @@ public:
    template< typename MultiIndexType >
    bool has_index() const
    {
-      return db().has_index< MultiIndexType >();
+      return db()->has_index< MultiIndexType >();
    }
 
    template< typename MultiIndexType >
    const chainbase::generic_index< MultiIndexType >& get_index() const
    {
-      return db().get_index< MultiIndexType >();
+      return db()->get_index< MultiIndexType >();
    }
 
    template< typename ObjectType, typename IndexedByType, typename CompatibleKey >
    const ObjectType* find( CompatibleKey&& key ) const
    {
-      return db().find< ObjectType, IndexedByType, CompatibleKey >( key );
+      return db()->find< ObjectType, IndexedByType, CompatibleKey >( key );
    }
 
    template< typename ObjectType >
    const ObjectType* find( chainbase::oid< ObjectType > key = chainbase::oid< ObjectType >() )
    {
-      return db().find< ObjectType >( key );
+      return db()->find< ObjectType >( key );
    }
 
    template< typename ObjectType, typename IndexedByType, typename CompatibleKey >
    const ObjectType& get( CompatibleKey&& key ) const
    {
-      return db().get< ObjectType, IndexedByType, CompatibleKey >( key );
+      return db()->get< ObjectType, IndexedByType, CompatibleKey >( key );
    }
 
    template< typename ObjectType >
    const ObjectType& get( const chainbase::oid< ObjectType >& key = chainbase::oid< ObjectType >() )
    {
-      return db().get< ObjectType >( key );
+      return db()->get< ObjectType >( key );
    }
 
    // Exposed for backwards compatibility. In the future, plugins should manage their own internal database
-   virtual database& db() { return db_;}
-   virtual const database& db() const {return db_;}
+   virtual std::shared_ptr<database_interface> db() { return db_;}
+   virtual const std::shared_ptr<database_interface> db() const { return db_;}
 
    // Emitted when the blockchain is syncing/live.
    // This is to synchronize plugins that have the chain plugin as an optional dependency.
@@ -116,7 +116,7 @@ protected:
    uint32_t                         flush_interval = 0;
    uint32_t                         allow_future_time = 5;
    bool                             running = true;
-   database                         db_;
+   std::shared_ptr<database_interface>  db_;
 };
 
 } } } // sophiatx::plugins::chain

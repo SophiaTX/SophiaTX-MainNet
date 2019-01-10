@@ -1,5 +1,5 @@
 #include <sophiatx/chain/sophiatx_evaluator.hpp>
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/custom_content_object.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
@@ -16,23 +16,13 @@
 namespace sophiatx { namespace chain {
    using fc::uint128_t;
 
-struct strcmp_equal
-{
-   bool operator()( const shared_string& a, const string& b )
-   {
-      return a.size() == b.size() || std::strcmp( a.c_str(), b.c_str() ) == 0;
-   }
-};
-
-
-
 void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
-   _db.get_account( o.owner );
-   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   _db->get_account( o.owner );
+   const auto& by_witness_name_idx = _db->get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
    if( wit_itr != by_witness_name_idx.end() )
    {
-      _db.modify(*wit_itr, [&]( witness_object& w ) {
+      _db->modify(*wit_itr, [&]( witness_object& w ) {
          w.signing_key = public_key_type();
       });
    }
@@ -40,11 +30,11 @@ void witness_stop_evaluator::do_apply( const witness_stop_operation& o ){
 
 void witness_update_evaluator::do_apply( const witness_update_operation& o )
 {
-   if( _db.is_private_net() ){
-      const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   if( _db->is_private_net() ){
+      const auto& by_witness_name_idx = _db->get_index< witness_index >().indices().get< by_name >();
       auto wit_itr = by_witness_name_idx.find( o.owner );
       FC_ASSERT( wit_itr != by_witness_name_idx.end(), "only initminer can select witnesses" );
-      _db.modify( *wit_itr, [&]( witness_object& w ) {
+      _db->modify( *wit_itr, [&]( witness_object& w ) {
             from_string( w.url, o.url );
             w.signing_key        = o.block_signing_key;
             if(o.block_signing_key == public_key_type())
@@ -56,20 +46,20 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
       return;
    }
 
-   const account_object& acn = _db.get_account( o.owner ); // verify owner exists
-   const auto& gpo = _db.get_dynamic_global_properties();
+   const account_object& acn = _db->get_account( o.owner ); // verify owner exists
+   const auto& gpo = _db->get_dynamic_global_properties();
    FC_ASSERT( acn.vesting_shares >= gpo.witness_required_vesting , "witness requires at least ${a} of vested balance", ("a", gpo.witness_required_vesting) );
 
-   if( _db.is_producing() )
+   if( _db->is_producing() )
    {
       FC_ASSERT( o.props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE );
    }
 
-   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   const auto& by_witness_name_idx = _db->get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
    if( wit_itr != by_witness_name_idx.end() )
    {
-      _db.modify( *wit_itr, [&]( witness_object& w ) {
+      _db->modify( *wit_itr, [&]( witness_object& w ) {
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
          if(o.block_signing_key == public_key_type())
@@ -78,7 +68,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
          w.props.price_feeds.clear();
 
          if(o.props.price_feeds.size()){
-            time_point_sec last_sbd_exchange_update = _db.head_block_time();
+            time_point_sec last_sbd_exchange_update = _db->head_block_time();
             for(auto r:o.props.price_feeds){
                price new_rate;
                //ensure that base is always in SPHTX
@@ -96,11 +86,11 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
    }
    else
    {
-      _db.create< witness_object >( [&]( witness_object& w ) {
+      _db->create< witness_object >( [&]( witness_object& w ) {
          w.owner              = o.owner;
          from_string( w.url, o.url );
          w.signing_key        = o.block_signing_key;
-         w.created            = _db.head_block_time();
+         w.created            = _db->head_block_time();
          w.props = o.props;
          w.props.price_feeds.clear();
       });
@@ -109,20 +99,20 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 
 void admin_witness_update_evaluator::do_apply( const admin_witness_update_operation& o )
 {
-   FC_ASSERT( _db.is_private_net(), "this operation can be used only in private nets");
-   const auto& by_witness_name_idx = _db.get_index< witness_index >().indices().get< by_name >();
+   FC_ASSERT( _db->is_private_net(), "this operation can be used only in private nets");
+   const auto& by_witness_name_idx = _db->get_index< witness_index >().indices().get< by_name >();
    auto wit_itr = by_witness_name_idx.find( o.owner );
    if(wit_itr == by_witness_name_idx.end()){
-      _db.create< witness_object >( [&]( witness_object& w ) {
+      _db->create< witness_object >( [&]( witness_object& w ) {
            w.owner              = o.owner;
            from_string( w.url, o.url );
            w.signing_key        = o.block_signing_key;
-           w.created            = _db.head_block_time();
+           w.created            = _db->head_block_time();
            w.props = o.props;
            w.props.price_feeds.clear();
       });
    }else{
-      _db.modify( *wit_itr, [&]( witness_object& w ) {
+      _db->modify( *wit_itr, [&]( witness_object& w ) {
            from_string( w.url, o.url );
            w.signing_key        = o.block_signing_key;
            if(o.block_signing_key == public_key_type())
@@ -138,7 +128,7 @@ void admin_witness_update_evaluator::do_apply( const admin_witness_update_operat
 
 void witness_set_properties_evaluator::do_apply( const witness_set_properties_operation& o )
 {
-   const auto& witness = _db.get< witness_object, by_name >( o.owner ); // verifies witness exists;
+   const auto& witness = _db->get< witness_object, by_name >( o.owner ); // verifies witness exists;
 
    // Capture old properties. This allows only updating the object once.
    chain_properties  props;
@@ -161,7 +151,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
       ("key", signing_key)("signing_key", witness.signing_key) );
 
    itr = o.props.find( "account_creation_fee"  );
-   if( itr != o.props.end() && !_db.is_private_net() )
+   if( itr != o.props.end() && !_db->is_private_net() )
    {
       fc::raw::unpack_from_vector( itr->second, props.account_creation_fee );
       account_creation_changed = true;
@@ -183,7 +173,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    }
 
    itr = o.props.find( "exchange_rates" );
-   if( itr != o.props.end() && !_db.is_private_net())
+   if( itr != o.props.end() && !_db->is_private_net())
    {
       std::vector<price> exchange_rates;
       fc::raw::unpack_from_vector( itr->second, exchange_rates );
@@ -199,7 +189,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
          new_rates.push_back(new_rate);
 
       }
-      last_sbd_exchange_update = _db.head_block_time();
+      last_sbd_exchange_update = _db->head_block_time();
       sbd_exchange_changed = true;
    }
 
@@ -210,7 +200,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
       url_changed = true;
    }
 
-   _db.modify( witness, [&]( witness_object& w )
+   _db->modify( witness, [&]( witness_object& w )
    {
       if( account_creation_changed )
          w.props.account_creation_fee = props.account_creation_fee;
@@ -235,14 +225,14 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
 }
 
 void verify_authority_accounts_exist(
-   const database& db,
+   const std::shared_ptr<database_interface>& db,
    const authority& auth,
    const account_name_type& auth_account,
    authority::classification auth_class)
 {
    for( const std::pair< account_name_type, weight_type >& aw : auth.account_auths )
    {
-      const account_object* a = db.find_account( aw.first );
+      const account_object* a = db->find_account( aw.first );
       FC_ASSERT( a != nullptr, "New ${ac} authority on account ${aa} references non-existing account ${aref}",
          ("aref", aw.first)("ac", auth_class)("aa", auth_account) );
    }
@@ -250,27 +240,27 @@ void verify_authority_accounts_exist(
 
 void account_create_evaluator::do_apply( const account_create_operation& o )
 {
-   const auto& creator = _db.get_account( o.creator );
+   const auto& creator = _db->get_account( o.creator );
 
    std::string new_account_name_s = sophiatx::protocol::make_random_fixed_string(o.name_seed);
    account_name_type new_account_name = new_account_name_s;
 
-   const auto& props = _db.get_dynamic_global_properties();
+   const auto& props = _db->get_dynamic_global_properties();
 
    asset to_pay;
    if(o.fee.symbol == SOPHIATX_SYMBOL) {
       to_pay = o.fee;
    } else {
-      to_pay = _db.to_sophiatx(o.fee);
+      to_pay = _db->to_sophiatx(o.fee);
    }
 
-   if(_db.has_hardfork(SOPHIATX_HARDFORK_1_1))
+   if(_db->has_hardfork(SOPHIATX_HARDFORK_1_1))
       FC_ASSERT( o.name_seed.size() <= SOPHIATX_MAX_NAME_SEED_SIZE, "Name seed is too large" );
 
    FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
-   const witness_schedule_object& wso = _db.get_witness_schedule_object();
-   asset required_fee = _db.is_private_net() ? asset(0, SOPHIATX_SYMBOL) : asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
+   const witness_schedule_object& wso = _db->get_witness_schedule_object();
+   asset required_fee = _db->is_private_net() ? asset(0, SOPHIATX_SYMBOL) : asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
    FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
               ("f", required_fee ) ("p", to_pay) );
 
@@ -279,7 +269,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    verify_authority_accounts_exist( _db, o.active, new_account_name, authority::active );
 
 
-   const auto& new_account = _db.create< account_object >( [&]( account_object& acc )
+   const auto& new_account = _db->create< account_object >( [&]( account_object& acc )
    {
       acc.name = new_account_name;
       acc.memo_key = o.memo_key;
@@ -294,7 +284,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    });
 
 
-   _db.create< account_authority_object >( [&]( account_authority_object& auth )
+   _db->create< account_authority_object >( [&]( account_authority_object& auth )
    {
       auth.account = new_account_name;
       auth.owner = o.owner;
@@ -303,11 +293,11 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    });
 
    if( required_fee.amount > 0 )
-      _db.pay_fee( creator, required_fee );
+      _db->pay_fee( creator, required_fee );
 
    if( excess_fee.amount > 0 ){
-      _db.adjust_balance(new_account, excess_fee);
-      _db.adjust_balance(creator, -excess_fee);
+      _db->adjust_balance(new_account, excess_fee);
+      _db->adjust_balance(creator, -excess_fee);
    }
 }
 
@@ -316,28 +306,28 @@ void account_update_evaluator::do_apply( const account_update_operation& o )
 {
    FC_ASSERT( o.account != SOPHIATX_TEMP_ACCOUNT, "Cannot update temp account." );
 
-   const auto& account = _db.get_account( o.account );
-   const auto& account_auth = _db.get< account_authority_object, by_account >( o.account );
+   const auto& account = _db->get_account( o.account );
+   const auto& account_auth = _db->get< account_authority_object, by_account >( o.account );
 
    if( o.owner )
    {
 #ifndef IS_TEST_NET
-      FC_ASSERT( _db.head_block_time() - account_auth.last_owner_update > SOPHIATX_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
+      FC_ASSERT( _db->head_block_time() - account_auth.last_owner_update > SOPHIATX_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
 #endif
 
       verify_authority_accounts_exist( _db, *o.owner, o.account, authority::owner );
 
-      _db.update_owner_authority( account, *o.owner );
+      _db->update_owner_authority( account, *o.owner );
    }
    if( o.active  )
       verify_authority_accounts_exist( _db, *o.active, o.account, authority::active );
 
-   _db.modify( account, [&]( account_object& acc )
+   _db->modify( account, [&]( account_object& acc )
    {
       if( o.memo_key != public_key_type() )
             acc.memo_key = o.memo_key;
 
-      acc.last_account_update = _db.head_block_time();
+      acc.last_account_update = _db->head_block_time();
 
       #ifndef IS_LOW_MEM
         if ( o.json_metadata.size() > 0 )
@@ -347,7 +337,7 @@ void account_update_evaluator::do_apply( const account_update_operation& o )
 
    if( o.active )
    {
-      _db.modify( account_auth, [&]( account_authority_object& auth)
+      _db->modify( account_auth, [&]( account_authority_object& auth)
       {
          if( o.active )  auth.active  = *o.active;
       });
@@ -361,28 +351,28 @@ void account_delete_evaluator::do_apply(const account_delete_operation& o)
    {
       FC_ASSERT( o.account != SOPHIATX_TEMP_ACCOUNT, "Cannot update temp account." );
 
-      const auto& account = _db.get_account( o.account );
-      const auto& account_auth = _db.get< account_authority_object, by_account >( o.account );
+      const auto& account = _db->get_account( o.account );
+      const auto& account_auth = _db->get< account_authority_object, by_account >( o.account );
 
       authority a(1, public_key_type(), 1);
 
 #ifndef IS_TEST_NET
-         FC_ASSERT( _db.head_block_time() - account_auth.last_owner_update > SOPHIATX_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
+         FC_ASSERT( _db->head_block_time() - account_auth.last_owner_update > SOPHIATX_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
 #endif
-      _db.update_owner_authority( account, a );
+      _db->update_owner_authority( account, a );
 
-      _db.modify( account, [&]( account_object& acc )
+      _db->modify( account, [&]( account_object& acc )
       {
 
            acc.memo_key = public_key_type();
-           acc.last_account_update = _db.head_block_time();
+           acc.last_account_update = _db->head_block_time();
 
 #ifndef IS_LOW_MEM
            from_string( acc.json_metadata, "{\"deleted_account\"}" );
 #endif
       });
 
-      _db.modify( account_auth, [&]( account_authority_object& auth)
+      _db->modify( account_auth, [&]( account_authority_object& auth)
       {
            auth.active  = a;
       });
@@ -394,15 +384,15 @@ void account_delete_evaluator::do_apply(const account_delete_operation& o)
 
 void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    try
    {
-      const auto& from_account = _db.get_account(o.from);
-      _db.get_account(o.to);
-      _db.get_account(o.agent);
+      const auto& from_account = _db->get_account(o.from);
+      _db->get_account(o.to);
+      _db->get_account(o.agent);
 
-      FC_ASSERT( o.ratification_deadline > _db.head_block_time(), "The escorw ratification deadline must be after head block time." );
-      FC_ASSERT( o.escrow_expiration > _db.head_block_time(), "The escrow expiration must be after head block time." );
+      FC_ASSERT( o.ratification_deadline > _db->head_block_time(), "The escorw ratification deadline must be after head block time." );
+      FC_ASSERT( o.escrow_expiration > _db->head_block_time(), "The escrow expiration must be after head block time." );
 
       asset sophiatx_spent = o.sophiatx_amount;
       if( o.escrow_fee.symbol == SOPHIATX_SYMBOL )
@@ -411,9 +401,9 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
 
       FC_ASSERT( from_account.balance >= sophiatx_spent, "Account cannot cover SOPHIATX costs of escrow. Required: ${r} Available: ${a}", ("r",sophiatx_spent)("a",from_account.balance) );
 
-      _db.adjust_balance( from_account, -sophiatx_spent );
+      _db->adjust_balance( from_account, -sophiatx_spent );
 
-      _db.create<escrow_object>([&]( escrow_object& esc )
+      _db->create<escrow_object>([&]( escrow_object& esc )
       {
          esc.escrow_id              = o.escrow_id;
          esc.from                   = o.from;
@@ -430,14 +420,14 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
 
 void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    try
    {
-      const auto& escrow = _db.get_escrow( o.from, o.escrow_id );
+      const auto& escrow = _db->get_escrow( o.from, o.escrow_id );
 
       FC_ASSERT( escrow.to == o.to, "Operation 'to' (${o}) does not match escrow 'to' (${e}).", ("o", o.to)("e", escrow.to) );
       FC_ASSERT( escrow.agent == o.agent, "Operation 'agent' (${a}) does not match escrow 'agent' (${e}).", ("o", o.agent)("e", escrow.agent) );
-      FC_ASSERT( escrow.ratification_deadline >= _db.head_block_time(), "The escrow ratification deadline has passed. Escrow can no longer be ratified." );
+      FC_ASSERT( escrow.ratification_deadline >= _db->head_block_time(), "The escrow ratification deadline has passed-> Escrow can no longer be ratified->" );
 
       bool reject_escrow = !o.approve;
 
@@ -447,7 +437,7 @@ void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 
          if( !reject_escrow )
          {
-            _db.modify( escrow, [&]( escrow_object& esc )
+            _db->modify( escrow, [&]( escrow_object& esc )
             {
                esc.to_approved = true;
             });
@@ -459,7 +449,7 @@ void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 
          if( !reject_escrow )
          {
-            _db.modify( escrow, [&]( escrow_object& esc )
+            _db->modify( escrow, [&]( escrow_object& esc )
             {
                esc.agent_approved = true;
             });
@@ -468,16 +458,16 @@ void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 
       if( reject_escrow )
       {
-         _db.adjust_balance( o.from, escrow.sophiatx_balance );
-         _db.adjust_balance( o.from, escrow.pending_fee );
+         _db->adjust_balance( o.from, escrow.sophiatx_balance );
+         _db->adjust_balance( o.from, escrow.pending_fee );
 
-         _db.remove( escrow );
+         _db->remove( escrow );
       }
       else if( escrow.to_approved && escrow.agent_approved )
       {
-         _db.adjust_balance( o.agent, escrow.pending_fee );
+         _db->adjust_balance( o.agent, escrow.pending_fee );
 
-         _db.modify( escrow, [&]( escrow_object& esc )
+         _db->modify( escrow, [&]( escrow_object& esc )
          {
             esc.pending_fee.amount = 0;
          });
@@ -488,19 +478,19 @@ void escrow_approve_evaluator::do_apply( const escrow_approve_operation& o )
 
 void escrow_dispute_evaluator::do_apply( const escrow_dispute_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    try
    {
-      _db.get_account( o.from ); // Verify from account exists
+      _db->get_account( o.from ); // Verify from account exists
 
-      const auto& e = _db.get_escrow( o.from, o.escrow_id );
-      FC_ASSERT( _db.head_block_time() < e.escrow_expiration, "Disputing the escrow must happen before expiration." );
+      const auto& e = _db->get_escrow( o.from, o.escrow_id );
+      FC_ASSERT( _db->head_block_time() < e.escrow_expiration, "Disputing the escrow must happen before expiration." );
       FC_ASSERT( e.to_approved && e.agent_approved, "The escrow must be approved by all parties before a dispute can be raised." );
       FC_ASSERT( !e.disputed, "The escrow is already under dispute." );
       FC_ASSERT( e.to == o.to, "Operation 'to' (${o}) does not match escrow 'to' (${e}).", ("o", o.to)("e", e.to) );
       FC_ASSERT( e.agent == o.agent, "Operation 'agent' (${a}) does not match escrow 'agent' (${e}).", ("o", o.agent)("e", e.agent) );
 
-      _db.modify( e, [&]( escrow_object& esc )
+      _db->modify( e, [&]( escrow_object& esc )
       {
          esc.disputed = true;
       });
@@ -510,12 +500,12 @@ void escrow_dispute_evaluator::do_apply( const escrow_dispute_operation& o )
 
 void escrow_release_evaluator::do_apply( const escrow_release_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    try
    {
-      _db.get_account(o.from); // Verify from account exists
+      _db->get_account(o.from); // Verify from account exists
 
-      const auto& e = _db.get_escrow( o.from, o.escrow_id );
+      const auto& e = _db->get_escrow( o.from, o.escrow_id );
       FC_ASSERT( e.sophiatx_balance >= o.sophiatx_amount, "Release amount exceeds escrow balance. Amount: ${a}, Balance: ${b}", ("a", o.sophiatx_amount)("b", e.sophiatx_balance) );
       FC_ASSERT( e.to == o.to, "Operation 'to' (${o}) does not match escrow 'to' (${e}).", ("o", o.to)("e", e.to) );
       FC_ASSERT( e.agent == o.agent, "Operation 'agent' (${a}) does not match escrow 'agent' (${e}).", ("o", o.agent)("e", e.agent) );
@@ -531,7 +521,7 @@ void escrow_release_evaluator::do_apply( const escrow_release_operation& o )
       {
          FC_ASSERT( o.who == e.from || o.who == e.to, "Only 'from' (${f}) and 'to' (${t}) can release funds from a non-disputed escrow", ("f", e.from)("t", e.to) );
 
-         if( e.escrow_expiration > _db.head_block_time() )
+         if( e.escrow_expiration > _db->head_block_time() )
          {
             // If there is no dispute and escrow has not expired, either party can release funds to the other.
             if( o.who == e.from )
@@ -546,16 +536,16 @@ void escrow_release_evaluator::do_apply( const escrow_release_operation& o )
       }
       // If escrow expires and there is no dispute, either party can release funds to either party.
 
-      _db.adjust_balance( o.receiver, o.sophiatx_amount );
+      _db->adjust_balance( o.receiver, o.sophiatx_amount );
 
-      _db.modify( e, [&]( escrow_object& esc )
+      _db->modify( e, [&]( escrow_object& esc )
       {
          esc.sophiatx_balance -= o.sophiatx_amount;
       });
 
       if( e.sophiatx_balance.amount == 0 )
       {
-         _db.remove( e );
+         _db->remove( e );
       }
    }
    FC_CAPTURE_AND_RETHROW( (o) )
@@ -563,35 +553,35 @@ void escrow_release_evaluator::do_apply( const escrow_release_operation& o )
 
 void transfer_evaluator::do_apply( const transfer_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   FC_ASSERT( _db.get_balance( o.from, o.amount.symbol ) >= o.amount, "Account does not have sufficient funds for transfer." );
-   _db.adjust_balance( o.from, -o.amount );
-   _db.adjust_balance( o.to, o.amount );
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT( _db->get_balance( o.from, o.amount.symbol ) >= o.amount, "Account does not have sufficient funds for transfer." );
+   _db->adjust_balance( o.from, -o.amount );
+   _db->adjust_balance( o.to, o.amount );
 }
 
 void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   const auto& from_account = _db.get_account(o.from);
-   const auto& to_account = o.to.size() ? _db.get_account(o.to) : from_account;
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   const auto& from_account = _db->get_account(o.from);
+   const auto& to_account = o.to.size() ? _db->get_account(o.to) : from_account;
 
-   FC_ASSERT( _db.get_balance( from_account, SOPHIATX_SYMBOL) >= o.amount, "Account does not have sufficient SOPHIATX for transfer." );
+   FC_ASSERT( _db->get_balance( from_account, SOPHIATX_SYMBOL) >= o.amount, "Account does not have sufficient SOPHIATX for transfer." );
 
    if( from_account.id == to_account.id )
-      _db.vest( from_account, o.amount.amount );
+      _db->vest( from_account, o.amount.amount );
    else {
-      _db.adjust_balance(o.from, -o.amount);
-      _db.adjust_balance(o.to, o.amount);
-      _db.vest(to_account, o.amount.amount);
+      _db->adjust_balance(o.from, -o.amount);
+      _db->adjust_balance(o.to, o.amount);
+      _db->vest(to_account, o.amount.amount);
    }
 
 }
 
 void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   const auto& account = _db.get_account( o.account );
-   const auto& gpo = _db.get_dynamic_global_properties();
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   const auto& account = _db->get_account( o.account );
+   const auto& gpo = _db->get_dynamic_global_properties();
 
    FC_ASSERT( account.vesting_shares >= asset( 0, VESTS_SYMBOL ), "Account does not have sufficient SophiaTX VESTS for withdraw." );
    FC_ASSERT( account.vesting_shares >= o.vesting_shares, "Account does not have sufficient SophiaTX VESTS for withdraw." );
@@ -601,7 +591,7 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
    {
       FC_ASSERT( account.vesting_withdraw_rate.amount  != 0, "This operation would not change the vesting withdraw rate." );
 
-      _db.modify( account, [&]( account_object& a ) {
+      _db->modify( account, [&]( account_object& a ) {
          a.vesting_withdraw_rate = asset( 0, VESTS_SYMBOL );
          a.next_vesting_withdrawal = time_point_sec::maximum();
          a.to_withdraw = 0;
@@ -619,13 +609,13 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 
       FC_ASSERT( account.vesting_withdraw_rate  != new_vesting_withdraw_rate, "This operation would not change the vesting withdraw rate." );
 
-      auto wit = _db.find_witness( o. account );
+      auto wit = _db->find_witness( o. account );
       FC_ASSERT( wit == nullptr || wit->signing_key == public_key_type() || account.vesting_shares.amount - o.vesting_shares.amount >= gpo.witness_required_vesting.amount );
 
-      _db.modify( account, [&]( account_object& a )
+      _db->modify( account, [&]( account_object& a )
       {
          a.vesting_withdraw_rate = new_vesting_withdraw_rate;
-         a.next_vesting_withdrawal = _db.head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
+         a.next_vesting_withdrawal = _db->head_block_time() + fc::seconds(SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS);
          a.to_withdraw = o.vesting_shares.amount;
          a.withdrawn = 0;
       });
@@ -635,8 +625,8 @@ void withdraw_vesting_evaluator::do_apply( const withdraw_vesting_operation& o )
 
 void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   const auto& account = _db.get_account( o.account );
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   const auto& account = _db->get_account( o.account );
    FC_ASSERT( account.proxy != o.proxy, "Proxy must change." );
 
    /// remove all current votes
@@ -644,35 +634,35 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
    delta[0] = -account.total_balance();
    for( int i = 0; i < SOPHIATX_MAX_PROXY_RECURSION_DEPTH; ++i )
       delta[i+1] = -account.proxied_vsf_votes[i];
-   _db.adjust_proxied_witness_votes( account, delta );
+   _db->adjust_proxied_witness_votes( account, delta );
 
    if( o.proxy.size() ) {
-      const auto& new_proxy = _db.get_account( o.proxy );
+      const auto& new_proxy = _db->get_account( o.proxy );
       flat_set<account_id_type> proxy_chain( { account.id, new_proxy.id } );
       proxy_chain.reserve( SOPHIATX_MAX_PROXY_RECURSION_DEPTH + 1 );
 
       /// check for proxy loops and fail to update the proxy if it would create a loop
       auto cprox = &new_proxy;
       while( cprox->proxy.size() != 0 ) {
-         const auto& next_proxy = _db.get_account( cprox->proxy );
+         const auto& next_proxy = _db->get_account( cprox->proxy );
          FC_ASSERT( proxy_chain.insert( next_proxy.id ).second, "This proxy would create a proxy loop." );
          cprox = &next_proxy;
          FC_ASSERT( proxy_chain.size() <= SOPHIATX_MAX_PROXY_RECURSION_DEPTH, "Proxy chain is too long." );
       }
 
       /// clear all individual vote records
-      _db.clear_witness_votes( account );
+      _db->clear_witness_votes( account );
 
-      _db.modify( account, [&]( account_object& a ) {
+      _db->modify( account, [&]( account_object& a ) {
          a.proxy = o.proxy;
       });
 
       /// add all new votes
       for( int i = 0; i <= SOPHIATX_MAX_PROXY_RECURSION_DEPTH; ++i )
          delta[i] = -delta[i];
-      _db.adjust_proxied_witness_votes( account, delta );
+      _db->adjust_proxied_witness_votes( account, delta );
    } else { /// we are clearing the proxy which means we simply update the account
-      _db.modify( account, [&]( account_object& a ) {
+      _db->modify( account, [&]( account_object& a ) {
           a.proxy = o.proxy;
       });
    }
@@ -681,13 +671,13 @@ void account_witness_proxy_evaluator::do_apply( const account_witness_proxy_oper
 
 void account_witness_vote_evaluator::do_apply( const account_witness_vote_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   const auto& voter = _db.get_account( o.account );
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   const auto& voter = _db->get_account( o.account );
    FC_ASSERT( voter.proxy.size() == 0, "A proxy is currently set, please clear the proxy before voting for a witness." );
 
-   const auto& witness = _db.get_witness( o.witness );
+   const auto& witness = _db->get_witness( o.witness );
 
-   const auto& by_account_witness_idx = _db.get_index< witness_vote_index >().indices().get< by_account_witness >();
+   const auto& by_account_witness_idx = _db->get_index< witness_vote_index >().indices().get< by_account_witness >();
    auto itr = by_account_witness_idx.find( boost::make_tuple( voter.name, witness.owner ) );
 
    if( itr == by_account_witness_idx.end() ) {
@@ -695,26 +685,26 @@ void account_witness_vote_evaluator::do_apply( const account_witness_vote_operat
 
       FC_ASSERT( voter.witnesses_voted_for < SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES, "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
 
-      _db.create<witness_vote_object>( [&]( witness_vote_object& v ) {
+      _db->create<witness_vote_object>( [&]( witness_vote_object& v ) {
            v.witness = witness.owner;
            v.account = voter.name;
       });
 
-      _db.adjust_witness_vote( witness, voter.witness_vote_weight() );
+      _db->adjust_witness_vote( witness, voter.witness_vote_weight() );
 
-      _db.modify( voter, [&]( account_object& a ) {
+      _db->modify( voter, [&]( account_object& a ) {
          a.witnesses_voted_for++;
       });
 
    } else {
       FC_ASSERT( !o.approve, "Vote currently exists, user must indicate a desire to reject witness." );
 
-      _db.adjust_witness_vote( witness, -voter.witness_vote_weight() );
+      _db->adjust_witness_vote( witness, -voter.witness_vote_weight() );
 
-      _db.modify( voter, [&]( account_object& a ) {
+      _db->modify( voter, [&]( account_object& a ) {
          a.witnesses_voted_for--;
       });
-      _db.remove( *itr );
+      _db->remove( *itr );
    }
 }
 
@@ -722,16 +712,16 @@ void custom_evaluator::do_apply( const custom_operation& o ){}
 
 void custom_json_evaluator::do_apply( const custom_json_operation& o )
 {
-    database& d = db();
+   std::shared_ptr<database_interface> d = db();
 
     //TODO: move this to plugin
-    const auto& send_idx = d.get_index< custom_content_index >().indices().get< by_sender >();
+    const auto& send_idx = d->get_index< custom_content_index >().indices().get< by_sender >();
     auto send_itr = send_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
     uint64_t sender_sequence = 1;
     if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
       sender_sequence = send_itr->sender_sequence + 1;
 
-    const auto& app_msg_idx = d.get_index< custom_content_index >().indices().get< by_app_id >();
+    const auto& app_msg_idx = d->get_index< custom_content_index >().indices().get< by_app_id >();
     auto app_msg_itr = app_msg_idx.lower_bound( boost::make_tuple( o.app_id, uint64_t(-1) ) );
     uint64_t app_message_sequence = 1;
     if( app_msg_itr != app_msg_idx.end() && app_msg_itr->app_id == o.app_id )
@@ -739,12 +729,12 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 
     for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
-      const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
+      const auto& recv_idx = d->get_index< custom_content_index >().indices().get< by_recipient >();
       auto recv_itr = recv_idx.lower_bound( boost::make_tuple( r, o.app_id, uint64_t(-1) ) );
       if( recv_itr != recv_idx.end() && recv_itr->recipient == r && recv_itr->app_id == o.app_id )
          receiver_sequence = recv_itr->recipient_sequence + 1;
 
-      d.create<custom_content_object>([ & ](custom_content_object &c) {
+      d->create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = false;
            from_string( c.json, o.json );
            c.app_id = o.app_id;
@@ -755,11 +745,11 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
            c.app_message_sequence = app_message_sequence;
-           c.received = d.head_block_time();
+           c.received = d->head_block_time();
       });
    }
 
-   std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.app_id );
+   std::shared_ptr< custom_operation_interpreter > eval = d->get_custom_json_evaluator( o.app_id );
    if( !eval )
       return;
 
@@ -780,16 +770,16 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 
 void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 {
-   database& d = db();
+   std::shared_ptr<database_interface> d = db();
 
    //TODO: move this to plugin
-   const auto& send_idx = d.get_index< custom_content_index >().indices().get< by_sender >();
+   const auto& send_idx = d->get_index< custom_content_index >().indices().get< by_sender >();
    auto send_itr = send_idx.lower_bound( boost::make_tuple( o.sender, o.app_id, uint64_t(-1) ) );
    uint64_t sender_sequence = 1;
    if( send_itr != send_idx.end() && send_itr->sender == o.sender && send_itr->app_id == o.app_id )
       sender_sequence = send_itr->sender_sequence + 1;
 
-   const auto& app_msg_idx = d.get_index< custom_content_index >().indices().get< by_app_id >();
+   const auto& app_msg_idx = d->get_index< custom_content_index >().indices().get< by_app_id >();
    auto app_msg_itr = app_msg_idx.lower_bound( boost::make_tuple( o.app_id, uint64_t(-1) ) );
    uint64_t app_message_sequence = 1;
    if( app_msg_itr != app_msg_idx.end() && app_msg_itr->app_id == o.app_id )
@@ -797,12 +787,12 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
    for(const auto&r: o.recipients) {
       uint64_t receiver_sequence = 1;
-      const auto& recv_idx = d.get_index< custom_content_index >().indices().get< by_recipient >();
+      const auto& recv_idx = d->get_index< custom_content_index >().indices().get< by_recipient >();
       auto recv_itr = recv_idx.lower_bound( boost::make_tuple( r, o.app_id, uint64_t(-1) ) );
       if( recv_itr != recv_idx.end() && recv_itr->recipient == r && recv_itr->app_id == o.app_id )
          receiver_sequence = recv_itr->recipient_sequence + 1;
 
-      d.create<custom_content_object>([ & ](custom_content_object &c) {
+      d->create<custom_content_object>([ & ](custom_content_object &c) {
            c.binary = true;
            for( auto d: o.data)
               c.data.push_back(d);
@@ -814,11 +804,11 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
            c.sender_sequence = sender_sequence;
            c.recipient_sequence = receiver_sequence;
            c.app_message_sequence = app_message_sequence;
-           c.received = d.head_block_time();
+           c.received = d->head_block_time();
       });
    }
 
-   std::shared_ptr< custom_operation_interpreter > eval = d.get_custom_json_evaluator( o.app_id );
+   std::shared_ptr< custom_operation_interpreter > eval = d->get_custom_json_evaluator( o.app_id );
    if( !eval )
       return;
 
@@ -828,7 +818,7 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
    }
    catch( const fc::exception& e )
    {
-      if( d.is_producing() )
+      if( d->is_producing() )
          throw e;
    }
    catch(...)
@@ -840,7 +830,7 @@ void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 
 void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    price new_rate;
    //ensure that base is always in SPHTX
    if(o.exchange_rate.base.symbol == SOPHIATX_SYMBOL)
@@ -849,24 +839,24 @@ void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
       new_rate.base = o.exchange_rate.quote;
       new_rate.quote = o.exchange_rate.base;
    }
-   const auto& witness = _db.get_witness( o.publisher );
-   _db.modify( witness, [&]( witness_object& w )
+   const auto& witness = _db->get_witness( o.publisher );
+   _db->modify( witness, [&]( witness_object& w )
    {
-      w.submitted_exchange_rates[new_rate.quote.symbol].last_change = _db.head_block_time();
+      w.submitted_exchange_rates[new_rate.quote.symbol].last_change = _db->head_block_time();
       w.submitted_exchange_rates[new_rate.quote.symbol].rate = new_rate;
    });
 }
 
 void request_account_recovery_evaluator::do_apply( const request_account_recovery_operation& o )
 {
-   const auto& account_to_recover = _db.get_account( o.account_to_recover );
+   const auto& account_to_recover = _db->get_account( o.account_to_recover );
 
    if ( account_to_recover.recovery_account.length() )   // Make sure recovery matches expected recovery account
       FC_ASSERT( account_to_recover.recovery_account == o.recovery_account, "Cannot recover an account that does not have you as there recovery partner." );
    else                                                  // Empty string recovery account defaults to top witness
-      FC_ASSERT( _db.get_index< witness_index >().indices().get< by_vote_name >().begin()->owner == o.recovery_account, "Top witness must recover an account with no recovery partner." );
+      FC_ASSERT( _db->get_index< witness_index >().indices().get< by_vote_name >().begin()->owner == o.recovery_account, "Top witness must recover an account with no recovery partner." );
 
-   const auto& recovery_request_idx = _db.get_index< account_recovery_request_index >().indices().get< by_account >();
+   const auto& recovery_request_idx = _db->get_index< account_recovery_request_index >().indices().get< by_account >();
    auto request = recovery_request_idx.find( o.account_to_recover );
 
    if( request == recovery_request_idx.end() ) // New Request
@@ -877,19 +867,19 @@ void request_account_recovery_evaluator::do_apply( const request_account_recover
       // Check accounts in the new authority exist
       for( auto& a : o.new_owner_authority.account_auths )
       {
-         _db.get_account( a.first );
+         _db->get_account( a.first );
       }
 
-      _db.create< account_recovery_request_object >( [&]( account_recovery_request_object& req )
+      _db->create< account_recovery_request_object >( [&]( account_recovery_request_object& req )
       {
          req.account_to_recover = o.account_to_recover;
          req.new_owner_authority = o.new_owner_authority;
-         req.expires = _db.head_block_time() + SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
+         req.expires = _db->head_block_time() + SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
       });
    }
    else if( o.new_owner_authority.weight_threshold == 0 ) // Cancel Request if authority is open
    {
-      _db.remove( *request );
+      _db->remove( *request );
    }
    else // Change Request
    {
@@ -899,30 +889,30 @@ void request_account_recovery_evaluator::do_apply( const request_account_recover
 
       for( auto& a : o.new_owner_authority.account_auths )
       {
-         _db.get_account( a.first );
+         _db->get_account( a.first );
       }
 
-      _db.modify( *request, [&]( account_recovery_request_object& req )
+      _db->modify( *request, [&]( account_recovery_request_object& req )
       {
          req.new_owner_authority = o.new_owner_authority;
-         req.expires = _db.head_block_time() + SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
+         req.expires = _db->head_block_time() + SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
       });
    }
 }
 
 void recover_account_evaluator::do_apply( const recover_account_operation& o )
 {
-   const auto& account = _db.get_account( o.account_to_recover );
+   const auto& account = _db->get_account( o.account_to_recover );
 
-   FC_ASSERT( _db.head_block_time() - account.last_account_recovery > SOPHIATX_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
+   FC_ASSERT( _db->head_block_time() - account.last_account_recovery > SOPHIATX_OWNER_UPDATE_LIMIT, "Owner authority can only be updated once an hour." );
 
-   const auto& recovery_request_idx = _db.get_index< account_recovery_request_index >().indices().get< by_account >();
+   const auto& recovery_request_idx = _db->get_index< account_recovery_request_index >().indices().get< by_account >();
    auto request = recovery_request_idx.find( o.account_to_recover );
 
    FC_ASSERT( request != recovery_request_idx.end(), "There are no active recovery requests for this account." );
    FC_ASSERT( request->new_owner_authority == o.new_owner_authority, "New owner authority does not match recovery request." );
 
-   const auto& recent_auth_idx = _db.get_index< owner_authority_history_index >().indices().get< by_account >();
+   const auto& recent_auth_idx = _db->get_index< owner_authority_history_index >().indices().get< by_account >();
    auto hist = recent_auth_idx.lower_bound( o.account_to_recover );
    bool found = false;
 
@@ -935,42 +925,42 @@ void recover_account_evaluator::do_apply( const recover_account_operation& o )
 
    FC_ASSERT( found, "Recent authority not found in authority history." );
 
-   _db.remove( *request ); // Remove first, update_owner_authority may invalidate iterator
-   _db.update_owner_authority( account, o.new_owner_authority );
-   _db.modify( account, [&]( account_object& a )
+   _db->remove( *request ); // Remove first, update_owner_authority may invalidate iterator
+   _db->update_owner_authority( account, o.new_owner_authority );
+   _db->modify( account, [&]( account_object& a )
    {
-      a.last_account_recovery = _db.head_block_time();
+      a.last_account_recovery = _db->head_block_time();
    });
 }
 
 void change_recovery_account_evaluator::do_apply( const change_recovery_account_operation& o )
 {
-   _db.get_account( o.new_recovery_account ); // Simply validate account exists
-   const auto& account_to_recover = _db.get_account( o.account_to_recover );
+   _db->get_account( o.new_recovery_account ); // Simply validate account exists
+   const auto& account_to_recover = _db->get_account( o.account_to_recover );
 
-   const auto& change_recovery_idx = _db.get_index< change_recovery_account_request_index >().indices().get< by_account >();
+   const auto& change_recovery_idx = _db->get_index< change_recovery_account_request_index >().indices().get< by_account >();
    auto request = change_recovery_idx.find( o.account_to_recover );
 
    if( request == change_recovery_idx.end() ) // New request
    {
-      _db.create< change_recovery_account_request_object >( [&]( change_recovery_account_request_object& req )
+      _db->create< change_recovery_account_request_object >( [&]( change_recovery_account_request_object& req )
                                                             {
                                                                  req.account_to_recover = o.account_to_recover;
                                                                  req.recovery_account = o.new_recovery_account;
-                                                                 req.effective_on = _db.head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
+                                                                 req.effective_on = _db->head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
                                                             });
    }
    else if( account_to_recover.recovery_account != o.new_recovery_account ) // Change existing request
    {
-      _db.modify( *request, [&]( change_recovery_account_request_object& req )
+      _db->modify( *request, [&]( change_recovery_account_request_object& req )
       {
            req.recovery_account = o.new_recovery_account;
-           req.effective_on = _db.head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
+           req.effective_on = _db->head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
       });
    }
    else // Request exists and changing back to current recovery account
    {
-      _db.remove( *request );
+      _db->remove( *request );
    }
 }
 
@@ -978,10 +968,10 @@ void reset_account_evaluator::do_apply( const reset_account_operation& op )
 {
    //FC_ASSERT( false, "Reset Account Operation is currently disabled." ); Temporarily enabled.
 
-   const auto& acnt = _db.get_account( op.account_to_reset );
+   const auto& acnt = _db->get_account( op.account_to_reset );
    FC_ASSERT( acnt.reset_account == op.reset_account, "Reset account does not match reset account on account." );
 
-   _db.update_owner_authority( acnt, op.new_owner_authority );
+   _db->update_owner_authority( acnt, op.new_owner_authority );
 
 }
 
@@ -989,13 +979,13 @@ void set_reset_account_evaluator::do_apply( const set_reset_account_operation& o
 {
    //FC_ASSERT( false, "Set Reset Account Operation is currently disabled." );
 
-   const auto& acnt = _db.get_account( op.account );
-   _db.get_account( op.reset_account );
+   const auto& acnt = _db->get_account( op.account );
+   _db->get_account( op.reset_account );
 
    FC_ASSERT( acnt.reset_account == op.current_reset_account, "Current reset account does not match reset account on account." );
    FC_ASSERT( acnt.reset_account != op.reset_account, "Reset account must change" );
 
-   _db.modify( acnt, [&]( account_object& a )
+   _db->modify( acnt, [&]( account_object& a )
    {
        a.reset_account = op.reset_account;
    });
@@ -1004,9 +994,9 @@ void set_reset_account_evaluator::do_apply( const set_reset_account_operation& o
 
 void application_create_evaluator::do_apply( const application_create_operation& o )
 {
-   _db.get_account( o.author );
+   _db->get_account( o.author );
 
-   _db.create< application_object >( [&]( application_object& app )
+   _db->create< application_object >( [&]( application_object& app )
                                    {
                                         app.name = o.name;
                                         app.author = o.author;
@@ -1021,17 +1011,17 @@ void application_create_evaluator::do_apply( const application_create_operation&
 
 void application_update_evaluator::do_apply( const application_update_operation& o )
 {
-   const auto& application = _db.get_application( o.name );
+   const auto& application = _db->get_application( o.name );
 
    if(o.new_author)
    {
-      _db.get_account(*o.new_author);
-      _db.get< account_authority_object, by_account >( *o.new_author );
+      _db->get_account(*o.new_author);
+      _db->get< account_authority_object, by_account >( *o.new_author );
    }
 
    FC_ASSERT(application.author == o.author, "Provided author is not this application author" );
 
-   _db.modify( application, [&]( application_object& app )
+   _db->modify( application, [&]( application_object& app )
    {
       if(o.new_author)
         app.author = *o.new_author;
@@ -1051,89 +1041,89 @@ void application_update_evaluator::do_apply( const application_update_operation&
 
 void application_delete_evaluator::do_apply( const application_delete_operation& o )
 {
-   const auto& application = _db.get_application( o.name );
+   const auto& application = _db->get_application( o.name );
 
    FC_ASSERT(application.author == o.author, "Provided author is not this applcation author" );
 
-   const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_app_id >();
+   const auto& app_buy_idx = _db->get_index< application_buying_index >().indices().get< by_app_id >();
    auto itr = app_buy_idx.lower_bound( application.id );
    while( itr != app_buy_idx.end() && itr->app_id == application.id )
    {
       const auto& current = *itr;
       ++itr;
-      _db.remove(current);
+      _db->remove(current);
    }
 
-   _db.remove(application);
+   _db->remove(application);
 }
 
 void buy_application_evaluator::do_apply( const buy_application_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   _db.get_application_by_id( o.app_id );
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   _db->get_application_by_id( o.app_id );
 
-   const auto& app_buy_idx = _db.get_index< application_buying_index >().indices().get< by_buyer_app >();
+   const auto& app_buy_idx = _db->get_index< application_buying_index >().indices().get< by_buyer_app >();
    auto request = app_buy_idx.find( boost::make_tuple(o.buyer, o.app_id) );
    FC_ASSERT(request == app_buy_idx.end(), "This buying already exisit" );
 
-   _db.create< application_buying_object >( [&]( application_buying_object& app_buy )
+   _db->create< application_buying_object >( [&]( application_buying_object& app_buy )
                                    {
                                         app_buy.buyer = o.buyer;
                                         app_buy.app_id = o.app_id;
-                                        app_buy.created = _db.head_block_time();
+                                        app_buy.created = _db->head_block_time();
                                    });
 }
 
 void cancel_application_buying_evaluator::do_apply( const cancel_application_buying_operation& o )
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   const auto& application = _db.get_application_by_id( o.app_id );
-   const auto& app_buying = _db.get_application_buying( o.buyer, o.app_id );
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   const auto& application = _db->get_application_by_id( o.app_id );
+   const auto& app_buying = _db->get_application_buying( o.buyer, o.app_id );
 
    FC_ASSERT(application.author == o.app_owner, "Provided app author is not this applcation author" );
 
-   _db.remove(app_buying);
+   _db->remove(app_buying);
 }
 
 void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promotion_pool_operation& op){
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
-   const auto& econ = _db.get_economic_model();
-   const auto& acnt = _db.get_account( op.transfer_to );
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
+   const auto& econ = _db->get_economic_model();
+   const auto& acnt = _db->get_account( op.transfer_to );
    share_type withdrawn;
 
    FC_ASSERT(op.amount.amount >0 && op.amount.symbol == SOPHIATX_SYMBOL);
-   _db.modify( econ, [&](economic_model_object& eo){
-        withdrawn = eo.withdraw_from_promotion_pool(op.amount.amount, _db.head_block_num());
+   _db->modify( econ, [&](economic_model_object& eo){
+        withdrawn = eo.withdraw_from_promotion_pool(op.amount.amount, _db->head_block_num());
    });
-   _db.adjust_balance(acnt, asset(withdrawn, SOPHIATX_SYMBOL));
-   _db.adjust_supply(asset(withdrawn, SOPHIATX_SYMBOL));
+   _db->adjust_balance(acnt, asset(withdrawn, SOPHIATX_SYMBOL));
+   _db->adjust_supply(asset(withdrawn, SOPHIATX_SYMBOL));
 
    promotion_pool_withdraw_operation wop;
    wop.to_account = op.transfer_to;
    wop.withdrawn =  asset(withdrawn, SOPHIATX_SYMBOL);
-   _db.push_virtual_operation(wop);
+   _db->push_virtual_operation(wop);
 }
 
 void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
 {
-   FC_ASSERT(!_db.is_private_net(), "This operation is not available in private nets");
+   FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    if( op.sponsor == account_name_type("") ){
-      _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
+      _db->remove(_db->get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
       return;
    }
 
-   _db.get_account(op.sponsor);
-   _db.get_account(op.sponsored);
-   optional< account_name_type > existing_sponsor = _db.get_sponsor(op.sponsored);
+   _db->get_account(op.sponsor);
+   _db->get_account(op.sponsored);
+   optional< account_name_type > existing_sponsor = _db->get_sponsor(op.sponsored);
    if(op.is_sponsoring){
       FC_ASSERT(!existing_sponsor, "This account is already sponsored");
-      _db.create<account_fee_sponsor_object>([&](account_fee_sponsor_object& o){
+      _db->create<account_fee_sponsor_object>([&](account_fee_sponsor_object& o){
          o.sponsor = op.sponsor;
          o.sponsored = op.sponsored;
       });
    }else{
       FC_ASSERT( existing_sponsor && *existing_sponsor == op.sponsor, "You are not sponsoring this account" );
-      _db.remove(_db.get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
+      _db->remove(_db->get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
    }
 }
 
@@ -1149,15 +1139,15 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
          
       if( token.symbol.space() == asset_symbol_type::smt_nai_space )
       {
-         _db.adjust_reward_balance( op.account, -token );
-         _db.adjust_balance( op.account, token );
+         _db->adjust_reward_balance( op.account, -token );
+         _db->adjust_balance( op.account, token );
       }
       else
       {
          // Lazy init here.
          if( a == nullptr )
          {
-            a = _db.find_account( op.account );
+            a = _db->find_account( op.account );
             FC_ASSERT( a != nullptr, "Could NOT find account ${a}", ("a", op.account) );
          }
 
@@ -1173,14 +1163,14 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
                reward_vesting_sophiatx_to_move = asset( ( ( uint128_t( token.amount.value ) * uint128_t( a->reward_vesting_sophiatx.amount.value ) )
                   / uint128_t( a->reward_vesting_balance.amount.value ) ).to_uint64(), SOPHIATX_SYMBOL );
 
-            _db.modify( *a, [&]( account_object& a )
+            _db->modify( *a, [&]( account_object& a )
             {
                a.vesting_shares += token;
                a.reward_vesting_balance -= token;
                a.reward_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
             });
 
-            _db.modify( _db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
+            _db->modify( _db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
             {
                gpo.total_vesting_shares += token;
                gpo.total_vesting_fund_sophiatx += reward_vesting_sophiatx_to_move;
@@ -1189,16 +1179,16 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
                gpo.pending_rewarded_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
             });
 
-            _db.adjust_proxied_witness_votes( *a, token.amount );
+            _db->adjust_proxied_witness_votes( *a, token.amount );
          }
          else if( token.symbol == SOPHIATX_SYMBOL || token.symbol == SBD_SYMBOL )
          {
             FC_ASSERT( is_asset_type( token, SOPHIATX_SYMBOL ) == false || token <= a->reward_sophiatx_balance,
                        "Cannot claim that much SOPHIATX. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sophiatx_balance) );
             FC_ASSERT( is_asset_type( token, SBD_SYMBOL ) == false || token <= a->reward_sbd_balance,
-                       "Cannot claim that much SBD. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
-            _db.adjust_reward_balance( *a, -token );
-            _db.adjust_balance( *a, token );
+                       "Cannot claim that much SBd-> Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
+            _db->adjust_reward_balance( *a, -token );
+            _db->adjust_balance( *a, token );
          }
          else
             FC_ASSERT( false, "Unknown asset symbol" );
@@ -1216,15 +1206,15 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
 
       if( token.symbol.space() == asset_symbol_type::smt_nai_space )
       {
-         _db.adjust_reward_balance( op.account, -token );
-         _db.adjust_balance( op.account, token );
+         _db->adjust_reward_balance( op.account, -token );
+         _db->adjust_balance( op.account, token );
       }
       else
       {
          // Lazy init here.
          if( a == nullptr )
          {
-            a = _db.find_account( op.account );
+            a = _db->find_account( op.account );
             FC_ASSERT( a != nullptr, "Could NOT find account ${a}", ("a", op.account) );
          }
 
@@ -1240,14 +1230,14 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
                reward_vesting_sophiatx_to_move = asset( ( ( uint128_t( token.amount.value ) * uint128_t( a->reward_vesting_sophiatx.amount.value ) )
                   / uint128_t( a->reward_vesting_balance.amount.value ) ).to_uint64(), SOPHIATX_SYMBOL );
 
-            _db.modify( *a, [&]( account_object& a )
+            _db->modify( *a, [&]( account_object& a )
             {
                a.vesting_shares += token;
                a.reward_vesting_balance -= token;
                a.reward_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
             });
 
-            _db.modify( _db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
+            _db->modify( _db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
             {
                gpo.total_vesting_shares += token;
                gpo.total_vesting_fund_sophiatx += reward_vesting_sophiatx_to_move;
@@ -1256,16 +1246,16 @@ void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_oper
                gpo.pending_rewarded_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
             });
 
-            _db.adjust_proxied_witness_votes( *a, token.amount );
+            _db->adjust_proxied_witness_votes( *a, token.amount );
          }
          else if( token.symbol == SOPHIATX_SYMBOL || token.symbol == SBD_SYMBOL )
          {
             FC_ASSERT( is_asset_type( token, SOPHIATX_SYMBOL ) == false || token <= a->reward_sophiatx_balance,
                        "Cannot claim that much SOPHIATX. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sophiatx_balance) );
             FC_ASSERT( is_asset_type( token, SBD_SYMBOL ) == false || token <= a->reward_sbd_balance,
-                       "Cannot claim that much SBD. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
-            _db.adjust_reward_balance( *a, -token );
-            _db.adjust_balance( *a, token );
+                       "Cannot claim that much SBd-> Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
+            _db->adjust_reward_balance( *a, -token );
+            _db->adjust_balance( *a, token );
          }
          else
             FC_ASSERT( false, "Unknown asset symbol" );

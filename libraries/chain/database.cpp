@@ -6,7 +6,6 @@
 #include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/database/database_exceptions.hpp>
 #include <sophiatx/chain/database/db_with.hpp>
-#include <sophiatx/chain/evaluator_registry.hpp>
 #include <sophiatx/chain/global_property_object.hpp>
 #include <sophiatx/chain/history_object.hpp>
 #include <sophiatx/chain/index.hpp>
@@ -67,24 +66,6 @@ FC_REFLECT( sophiatx::chain::db_schema, (types)(object_types)(operation_type)(cu
 namespace sophiatx { namespace chain {
 
 using boost::container::flat_set;
-
-
-class database_impl
-{
-   public:
-      database_impl( database& self );
-
-      database&                              _self;
-      evaluator_registry< operation >        _evaluator_registry;
-};
-
-database_impl::database_impl( database& self )
-   : _self(self), _evaluator_registry(self) {}
-
-database::database()
-   : _my( new database_impl(*this) )
-{
-}
 
 database::~database()
 {
@@ -302,7 +283,7 @@ block_id_type database::find_block_id_for_num( uint32_t block_num )const
       if( b.valid() )
          return b->id();
 
-      // Finally we query the fork DB.
+      // Finally we query the fork db->
       shared_ptr< fork_item > fitem = _fork_db.fetch_block_on_main_branch_by_number( block_num );
       if( fitem )
          return fitem->id;
@@ -937,42 +918,6 @@ void database::clear_pending()
    FC_CAPTURE_AND_RETHROW()
 }
 
-void database::notify_pre_apply_operation( operation_notification& note )
-{
-   note.trx_id       = _current_trx_id;
-   note.block        = _current_block_num;
-   note.trx_in_block = _current_trx_in_block;
-   note.op_in_trx    = _current_op_in_trx;
-
-
-   SOPHIATX_TRY_NOTIFY( pre_apply_operation, note )
-}
-
-void database::notify_post_apply_operation( const operation_notification& note )
-{
-   SOPHIATX_TRY_NOTIFY( post_apply_operation, note )
-}
-
-void database::notify_applied_block( const signed_block& block )
-{
-   SOPHIATX_TRY_NOTIFY( applied_block, block )
-}
-
-void database::notify_on_pending_transaction( const signed_transaction& tx )
-{
-   SOPHIATX_TRY_NOTIFY( on_pending_transaction, tx )
-}
-
-void database::notify_on_pre_apply_transaction( const signed_transaction& tx )
-{
-   SOPHIATX_TRY_NOTIFY( on_pre_apply_transaction, tx )
-}
-
-void database::notify_on_applied_transaction( const signed_transaction& tx )
-{
-   SOPHIATX_TRY_NOTIFY( on_applied_transaction, tx )
-}
-
 account_name_type database::get_scheduled_witness( uint32_t slot_num )const
 {
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
@@ -1384,39 +1329,38 @@ uint32_t database::last_non_undoable_block_num() const
 
 void database::initialize_evaluators()
 {
-   _my->_evaluator_registry.register_evaluator< transfer_evaluator                       >();
-   _my->_evaluator_registry.register_evaluator< transfer_to_vesting_evaluator            >();
-   _my->_evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();
-   _my->_evaluator_registry.register_evaluator< account_create_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< account_update_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< account_delete_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< witness_update_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();
-   _my->_evaluator_registry.register_evaluator< account_witness_proxy_evaluator          >();
-   _my->_evaluator_registry.register_evaluator< custom_evaluator                         >();
-   _my->_evaluator_registry.register_evaluator< custom_binary_evaluator                  >();
-   _my->_evaluator_registry.register_evaluator< custom_json_evaluator                    >();
-   _my->_evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
-   _my->_evaluator_registry.register_evaluator< recover_account_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< change_recovery_account_evaluator        >();
-   _my->_evaluator_registry.register_evaluator< escrow_transfer_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< escrow_approve_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< escrow_dispute_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< escrow_release_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< reset_account_evaluator                  >();
-   _my->_evaluator_registry.register_evaluator< set_reset_account_evaluator              >();
-   _my->_evaluator_registry.register_evaluator< application_create_evaluator             >();
-   _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
-   _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
-   _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
-   _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
-   _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
-   _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< admin_witness_update_evaluator            >();
-
+   _evaluator_registry.register_evaluator< transfer_evaluator                       >();
+   _evaluator_registry.register_evaluator< transfer_to_vesting_evaluator            >();
+   _evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();
+   _evaluator_registry.register_evaluator< account_create_evaluator                 >();
+   _evaluator_registry.register_evaluator< account_update_evaluator                 >();
+   _evaluator_registry.register_evaluator< account_delete_evaluator                 >();
+   _evaluator_registry.register_evaluator< witness_update_evaluator                 >();
+   _evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
+   _evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();
+   _evaluator_registry.register_evaluator< account_witness_proxy_evaluator          >();
+   _evaluator_registry.register_evaluator< custom_evaluator                         >();
+   _evaluator_registry.register_evaluator< custom_binary_evaluator                  >();
+   _evaluator_registry.register_evaluator< custom_json_evaluator                    >();
+   _evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
+   _evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
+   _evaluator_registry.register_evaluator< recover_account_evaluator                >();
+   _evaluator_registry.register_evaluator< change_recovery_account_evaluator        >();
+   _evaluator_registry.register_evaluator< escrow_transfer_evaluator                >();
+   _evaluator_registry.register_evaluator< escrow_approve_evaluator                 >();
+   _evaluator_registry.register_evaluator< escrow_dispute_evaluator                 >();
+   _evaluator_registry.register_evaluator< escrow_release_evaluator                 >();
+   _evaluator_registry.register_evaluator< reset_account_evaluator                  >();
+   _evaluator_registry.register_evaluator< set_reset_account_evaluator              >();
+   _evaluator_registry.register_evaluator< application_create_evaluator             >();
+   _evaluator_registry.register_evaluator< application_update_evaluator             >();
+   _evaluator_registry.register_evaluator< application_delete_evaluator             >();
+   _evaluator_registry.register_evaluator< buy_application_evaluator                >();
+   _evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
+   _evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
+   _evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
+   _evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
+   _evaluator_registry.register_evaluator< admin_witness_update_evaluator           >();
 }
 
 
@@ -1442,27 +1386,27 @@ bool database::is_private_net()const
 
 void database::initialize_indexes()
 {
-   add_core_index< dynamic_global_property_index           >(*this);
-   add_core_index< economic_model_index                    >(*this);
-   add_core_index< account_index                           >(*this);
-   add_core_index< account_authority_index                 >(*this);
-   add_core_index< witness_index                           >(*this);
-   add_core_index< transaction_index                       >(*this);
-   add_core_index< block_summary_index                     >(*this);
-   add_core_index< witness_schedule_index                  >(*this);
-   add_core_index< witness_vote_index                      >(*this);
-   add_core_index< feed_history_index                      >(*this);
-   add_core_index< operation_index                         >(*this);
-   add_core_index< account_history_index                   >(*this);
-   add_core_index< hardfork_property_index                 >(*this);
-   add_core_index< owner_authority_history_index           >(*this);
-   add_core_index< account_recovery_request_index          >(*this);
-   add_core_index< change_recovery_account_request_index   >(*this);
-   add_core_index< escrow_index                            >(*this);
-   add_core_index< application_index                       >(*this);
-   add_core_index< application_buying_index                >(*this);
-   add_core_index< custom_content_index                    >(*this);
-   add_core_index< account_fee_sponsor_index               >(*this);
+   add_core_index< dynamic_global_property_index           >(shared_from_this());
+   add_core_index< economic_model_index                    >(shared_from_this());
+   add_core_index< account_index                           >(shared_from_this());
+   add_core_index< account_authority_index                 >(shared_from_this());
+   add_core_index< witness_index                           >(shared_from_this());
+   add_core_index< transaction_index                       >(shared_from_this());
+   add_core_index< block_summary_index                     >(shared_from_this());
+   add_core_index< witness_schedule_index                  >(shared_from_this());
+   add_core_index< witness_vote_index                      >(shared_from_this());
+   add_core_index< feed_history_index                      >(shared_from_this());
+   add_core_index< operation_index                         >(shared_from_this());
+   add_core_index< account_history_index                   >(shared_from_this());
+   add_core_index< hardfork_property_index                 >(shared_from_this());
+   add_core_index< owner_authority_history_index           >(shared_from_this());
+   add_core_index< account_recovery_request_index          >(shared_from_this());
+   add_core_index< change_recovery_account_request_index   >(shared_from_this());
+   add_core_index< escrow_index                            >(shared_from_this());
+   add_core_index< application_index                       >(shared_from_this());
+   add_core_index< application_buying_index                >(shared_from_this());
+   add_core_index< custom_content_index                    >(shared_from_this());
+   add_core_index< account_fee_sponsor_index               >(shared_from_this());
    _plugin_index_signal();
 }
 
@@ -1538,14 +1482,14 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
    {
       struct auth_inhibitor
       {
-         auth_inhibitor(database& db) : db(db), old_flags(db.node_properties().skip_flags)
-         { db.node_properties().skip_flags |= skip_authority_check; }
+         auth_inhibitor(const std::shared_ptr<database_interface>& db) : db(db), old_flags(db->node_properties().skip_flags)
+         { db->node_properties().skip_flags |= skip_authority_check; }
          ~auth_inhibitor()
-         { db.node_properties().skip_flags = old_flags; }
+         { db->node_properties().skip_flags = old_flags; }
       private:
-         database& db;
+         std::shared_ptr<database_interface> db;
          uint32_t old_flags;
-      } inhibitor(*this);
+      } inhibitor(shared_from_this());
 
       share_type total_initial_balance = 0;
       // Create blockchain accounts
@@ -1960,7 +1904,7 @@ void database::_apply_block( const signed_block& next_block )
 
    create_block_summary(next_block);
    clear_expired_transactions();
-   update_witness_schedule(*this);
+   update_witness_schedule(shared_from_this());
    if(!is_private_net()) {
       process_interests();
       update_median_feeds();
@@ -1992,12 +1936,12 @@ FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) )
 
 struct process_header_visitor
 {
-   process_header_visitor( const std::string& witness, database& db ) : _witness( witness ), _db( db ) {}
+   process_header_visitor( const std::string& witness, const std::shared_ptr<database_interface>& db ) : _witness( witness ), _db( db ) {}
 
    typedef void result_type;
 
    const std::string& _witness;
-   database& _db;
+   std::shared_ptr<database_interface> _db;
 
    void operator()( const void_t& obj ) const
    {
@@ -2006,12 +1950,12 @@ struct process_header_visitor
 
    void operator()( const version& reported_version ) const
    {
-      const auto& signing_witness = _db.get_witness( _witness );
+      const auto& signing_witness = _db->get_witness( _witness );
       //idump( (next_block.witness)(signing_witness.running_version)(reported_version) );
 
       if( reported_version != signing_witness.running_version )
       {
-         _db.modify( signing_witness, [&]( witness_object& wo )
+         _db->modify( signing_witness, [&]( witness_object& wo )
          {
             wo.running_version = reported_version;
          });
@@ -2020,11 +1964,11 @@ struct process_header_visitor
 
    void operator()( const hardfork_version_vote& hfv ) const
    {
-      const auto& signing_witness = _db.get_witness( _witness );
+      const auto& signing_witness = _db->get_witness( _witness );
       //idump( (next_block.witness)(signing_witness.running_version)(hfv) );
 
       if( hfv.hf_version != signing_witness.hardfork_version_vote || hfv.hf_time != signing_witness.hardfork_time_vote )
-         _db.modify( signing_witness, [&]( witness_object& wo )
+         _db->modify( signing_witness, [&]( witness_object& wo )
          {
             wo.hardfork_version_vote = hfv.hf_version;
             wo.hardfork_time_vote = hfv.hf_time;
@@ -2076,7 +2020,7 @@ void database::process_interests() {
 
 void database::process_header_extensions( const signed_block& next_block )
 {
-   process_header_visitor _v( next_block.witness, *this );
+   process_header_visitor _v( next_block.witness, shared_from_this() );
 
    for( const auto& e : next_block.extensions )
       e.visit( _v );
@@ -2215,7 +2159,7 @@ void database::apply_operation(const operation& op)
 
    notify_pre_apply_operation( note );
    process_operation_fee(op);
-   _my->_evaluator_registry.get_evaluator( op ).apply( op );
+   _evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }
 

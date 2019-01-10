@@ -8,7 +8,7 @@ template< typename OperationType >
 class evaluator_registry
 {
    public:
-      evaluator_registry( database& d )
+      evaluator_registry( std::shared_ptr<database_interface> d )
          : _db(d)
       {
          for( int i=0; i<OperationType::count(); i++ )
@@ -36,7 +36,7 @@ class evaluator_registry
       }
 
       std::vector< std::unique_ptr< evaluator<OperationType> > > _op_evaluators;
-      database& _db;
+      std::shared_ptr<database_interface> _db;
 };
 
 } }

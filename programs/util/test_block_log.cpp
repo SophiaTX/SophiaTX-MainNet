@@ -1,4 +1,4 @@
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/protocol/block.hpp>
 #include <fc/io/raw.hpp>
 

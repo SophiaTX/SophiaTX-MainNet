@@ -14,7 +14,7 @@ alexandria_api_impl::alexandria_api_impl()
 
 alexandria_api_impl::~alexandria_api_impl() {}
 
-chain::database &alexandria_api_impl::get_db() const {
+std::shared_ptr<chain::database_interface> alexandria_api_impl::get_db() const {
    return _db;
 }
 
@@ -524,8 +524,8 @@ DEFINE_API_IMPL(alexandria_api_impl, get_account)
 }
 
 DEFINE_API_IMPL(alexandria_api_impl, get_accounts) {
-   const auto& idx  = _db.get_index< chain::account_index >().indices().get< chain::by_name >();
-   const auto& vidx = _db.get_index< chain::witness_vote_index >().indices().get< chain::by_account_witness >();
+   const auto& idx  = _db->get_index< chain::account_index >().indices().get< chain::by_name >();
+   const auto& vidx = _db->get_index< chain::witness_vote_index >().indices().get< chain::by_account_witness >();
    vector< extended_account > accounts;
    accounts.reserve(args.account_names.size());
 
@@ -538,7 +538,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_accounts) {
 
          auto vitr = vidx.lower_bound( boost::make_tuple( itr->name, account_name_type() ) );
          while( vitr != vidx.end() && vitr->account == itr->name ) {
-            accounts.back().witness_votes.insert( _db.get< chain::witness_object, chain::by_name >( vitr->witness ).owner );
+            accounts.back().witness_votes.insert( _db->get< chain::witness_object, chain::by_name >( vitr->witness ).owner );
             ++vitr;
          }
       }
@@ -852,7 +852,7 @@ DEFINE_API_IMPL( alexandria_api_impl, get_applications )
 
    for( auto& name : app_names )
    {
-      auto itr = _db.find< chain::application_object, chain::by_name >( name );
+      auto itr = _db->find< chain::application_object, chain::by_name >( name );
 
       if( itr )
       {
@@ -872,7 +872,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_applications_by_ids)
 
    for( auto& id : app_ids )
    {
-      auto itr = _db.find< chain::application_object, chain::by_id >( id );
+      auto itr = _db->find< chain::application_object, chain::by_id >( id );
 
       if( itr )
       {
@@ -965,7 +965,7 @@ DEFINE_API_IMPL(alexandria_api_impl, verify_signature)
 {
    verify_signature_return result;
    result.signature_valid = (args.pub_key == fc::ecc::public_key(args.signature, args.digest,
-                                                                 _db.has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical)) ? true : false;
+                                                                 _db->has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical)) ? true : false;
    return result;
 }
 

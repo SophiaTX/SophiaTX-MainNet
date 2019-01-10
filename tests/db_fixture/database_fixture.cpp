@@ -65,7 +65,7 @@ clean_database_fixture::clean_database_fixture()
       sophiatx::plugins::witness::witness_plugin
       >( argc, argv );
 
-   db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+   db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -116,7 +116,7 @@ clean_database_fixture::~clean_database_fixture()
    // This way, boost test's last checkpoint tells us approximately where the error was.
    if( !std::uncaught_exception() )
    {
-      BOOST_CHECK( db->get_node_properties().skip_flags == database::skip_nothing );
+      BOOST_CHECK( db->get_node_properties().skip_flags == database_interface::skip_nothing );
    }
 
    if( data_dir )
@@ -144,7 +144,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    {
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
-      database::open_args args;
+      database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = size;
       db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
@@ -207,7 +207,7 @@ private_database_fixture::private_database_fixture()
             sophiatx::plugins::witness::witness_plugin
       >( argc, argv );
 
-      db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
       BOOST_REQUIRE( db );
 
       init_account_pub_key = init_account_priv_key.get_public_key();
@@ -261,7 +261,7 @@ private_database_fixture::~private_database_fixture()
       // This way, boost test's last checkpoint tells us approximately where the error was.
       if( !std::uncaught_exception() )
       {
-         BOOST_CHECK( db->get_node_properties().skip_flags == database::skip_nothing );
+         BOOST_CHECK( db->get_node_properties().skip_flags == database_interface::skip_nothing );
       }
 
       if( data_dir )
@@ -291,13 +291,13 @@ live_database_fixture::live_database_fixture()
          sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
          >( argc, argv );
 
-      db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
       BOOST_REQUIRE( db );
 
       {
          genesis_state_type gen;
          gen.genesis_time = fc::time_point::now();
-         database::open_args args;
+         database_interface::open_args args;
          args.shared_mem_dir = _chain_dir;
          db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
       }
@@ -318,7 +318,7 @@ live_database_fixture::~live_database_fixture()
       // This way, boost test's last checkpoint tells us approximately where the error was.
       if( !std::uncaught_exception() )
       {
-         BOOST_CHECK( db->get_node_properties().skip_flags == database::skip_nothing );
+         BOOST_CHECK( db->get_node_properties().skip_flags == database_interface::skip_nothing );
       }
 
       db->pop_block();
@@ -347,13 +347,6 @@ asset_symbol_type database_fixture::name_to_asset_symbol( const std::string& nam
 
 }
 
-string database_fixture::generate_anon_acct_name()
-{
-   // names of the form "anon-acct-x123" ; the "x" is necessary
-   //    to workaround issue #46
-   return "anon-acct-x" + std::to_string( anon_acct_count++ );
-}
-
 void database_fixture::open_database()
 {
    if( !data_dir )
@@ -364,7 +357,7 @@ void database_fixture::open_database()
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
 
-      database::open_args args;
+      database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
       db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
@@ -384,7 +377,7 @@ void database_fixture::open_database_private()
       gen.initial_public_key = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
       gen.is_private_net = true;
 
-      database::open_args args;
+      database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
       db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
@@ -511,15 +504,15 @@ void database_fixture::fund(
 {
    try
    {
-      db_plugin->debug_update( [=]( database& db)
+      db_plugin->debug_update( [=]( std::shared_ptr<database_interface>& db)
       {
-         db.modify( db.get_account( account_name ), [&]( account_object& a )
+         db->modify( db->get_account( account_name ), [&]( account_object& a )
          {
             if( amount.symbol == SOPHIATX_SYMBOL )
                a.balance += amount;
          });
 
-         db.modify( db.get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
+         db->modify( db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
          {
             if( amount.symbol == SOPHIATX_SYMBOL )
                gpo.current_supply += amount;
@@ -727,7 +720,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
 
    appbase::app().get_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >().plugin_startup();
 
-   db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+   db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -774,7 +767,7 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
    // This way, boost test's last checkpoint tells us approximately where the error was.
    if( !std::uncaught_exception() )
    {
-      BOOST_CHECK( db->get_node_properties().skip_flags == database::skip_nothing );
+      BOOST_CHECK( db->get_node_properties().skip_flags == database_interface::skip_nothing );
    }
 
    if( data_dir )
@@ -891,14 +884,14 @@ void json_rpc_database_fixture::make_positive_request( std::string& request )
 
 namespace test {
 
-bool _push_block( database& db, const signed_block& b, uint32_t skip_flags /* = 0 */ )
+bool _push_block( std::shared_ptr<database_interface>& db, const signed_block& b, uint32_t skip_flags /* = 0 */ )
 {
-   return db.push_block( b, skip_flags);
+   return db->push_block( b, skip_flags);
 }
 
-void _push_transaction( database& db, const signed_transaction& tx, uint32_t skip_flags /* = 0 */ )
+void _push_transaction( std::shared_ptr<database_interface>& db, const signed_transaction& tx, uint32_t skip_flags /* = 0 */ )
 { try {
-   db.push_transaction( tx, skip_flags );
+   db->push_transaction( tx, skip_flags );
 } FC_CAPTURE_AND_RETHROW((tx)) }
 
 } // sophiatx::chain::test

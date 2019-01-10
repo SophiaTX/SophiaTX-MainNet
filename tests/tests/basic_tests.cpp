@@ -24,7 +24,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/protocol/protocol.hpp>
 
 #include <sophiatx/protocol/sophiatx_operations.hpp>
