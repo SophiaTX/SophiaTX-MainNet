@@ -9,6 +9,9 @@
 #include <sophiatx/chain/operation_notification.hpp>
 #include <sophiatx/chain/util/signal.hpp>
 #include <sophiatx/chain/economics.hpp>
+#include <sophiatx/chain/sophiatx_objects.hpp>
+
+#include <sophiatx/chain/util/asset.hpp>
 
 #include <sophiatx/protocol/protocol.hpp>
 #include <sophiatx/protocol/hardfork.hpp>
@@ -40,7 +43,8 @@ class database_interface : public chainbase::database, public std::enable_shared
 public:
 
    database_interface() {}
-   database_interface ( const database_interface & ) = default;
+
+   database_interface(const database_interface &) = default;
 
    virtual ~database_interface() {}
 
@@ -138,8 +142,6 @@ public:
 
    virtual std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const = 0;
 
-   virtual chain_id_type get_chain_id() const = 0;
-
    virtual const witness_object &get_witness(const account_name_type &name) const = 0;
 
    virtual const witness_object *find_witness(const account_name_type &name) const = 0;
@@ -164,8 +166,6 @@ public:
    virtual const dynamic_global_property_object &get_dynamic_global_properties() const = 0;
 
    virtual const economic_model_object &get_economic_model() const = 0;
-
-   virtual const node_property_object &get_node_properties() const = 0;
 
    virtual const feed_history_object &get_feed_history(asset_symbol_type a) const = 0;
 
@@ -193,9 +193,9 @@ public:
 
    virtual void _maybe_warn_multiple_production(uint32_t height) const = 0;
 
-   virtual bool _push_block(const signed_block &b) =0;
+   virtual bool _push_block(const signed_block &b) = 0;
 
-   virtual void _push_transaction(const signed_transaction &trx) =0;
+   virtual void _push_transaction(const signed_transaction &trx) = 0;
 
    virtual void pop_block() = 0;
 
@@ -346,102 +346,90 @@ public:
    }
 
    /** this updates the votes for witnesses as a result of account voting proxy changing */
-   void adjust_proxied_witness_votes(const account_object &a,
-                                     const std::array<share_type, SOPHIATX_MAX_PROXY_RECURSION_DEPTH + 1> &delta,
-                                     int depth = 0);
+   virtual void adjust_proxied_witness_votes(const account_object &a,
+                                             const std::array<share_type,
+                                                   SOPHIATX_MAX_PROXY_RECURSION_DEPTH + 1> &delta,
+                                             int depth = 0) = 0;
 
    /** this updates the votes for all witnesses as a result of account VESTS changing */
-   void adjust_proxied_witness_votes(const account_object &a, share_type delta, int depth = 0);
+   virtual void adjust_proxied_witness_votes(const account_object &a, share_type delta, int depth = 0) = 0;
 
    /** this is called by `adjust_proxied_witness_votes` when account proxy to self */
-   void adjust_witness_votes(const account_object &a, share_type delta);
+   virtual void adjust_witness_votes(const account_object &a, share_type delta) = 0;
 
    /** this updates the vote of a single witness as a result of a vote being added or removed*/
-   void adjust_witness_vote(const witness_object &obj, share_type delta);
+   virtual void adjust_witness_vote(const witness_object &obj, share_type delta) = 0;
 
    /** clears all vote records for a particular account but does not update the
     * witness vote totals.  Vote totals should be updated first via a call to
     * adjust_proxied_witness_votes( a, -a.witness_vote_weight() )
     */
-   void clear_witness_votes(const account_object &a);
+   virtual void clear_witness_votes(const account_object &a) = 0;
 
-   void process_vesting_withdrawals();
+   bool is_private_net() const {
+      return get_dynamic_global_properties().private_net;
+   }
 
-   void process_interests();
+   asset to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const {
+      return util::to_sbd(get_feed_history(to_symbol).current_median_history, sophiatx);
+   }
 
-   bool is_private_net() const;
+   asset to_sophiatx(const asset &sbd) const {
+      return util::to_sophiatx(get_feed_history(sbd.symbol).current_median_history, sbd);
+   }
 
-   void process_funds();
+   time_point_sec head_block_time() const {
+      return get_dynamic_global_properties().time;
+   }
 
-   void account_recovery_processing();
+   uint32_t head_block_num() const {
+      return get_dynamic_global_properties().head_block_number;
+   }
 
-   void expire_escrow_ratification();
+   block_id_type head_block_id() const {
+      return get_dynamic_global_properties().head_block_id;
+   }
 
-   void update_median_feeds();
+   node_property_object &node_properties() {
+      return _node_property_object;
+   }
 
-   asset get_producer_reward();
+   uint32_t last_non_undoable_block_num() const {
+      return get_dynamic_global_properties().last_irreversible_block_num;
+   }
 
-   asset get_pow_reward() const;
-
-   /**
-    * Helper method to return the current sbd value of a given amount of
-    * SOPHIATX.  Return 0 SBD if there isn't a current_median_history
-    */
-   asset to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const;
-
-   asset to_sophiatx(const asset &sbd) const;
-
-   time_point_sec head_block_time() const;
-
-   virtual uint32_t head_block_num() const = 0;
-
-   block_id_type head_block_id() const;
-
-   node_property_object &node_properties();
-
-   uint32_t last_non_undoable_block_num() const;
    //////////////////// db_init.cpp ////////////////////
 
    void set_custom_operation_interpreter(const uint32_t id, std::shared_ptr<custom_operation_interpreter> registry);
 
    std::shared_ptr<custom_operation_interpreter> get_custom_json_evaluator(const uint32_t id);
 
-   /// Reset the object graph in-memory
-   void initialize_indexes();
-
-   void init_schema();
-
-   void init_genesis(genesis_state_type genesis, chain_id_type chain_id,
-                     const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */ );
-
-   /**
-    *  This method validates transactions without adding it to the pending state.
-    *  @throw if an error occurs
-    */
-   void validate_transaction(const signed_transaction &trx);
-
    /** when popping a block, the transactions that were removed get cached here so they
     * can be reapplied at the proper time */
    std::deque<signed_transaction> _popped_tx;
    vector<signed_transaction> _pending_tx;
 
-   void retally_witness_votes();
+   virtual void retally_witness_votes() = 0;
 
-   virtual bool has_hardfork(uint32_t hardfork) const = 0;
+   bool has_hardfork(uint32_t hardfork) const {
+      return get_hardfork_property_object().processed_hardforks.size() > hardfork;
+   }
 
    /* For testing and debugging only. Given a hardfork
       with id N, applies all hardforks with id <= N */
-   void set_hardfork(uint32_t hardfork, bool process_now = true);
+   virtual void set_hardfork(uint32_t hardfork, bool process_now = true) = 0;
 
-   void validate_invariants() const;
+   virtual void validate_invariants() const = 0;
 
-   /**
-    * @}
-    */
 
-   const std::string &get_json_schema() const;
+   const std::string &get_json_schema() const {
+      return _json_schema;
+   }
 
-   void set_flush_interval(uint32_t flush_blocks);
+   void set_flush_interval(uint32_t flush_blocks) {
+      _flush_blocks = flush_blocks;
+      _next_flush_block = 0;
+   }
 
    void check_free_memory(bool force_print, uint32_t current_block_num);
 
@@ -457,72 +445,21 @@ public:
 
    void on_reindex_done_connect(on_reindex_done_t functor) { _on_reindex_done.connect(functor); }
 
-   asset process_operation_fee(const operation &op);
+   virtual optional<account_name_type> get_sponsor(const account_name_type &who) const = 0;
 
-   account_name_type get_fee_payer(const operation &op);
+   chain_id_type get_chain_id() const {
+      return get_dynamic_global_properties().chain_id;
+   }
 
-   optional<account_name_type> get_sponsor(const account_name_type &who) const;
-
-   time_point_sec get_genesis_time() const;
+   time_point_sec get_genesis_time() const {
+      return get_dynamic_global_properties().genesis_time;
+   }
 
 protected:
-   //Mark pop_undo() as protected -- we do not want outside calling pop_undo(); it should call pop_block() instead
-   //void pop_undo() { object_database::pop_undo(); }
-   void notify_changed_objects();
-
-   optional<chainbase::database::session> _pending_tx_session;
-
-   void apply_block(const signed_block &next_block, uint32_t skip = skip_nothing);
-
-   void apply_transaction(const signed_transaction &trx, uint32_t skip = skip_nothing);
-
-   void _apply_block(const signed_block &next_block);
-
-   void _apply_transaction(const signed_transaction &trx);
-
-   void apply_operation(const operation &op);
-
-   ///Steps involved in applying a new block
-   ///@{
-
-   const witness_object &validate_block_header(uint32_t skip, const signed_block &next_block) const;
-
-   void create_block_summary(const signed_block &next_block);
-
-   void clear_null_account_balance();
-
-   void update_global_dynamic_data(const signed_block &b);
-
-   void update_signing_witness(const witness_object &signing_witness, const signed_block &new_block);
-
-   void update_last_irreversible_block();
-
-   void clear_expired_transactions();
-
-   void process_header_extensions(const signed_block &next_block);
-
-   void init_hardforks();
-
-   void process_hardforks();
-
-   void apply_hardfork(uint32_t hardfork);
-
-   void modify_balance(const account_object &a, const asset &delta, bool check_balance);
-
-   void modify_reward_balance(const account_object &a, const asset &delta, bool check_balance);
-
-   void recalculate_all_votes();
-
-
-   fork_database _fork_db;
-   fc::time_point_sec _hardfork_times[SOPHIATX_NUM_HARDFORKS + 1];
-   protocol::hardfork_version _hardfork_versions[SOPHIATX_NUM_HARDFORKS + 1];
-
-   block_log _block_log;
 
    // this function needs access to _plugin_index_signal
    template<typename MultiIndexType>
-   friend void add_plugin_index(const std::shared_ptr<database_interface>& db);
+   friend void add_plugin_index(const std::shared_ptr<database_interface> &db);
 
    fc::signal<void()> _plugin_index_signal;
 
@@ -531,8 +468,6 @@ protected:
    int32_t _current_trx_in_block = 0;
    uint16_t _current_op_in_trx = 0;
    uint16_t _current_virtual_op = 0;
-
-   flat_map<uint32_t, block_id_type> _checkpoints;
 
    node_property_object _node_property_object;
 
@@ -552,6 +487,7 @@ protected:
 
 };
 
-}}
+}
+}
 
 #endif //SOPHIATX_DATABASE_INTERFACE_HPP

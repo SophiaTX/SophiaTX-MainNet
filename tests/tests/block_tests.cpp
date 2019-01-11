@@ -26,7 +26,7 @@
 
 #include <sophiatx/protocol/exceptions.hpp>
 
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/history_object.hpp>
 
@@ -47,14 +47,14 @@ using namespace sophiatx::protocol;
 
 BOOST_AUTO_TEST_SUITE(block_tests)
 
-void open_test_database( std::shared_ptr<database_interface>& db, const fc::path& dir )
+void open_test_database( database& db, const fc::path& dir )
 {
    fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
    public_key_type init_account_pub_key = init_account_priv_key.get_public_key();
 
    genesis_state_type gen;
    gen.genesis_time = fc::time_point_sec(1530644400);
-   database::open_args args;
+   database_interface::open_args args;
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
    db.open( args, gen, public_key_type(init_account_pub_key) );
@@ -757,7 +757,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
          sophiatx::plugins::debug_node::debug_node_plugin
       >( argc, argv );
 
-      db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()).get();
       BOOST_REQUIRE( db );
 
 

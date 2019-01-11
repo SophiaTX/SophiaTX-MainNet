@@ -273,7 +273,7 @@ void update_witness_schedule4( const std::shared_ptr<database_interface>& db )
  *
  *  See @ref witness_object::virtual_last_update
  */
-void update_witness_schedule(std::shared_ptr<database_interface>& db)
+void update_witness_schedule(const std::shared_ptr<database_interface>& db)
 {
    if( (db->head_block_num() % SOPHIATX_MAX_WITNESSES) == 0 ) //wso.next_shuffle_block_num )
    {

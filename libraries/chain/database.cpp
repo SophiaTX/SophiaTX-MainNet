@@ -18,7 +18,6 @@
 #include <sophiatx/chain/witness_schedule.hpp>
 #include <sophiatx/chain/application_object.hpp>
 
-#include <sophiatx/chain/util/asset.hpp>
 #include <sophiatx/chain/util/uint256.hpp>
 
 #include <fc/smart_ref_impl.hpp>
@@ -359,16 +358,6 @@ std::vector< block_id_type > database::get_block_ids_on_fork( block_id_type head
    return result;
 } FC_CAPTURE_AND_RETHROW() }
 
-chain_id_type database::get_chain_id() const
-{
-   return get_dynamic_global_properties().chain_id;
-}
-
-time_point_sec database::get_genesis_time()const
-{
-   return get_dynamic_global_properties().genesis_time;
-}
-
 const witness_object& database::get_witness( const account_name_type& name ) const
 { try {
    return get< witness_object, by_name >( name );
@@ -434,11 +423,6 @@ const economic_model_object&database::get_economic_model() const
 { try {
    return get< economic_model_object >();
 } FC_CAPTURE_AND_RETHROW() }
-
-const node_property_object& database::get_node_properties() const
-{
-   return _node_property_object;
-}
 
 const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
@@ -600,7 +584,7 @@ void database::_maybe_warn_multiple_production( uint32_t height )const
 bool database::_push_block(const signed_block& new_block)
 { try {
 
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
    //uint32_t skip_undo_db = skip & skip_undo_block;
 
    if( !(skip&skip_fork_db) )
@@ -765,7 +749,7 @@ signed_block database::_generate_block(
    const fc::ecc::private_key& block_signing_private_key
    )
 {
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
    uint32_t slot_num = get_slot_at_time( when );
    FC_ASSERT( slot_num > 0 );
    string scheduled_witness = get_scheduled_witness( slot_num );
@@ -1237,16 +1221,6 @@ void database::process_funds()
 
 }
 
-asset database::to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const
-{
-   return util::to_sbd(get_feed_history(to_symbol).current_median_history, sophiatx );
-}
-
-asset database::to_sophiatx( const asset& sbd )const
-{
-   return util::to_sophiatx(get_feed_history(sbd.symbol).current_median_history, sbd );
-}
-
 void database::account_recovery_processing()
 {
    // Clear expired recovery requests
@@ -1302,31 +1276,6 @@ void database::expire_escrow_ratification()
    }
 }
 
-time_point_sec database::head_block_time()const
-{
-   return get_dynamic_global_properties().time;
-}
-
-uint32_t database::head_block_num()const
-{
-   return get_dynamic_global_properties().head_block_number;
-}
-
-block_id_type database::head_block_id()const
-{
-   return get_dynamic_global_properties().head_block_id;
-}
-
-node_property_object& database::node_properties()
-{
-   return _node_property_object;
-}
-
-uint32_t database::last_non_undoable_block_num() const
-{
-   return get_dynamic_global_properties().last_irreversible_block_num;
-}
-
 void database::initialize_evaluators()
 {
    _evaluator_registry.register_evaluator< transfer_evaluator                       >();
@@ -1363,27 +1312,6 @@ void database::initialize_evaluators()
    _evaluator_registry.register_evaluator< admin_witness_update_evaluator           >();
 }
 
-
-void database::set_custom_operation_interpreter( const uint32_t id, std::shared_ptr< custom_operation_interpreter > registry )
-{
-   bool inserted = _custom_operation_interpreters.emplace( id, registry ).second;
-   // This assert triggering means we're mis-configured (multiple registrations of custom JSON evaluator for same ID)
-   FC_ASSERT( inserted );
-}
-
-std::shared_ptr< custom_operation_interpreter > database::get_custom_json_evaluator( const uint32_t id )
-{
-   auto it = _custom_operation_interpreters.find( id );
-   if( it != _custom_operation_interpreters.end() )
-      return it->second;
-   return std::shared_ptr< custom_operation_interpreter >();
-}
-
-bool database::is_private_net()const
-{
-   return get_dynamic_global_properties().private_net;
-}
-
 void database::initialize_indexes()
 {
    add_core_index< dynamic_global_property_index           >(shared_from_this());
@@ -1408,11 +1336,6 @@ void database::initialize_indexes()
    add_core_index< custom_content_index                    >(shared_from_this());
    add_core_index< account_fee_sponsor_index               >(shared_from_this());
    _plugin_index_signal();
-}
-
-const std::string& database::get_json_schema()const
-{
-   return _json_schema;
 }
 
 void database::init_schema()
@@ -1668,12 +1591,6 @@ void database::notify_changed_objects()
 
 }
 
-void database::set_flush_interval( uint32_t flush_blocks )
-{
-   _flush_blocks = flush_blocks;
-   _next_flush_block = 0;
-}
-
 //////////////////// private methods ////////////////////
 
 void database::apply_block( const signed_block& next_block, uint32_t skip )
@@ -1747,51 +1664,12 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
 
 } FC_CAPTURE_AND_RETHROW( (next_block) ) }
 
-void database::check_free_memory( bool force_print, uint32_t current_block_num )
-{
-   uint64_t free_mem = get_free_memory();
-   uint64_t max_mem = get_max_memory();
-
-   if( BOOST_UNLIKELY( _shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ( ( uint128_t( SOPHIATX_100_PERCENT - _shared_file_full_threshold ) * max_mem ) / SOPHIATX_100_PERCENT ).to_uint64() ) )
-   {
-      uint64_t new_max = ( uint128_t( max_mem * _shared_file_scale_rate ) / SOPHIATX_100_PERCENT ).to_uint64() + max_mem;
-
-      wlog( "Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024*1024)) );
-
-      resize( new_max );
-
-      uint32_t free_mb = uint32_t( get_free_memory() / (1024*1024) );
-      wlog( "Free memory is now ${free}M", ("free", free_mb) );
-      _last_free_gb_printed = free_mb / 1024;
-   }
-   else
-   {
-      uint32_t free_gb = uint32_t( free_mem / (1024*1024*1024) );
-      if( BOOST_UNLIKELY( force_print || (free_gb < _last_free_gb_printed) || (free_gb > _last_free_gb_printed+1) ) )
-      {
-         ilog( "Free memory is now ${n}G. Current block number: ${block}", ("n", free_gb)("block",current_block_num) );
-         _last_free_gb_printed = free_gb;
-      }
-
-      if( BOOST_UNLIKELY( free_gb == 0 ) )
-      {
-         uint32_t free_mb = uint32_t( free_mem / (1024*1024) );
-
-   #ifdef IS_TEST_NET
-      if( !disable_low_mem_warning )
-   #endif
-         if( free_mb <= 100 && head_block_num() % 10 == 0 )
-            elog( "Free memory is now ${n}M. Increase shared file size immediately!" , ("n", free_mb) );
-      }
-   }
-}
-
 void database::_apply_block( const signed_block& next_block )
 { try {
    uint32_t next_block_num = next_block.block_num();
    //block_id_type next_block_id = next_block.id();
 
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
 
    if( BOOST_UNLIKELY( next_block_num == 1 ) )
    {
@@ -2075,7 +1953,7 @@ void database::_apply_transaction(const signed_transaction& trx)
 { try {
    _current_trx_id = trx.id();
    _current_virtual_op = 0;
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
 
    if( !(skip&skip_validate) ) {   /* issue #505 explains why this skip_flag is disabled */
       trx.validate();
@@ -2255,7 +2133,7 @@ void database::update_global_dynamic_data( const signed_block& b )
       }
    } );
 
-   if( !(get_node_properties().skip_flags & skip_undo_history_check) )
+   if( !(node_properties().skip_flags & skip_undo_history_check) )
    {
       SOPHIATX_ASSERT( _dgp.head_block_number - _dgp.last_irreversible_block_num  < SOPHIATX_MAX_UNDO_HISTORY, undo_database_exception,
                  "The database does not have enough undo history to support a blockchain with so many missed blocks. "
@@ -2329,7 +2207,7 @@ void database::update_last_irreversible_block()
 
    commit( dpo.last_irreversible_block_num );
 
-   if( !( get_node_properties().skip_flags & skip_block_log ) )
+   if( !( node_properties().skip_flags & skip_block_log ) )
    {
       // output to block log based on new last irreverisible block num
       const auto& tmp_head = _block_log.head();
@@ -2486,11 +2364,6 @@ void database::process_hardforks()
 
    }
    FC_CAPTURE_AND_RETHROW()
-}
-
-bool database::has_hardfork( uint32_t hardfork )const
-{
-   return get_hardfork_property_object().processed_hardforks.size() > hardfork;
 }
 
 void database::set_hardfork( uint32_t hardfork, bool apply_now )

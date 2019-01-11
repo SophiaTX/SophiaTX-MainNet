@@ -142,9 +142,9 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       BOOST_TEST_MESSAGE( "--- Test failure covering witness fee" );
       generate_block();
-      db_plugin->debug_update( [=]( std::shared_ptr<database>& db )
+      db_plugin->debug_update( [=]( const std::shared_ptr<database_interface>& db )
       {
-         db.modify( db.get_witness_schedule_object(), [&]( witness_schedule_object& wso )
+         db->modify( db->get_witness_schedule_object(), [&]( witness_schedule_object& wso )
          {
             wso.median_props.account_creation_fee = ASSET( "10.000000 SPHTX" );
          });
@@ -802,11 +802,11 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       generate_block();
       }
 
-      db_plugin->debug_update( [=]( std::shared_ptr<database>& db )
+      db_plugin->debug_update( [=]( const std::shared_ptr<database_interface>& db )
       {
-         auto& wso = db.get_witness_schedule_object();
+         auto& wso = db->get_witness_schedule_object();
 
-         db.modify( wso, [&]( witness_schedule_object& w )
+         db->modify( wso, [&]( witness_schedule_object& w )
          {
             w.median_props.account_creation_fee = ASSET( "10.000000 SPHTX" );
          });

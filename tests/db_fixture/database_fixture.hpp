@@ -1,7 +1,7 @@
 #pragma once
 
 #include <appbase/application.hpp>
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <fc/io/json.hpp>
 #include <fc/smart_ref_impl.hpp>
 
@@ -187,7 +187,7 @@ using namespace sophiatx::protocol;
 struct database_fixture {
    // the reason we use an app is to exercise the indexes of built-in
    //   plugins
-   std::shared_ptr<chain::database_interface> db = nullptr;
+   database* db = nullptr;
    signed_transaction trx;
    public_key_type committee_key;
    account_id_type committee_account;
@@ -313,8 +313,8 @@ struct private_database_fixture : public database_fixture
 
 namespace test
 {
-   bool _push_block( std::shared_ptr<database_interface>& db, const signed_block& b, uint32_t skip_flags = 0 );
-   void _push_transaction( std::shared_ptr<database_interface>& db, const signed_transaction& tx, uint32_t skip_flags = 0 );
+   bool _push_block( database& db, const signed_block& b, uint32_t skip_flags = 0 );
+   void _push_transaction( database& db, const signed_transaction& tx, uint32_t skip_flags = 0 );
 }
 
 } }
