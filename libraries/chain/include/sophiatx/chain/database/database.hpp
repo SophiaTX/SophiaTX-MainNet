@@ -2,25 +2,6 @@
  * Copyright (c) 2015 Cryptonomex, Inc., and contributors.
  */
 #pragma once
-//#include <sophiatx/chain/global_property_object.hpp>
-//#include <sophiatx/chain/hardfork_property_object.hpp>
-//#include <sophiatx/chain/node_property_object.hpp>
-//#include <sophiatx/chain/fork_database.hpp>
-//#include <sophiatx/chain/block_log.hpp>
-//#include <sophiatx/chain/operation_notification.hpp>
-//#include <sophiatx/chain/util/signal.hpp>
-//#include <sophiatx/chain/economics.hpp>
-//#
-//
-//#include <sophiatx/protocol/protocol.hpp>
-//#include <sophiatx/protocol/hardfork.hpp>
-//#include <sophiatx/chain/genesis_state.hpp>
-//
-//#include <fc/signals.hpp>
-//
-//#include <fc/log/logger.hpp>
-//
-//#include <map>
 #include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/evaluator_registry.hpp>
 
@@ -274,8 +255,6 @@ public:
 
    /// Reset the object graph in-memory
    void initialize_indexes();
-
-   void init_schema();
 
    void init_genesis(genesis_state_type genesis, chain_id_type chain_id,
                      const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */ );
