@@ -1278,6 +1278,8 @@ void database::expire_escrow_ratification()
 
 void database::initialize_evaluators()
 {
+   _evaluator_registry.register_db(shared_from_this());
+
    _evaluator_registry.register_evaluator< transfer_evaluator                       >();
    _evaluator_registry.register_evaluator< transfer_to_vesting_evaluator            >();
    _evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();

@@ -40,7 +40,7 @@ using sophiatx::protocol::price;
  */
 class database : public database_interface {
 public:
-   database() : _evaluator_registry(shared_from_this()) {}
+   database() {}
 
    virtual ~database();
 
