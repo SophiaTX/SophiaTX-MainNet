@@ -187,7 +187,7 @@ using namespace sophiatx::protocol;
 struct database_fixture {
    // the reason we use an app is to exercise the indexes of built-in
    //   plugins
-   database* db = nullptr;
+   std::shared_ptr<database> db = nullptr;
    signed_transaction trx;
    public_key_type committee_key;
    account_id_type committee_account;
@@ -313,8 +313,8 @@ struct private_database_fixture : public database_fixture
 
 namespace test
 {
-   bool _push_block( database& db, const signed_block& b, uint32_t skip_flags = 0 );
-   void _push_transaction( database& db, const signed_transaction& tx, uint32_t skip_flags = 0 );
+   bool _push_block( const std::shared_ptr<database>& db, const signed_block& b, uint32_t skip_flags = 0 );
+   void _push_transaction( const std::shared_ptr<database>& db, const signed_transaction& tx, uint32_t skip_flags = 0 );
 }
 
 } }

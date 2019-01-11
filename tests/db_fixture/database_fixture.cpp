@@ -65,7 +65,7 @@ clean_database_fixture::clean_database_fixture()
       sophiatx::plugins::witness::witness_plugin
       >( argc, argv );
 
-   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()).get();
+   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -207,7 +207,7 @@ private_database_fixture::private_database_fixture()
             sophiatx::plugins::witness::witness_plugin
       >( argc, argv );
 
-      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()).get();
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
       init_account_pub_key = init_account_priv_key.get_public_key();
@@ -291,7 +291,7 @@ live_database_fixture::live_database_fixture()
          sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
          >( argc, argv );
 
-      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()).get();
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
       {
@@ -720,7 +720,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
 
    appbase::app().get_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >().plugin_startup();
 
-   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()).get();
+   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -884,14 +884,14 @@ void json_rpc_database_fixture::make_positive_request( std::string& request )
 
 namespace test {
 
-bool _push_block( database& db, const signed_block& b, uint32_t skip_flags /* = 0 */ )
+bool _push_block( const std::shared_ptr<database>& db, const signed_block& b, uint32_t skip_flags /* = 0 */ )
 {
-   return db.push_block( b, skip_flags);
+   return db->push_block( b, skip_flags);
 }
 
-void _push_transaction( database& db, const signed_transaction& tx, uint32_t skip_flags /* = 0 */ )
+void _push_transaction( const std::shared_ptr<database>& db, const signed_transaction& tx, uint32_t skip_flags /* = 0 */ )
 { try {
-   db.push_transaction( tx, skip_flags );
+   db->push_transaction( tx, skip_flags );
 } FC_CAPTURE_AND_RETHROW((tx)) }
 
 } // sophiatx::chain::test
