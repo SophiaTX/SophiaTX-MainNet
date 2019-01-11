@@ -1,6 +1,6 @@
-[submodule "libraries/fc"]
-	path = libraries/fc
-	url = https://github.com/SophiaTX/fc.git
 [submodule "libraries/SQLiteCpp"]
 	path = libraries/SQLiteCpp
 	url = https://github.com/SophiaTX/SQLiteCpp.git
+[submodule "libraries/fc/vendor/websocketpp"]
+	path = libraries/fc/vendor/websocketpp
+	url = https://github.com/SophiaTX/websocketpp.git
