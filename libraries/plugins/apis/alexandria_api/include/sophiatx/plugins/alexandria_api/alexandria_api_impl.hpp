@@ -133,6 +133,8 @@ public:
          (get_key_references)
          (get_version)
          (get_dynamic_global_properties)
+         (get_witness_schedule_object)
+         (get_hardfork_property_object)
    )
 
    std::shared_ptr<chain::database_interface> _db;

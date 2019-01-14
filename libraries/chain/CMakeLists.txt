@@ -7,6 +7,7 @@ add_library( sophiatx_chain
              database.cpp
              database_interface.cpp
              hybrid_database.cpp
+             remote_db_api.cpp
 
              sophiatx_evaluator.cpp
              sophiatx_objects.cpp

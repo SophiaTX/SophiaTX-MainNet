@@ -82,6 +82,7 @@ public:
       uint16_t shared_file_scale_rate = 0;
       uint32_t chainbase_flags = 0;
       bool do_validate_invariants = false;
+      string ws_endpoint = "";
 
       // The following fields are only used on reindexing
       uint32_t stop_replay_at = 0;
@@ -129,8 +130,6 @@ public:
    virtual bool is_known_block(const block_id_type &id) const = 0;
 
    virtual bool is_known_transaction(const transaction_id_type &id) const = 0;
-
-   virtual block_id_type find_block_id_for_num(uint32_t block_num) const = 0;
 
    virtual block_id_type get_block_id_for_num(uint32_t block_num) const = 0;
 
@@ -326,10 +325,6 @@ public:
    virtual void vest(const account_name_type &name, const share_type delta) = 0;
 
    virtual void vest(const account_object &a, const share_type delta) = 0;
-
-   virtual void create_vesting(const account_object &a, const asset &delta) = 0;
-
-   virtual void create_vesting(const account_name_type &name, const asset &delta) = 0;
 
    virtual void adjust_balance(const account_object &a, const asset &delta) = 0;
 

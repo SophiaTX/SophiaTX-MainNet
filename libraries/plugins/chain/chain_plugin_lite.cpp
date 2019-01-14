@@ -1,6 +1,7 @@
-#include <sophiatx/chain/database/database_exceptions.hpp>
-
 #include <sophiatx/plugins/chain/chain_plugin_lite.hpp>
+
+#include <sophiatx/chain/database/database_exceptions.hpp>
+#include <sophiatx/chain/database/hybrid_database.hpp>
 
 #include <fc/string.hpp>
 #include <fc/io/fstream.hpp>
@@ -24,7 +25,7 @@ namespace asio = boost::asio;
 
 chain_plugin_lite::chain_plugin_lite() {
    flush_interval = 10000;
-   //db_ = std::make_shared<database>();
+   db_ = std::make_shared<hybrid_database>();
 }
 chain_plugin_lite::~chain_plugin_lite(){}
 

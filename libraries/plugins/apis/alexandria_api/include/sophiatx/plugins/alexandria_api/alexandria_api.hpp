@@ -554,6 +554,16 @@ class alexandria_api
          *  Gets current dynamic global properties
          */
         (get_dynamic_global_properties)
+
+        /**
+         *  Gets current witness schedule object
+         */
+        (get_witness_schedule_object)
+
+        /**
+         *  Gets current hardfork property object
+         */
+        (get_hardfork_property_object)
       )
 
    private:

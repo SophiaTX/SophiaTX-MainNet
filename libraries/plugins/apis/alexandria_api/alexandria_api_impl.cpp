@@ -1433,6 +1433,30 @@ DEFINE_API_IMPL(alexandria_api_impl, get_key_references)
    return result;
 }
 
+DEFINE_API_IMPL(alexandria_api_impl, get_witness_schedule_object)
+{
+   checkApiEnabled(_database_api);
+
+   api_witness_schedule_object props = _database_api->get_witness_schedule( {} );
+
+   get_witness_schedule_object_return result;
+   result.schedule_obj = std::move(props);
+
+   return result;
+}
+
+DEFINE_API_IMPL(alexandria_api_impl, get_hardfork_property_object)
+{
+   checkApiEnabled(_database_api);
+
+   alexandria_api::api_hardfork_property_object props = _database_api->get_hardfork_properties( {} );
+   get_hardfork_property_object_return result;
+
+   result.hf_obj = std::move(props);
+
+   return result;
+}
+
 
 
 

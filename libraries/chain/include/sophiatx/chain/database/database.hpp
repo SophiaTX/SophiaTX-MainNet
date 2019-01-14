@@ -126,8 +126,6 @@ public:
 
    void add_checkpoints(const flat_map<uint32_t, block_id_type> &checkpts);
 
-   const flat_map<uint32_t, block_id_type> get_checkpoints() const { return _checkpoints; }
-
    bool before_last_checkpoint() const;
 
    bool push_block(const signed_block &b, uint32_t skip = skip_nothing);
@@ -264,11 +262,6 @@ public:
     *  @throw if an error occurs
     */
    void validate_transaction(const signed_transaction &trx);
-
-   /** when popping a block, the transactions that were removed get cached here so they
-    * can be reapplied at the proper time */
-   std::deque<signed_transaction> _popped_tx;
-   vector<signed_transaction> _pending_tx;
 
    void retally_witness_votes();
 
