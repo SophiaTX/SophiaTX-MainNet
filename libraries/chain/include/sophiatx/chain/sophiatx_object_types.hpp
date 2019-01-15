@@ -58,12 +58,7 @@ enum object_type
    application_object_type,
    account_fee_sponsor_object_type,
    application_buying_object_type,
-#ifdef SOPHIATX_ENABLE_SMT
-   // SMT objects
-   smt_token_object_type,
-   account_regular_balance_object_type,
-   account_rewards_balance_object_type
-#endif
+   hybrid_db_property_object_type
 };
 
 class dynamic_global_property_object;
@@ -88,13 +83,8 @@ class custom_content_object;
 class application_object;
 class account_fee_sponsor_object;
 class application_buying_object;
+class hybrid_db_property_object;
 
-#ifdef SOPHIATX_ENABLE_SMT
-class smt_token_object;
-template < enum object_type ObjectType > class account_balance_object;
-typedef account_balance_object< account_regular_balance_object_type > account_regular_balance_object;
-typedef account_balance_object< account_rewards_balance_object_type > account_rewards_balance_object;
-#endif
 
 typedef oid< dynamic_global_property_object         > dynamic_global_property_id_type;
 typedef oid< account_object                         > account_id_type;
@@ -118,12 +108,8 @@ typedef oid< custom_content_object                  > custom_content_id_type;
 typedef oid< application_object                     > application_id_type;
 typedef oid< account_fee_sponsor_object             > account_fee_sponsor_id_type;
 typedef oid< application_buying_object              > application_buying_id_type;
+typedef oid< hybrid_db_property_object              > hybrid_db_property_object_id_type;
 
-#ifdef SOPHIATX_ENABLE_SMT
-typedef oid< smt_token_object                       > smt_token_id_type;
-typedef oid< account_regular_balance_object         > account_regular_balance_id_type;
-typedef oid< account_rewards_balance_object         > account_rewards_balance_id_type;
-#endif
 
 enum bandwidth_type
 {
@@ -196,6 +182,7 @@ FC_REFLECT_ENUM( sophiatx::chain::object_type,
                  (application_object_type)
                  (account_fee_sponsor_object_type)
                  (application_buying_object_type)
+                 (hybrid_db_property_object_type)
                )
 
 FC_REFLECT_TYPENAME( sophiatx::chain::shared_string )

@@ -83,6 +83,7 @@ public:
       uint32_t chainbase_flags = 0;
       bool do_validate_invariants = false;
       string ws_endpoint = "";
+      uint64_t app_id = 0;
 
       // The following fields are only used on reindexing
       uint32_t stop_replay_at = 0;
@@ -117,7 +118,7 @@ public:
     *
     * Will close the database before wiping. Database will be closed when this function returns.
     */
-   virtual void wipe(const fc::path &shared_mem_dir, bool include_blocks) = 0;
+   virtual void wipe(const fc::path &shared_mem_dir, bool include_blocks);
 
    virtual void close(bool rewind = true) = 0;
 
@@ -397,7 +398,7 @@ public:
 
    void set_custom_operation_interpreter(const uint32_t id, std::shared_ptr<custom_operation_interpreter> registry);
 
-   std::shared_ptr<custom_operation_interpreter> get_custom_json_evaluator(const uint32_t id);
+   std::shared_ptr<custom_operation_interpreter> get_custom_json_evaluator(const uint64_t id);
 
    /** when popping a block, the transactions that were removed get cached here so they
     * can be reapplied at the proper time */
@@ -474,7 +475,7 @@ protected:
    uint16_t _shared_file_full_threshold = 0;
    uint16_t _shared_file_scale_rate = 0;
 
-   flat_map<uint32_t, std::shared_ptr<custom_operation_interpreter> > _custom_operation_interpreters;
+   flat_map<uint64_t, std::shared_ptr<custom_operation_interpreter> > _custom_operation_interpreters;
    std::string _json_schema;
 
    fc::signal<on_reindex_start_t> _on_reindex_start;

@@ -50,14 +50,6 @@ public:
    uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
                     const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
 
-   /**
-    * @brief wipe Delete database from disk, and potentially the raw chain as well.
-    * @param include_blocks If true, delete the raw chain as well as the database.
-    *
-    * Will close the database before wiping. Database will be closed when this function returns.
-    */
-   void wipe(const fc::path &shared_mem_dir, bool include_blocks);
-
    void close(bool rewind = true);
 
    //////////////////// db_block.cpp ////////////////////

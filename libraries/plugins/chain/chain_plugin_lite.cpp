@@ -70,12 +70,9 @@ void chain_plugin_lite::plugin_initialize(const variables_map& options) {
 void chain_plugin_lite::plugin_startup()
 {
    ilog( "Starting chain with shared_file_size: ${n} bytes", ("n", shared_memory_size) );
-   chain_id_type chain_id = chain_id_type();
-//   genesis.compute_chain_id();
 
-//   start_write_processing();
-   if(shared_memory_dir.generic_string() == "")
-      shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
+   if(shared_memory_dir.generic_string().empty())
+      shared_memory_dir = app().data_dir() / "blockchain";
 
    if(resync)
    {
@@ -90,11 +87,10 @@ void chain_plugin_lite::plugin_startup()
    db_open_args.shared_file_size = shared_memory_size;
    db_open_args.shared_file_full_threshold = shared_file_full_threshold;
    db_open_args.shared_file_scale_rate = shared_file_scale_rate;
+   db_open_args.ws_endpoint = "ws://devnet.sophiatx.com:9191";
+   db_open_args.app_id = 666;
 
-   elog("Starting node with chain id ${i}", ("i", chain_id));
-
-   ilog( "Started on blockchain with ${n} blocks", ("n", db_->head_block_num()) );
-   on_sync();
+   db_->open(db_open_args, genesis_state_type(), public_key_type());
 }
 
 void chain_plugin_lite::plugin_shutdown()

@@ -213,17 +213,6 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 
 }
 
-void database::wipe( const fc::path& shared_mem_dir, bool include_blocks)
-{
-   close();
-   chainbase::database::wipe( shared_mem_dir );
-   if( include_blocks )
-   {
-      fc::remove_all( shared_mem_dir / "block_log" );
-      fc::remove_all( shared_mem_dir / "block_log.index" );
-   }
-}
-
 void database::close(bool rewind)
 {
    try

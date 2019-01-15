@@ -2,8 +2,10 @@
 #define SOPHIATX_HYBRID_DATABASE_HPP
 
 #include <sophiatx/chain/database/database_interface.hpp>
-
 #include <sophiatx/chain/database/remote_db_api.hpp>
+#include <sophiatx/chain/sophiatx_object_types.hpp>
+
+#include <fc/rpc/websocket_api.hpp>
 
 namespace sophiatx {
 namespace chain {
@@ -33,18 +35,9 @@ public:
              const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
 
    uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
-                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
-      not_implemented();
-      return 0;
-   }
+                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
 
-   void wipe(const fc::path &shared_mem_dir, bool include_blocks) {
-      not_implemented();
-   }
-
-   void close(bool rewind = true) {
-      not_implemented();
-   }
+   void close(bool rewind = true);
 
    bool is_known_block(const block_id_type &id) const {
       not_implemented();
@@ -61,9 +54,15 @@ public:
       return block_id_type();
    }
 
-   optional<signed_block> fetch_block_by_id(const block_id_type &id) const;
+   optional<signed_block> fetch_block_by_id(const block_id_type &id) const {
+      not_implemented();
+      return optional<signed_block>();
+   }
 
-   optional<signed_block> fetch_block_by_number(uint32_t num) const;
+   optional<signed_block> fetch_block_by_number(uint32_t num) const {
+      not_implemented();
+      return optional<signed_block>();
+   }
 
    const signed_transaction get_recent_transaction(const transaction_id_type &trx_id) const {
       not_implemented();
@@ -78,7 +77,7 @@ public:
    const witness_object &get_witness(const account_name_type &name) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      witness_object* dummy = nullptr;
+      witness_object *dummy = nullptr;
       return *dummy;
    }
 
@@ -90,7 +89,7 @@ public:
    const account_object &get_account(const account_name_type &name) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      account_object* dummy = nullptr;
+      account_object *dummy = nullptr;
       return *dummy;
    }
 
@@ -107,7 +106,7 @@ public:
    const escrow_object &get_escrow(const account_name_type &name, uint32_t escrow_id) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      escrow_object* dummy = nullptr;
+      escrow_object *dummy = nullptr;
       return *dummy;
    }
 
@@ -119,14 +118,14 @@ public:
    const application_object &get_application(const string &name) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      application_object* dummy = nullptr;
+      application_object *dummy = nullptr;
       return *dummy;
    }
 
    const application_object &get_application_by_id(const application_id_type id) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      application_object* dummy = nullptr;
+      application_object *dummy = nullptr;
       return *dummy;
    }
 
@@ -134,42 +133,42 @@ public:
    get_application_buying(const account_name_type &buyer, const application_id_type app_id) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      application_buying_object* dummy = nullptr;
+      application_buying_object *dummy = nullptr;
       return *dummy;
    }
 
    const dynamic_global_property_object &get_dynamic_global_properties() const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      dynamic_global_property_object* dummy = nullptr;
+      dynamic_global_property_object *dummy = nullptr;
       return *dummy;
    }
 
    const economic_model_object &get_economic_model() const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      economic_model_object* dummy = nullptr;
+      economic_model_object *dummy = nullptr;
       return *dummy;
    }
 
    const feed_history_object &get_feed_history(asset_symbol_type a) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      feed_history_object* dummy = nullptr;
+      feed_history_object *dummy = nullptr;
       return *dummy;
    }
 
    const witness_schedule_object &get_witness_schedule_object() const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      witness_schedule_object* dummy = nullptr;
+      witness_schedule_object *dummy = nullptr;
       return *dummy;
    }
 
    const hardfork_property_object &get_hardfork_property_object() const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
-      hardfork_property_object* dummy = nullptr;
+      hardfork_property_object *dummy = nullptr;
       return *dummy;
    }
 
@@ -299,9 +298,20 @@ public:
       not_implemented();
       return nullptr;
    }
+   ///////////
+
+   void run();
+
+   void apply_custom_op(const received_object &obj);
+
+   const hybrid_db_property_object &get_hybrid_db_properties() const;
 
 private:
-   fc::api< remote_db_api >  _remote_api;
+   fc::api<remote_db_api> _remote_api;
+   boost::signals2::scoped_connection _closed_connection;
+   std::shared_ptr<fc::rpc::websocket_api_connection> _apic;
+   uint64_t _head_op_number;
+   uint64_t _app_id;
 
 };
 

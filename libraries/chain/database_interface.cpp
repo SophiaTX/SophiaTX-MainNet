@@ -11,7 +11,7 @@ void database_interface::set_custom_operation_interpreter(const uint32_t id,
    FC_ASSERT(inserted);
 }
 
-std::shared_ptr<custom_operation_interpreter> database_interface::get_custom_json_evaluator(const uint32_t id) {
+std::shared_ptr<custom_operation_interpreter> database_interface::get_custom_json_evaluator(const uint64_t id) {
    auto it = _custom_operation_interpreters.find(id);
    if( it != _custom_operation_interpreters.end())
       return it->second;
@@ -79,6 +79,17 @@ void database_interface::check_free_memory(bool force_print, uint32_t current_bl
             if( free_mb <= 100 && head_block_num() % 10 == 0 )
                elog("Free memory is now ${n}M. Increase shared file size immediately!", ("n", free_mb));
       }
+   }
+}
+
+void database_interface::wipe( const fc::path& shared_mem_dir, bool include_blocks)
+{
+   close();
+   chainbase::database::wipe( shared_mem_dir );
+   if( include_blocks )
+   {
+      fc::remove_all( shared_mem_dir / "block_log" );
+      fc::remove_all( shared_mem_dir / "block_log.index" );
    }
 }
 

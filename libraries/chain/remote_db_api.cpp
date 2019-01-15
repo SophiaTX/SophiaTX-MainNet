@@ -4,7 +4,7 @@ namespace sophiatx { namespace chain {
 
 // This class exists only to provide method signature information to fc::api, not to execute calls.
 
-get_block_return remote_db_api::get_block( get_block_args args ) {
+get_app_custom_messages_return get_app_custom_messages( chain::get_app_custom_messages_args args ) {
    FC_ASSERT( false );
 }
 

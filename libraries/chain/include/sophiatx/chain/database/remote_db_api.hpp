@@ -10,8 +10,6 @@
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 
-#include <sophiatx/protocol/block.hpp>
-
 #include <fc/api.hpp>
 #include <fc/optional.hpp>
 
@@ -21,38 +19,45 @@ namespace sophiatx { namespace chain {
 using namespace fc;
 using namespace std;
 
-/**
- * get_block
- */
-// optional<signed_block> get_block(uint32_t num);
-struct get_block_args {
-   uint32_t	num;
+struct received_object
+{
+   uint64_t          id;
+   string            sender;
+   vector<string>    recipients;
+   uint64_t          app_id;
+   string            data;
+   bool              binary;
+   time_point_sec    received;
 };
 
-struct get_block_return {
-   optional<protocol::signed_block>	block;
+struct get_app_custom_messages_args
+{
+   uint64_t app_id;
+   uint64_t start;
+   uint32_t limit;
 };
+
+typedef std::map<uint64_t, received_object> get_app_custom_messages_return;
 
 /**
  * This is a dummy API so that the wallet can create properly formatted API calls
  */
 struct remote_db_api
 {
-   get_block_return get_block( chain::get_block_args args );
+   get_app_custom_messages_return get_app_custom_messages( chain::get_app_custom_messages_args args );
 };
 
 
 } }
 
 FC_API( sophiatx::chain::remote_db_api,
-              (get_block)
+              (get_app_custom_messages)
 )
-/**
- * get_block
- */
-FC_REFLECT( sophiatx::chain::get_block_args,
-            (num) )
-FC_REFLECT( sophiatx::chain::get_block_return,
-            (block) )
+
+FC_REFLECT( sophiatx::chain::received_object,
+            (id)(sender)(recipients)(app_id)(data)(received)(binary) )
+            
+FC_REFLECT( sophiatx::chain::get_app_custom_messages_args,
+            (app_id)(start)(limit) )
 
 #endif //SOPHIATX_REMOTE_DB_API_HPP
