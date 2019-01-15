@@ -7,6 +7,8 @@
 
 #include <fc/rpc/websocket_api.hpp>
 
+#include <thread>
+
 namespace sophiatx {
 namespace chain {
 
@@ -35,7 +37,10 @@ public:
              const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
 
    uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
-                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
+                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
+      not_implemented();
+      return 0;
+   }
 
    void close(bool rewind = true);
 
@@ -302,6 +307,8 @@ public:
 
    void run();
 
+   void resync();
+
    void apply_custom_op(const received_object &obj);
 
    const hybrid_db_property_object &get_hybrid_db_properties() const;
@@ -312,7 +319,7 @@ private:
    std::shared_ptr<fc::rpc::websocket_api_connection> _apic;
    uint64_t _head_op_number;
    uint64_t _app_id;
-
+   std::shared_ptr<std::thread> _remote_api_thread;
 };
 
 }

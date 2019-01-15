@@ -3,8 +3,9 @@
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/index.hpp>
 
-
 #include <fc/network/http/websocket.hpp>
+
+#define CUSTOM_API_SINGLE_QUERY_LIMIT 10000
 
 namespace sophiatx {
 namespace chain {
@@ -12,7 +13,7 @@ namespace chain {
 void hybrid_database::open(const open_args &args, const genesis_state_type &genesis,
                            const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
    try {
-      ilog("initializing database...");
+
 
       chainbase::database::open(args.shared_mem_dir, args.chainbase_flags, args.shared_file_size);
       _shared_file_full_threshold = args.shared_file_full_threshold;
@@ -27,7 +28,7 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
                                                                           true /* forward api calls arguments as object */ );
 
       _closed_connection = con->closed.connect([ = ] {
-           cerr << "Server has disconnected us.\n";
+           elog("Server has disconnected us.");
            close();
       });
 
@@ -41,7 +42,12 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
 
       _head_op_number = get_hybrid_db_properties().head_op_number;
 
-      run();
+      if( _head_op_number == 0 ) {
+         resync();
+      } else {
+         run();
+      }
+
    }
    FC_CAPTURE_LOG_AND_RETHROW((args.shared_mem_dir)(args.shared_file_size))
 
@@ -49,6 +55,12 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
 
 void hybrid_database::close(bool /*rewind*/) {
    try {
+
+      if( _remote_api_thread )
+         _remote_api_thread->join();
+
+      _remote_api_thread.reset();
+
       modify(get_hybrid_db_properties(), [ & ](hybrid_db_property_object &_hdpo) {
            _hdpo.head_op_number = _head_op_number;
       });
@@ -61,34 +73,32 @@ void hybrid_database::close(bool /*rewind*/) {
    FC_CAPTURE_AND_RETHROW()
 }
 
-uint32_t hybrid_database::reindex(const open_args &args, const genesis_state_type &genesis,
-                                  const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
+void hybrid_database::resync() {
+   do {
+      auto results = _remote_api->get_app_custom_messages({_app_id, _head_op_number + CUSTOM_API_SINGLE_QUERY_LIMIT, CUSTOM_API_SINGLE_QUERY_LIMIT});
 
-   uint32_t last_block_number = 0; // result
-   try {
-      ilog("Reindexing Blockchain");
-      wipe(args.shared_mem_dir, false);
-      open(args, genesis, init_pubkey);
+      if( results.empty())
+         break;
 
-      auto start = fc::time_point::now();
+      for( auto &&result : results ) {
+         apply_custom_op(result.second);
+      }
+      _head_op_number += results.size();
+   } while( true );
 
-      ilog("Replaying blocks...");
-
-      run();
-
-      auto end = fc::time_point::now();
-      ilog("Done reindexing, elapsed time: ${t} sec", ("t", double((end - start).count()) / 1000000.0));
-
-      return last_block_number;
-   }
-   FC_CAPTURE_AND_RETHROW((args.shared_mem_dir))
+   run();
 }
 
 void hybrid_database::run() {
-   auto results = _remote_api->get_app_custom_messages({_app_id, _head_op_number + 1000, 1000});
-   for( auto &&result : results ) {
-      apply_custom_op(result.second);
-   }
+   _remote_api_thread = std::make_shared<std::thread>([ & ]() {
+        auto results = _remote_api->get_app_custom_messages({_app_id, _head_op_number + CUSTOM_API_SINGLE_QUERY_LIMIT, CUSTOM_API_SINGLE_QUERY_LIMIT});
+        for( auto &&result : results ) {
+           apply_custom_op(result.second);
+        }
+        _head_op_number += results.size();
+
+        boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
+   });
 }
 
 void hybrid_database::apply_custom_op(const received_object &obj) {
