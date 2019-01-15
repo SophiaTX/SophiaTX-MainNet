@@ -28,7 +28,7 @@ struct memo_data {
       try {
          if( str.size() > sizeof(memo_data)) {
             auto data = fc::from_base58( str );
-            auto m  = fc::raw::unpack_from_vector<memo_data>( data );
+            auto m  = fc::raw::unpack_from_vector<memo_data>( data, 0 );
             FC_ASSERT( string(m) == str );
             return m;
          }
@@ -236,7 +236,7 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
                if( check != m->check ) return false;
 
                vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
-               strcpy(decrypted_memo, fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
+               strcpy(decrypted_memo, fc::raw::unpack_from_vector<std::string>( decrypted, 0 ).c_str());
 
                return true;
             }

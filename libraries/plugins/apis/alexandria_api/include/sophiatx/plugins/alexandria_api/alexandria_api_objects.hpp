@@ -31,7 +31,7 @@ struct memo_data {
       try {
          if( str.size() > sizeof(memo_data)) {
             auto data = fc::from_base58( str );
-            auto m  = fc::raw::unpack_from_vector<memo_data>( data );
+            auto m  = fc::raw::unpack_from_vector<memo_data>( data, 0 );
             FC_ASSERT( string(m) == str );
             return m;
          }

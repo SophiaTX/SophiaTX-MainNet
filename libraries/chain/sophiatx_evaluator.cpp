@@ -146,21 +146,21 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    auto itr = o.props.find( "key" );
 
    // This existence of 'key' is checked in witness_set_properties_operation::validate
-   fc::raw::unpack_from_vector( itr->second, signing_key );
+   fc::raw::unpack_from_vector( itr->second, signing_key, 0 );
    FC_ASSERT( signing_key == witness.signing_key, "'key' does not match witness signing key.",
       ("key", signing_key)("signing_key", witness.signing_key) );
 
    itr = o.props.find( "account_creation_fee"  );
    if( itr != o.props.end() && !_db->is_private_net() )
    {
-      fc::raw::unpack_from_vector( itr->second, props.account_creation_fee );
+      fc::raw::unpack_from_vector( itr->second, props.account_creation_fee, 0 );
       account_creation_changed = true;
    }
 
    itr = o.props.find( "maximum_block_size" );
    if( itr != o.props.end() )
    {
-      fc::raw::unpack_from_vector( itr->second, props.maximum_block_size );
+      fc::raw::unpack_from_vector( itr->second, props.maximum_block_size, 0 );
       FC_ASSERT(props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE);
       max_block_changed = true;
    }
@@ -168,7 +168,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    itr = o.props.find( "new_signing_key" );
    if( itr != o.props.end() )
    {
-      fc::raw::unpack_from_vector( itr->second, signing_key );
+      fc::raw::unpack_from_vector( itr->second, signing_key, 0 );
       key_changed = true;
    }
 
@@ -176,7 +176,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    if( itr != o.props.end() && !_db->is_private_net())
    {
       std::vector<price> exchange_rates;
-      fc::raw::unpack_from_vector( itr->second, exchange_rates );
+      fc::raw::unpack_from_vector( itr->second, exchange_rates, 0 );
       for(const auto & rate: exchange_rates){
          price new_rate;
          //ensure that base is always in SPHTX
@@ -196,7 +196,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    itr = o.props.find( "url" );
    if( itr != o.props.end() )
    {
-      fc::raw::unpack_from_vector< std::string >( itr->second, url );
+      fc::raw::unpack_from_vector< std::string >( itr->second, url, 0 );
       url_changed = true;
    }
 

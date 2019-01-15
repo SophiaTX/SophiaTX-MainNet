@@ -324,7 +324,7 @@ const signed_transaction database::get_recent_transaction( const transaction_id_
    auto itr = index.find(trx_id);
    FC_ASSERT(itr != index.end());
    signed_transaction trx;
-   fc::raw::unpack_from_buffer( itr->packed_trx, trx );
+   fc::raw::unpack_from_buffer( itr->packed_trx, trx, 0 );
    return trx;;
 } FC_CAPTURE_AND_RETHROW() }
 
@@ -2368,10 +2368,9 @@ void database::validate_invariants()const
    {
       if(is_private_net())
          return;
-      const auto& account_idx = get_index<account_index>().indices().get<by_name>();
+      const auto& account_idx = get_index<account_index>().indices().get<by_id>();
       asset total_supply = asset( 0, SOPHIATX_SYMBOL );
       asset total_vesting = asset( 0, VESTS_SYMBOL );
-      share_type total_vsf_votes = share_type( 0 );
 
       const auto& gpo = get_dynamic_global_properties();
       const auto& econ = get_economic_model();
@@ -2385,11 +2384,6 @@ void database::validate_invariants()const
       {
          total_supply += itr->balance;
          total_vesting += itr->vesting_shares;
-         total_vsf_votes += ( itr->proxy == SOPHIATX_PROXY_TO_SELF_ACCOUNT ?
-                                 itr->witness_vote_weight() :
-                                 ( SOPHIATX_MAX_PROXY_RECURSION_DEPTH > 0 ?
-                                      itr->proxied_vsf_votes[SOPHIATX_MAX_PROXY_RECURSION_DEPTH - 1] :
-                                      itr->balance.amount ) );
       }
 
       const auto& escrow_idx = get_index< escrow_index >().indices().get< by_id >();

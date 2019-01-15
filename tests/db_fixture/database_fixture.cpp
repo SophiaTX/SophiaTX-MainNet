@@ -646,7 +646,7 @@ vector< operation > database_fixture::get_last_operations( uint32_t num_ops )
       std::vector<char> serialized_op;
       serialized_op.reserve( bip_serialized_op.size() );
       std::copy( bip_serialized_op.begin(), bip_serialized_op.end(), std::back_inserter( serialized_op ) );
-      ops.push_back( fc::raw::unpack_from_vector< sophiatx::chain::operation >( serialized_op ) );
+      ops.push_back( fc::raw::unpack_from_vector< sophiatx::chain::operation >( serialized_op, 0 ) );
    }
 
    return ops;
@@ -667,7 +667,7 @@ vector< operation > database_fixture::get_last_operations( uint32_t num_ops, str
       std::vector<char> serialized_op;
       serialized_op.reserve( bip_serialized_op.size() );
       std::copy( bip_serialized_op.begin(), bip_serialized_op.end(), std::back_inserter( serialized_op ) );
-      ops.push_back( fc::raw::unpack_from_vector< sophiatx::chain::operation >( serialized_op ) );
+      ops.push_back( fc::raw::unpack_from_vector< sophiatx::chain::operation >( serialized_op, 0 ) );
       itr++;
    }
 

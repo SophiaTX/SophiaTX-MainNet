@@ -98,11 +98,11 @@ class generic_custom_operation_interpreter
 
             try
             {
-               custom_operations = fc::raw::unpack_from_vector< vector< CustomOperationType > >( outer_o.data );
+               custom_operations = fc::raw::unpack_from_vector< vector< CustomOperationType > >( outer_o.data, 0 );
             }
             catch ( fc::exception& )
             {
-               custom_operations.push_back( fc::raw::unpack_from_vector< CustomOperationType >( outer_o.data ) );
+               custom_operations.push_back( fc::raw::unpack_from_vector< CustomOperationType >( outer_o.data, 0 ) );
             }
 
             apply_operations( custom_operations, operation( outer_o ) );

@@ -28,7 +28,7 @@ struct Java_AlexandriaJNI_memo_data {
       try {
          if( str.size() > sizeof(Java_AlexandriaJNI_memo_data)) {
             auto data = fc::from_base58( str );
-            auto m  = fc::raw::unpack_from_vector<Java_AlexandriaJNI_memo_data>( data );
+            auto m  = fc::raw::unpack_from_vector<Java_AlexandriaJNI_memo_data>( data, 0 );
             FC_ASSERT( string(m) == str );
             return m;
          }
@@ -327,7 +327,7 @@ JNIEXPORT jboolean JNICALL Java_AlexandriaJNI_verifySignature(JNIEnv *env, jclas
    try {
        fc::sha256 dig(digest.data(), digest.size());
 
-       auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key);
+       auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key, 0);
        public_key_type public_key(bin_key.data);
 
        if(public_key == fc::ecc::public_key(signature, dig)) {
@@ -377,7 +377,7 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_encryptMemo(JNIEnv *env, jclass, js
     try {
        Java_AlexandriaJNI_memo_data m;
 
-       auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key);
+       auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key, 0);
        public_key_type public_key(bin_key.data);
 
        fc::ecc::private_key key = fc::variant(private_key).as<fc::ecc::private_key>();
@@ -445,7 +445,7 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo(JNIEnv *env, jclass, 
 
        if( m ) {
           fc::sha512 shared_secret;
-          auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key);
+          auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key, 0);
           public_key_type public_key(bin_key.data);
 
           fc::ecc::private_key key = fc::variant(private_key).as<fc::ecc::private_key>();
@@ -466,7 +466,7 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_decryptedMemo(JNIEnv *env, jclass, 
           vector<char> decrypted = fc::aes_decrypt( encryption_key, m->encrypted );
 
           env->ReleaseStringUTFChars(inJNIStrMemo, memo);
-          return env->NewStringUTF(fc::raw::unpack_from_vector<std::string>( decrypted ).c_str());
+          return env->NewStringUTF(fc::raw::unpack_from_vector<std::string>( decrypted, 0 ).c_str());
        } else {
           env->ReleaseStringUTFChars(inJNIStrMemo, memo);
           return nullptr;
@@ -491,7 +491,7 @@ JNIEXPORT jstring JNICALL Java_AlexandriaJNI_publicKeyToString(JNIEnv *env, jcla
       return nullptr;
    }
    try {
-      auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key);
+      auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key, 0);
       public_key_type public_key(bin_key.data);
       auto public_key_str = fc::json::to_string(public_key);
       return env->NewStringUTF(public_key_str.substr(1, public_key_str.size() - 2).c_str());
