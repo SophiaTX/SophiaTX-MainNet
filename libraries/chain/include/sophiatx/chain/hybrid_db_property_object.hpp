@@ -26,6 +26,7 @@ public:
    id_type           id;
 
    uint64_t          head_op_number = 0;
+   uint64_t          head_op_id = 0;
 };
 
 typedef multi_index_container<
@@ -42,6 +43,7 @@ typedef multi_index_container<
 FC_REFLECT( sophiatx::chain::hybrid_db_property_object,
             (id)
             (head_op_number)
+            (head_op_id)
 )
 
 CHAINBASE_SET_INDEX_TYPE( sophiatx::chain::hybrid_db_property_object, sophiatx::chain::hybrid_db_property_index )

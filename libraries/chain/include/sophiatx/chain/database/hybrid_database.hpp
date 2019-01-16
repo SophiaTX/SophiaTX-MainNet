@@ -6,6 +6,7 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 
 #include <fc/rpc/websocket_api.hpp>
+#include <fc/network/http/websocket.hpp>
 
 #include <thread>
 
@@ -317,7 +318,10 @@ private:
    fc::api<remote_db_api> _remote_api;
    boost::signals2::scoped_connection _closed_connection;
    std::shared_ptr<fc::rpc::websocket_api_connection> _apic;
+   fc::http::websocket_connection_ptr _con;
+   fc::http::websocket_client _client;
    uint64_t _head_op_number;
+   uint64_t _head_op_id;
    uint64_t _app_id;
    std::shared_ptr<std::thread> _remote_api_thread;
 };
