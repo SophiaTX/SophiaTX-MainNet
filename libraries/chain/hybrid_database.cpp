@@ -13,23 +13,14 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
                            const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
    try {
 
-      _con = _client.connect(args.ws_endpoint);
-      _apic = std::make_shared<fc::rpc::websocket_api_connection>(*_con);
-
-      _remote_api = _apic->get_remote_api<sophiatx::chain::remote_db_api>(0, "custom_api",
-                                                                          true /* forward api calls arguments as object */ );
-
-      _closed_connection = _con->closed.connect([ = ] {
-           elog("Server has disconnected us.");
-           close();
-      });
-
+      _ws_endpoint = args.ws_endpoint;
 
       chainbase::database::open(args.shared_mem_dir, args.chainbase_flags, args.shared_file_size);
+
       _shared_file_full_threshold = args.shared_file_full_threshold;
       _shared_file_scale_rate = args.shared_file_scale_rate;
       _app_id = args.app_id;
-      
+
       add_core_index<hybrid_db_property_index>(shared_from_this());
 
       if( !find<hybrid_db_property_object>()) {
@@ -42,11 +33,9 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
       _head_op_number = get_hybrid_db_properties().head_op_number;
       _head_op_id = get_hybrid_db_properties().head_op_id;
 
-//      if( _head_op_number == 0 ) {
-//         resync();
-//      } else {
-         run();
-//      }
+      _running = true;
+
+      run();
 
    }
    FC_CAPTURE_LOG_AND_RETHROW((args.shared_mem_dir)(args.shared_file_size))
@@ -56,10 +45,7 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
 void hybrid_database::close(bool /*rewind*/) {
    try {
 
-      if( _remote_api_thread )
-         _remote_api_thread->join();
-
-      _remote_api_thread.reset();
+      _running = false;
 
       modify(get_hybrid_db_properties(), [ & ](hybrid_db_property_object &_hdpo) {
            _hdpo.head_op_number = _head_op_number;
@@ -69,49 +55,49 @@ void hybrid_database::close(bool /*rewind*/) {
       chainbase::database::flush();
       chainbase::database::close();
 
-      _closed_connection.disconnect();
+      boost::this_thread::sleep_for( boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL) );
+      if( _remote_api_thread )
+         _remote_api_thread->quit();
+
    }
    FC_CAPTURE_AND_RETHROW()
 }
 
-void hybrid_database::resync() {
-   do {
-      auto results = _remote_api->get_app_custom_messages({_app_id, _head_op_number + HYBRID_DB_SINGLE_QUERY_LIMIT, HYBRID_DB_SINGLE_QUERY_LIMIT});
-
-      if( results.empty() || (results[results.size()].id != 0 && results[results.size()].id == _head_op_id))
-         break;
-
-      for( auto &&result : results ) {
-         if(result.second.id > _head_op_id || result.second.id == 0)
-         {
-            apply_custom_op(result.second);
-            _head_op_number++;
-            _head_op_id = result.second.id;
-         }
-      }
-   } while( true );
-
-   run();
-}
-
 void hybrid_database::run() {
-   _remote_api_thread = std::make_shared<std::thread>([ & ]() {
-        cout << _head_op_number << endl;
-        auto results = _remote_api->get_app_custom_messages({_app_id, _head_op_number + HYBRID_DB_SINGLE_QUERY_LIMIT, HYBRID_DB_SINGLE_QUERY_LIMIT});
-        cout << "koniec1" << endl;
-        if(!results.empty() && (results[results.size()].id == 0 || results[results.size()].id != _head_op_id)) {
-           for( auto &&result : results ) {
-              if(result.second.id > _head_op_id || result.second.id == 0)
-              {
-                 apply_custom_op(result.second);
+   _remote_api_thread = std::make_shared<fc::thread>("hybrid_db_remote_api");
+   _remote_api_thread->async([ & ]() {
 
-                 _head_op_number++;
-                 _head_op_id = result.second.id;
+        fc::http::websocket_client client;
+
+        auto con = client.connect(_ws_endpoint);
+        auto apic = std::make_shared<fc::rpc::websocket_api_connection>(*con);
+
+        auto remote_api = apic->get_remote_api<sophiatx::chain::remote_db_api>(0, "custom_api",
+                                                                               true /* forward api calls arguments as object */ );
+
+        boost::signals2::scoped_connection closed_connection(con->closed.connect([ = ] {
+             elog("Server has disconnected us.");
+             close();
+        }));
+        (void) (closed_connection);
+
+        while( _running ) {
+           do {
+              auto results = remote_api->get_app_custom_messages(
+                    {_app_id, _head_op_number + HYBRID_DB_SINGLE_QUERY_LIMIT, HYBRID_DB_SINGLE_QUERY_LIMIT});
+              if( results.empty() || (results[ results.size() ].id != 0 && results[ results.size() ].id == _head_op_id))
+                 break;
+
+              for( auto &&result : results ) {
+                 if( result.second.id > _head_op_id || result.second.id == 0 ) {
+                    apply_custom_op(result.second);
+                    _head_op_number++;
+                    _head_op_id = result.second.id;
+                 }
               }
-           }
+           } while( true );
+           boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
         }
-        cout << "koniec" << endl;
-        boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
    });
 }
 
