@@ -44,8 +44,6 @@ public:
 
    database_interface() {}
 
-   database_interface(const database_interface &) = default;
-
    virtual ~database_interface() {}
 
    bool is_producing() const { return _is_producing; }

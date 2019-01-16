@@ -22,16 +22,20 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
       _app_id = args.app_id;
 
       add_core_index<hybrid_db_property_index>(shared_from_this());
+      _plugin_index_signal();
 
-      if( !find<hybrid_db_property_object>()) {
-         create<hybrid_db_property_object>([ & ](hybrid_db_property_object &p) {
-              p.head_op_number = 0;
-              p.head_op_id = 0;
-         });
-      }
+      with_write_lock([ & ]() {
 
-      _head_op_number = get_hybrid_db_properties().head_op_number;
-      _head_op_id = get_hybrid_db_properties().head_op_id;
+           if( !find<hybrid_db_property_object>()) {
+              create<hybrid_db_property_object>([ & ](hybrid_db_property_object &p) {
+                   p.head_op_number = 0;
+                   p.head_op_id = 0;
+              });
+           }
+
+           _head_op_number = get_hybrid_db_properties().head_op_number;
+           _head_op_id = get_hybrid_db_properties().head_op_id;
+      });
 
       _running = true;
 
@@ -47,15 +51,17 @@ void hybrid_database::close(bool /*rewind*/) {
 
       _running = false;
 
-      modify(get_hybrid_db_properties(), [ & ](hybrid_db_property_object &_hdpo) {
-           _hdpo.head_op_number = _head_op_number;
-           _hdpo.head_op_id = _head_op_id;
+      with_write_lock([ & ]() {
+           modify(get_hybrid_db_properties(), [ & ](hybrid_db_property_object &_hdpo) {
+                _hdpo.head_op_number = _head_op_number;
+                _hdpo.head_op_id = _head_op_id;
+           });
       });
 
       chainbase::database::flush();
       chainbase::database::close();
 
-      boost::this_thread::sleep_for( boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL) );
+      boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
       if( _remote_api_thread )
          _remote_api_thread->quit();
 
@@ -90,7 +96,9 @@ void hybrid_database::run() {
 
               for( auto &&result : results ) {
                  if( result.second.id > _head_op_id || result.second.id == 0 ) {
-                    apply_custom_op(result.second);
+                    with_write_lock([ & ]() {
+                         apply_custom_op(result.second);
+                    });
                     _head_op_number++;
                     _head_op_id = result.second.id;
                  }
