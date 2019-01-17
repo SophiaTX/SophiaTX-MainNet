@@ -17,11 +17,8 @@ pipeline {
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
-  agent {
-    label any
-  }
   stages {
-    stage('Creating jobs ...') {  
+    stage('Creating parallel jobs ...') {  
       parallel {
         stage('Linux') {
           agent {
@@ -33,34 +30,34 @@ pipeline {
                 checkout scm
               }
             }
-            stage('Build') {
-              steps {
-                start_build()
-              }
-            }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
-            stage('Archive') {
-              steps {
-                run_archive()
-              }
-            }
-            stage('Create RPM') {
-              when {
-                branch 'develop'
-              }
-              steps {
-                create_rpm()
-              }
-            }
-            stage('Clean WS') {
-              steps {
-                cleanWs()
-              }
-            }
+            // stage('Build') {
+            //   steps {
+            //     start_build()
+            //   }
+            // }
+            // stage('Tests') {
+            //   steps {
+            //     tests()
+            //   }
+            // }
+            // stage('Archive') {
+            //   steps {
+            //     run_archive()
+            //   }
+            // }
+            // stage('Create RPM') {
+            //   when {
+            //     branch 'develop'
+            //   }
+            //   steps {
+            //     create_rpm()
+            //   }
+            // }
+            // stage('Clean WS') {
+            //   steps {
+            //     cleanWs()
+            //   }
+            // }
           }
         }
         stage('macOS') {    
@@ -79,34 +76,26 @@ pipeline {
                 checkout scm
               }
             }
-            stage('Build') {
-              steps {
-                start_build()
-              }
-            }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
-            stage('Archive') {
-              steps {
-                run_archive()
-              }
-            }
-            stage('Create RPM') {
-              when {
-                branch 'develop'
-              }
-              steps {
-                create_rpm()
-              }
-            }
-            stage('Clean WS') {
-              steps {
-                cleanWs()
-              }
-            }
+            // stage('Build') {
+            //   steps {
+            //     start_build()
+            //   }
+            // }
+            // stage('Tests') {
+            //   steps {
+            //     tests()
+            //   }
+            // }
+            // stage('Archive') {
+            //   steps {
+            //     run_archive()
+            //   }
+            // }
+            // stage('Clean WS') {
+            //   steps {
+            //     cleanWs()
+            //   }
+            // }
           }
         }
       }
@@ -178,9 +167,8 @@ def run_archive() {
       sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
       archiveArtifacts '*.gz'
     }
-    dir('bin') {
+  dir('bin') {
     sh 'rm -f test*' //remove test binaries
-
     script {
       if( !params.build_as_debug ) {
         try {
