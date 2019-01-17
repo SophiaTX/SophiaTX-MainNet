@@ -111,8 +111,10 @@ def run_archive() {
       dir('lib') {
           script {
               if( !params.build_as_debug ) {
-                if( label != 'mac' ) {
+                try {
                   sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                } catch(Exception e) {
+                  echo "Skipping strip on macOS"
                 }
               }
           }
@@ -124,9 +126,11 @@ def run_archive() {
 
         script {
             if( !params.build_as_debug ) {
-              if( label != 'mac' ) {
+              try {
                 sh 'strip -s *' //strip symbols
-              }
+                } catch(Exception e) {
+                  echo "Skipping strip on macOS"
+                }
             }
 
             if( params.build_as_testnet ) {
