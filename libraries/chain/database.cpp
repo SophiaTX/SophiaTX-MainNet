@@ -97,7 +97,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
    try
    {
       init_schema();
-      elog("initializing database...");
+      ilog("initializing database...");
       chain_id_type chain_id = genesis.compute_chain_id();
 
       chainbase::database::open( args.shared_mem_dir, args.chainbase_flags, args.shared_file_size );

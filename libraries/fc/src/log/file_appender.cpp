@@ -161,9 +161,9 @@ namespace fc {
    void file_appender::log( const log_message& m )
    {
       std::stringstream line;
-      //line << (m.get_context().get_timestamp().time_since_epoch().count() % (1000ll*1000ll*60ll*60))/1000 <<"ms ";
+
       line << string(m.get_context().get_timestamp()) << " ";
-      line << std::setw( 21 ) << (m.get_context().get_task_name()).c_str() << " ";
+      line << m.get_context().get_file() <<":"<<m.get_context().get_line_number() <<" ";
 
       string method_name = m.get_context().get_method();
       // strip all leading scopes...
@@ -175,22 +175,20 @@ namespace fc {
              if( method_name[i] == ':' ) p = i;
          }
 
-         if( method_name[p] == ':' )
-           ++p;
-         line << std::setw( 20 ) << m.get_context().get_method().substr(p,20).c_str() <<" ";
-      }
+         if( method_name[p] == ':' ) {
+            ++p;
+         }
 
-      line << "] ";
+         line << m.get_context().get_method() << " ";
+      }
+      line << "(" << m.get_context().get_log_level().to_string() << "): ";
+
       fc::string message = fc::format_string( m.get_format(), m.get_data() );
       line << message.c_str();
 
-      //fc::variant lmsg(m);
-
-      // fc::string fmt_str = fc::format_string( my->cfg.format, mutable_variant_object(m.get_context())( "message", message)  );
-
       {
         fc::scoped_lock<boost::mutex> lock( my->slock );
-        my->out << line.str() << "\t\t\t" << m.get_context().get_file() << ":" << m.get_context().get_line_number() << "\n";
+        my->out << line.str() << "\n";
         if( my->cfg.flush )
           my->out.flush();
       }

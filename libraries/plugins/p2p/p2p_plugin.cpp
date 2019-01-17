@@ -163,11 +163,13 @@ bool p2p_plugin_impl::handle_block( const graphene::net::block_message& blk_msg,
          if( !sync_mode )
          {
             fc::microseconds latency = fc::time_point::now() - blk_msg.block.timestamp;
-            ilog( "Got ${t} transactions on block ${b} by ${w} -- latency: ${l} ms",
+            // NOTE: Do not change this message format !!! Monitoring tool depends on " --latency: ${l} ms --block gen time: {gt}".
+            ilog( "Got ${t} transactions on block ${b} by ${w} --latency: ${l} ms --block gen time: {gt}",
                ("t", blk_msg.block.transactions.size())
                ("b", blk_msg.block.block_num())
                ("w", blk_msg.block.witness)
-               ("l", latency.count() / 1000) );
+               ("l", latency.count() / 1000)
+               ("gt", blk_msg.block.timestamp));
          }
 
          return result;
