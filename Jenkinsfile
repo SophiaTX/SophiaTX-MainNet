@@ -31,21 +31,21 @@ pipeline {
                 checkout scm
               }
             }
-            // stage('Build') {
-            //   steps {
-            //     start_build()
-            //   }
-            // }
+            stage('Build') {
+              steps {
+                start_build()
+              }
+            }
             // stage('Tests') {
             //   steps {
             //     tests()
             //   }
             // }
-            // stage('Archive') {
-            //   steps {
-            //     run_archive()
-            //   }
-            // }
+            stage('Archive') {
+              steps {
+                run_archive()
+              }
+            }
             // stage('Create RPM') {
             //   when {
             //     branch 'develop'
@@ -54,11 +54,11 @@ pipeline {
             //     create_rpm()
             //   }
             // }
-            // stage('Clean WS') {
-            //   steps {
-            //     cleanWs()
-            //   }
-            // }
+            stage('Clean WS') {
+              steps {
+                cleanWs()
+              }
+            }
           }
         }
         stage('macOS') {    
@@ -77,26 +77,26 @@ pipeline {
                 checkout scm
               }
             }
-            // stage('Build') {
-            //   steps {
-            //     start_build()
-            //   }
-            // }
+            stage('Build') {
+              steps {
+                start_build()
+              }
+            }
             // stage('Tests') {
             //   steps {
             //     tests()
             //   }
             // }
-            // stage('Archive') {
-            //   steps {
-            //     run_archive()
-            //   }
-            // }
-            // stage('Clean WS') {
-            //   steps {
-            //     cleanWs()
-            //   }
-            // }
+            stage('Archive') {
+              steps {
+                run_archive()
+              }
+            }
+            stage('Clean WS') {
+              steps {
+                cleanWs()
+              }
+            }
           }
         }
       }
