@@ -17,6 +17,7 @@ pipeline {
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
+  agent any
   stages {
     stage('Creating parallel jobs ...') {  
       parallel {
