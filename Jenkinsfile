@@ -13,6 +13,7 @@ pipeline {
     skipDefaultCheckout()
   }
   environment {
+    ARCHIVE_NAME = "empty"
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
