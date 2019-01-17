@@ -4,7 +4,7 @@
 
 
 properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
-                        booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
+  booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
 
 
 pipeline {
@@ -13,99 +13,103 @@ pipeline {
     skipDefaultCheckout()
   }
   environment {
-    ARCHIVE_NAME = "sophiatx_" + ${env.NODE_NAME} +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
   agent {
     label any
   }
-  parallel {
-    stage('Linux') {
-        agent {
+  stages {
+    stage('Creating jobs ...') {  
+      parallel {
+        stage('Linux') {
+          agent {
             label "linux"
-        }
-        stages {
-          stage('Git Checkout') {
-            steps {
-              checkout scm
-            }
           }
-          stage('Build') {
-            steps {
-              start_build()
-            }
-          }
-          stage('Tests') {
-            steps {
-              tests()
-            }
-          }
-          stage('Archive') {
-            steps {
-              run_archive()
-            }
-          }
-          stage('Create RPM') {
-            when {
-              branch 'develop'
-            }
-            steps {
-              create_rpm()
-            }
-          }
-          stage('Clean WS') {
-            steps {
-              cleanWs()
-            }
-          }
-        }
-    }
-    stage('macOS') {    
-        agent {
-            label "mac"
-        }
-        when {
-              anyOf {
-                  branch 'develop'
-                  branch "*mac"
+          stages {
+            stage('Git Checkout') {
+              steps {
+                checkout scm
               }
             }
-        stages {
-          stage('Git Checkout') {
-            steps {
-              checkout scm
+            stage('Build') {
+              steps {
+                start_build()
+              }
             }
-          }
-          stage('Build') {
-            steps {
-              start_build()
+            stage('Tests') {
+              steps {
+                tests()
+              }
             }
-          }
-          stage('Tests') {
-            steps {
-              tests()
+            stage('Archive') {
+              steps {
+                run_archive()
+              }
             }
-          }
-          stage('Archive') {
-            steps {
-              run_archive()
+            stage('Create RPM') {
+              when {
+                branch 'develop'
+              }
+              steps {
+                create_rpm()
+              }
             }
-          }
-          stage('Create RPM') {
-            when {
-              branch 'develop'
-            }
-            steps {
-              create_rpm()
-            }
-          }
-          stage('Clean WS') {
-            steps {
-              cleanWs()
+            stage('Clean WS') {
+              steps {
+                cleanWs()
+              }
             }
           }
         }
+        stage('macOS') {    
+          agent {
+            label "mac"
+          }
+          when {
+            anyOf {
+              branch 'develop'
+              branch "*mac"
+            }
+          }
+          stages {
+            stage('Git Checkout') {
+              steps {
+                checkout scm
+              }
+            }
+            stage('Build') {
+              steps {
+                start_build()
+              }
+            }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
+            stage('Archive') {
+              steps {
+                run_archive()
+              }
+            }
+            stage('Create RPM') {
+              when {
+                branch 'develop'
+              }
+              steps {
+                create_rpm()
+              }
+            }
+            stage('Clean WS') {
+              steps {
+                cleanWs()
+              }
+            }
+          }
+        }
+      }
     }
   }
   post {
@@ -122,7 +126,7 @@ pipeline {
 def send_positive_slack_notification() {
   if( "${env.BRANCH_NAME}" == 'develop' ) {
    slackSend (color: 'good', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-  }
+ }
 }
 
 def get_label_name() {
@@ -161,51 +165,51 @@ def tests() {
 def run_archive() {
   sh 'make install'
   dir('install') {
-      dir('lib') {
-          script {
-              if( !params.build_as_debug ) {
-                try {
-                  sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
-                } catch(Exception e) {
-                  echo "Skipping strip on macOS"
-                }
+    dir('lib') {
+      script {
+        if( !params.build_as_debug ) {
+          try {
+              sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+              } catch(Exception e) {
+                echo "Skipping strip on macOS"
               }
+            }
           }
-          sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
-          archiveArtifacts '*.gz'
-      }
-    dir('bin') {
-        sh 'rm -f test*' //remove test binaries
-
-        script {
-            if( !params.build_as_debug ) {
-              try {
-                sh 'strip -s *' //strip symbols
-                } catch(Exception e) {
-                  echo "Skipping strip on macOS"
-                }
-            }
-
-            if( params.build_as_testnet ) {
-               sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
-               sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
-            } else {
-               sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
-               sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
-               sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
-            }
-        }
-        archiveArtifacts '*.gz'
+      sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
+      archiveArtifacts '*.gz'
     }
-  }
-}
+    dir('bin') {
+    sh 'rm -f test*' //remove test binaries
+
+    script {
+      if( !params.build_as_debug ) {
+        try {
+            sh 'strip -s *' //strip symbols
+            } catch(Exception e) {
+              echo "Skipping strip on macOS"
+            }
+          }
+
+          if( params.build_as_testnet ) {
+           sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
+           sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
+           } else {
+           sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
+           sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
+           sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
+         }
+       }
+       archiveArtifacts '*.gz'
+     }
+   }
+ }
 
 def create_rpm() {
   sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
   dir('install') {
     dir('bin') {
-        sh 'mv *.gz sophiatx.tar.gz' //rename tar file
-        sh 'cp sophiatx.tar.gz /home/$USER/RPMBUILD/SOURCES' //copy file for rpm creation
+      sh 'mv *.gz sophiatx.tar.gz' //rename tar file
+      sh 'cp sophiatx.tar.gz /home/$USER/RPMBUILD/SOURCES' //copy file for rpm creation
     }
   }
   sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
