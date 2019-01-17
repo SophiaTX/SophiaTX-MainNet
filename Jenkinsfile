@@ -13,46 +13,99 @@ pipeline {
     skipDefaultCheckout()
   }
   environment {
-    ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    ARCHIVE_NAME = "sophiatx_" + ${env.NODE_NAME} +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
   agent {
-    label 'mac'
+    label any
   }
-  stages {
-    stage('Git Checkout') {
-      steps {
-        checkout scm
-      }
+  parallel {
+    stage('Linux') {
+        agent {
+            label "linux"
+        }
+        stages {
+          stage('Git Checkout') {
+            steps {
+              checkout scm
+            }
+          }
+          stage('Build') {
+            steps {
+              start_build()
+            }
+          }
+          stage('Tests') {
+            steps {
+              tests()
+            }
+          }
+          stage('Archive') {
+            steps {
+              run_archive()
+            }
+          }
+          stage('Create RPM') {
+            when {
+              branch 'develop'
+            }
+            steps {
+              create_rpm()
+            }
+          }
+          stage('Clean WS') {
+            steps {
+              cleanWs()
+            }
+          }
+        }
     }
-    stage('Build') {
-      steps {
-        start_build()
-      }
-    }
-    stage('Tests') {
-      steps {
-        tests()
-      }
-    }
-    stage('Archive') {
-      steps {
-        run_archive()
-      }
-    }
-    stage('Create RPM') {
-      when {
-        branch 'develop'
-      }
-      steps {
-        create_rpm()
-      }
-    }
-    stage('Clean WS') {
-      steps {
-        cleanWs()
-      }
+    stage('macOS') {    
+        agent {
+            label "mac"
+        }
+        when {
+              anyOf {
+                  branch 'develop'
+                  branch "*mac"
+              }
+            }
+        stages {
+          stage('Git Checkout') {
+            steps {
+              checkout scm
+            }
+          }
+          stage('Build') {
+            steps {
+              start_build()
+            }
+          }
+          stage('Tests') {
+            steps {
+              tests()
+            }
+          }
+          stage('Archive') {
+            steps {
+              run_archive()
+            }
+          }
+          stage('Create RPM') {
+            when {
+              branch 'develop'
+            }
+            steps {
+              create_rpm()
+            }
+          }
+          stage('Clean WS') {
+            steps {
+              cleanWs()
+            }
+          }
+        }
     }
   }
   post {
