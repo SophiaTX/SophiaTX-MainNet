@@ -18,7 +18,7 @@ pipeline {
     BUILD_TYPE = "Release"
   }
   agent {
-    label "master"
+    label "linux"
   }
   stages {
     stage('Creating parallel jobs ...') {  
