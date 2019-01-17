@@ -22,7 +22,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        build()
+        start_build()()
       }
     }
     stage('Tests') {
@@ -32,7 +32,7 @@ pipeline {
     }
     stage('Archive') {
       steps {
-        archive()
+        run_archive()()
       }
     }
     stage('Create RPM') {
@@ -74,7 +74,7 @@ def get_label_name() {
   }
 }
 
-def build() {
+def start_build()() {
   script {
     if( params.build_as_testnet ) {
       GENESIS_FILE = "genesis_testnet.json"
@@ -99,7 +99,7 @@ def tests() {
   }
 }
 
-def archive() {
+def run_archive()() {
   sh 'make install'
   dir('install') {
       dir('lib') {
