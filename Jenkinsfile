@@ -21,85 +21,20 @@ pipeline {
   }
   stages {
     stage('Build') {
-      steps {
-        script {
-          if( params.build_as_testnet ) {
-            GENESIS_FILE = "genesis_testnet.json"
-          }
-          if( params.build_as_debug ) {
-            BUILD_TYPE = "Debug"
-          }
-        }
-        sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
-        sh 'make -j4'
-      }
+        build()
     }
     stage('Tests') {
-      steps {
-        script {
-          if( !params.build_as_testnet ) {
-            sh './tests/chain_test'
-            sh './tests/plugin_test'
-            sh './tests/smart_contracts_tests'
-            sh './libraries/fc/tests/all_tests'
-            sh './libraries/SQLiteCpp/SQLiteCpp_tests'
-          }
-        }
-      }
+        tests()
     }
     stage('Archive') {
-     steps {
-        sh 'make install'
-        dir('install') {
-            dir('lib') {
-                script {
-                    if( !params.build_as_debug ) {
-                      sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
-                    }
-                }
-                sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
-                archiveArtifacts '*.gz'
-            }
-          dir('bin') {
-              sh 'rm -f test*' //remove test binaries
-
-              script {
-                  if( !params.build_as_debug ) {
-                    sh 'strip -s *' //strip symbols
-                  }
-
-                  if( params.build_as_testnet ) {
-                     sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
-                     sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
-                  } else {
-                     sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
-                     sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
-                     sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
-                  }
-              }
-              archiveArtifacts '*.gz'
-          }
-        }
-      }
+        archive()
     }
     stage('Create RPM') {
       when {
           branch 'develop'
       }
-     steps {
-        sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
-        dir('install') {
-          dir('bin') {
-              sh 'mv *.gz sophiatx.tar.gz' //rename tar file
-              sh 'cp sophiatx.tar.gz /home/$USER/RPMBUILD/SOURCES' //copy file for rpm creation
-          }
-        }
-        sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
-        sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
-        sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
-        archiveArtifacts '*.rpm'
-      }
-    }
+      create_rpm()
+     }
     stage('Clean WS') {
       steps {
         cleanWs()
@@ -129,4 +64,85 @@ def get_label_name() {
   } else {
     return 'linux'
   }
+}
+
+def build() {
+  steps {
+    script {
+      if( params.build_as_testnet ) {
+        GENESIS_FILE = "genesis_testnet.json"
+      }
+      if( params.build_as_debug ) {
+        BUILD_TYPE = "Debug"
+      }
+    }
+    sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
+    sh 'make -j4'
+  }
+}
+
+def tests() {
+  steps {
+    script {
+      if( !params.build_as_testnet ) {
+        sh './tests/chain_test'
+        sh './tests/plugin_test'
+        sh './tests/smart_contracts_tests'
+        sh './libraries/fc/tests/all_tests'
+        sh './libraries/SQLiteCpp/SQLiteCpp_tests'
+      }
+    }
+  }
+}
+
+def archive() {
+ steps {
+    sh 'make install'
+    dir('install') {
+        dir('lib') {
+            script {
+                if( !params.build_as_debug ) {
+                  sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                }
+            }
+            sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
+            archiveArtifacts '*.gz'
+        }
+      dir('bin') {
+          sh 'rm -f test*' //remove test binaries
+
+          script {
+              if( !params.build_as_debug ) {
+                sh 'strip -s *' //strip symbols
+              }
+
+              if( params.build_as_testnet ) {
+                 sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
+                 sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
+              } else {
+                 sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
+                 sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
+                 sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
+              }
+          }
+          archiveArtifacts '*.gz'
+      }
+    }
+  }
+}
+
+def create_rpm() {
+    steps {
+        sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
+        dir('install') {
+          dir('bin') {
+              sh 'mv *.gz sophiatx.tar.gz' //rename tar file
+              sh 'cp sophiatx.tar.gz /home/$USER/RPMBUILD/SOURCES' //copy file for rpm creation
+          }
+        }
+        sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
+        sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
+        sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
+        archiveArtifacts '*.rpm'
+     }
 }
