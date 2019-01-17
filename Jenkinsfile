@@ -3,13 +3,13 @@
 ////////////////////////////////////////
 
 
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'start_build()_as_debug'),
-                        booleanParam(defaultValue: false, description: '', name: 'start_build()_as_testnet')])])
+properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
+                        booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
 
 
 pipeline {
   options {
-    start_build()Discarder(logRotator(artifactNumToKeepStr: '5'))
+    buildDiscarder(logRotator(artifactNumToKeepStr: '5'))
   }
   environment {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
@@ -22,7 +22,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        start_build()()
+        build()
       }
     }
     stage('Tests') {
@@ -32,7 +32,7 @@ pipeline {
     }
     stage('Archive') {
       steps {
-        run_archive()()
+        archive()
       }
     }
     stage('Create RPM') {
@@ -74,22 +74,22 @@ def get_label_name() {
   }
 }
 
-def start_build()() {
+def build() {
   script {
-    if( params.start_build()_as_testnet ) {
+    if( params.build_as_testnet ) {
       GENESIS_FILE = "genesis_testnet.json"
     }
-    if( params.start_build()_as_debug ) {
+    if( params.build_as_debug ) {
       BUILD_TYPE = "Debug"
     }
   }
-  sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.start_build()_as_testnet}"
+  sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
   sh 'make -j4'
 }
 
 def tests() {
   script {
-    if( !params.start_build()_as_testnet ) {
+    if( !params.build_as_testnet ) {
       sh './tests/chain_test'
       sh './tests/plugin_test'
       sh './tests/smart_contracts_tests'
@@ -99,27 +99,27 @@ def tests() {
   }
 }
 
-def run_archive()() {
+def archive() {
   sh 'make install'
   dir('install') {
       dir('lib') {
           script {
-              if( !params.start_build()_as_debug ) {
+              if( !params.build_as_debug ) {
                 sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
               }
           }
           sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
-          run_archive()Artifacts '*.gz'
+          archiveArtifacts '*.gz'
       }
     dir('bin') {
         sh 'rm -f test*' //remove test binaries
 
         script {
-            if( !params.start_build()_as_debug ) {
+            if( !params.build_as_debug ) {
               sh 'strip -s *' //strip symbols
             }
 
-            if( params.start_build()_as_testnet ) {
+            if( params.build_as_testnet ) {
                sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
                sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
             } else {
@@ -128,7 +128,7 @@ def run_archive()() {
                sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
             }
         }
-        run_archive()Artifacts '*.gz'
+        archiveArtifacts '*.gz'
     }
   }
 }
@@ -142,7 +142,7 @@ def create_rpm() {
     }
   }
   sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
-  sh 'rpmstart_build() -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
+  sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
   sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
-  run_archive()Artifacts '*.rpm'
+  archiveArtifacts '*.rpm'
 }
