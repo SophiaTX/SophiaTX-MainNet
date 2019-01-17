@@ -10,6 +10,7 @@ properties([parameters([booleanParam(defaultValue: false, description: '', name:
 pipeline {
   options {
     buildDiscarder(logRotator(artifactNumToKeepStr: '5'))
+    skipDefaultCheckout()
   }
   environment {
     ARCHIVE_NAME = "sophiatx_" + "#" + "${env.BUILD_NUMBER}" + ".tar.gz"
@@ -20,6 +21,11 @@ pipeline {
     label get_label_name()
   }
   stages {
+    stage('Git Checkout') {
+      steps {
+        checkout scm
+      }
+    }
     stage('Build') {
       steps {
         start_build()
@@ -42,7 +48,7 @@ pipeline {
       steps {
         create_rpm()
       }
-     }
+    }
     stage('Clean WS') {
       steps {
         cleanWs()
@@ -54,7 +60,7 @@ pipeline {
       send_positive_slack_notification()
     }
     failure {
-      slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.NODE_NAME}) (${env.BUILD_URL})")
     }
   }
 }
