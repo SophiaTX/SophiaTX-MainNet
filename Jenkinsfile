@@ -13,7 +13,6 @@ pipeline {
     skipDefaultCheckout()
   }
   environment {
-    ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
@@ -173,6 +172,7 @@ def run_archive() {
   dir('bin') {
     sh 'rm -f test*' //remove test binaries
     script {
+      ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
       if( !params.build_as_debug ) {
         try {
             sh 'strip -s *' //strip symbols
