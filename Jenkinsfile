@@ -18,7 +18,7 @@ pipeline {
     BUILD_TYPE = "Release"
   }
   agent {
-    label get_label_name()
+    label 'mac'
   }
   stages {
     stage('Git Checkout') {
@@ -89,7 +89,7 @@ def start_build() {
       BUILD_TYPE = "Debug"
     }
   }
-  sh "cmake -DUSE_PCH=ON -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
+  sh "cmake -DUSE_PCH=OFF -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
   sh 'make -j4'
 }
 
@@ -111,7 +111,9 @@ def run_archive() {
       dir('lib') {
           script {
               if( !params.build_as_debug ) {
-                sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                if( label != 'mac' ) {
+                  sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+                }
               }
           }
           sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
@@ -122,7 +124,9 @@ def run_archive() {
 
         script {
             if( !params.build_as_debug ) {
-              sh 'strip -s *' //strip symbols
+              if( label != 'mac' ) {
+                sh 'strip -s *' //strip symbols
+              }
             }
 
             if( params.build_as_testnet ) {
