@@ -13,7 +13,6 @@ pipeline {
     skipDefaultCheckout()
   }
   environment {
-    ARCHIVE_NAME = "empty"
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
@@ -159,6 +158,7 @@ def run_archive() {
   dir('install') {
     dir('lib') {
       script {
+        def ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
         if( !params.build_as_debug ) {
           try {
               sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
@@ -167,13 +167,13 @@ def run_archive() {
               }
             }
           }
-      sh 'tar -czf libalexandria.tar.gz libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
+      sh 'tar -czf ${ARCHIVE_NAME} libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
       archiveArtifacts '*.gz'
     }
   dir('bin') {
     sh 'rm -f test*' //remove test binaries
     script {
-      ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+      def ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
       if( !params.build_as_debug ) {
         try {
             sh 'strip -s *' //strip symbols
