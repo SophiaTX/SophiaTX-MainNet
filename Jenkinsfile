@@ -17,7 +17,9 @@ pipeline {
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
-  agent any
+  agent {
+    label "linux"
+  }
   stages {
     stage('Creating parallel jobs ...') {  
       parallel {
@@ -36,24 +38,24 @@ pipeline {
                 start_build()
               }
             }
-            // stage('Tests') {
-            //   steps {
-            //     tests()
-            //   }
-            // }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
             stage('Archive') {
               steps {
                 run_archive()
               }
             }
-            // stage('Create RPM') {
-            //   when {
-            //     branch 'develop'
-            //   }
-            //   steps {
-            //     create_rpm()
-            //   }
-            // }
+            stage('Create RPM') {
+              when {
+                branch 'develop'
+              }
+              steps {
+                create_rpm()
+              }
+            }
             stage('Clean WS') {
               steps {
                 cleanWs()
@@ -68,7 +70,7 @@ pipeline {
           when {
             anyOf {
               branch 'develop'
-              branch "*mac"
+              branch "PR-*"
             }
           }
           stages {
@@ -82,11 +84,11 @@ pipeline {
                 start_build()
               }
             }
-            // stage('Tests') {
-            //   steps {
-            //     tests()
-            //   }
-            // }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
             stage('Archive') {
               steps {
                 run_archive()
