@@ -45,7 +45,6 @@ pipeline {
             // }
             stage('Archive') {
               steps {
-                sh 'make install'
                 run_archive()
               }
             }
@@ -92,7 +91,6 @@ pipeline {
             // }
             stage('Archive') {
               steps {
-                sh 'make install'
                 run_archive()
               }
             }
@@ -157,6 +155,7 @@ def tests() {
 }
 
 def run_archive() {
+  sh 'chmod -R +w install' //because I lost rights somehow
   dir('install') {
     dir('lib') {
       script {
