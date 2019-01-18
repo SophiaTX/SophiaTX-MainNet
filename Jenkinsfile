@@ -155,6 +155,7 @@ def tests() {
 }
 
 def run_archive() {
+  sh 'make install'
   dir('install') {
     sh 'chmod -R +w lib bin' //because I lost rights somehow
     dir('lib') {
