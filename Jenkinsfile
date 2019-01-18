@@ -44,6 +44,10 @@ pipeline {
             //   }
             // }
             stage('Archive') {
+              environment { 
+                LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
+                ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+              }
               steps {
                 run_archive()
               }
@@ -90,6 +94,10 @@ pipeline {
             //   }
             // }
             stage('Archive') {
+              environment { 
+                LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
+                ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+              }
               steps {
                 run_archive()
               }
@@ -157,10 +165,9 @@ def tests() {
 def run_archive() {
   sh 'make install'
   dir('install') {
-    sh 'chmod -R +w lib bin' //because I lost rights somehow
     dir('lib') {
       script {
-        def LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
+        echo "${LIB_ARCHIVE_NAME}"
         if( !params.build_as_debug ) {
           try {
               sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
@@ -175,7 +182,7 @@ def run_archive() {
   dir('bin') {
     sh 'rm -f test*' //remove test binaries
     script {
-      def ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+      echo "${ARCHIVE_NAME}"
       if( !params.build_as_debug ) {
         try {
             sh 'strip -s *' //strip symbols
