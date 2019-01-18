@@ -216,6 +216,6 @@ def create_rpm() {
 def dummy(){
   script {
     def ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-    echo  '${ARCHIVE_NAME}'
+    echo  "${ARCHIVE_NAME}"
   }
 }
