@@ -29,37 +29,38 @@ pipeline {
           stages {
             stage('Git Checkout') {
               steps {
-                checkout scm
+                // checkout scm
+                dummy()
               }
             }
-            stage('Build') {
-              steps {
-                start_build()
-              }
-            }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
-            stage('Archive') {
-              steps {
-                run_archive()
-              }
-            }
-            stage('Create RPM') {
-              when {
-                branch 'develop'
-              }
-              steps {
-                create_rpm()
-              }
-            }
-            stage('Clean WS') {
-              steps {
-                cleanWs()
-              }
-            }
+            // stage('Build') {
+            //   steps {
+            //     start_build()
+            //   }
+            // }
+            // stage('Tests') {
+            //   steps {
+            //     tests()
+            //   }
+            // }
+            // stage('Archive') {
+            //   steps {
+            //     run_archive()
+            //   }
+            // }
+            // stage('Create RPM') {
+            //   when {
+            //     branch 'develop'
+            //   }
+            //   steps {
+            //     create_rpm()
+            //   }
+            // }
+            // stage('Clean WS') {
+            //   steps {
+            //     cleanWs()
+            //   }
+            // }
           }
         }
         stage('macOS') {    
@@ -75,29 +76,30 @@ pipeline {
           stages {
             stage('Git Checkout') {
               steps {
-                checkout scm
+                // checkout scm
+                dummy()
               }
             }
-            stage('Build') {
-              steps {
-                start_build()
-              }
-            }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
-            stage('Archive') {
-              steps {
-                run_archive()
-              }
-            }
-            stage('Clean WS') {
-              steps {
-                cleanWs()
-              }
-            }
+            // stage('Build') {
+            //   steps {
+            //     start_build()
+            //   }
+            // }
+            // stage('Tests') {
+            //   steps {
+            //     tests()
+            //   }
+            // }
+            // stage('Archive') {
+            //   steps {
+            //     run_archive()
+            //   }
+            // }
+            // stage('Clean WS') {
+            //   steps {
+            //     cleanWs()
+            //   }
+            // }
           }
         }
       }
@@ -208,4 +210,12 @@ def create_rpm() {
   sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
   sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
   archiveArtifacts '*.rpm'
+}
+
+
+def dummy(){
+  script {
+    def ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+    echo  ${ARCHIVE_NAME}
+  }
 }
