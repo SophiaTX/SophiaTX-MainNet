@@ -11,6 +11,7 @@ pipeline {
   options {
     buildDiscarder(logRotator(artifactNumToKeepStr: '5'))
     skipDefaultCheckout()
+    parallelsAlwaysFailFast() 
   }
   environment {
     GENESIS_FILE = "genesis.json"
@@ -37,11 +38,11 @@ pipeline {
                 start_build()
               }
             }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
+            // stage('Tests') {
+            //   steps {
+            //     tests()
+            //   }
+            // }
             stage('Archive') {
               steps {
                 run_archive()
@@ -83,11 +84,11 @@ pipeline {
                 start_build()
               }
             }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
+            // stage('Tests') {
+            //   steps {
+            //     tests()
+            //   }
+            // }
             stage('Archive') {
               steps {
                 run_archive()
