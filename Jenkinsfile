@@ -29,38 +29,37 @@ pipeline {
           stages {
             stage('Git Checkout') {
               steps {
-                // checkout scm
-                dummy()
+                checkout scm
               }
             }
-            // stage('Build') {
-            //   steps {
-            //     start_build()
-            //   }
-            // }
-            // stage('Tests') {
-            //   steps {
-            //     tests()
-            //   }
-            // }
-            // stage('Archive') {
-            //   steps {
-            //     run_archive()
-            //   }
-            // }
-            // stage('Create RPM') {
-            //   when {
-            //     branch 'develop'
-            //   }
-            //   steps {
-            //     create_rpm()
-            //   }
-            // }
-            // stage('Clean WS') {
-            //   steps {
-            //     cleanWs()
-            //   }
-            // }
+            stage('Build') {
+              steps {
+                start_build()
+              }
+            }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
+            stage('Archive') {
+              steps {
+                run_archive()
+              }
+            }
+            stage('Create RPM') {
+              when {
+                branch 'develop'
+              }
+              steps {
+                create_rpm()
+              }
+            }
+            stage('Clean WS') {
+              steps {
+                cleanWs()
+              }
+            }
           }
         }
         stage('macOS') {    
@@ -76,30 +75,29 @@ pipeline {
           stages {
             stage('Git Checkout') {
               steps {
-                // checkout scm
-                dummy()
+                checkout scm
               }
             }
-            // stage('Build') {
-            //   steps {
-            //     start_build()
-            //   }
-            // }
-            // stage('Tests') {
-            //   steps {
-            //     tests()
-            //   }
-            // }
-            // stage('Archive') {
-            //   steps {
-            //     run_archive()
-            //   }
-            // }
-            // stage('Clean WS') {
-            //   steps {
-            //     cleanWs()
-            //   }
-            // }
+            stage('Build') {
+              steps {
+                start_build()
+              }
+            }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
+            stage('Archive') {
+              steps {
+                run_archive()
+              }
+            }
+            stage('Clean WS') {
+              steps {
+                cleanWs()
+              }
+            }
           }
         }
       }
@@ -160,7 +158,7 @@ def run_archive() {
   dir('install') {
     dir('lib') {
       script {
-        def ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
+        def LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
         if( !params.build_as_debug ) {
           try {
               sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
@@ -169,7 +167,7 @@ def run_archive() {
               }
             }
           }
-      sh 'tar -czf ${ARCHIVE_NAME} libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java' //create tar file
+      sh "tar -czf ${LIB_ARCHIVE_NAME} libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java" //create tar file
       archiveArtifacts '*.gz'
     }
   dir('bin') {
@@ -185,12 +183,12 @@ def run_archive() {
           }
 
           if( params.build_as_testnet ) {
-           sh 'cp ${WORKSPACE}/contrib/testnet_config.ini .'//copy config
-           sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini' //create tar file
+           sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
+           sh "tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini" //create tar file
            } else {
-           sh 'cp ${WORKSPACE}/contrib/fullnode_config.ini .'//copy configs
-           sh 'cp ${WORKSPACE}/contrib/witness_config.ini .'//copy configs
-           sh 'tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini' //create tar file
+           sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
+           sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
+           sh "tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini" //create tar file
          }
        }
        archiveArtifacts '*.gz'
@@ -210,12 +208,4 @@ def create_rpm() {
   sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
   sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
   archiveArtifacts '*.rpm'
-}
-
-
-def dummy(){
-  script {
-    def ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-    echo  "${ARCHIVE_NAME}"
-  }
 }
