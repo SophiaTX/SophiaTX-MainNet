@@ -38,11 +38,11 @@ pipeline {
                 start_build()
               }
             }
-            // stage('Tests') {
-            //   steps {
-            //     tests()
-            //   }
-            // }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
             stage('Archive') {
               environment { 
                 LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
@@ -88,11 +88,11 @@ pipeline {
                 start_build()
               }
             }
-            // stage('Tests') {
-            //   steps {
-            //     tests()
-            //   }
-            // }
+            stage('Tests') {
+              steps {
+                tests()
+              }
+            }
             stage('Archive') {
               environment { 
                 LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
