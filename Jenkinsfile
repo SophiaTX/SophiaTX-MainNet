@@ -91,6 +91,7 @@ pipeline {
             // }
             stage('Archive') {
               steps {
+                sh 'make install'
                 run_archive()
               }
             }
@@ -155,7 +156,6 @@ def tests() {
 }
 
 def run_archive() {
-  sh 'make install'
   dir('install') {
     dir('lib') {
       script {
