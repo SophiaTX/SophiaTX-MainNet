@@ -155,8 +155,8 @@ def tests() {
 }
 
 def run_archive() {
-  sh 'chmod -R +w install' //because I lost rights somehow
   dir('install') {
+    sh 'chmod -R +w lib bin' //because I lost rights somehow
     dir('lib') {
       script {
         def LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
