@@ -45,6 +45,7 @@ pipeline {
             // }
             stage('Archive') {
               steps {
+                sh 'make install'
                 run_archive()
               }
             }
