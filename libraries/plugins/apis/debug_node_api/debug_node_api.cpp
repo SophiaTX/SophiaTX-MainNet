@@ -7,7 +7,7 @@
 
 #include <sophiatx/chain/block_log.hpp>
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 
 #include <sophiatx/utilities/key_conversion.hpp>
@@ -20,7 +20,7 @@ class debug_node_api_impl
 {
    public:
       debug_node_api_impl() :
-         _db( appbase::app().get_plugin< chain::chain_plugin >().db() ),
+         _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< chain::chain_plugin >().db()) ),
          _debug_node( appbase::app().get_plugin< debug_node_plugin >() ) {}
 
       DECLARE_API_IMPL(
@@ -35,7 +35,7 @@ class debug_node_api_impl
          (debug_get_json_schema)
       )
 
-      std::shared_ptr<chain::database_interface> _db;
+      std::shared_ptr<chain::database> _db;
       debug_node::debug_node_plugin& _debug_node;
 };
 
@@ -132,7 +132,7 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_set_hardfork )
    if( args.hardfork_id > SOPHIATX_NUM_HARDFORKS )
       return {};
 
-   _debug_node.debug_update( [=]( std::shared_ptr<chain::database_interface>& db )
+   _debug_node.debug_update( [=]( std::shared_ptr<chain::database>& db )
    {
       db->set_hardfork( args.hardfork_id, false );
    });

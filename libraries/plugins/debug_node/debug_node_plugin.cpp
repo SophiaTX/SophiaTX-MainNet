@@ -25,12 +25,12 @@ class debug_node_plugin_impl
       debug_node_plugin_impl();
       virtual ~debug_node_plugin_impl();
 
-      std::shared_ptr<chain::database_interface>       _db;
+      std::shared_ptr<chain::database>       _db;
       boost::signals2::connection               applied_block_connection;
 };
 
 debug_node_plugin_impl::debug_node_plugin_impl() :
-   _db( appbase::app().get_plugin< chain::chain_plugin >().db() ) {}
+   _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< chain::chain_plugin >().db()) ) {}
 debug_node_plugin_impl::~debug_node_plugin_impl() {}
 
 }
@@ -73,7 +73,7 @@ void debug_node_plugin::plugin_startup()
    }*/
 }
 
-std::shared_ptr<chain::database_interface> debug_node_plugin::database() { return my->_db; }
+std::shared_ptr<chain::database>& debug_node_plugin::database() { return my->_db; }
 
 /*
 void debug_apply_update( chain::database& db, const fc::variant_object& vo, bool logging )
@@ -207,7 +207,7 @@ void debug_node_plugin::debug_generate_blocks(
       return;
    }
 
-   auto db = database();
+   auto& db = database();
    uint32_t slot = args.miss_blocks+1, produced = 0;
    while( produced < args.count )
    {
@@ -238,7 +238,7 @@ void debug_node_plugin::debug_generate_blocks(
             break;
       }
 
-      std::static_pointer_cast<chain::database>(db)->generate_block( scheduled_time, scheduled_witness_name, *debug_private_key, args.skip );
+      db->generate_block( scheduled_time, scheduled_witness_name, *debug_private_key, args.skip );
       ++produced;
       slot = new_slot;
    }
@@ -254,7 +254,7 @@ uint32_t debug_node_plugin::debug_generate_blocks_until(
    uint32_t skip
 )
 {
-   auto db = database();
+   auto& db = database();
 
    if( db->head_block_time() >= head_block_time )
       return 0;

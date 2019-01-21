@@ -4,7 +4,7 @@
 
 namespace sophiatx { namespace chain {
 
-class database_interface;
+class database;
 
 template< typename OperationType=sophiatx::protocol::operation >
 class evaluator
@@ -23,7 +23,7 @@ class evaluator_impl : public evaluator<OperationType>
       typedef OperationType operation_sv_type;
       // typedef typename EvaluatorType::operation_type op_type;
 
-      evaluator_impl( const std::shared_ptr<database_interface>& d )
+      evaluator_impl( const std::shared_ptr<database>& d )
          : _db(d) {}
 
       virtual ~evaluator_impl() {}
@@ -37,10 +37,10 @@ class evaluator_impl : public evaluator<OperationType>
 
       virtual int get_type()const override { return OperationType::template tag< typename EvaluatorType::operation_type >::value; }
 
-      std::shared_ptr<database_interface> db() { return _db; }
+      std::shared_ptr<database>& db() { return _db; }
 
    protected:
-      std::shared_ptr<database_interface> _db;
+      std::shared_ptr<database> _db;
 };
 
 } }
@@ -51,7 +51,7 @@ class X ## _evaluator : public sophiatx::chain::evaluator_impl< X ## _evaluator 
    public:                                                                  \
       typedef X ## _operation operation_type;                               \
                                                                             \
-      X ## _evaluator( const std::shared_ptr<database_interface>& db )                                       \
+      X ## _evaluator( const std::shared_ptr<database>& db )                                       \
          : sophiatx::chain::evaluator_impl< X ## _evaluator >( db )          \
       {}                                                                    \
                                                                             \
@@ -64,7 +64,7 @@ class X ## _evaluator : public sophiatx::chain::evaluator_impl< X ## _evaluator,
    public:                                                                  \
       typedef X ## _operation operation_type;                               \
                                                                             \
-      X ## _evaluator( std::shared_ptr<sophiatx::chain::database_interface>& db, PLUGIN* plugin )       \
+      X ## _evaluator( std::shared_ptr<sophiatx::chain::database>& db, PLUGIN* plugin )       \
          : sophiatx::chain::evaluator_impl< X ## _evaluator, OPERATION >( db ), \
            _plugin( plugin )                                                \
       {}                                                                    \

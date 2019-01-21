@@ -24,7 +24,7 @@ using sophiatx::protocol::price;
  */
 class hybrid_database : public database_interface {
 public:
-   hybrid_database() {}
+   hybrid_database() : _remote_api_thread("hybrid_db_remote_api") {}
 
    virtual ~hybrid_database() {}
 
@@ -78,66 +78,10 @@ public:
       return std::vector<block_id_type>();
    }
 
-   const witness_object &get_witness(const account_name_type &name) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      witness_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const witness_object *find_witness(const account_name_type &name) const {
-      not_implemented();
-      return nullptr;
-   }
-
    const account_object &get_account(const account_name_type &name) const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
       account_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const account_object *find_account(const account_name_type &name) const {
-      not_implemented();
-      return nullptr;
-   }
-
-   const account_object *find_account(const account_id_type &id) const {
-      not_implemented();
-      return nullptr;
-   }
-
-   const escrow_object &get_escrow(const account_name_type &name, uint32_t escrow_id) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      escrow_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const escrow_object *find_escrow(const account_name_type &name, uint32_t escrow_id) const {
-      not_implemented();
-      return nullptr;
-   }
-
-   const application_object &get_application(const string &name) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      application_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const application_object &get_application_by_id(const application_id_type id) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      application_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const application_buying_object &
-   get_application_buying(const account_name_type &buyer, const application_id_type app_id) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      application_buying_object *dummy = nullptr;
       return *dummy;
    }
 
@@ -148,27 +92,6 @@ public:
       return *dummy;
    }
 
-   const economic_model_object &get_economic_model() const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      economic_model_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const feed_history_object &get_feed_history(asset_symbol_type a) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      feed_history_object *dummy = nullptr;
-      return *dummy;
-   }
-
-   const witness_schedule_object &get_witness_schedule_object() const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      witness_schedule_object *dummy = nullptr;
-      return *dummy;
-   }
-
    const hardfork_property_object &get_hardfork_property_object() const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
@@ -176,19 +99,9 @@ public:
       return *dummy;
    }
 
-   void pay_fee(const account_object &a, asset fee) {
-      not_implemented();
-   }
-
-   uint32_t witness_participation_rate() const {
-      not_implemented();
-      return 0;
-   }
-
    void add_checkpoints(const flat_map<uint32_t, block_id_type> &checkpts) {
       not_implemented();
    }
-
 
    bool push_block(const signed_block &b, uint32_t skip = skip_nothing) {
       not_implemented();
@@ -212,99 +125,20 @@ public:
       not_implemented();
    }
 
-   void pop_block() {
-      not_implemented();
-   }
-
-   void clear_pending() {
-      not_implemented();
-   }
-
-   account_name_type get_scheduled_witness(uint32_t slot_num) const {
-      not_implemented();
-      return account_name_type();
-   }
-
-   fc::time_point_sec get_slot_time(uint32_t slot_num) const {
-      not_implemented();
-      return fc::time_point_sec();
-   }
-
-   uint32_t get_slot_at_time(fc::time_point_sec when) const {
-      not_implemented();
-      return 0;
-   }
-
-   void vest(const account_name_type &name, const share_type delta) {
-      not_implemented();
-   }
-
-   void vest(const account_object &a, const share_type delta) {
-      not_implemented();
-   }
-
-   void adjust_balance(const account_object &a, const asset &delta) {
-      not_implemented();
-   }
-
-   void adjust_balance(const account_name_type &name, const asset &delta) {
-      not_implemented();
-   }
-
-   void adjust_supply(const asset &delta) {
-      not_implemented();
-   }
-
-   void update_owner_authority(const account_object &account, const authority &owner_authority) {
-      not_implemented();
-   }
-
-   asset get_balance(const account_object &a, asset_symbol_type symbol) const {
-      not_implemented();
-      return asset();
-   }
-
-   void adjust_proxied_witness_votes(const account_object &a,
-                                     const std::array<share_type, SOPHIATX_MAX_PROXY_RECURSION_DEPTH + 1> &delta,
-                                     int depth = 0) {
-      not_implemented();
-   }
-
-   void adjust_proxied_witness_votes(const account_object &a, share_type delta, int depth = 0) {
-      not_implemented();
-   }
-
-   void adjust_witness_votes(const account_object &a, share_type delta) {
-      not_implemented();
-   }
-
-   void adjust_witness_vote(const witness_object &obj, share_type delta) {
-      not_implemented();
-   }
-
-   void clear_witness_votes(const account_object &a) {
-      not_implemented();
-   }
-
-   void retally_witness_votes() {
-      not_implemented();
-   }
-
-   void set_hardfork(uint32_t hardfork, bool process_now = true) {
-      not_implemented();
-   }
-
    void validate_invariants() const {
       not_implemented();
    }
 
-   optional<account_name_type> get_sponsor(const account_name_type &who) const {
-      not_implemented();
-      return nullptr;
-   }
    ///////////
 
-   void run();
+   void start_sync_with_full_node();
+
+   bool is_sync(fc::api<sophiatx::chain::remote_db_api> &con) const;
+
+   const get_app_custom_messages_return::const_iterator &
+   get_unprocessed_op(const get_app_custom_messages_return::const_iterator &start,
+                      const get_app_custom_messages_return::const_iterator &end,
+                      size_t size) const;
 
    void apply_custom_op(const received_object &obj);
 
@@ -314,7 +148,7 @@ private:
    uint64_t _head_op_number;
    uint64_t _head_op_id;
    uint64_t _app_id;
-   std::shared_ptr<fc::thread> _remote_api_thread;
+   fc::thread _remote_api_thread;
    bool _running;
    string _ws_endpoint;
 };

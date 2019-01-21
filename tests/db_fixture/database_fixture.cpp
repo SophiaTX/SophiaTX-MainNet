@@ -307,7 +307,7 @@ live_database_fixture::live_database_fixture()
 
       ilog( "Done loading saved chain" );
    }
-   FC_LOG_AND_RETHROW()
+      FC_LOG_AND_RETHROW()
 }
 
 live_database_fixture::~live_database_fixture()
@@ -504,7 +504,7 @@ void database_fixture::fund(
 {
    try
    {
-      db_plugin->debug_update( [=]( std::shared_ptr<database_interface>& db)
+      db_plugin->debug_update( [=]( std::shared_ptr<database>& db)
       {
          db->modify( db->get_account( account_name ), [&]( account_object& a )
          {

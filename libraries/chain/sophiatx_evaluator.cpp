@@ -1,5 +1,5 @@
 #include <sophiatx/chain/sophiatx_evaluator.hpp>
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/custom_content_object.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
@@ -225,7 +225,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
 }
 
 void verify_authority_accounts_exist(
-   const std::shared_ptr<database_interface>& db,
+   const std::shared_ptr<database>& db,
    const authority& auth,
    const account_name_type& auth_account,
    authority::classification auth_class)
@@ -712,7 +712,7 @@ void custom_evaluator::do_apply( const custom_operation& o ){}
 
 void custom_json_evaluator::do_apply( const custom_json_operation& o )
 {
-   std::shared_ptr<database_interface> d = db();
+   auto& d = db();
 
     //TODO: move this to plugin
     const auto& send_idx = d->get_index< custom_content_index >().indices().get< by_sender >();
@@ -770,7 +770,7 @@ void custom_json_evaluator::do_apply( const custom_json_operation& o )
 
 void custom_binary_evaluator::do_apply( const custom_binary_operation& o )
 {
-   std::shared_ptr<database_interface> d = db();
+   auto& d = db();
 
    //TODO: move this to plugin
    const auto& send_idx = d->get_index< custom_content_index >().indices().get< by_sender >();

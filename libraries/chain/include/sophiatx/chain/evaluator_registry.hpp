@@ -16,13 +16,13 @@ class evaluator_registry
              _op_evaluators.emplace_back();
       }
 
-      evaluator_registry(std::shared_ptr<database_interface> d) : _db(d)
+      evaluator_registry(const std::shared_ptr<database>& d) : _db(d)
       {
          for( int i=0; i<OperationType::count(); i++ )
             _op_evaluators.emplace_back();
       }
 
-      void register_db(std::shared_ptr<database_interface> d)
+      void register_db(const std::shared_ptr<database>& d)
       {
          _db = d;
       }
@@ -49,7 +49,7 @@ class evaluator_registry
       }
 
       std::vector< std::unique_ptr< evaluator<OperationType> > > _op_evaluators;
-      std::shared_ptr<database_interface> _db;
+      std::shared_ptr<database> _db;
 };
 
 } }

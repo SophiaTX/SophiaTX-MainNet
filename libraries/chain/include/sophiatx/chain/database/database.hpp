@@ -185,6 +185,22 @@ public:
     */
    uint32_t get_slot_at_time(fc::time_point_sec when) const;
 
+   bool is_private_net() const {
+      return get_dynamic_global_properties().private_net;
+   }
+
+   asset to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const {
+      return util::to_sbd(get_feed_history(to_symbol).current_median_history, sophiatx);
+   }
+
+   asset to_sophiatx(const asset &sbd) const {
+      return util::to_sophiatx(get_feed_history(sbd.symbol).current_median_history, sbd);
+   }
+
+   node_property_object &node_properties() {
+      return _node_property_object;
+   }
+
    void vest(const account_name_type &name, const share_type delta);
 
    void vest(const account_object &a, const share_type delta);
@@ -262,6 +278,8 @@ public:
       with id N, applies all hardforks with id <= N */
    void set_hardfork(uint32_t hardfork, bool process_now = true);
 
+   void check_free_memory(bool force_print, uint32_t current_block_num);
+
    void validate_invariants() const;
 
    asset process_operation_fee(const operation &op);
@@ -318,6 +336,8 @@ private:
    void recalculate_all_votes();
 
    evaluator_registry<operation> _evaluator_registry;
+
+   node_property_object _node_property_object;
 
    fork_database _fork_db;
    fc::time_point_sec _hardfork_times[SOPHIATX_NUM_HARDFORKS + 1];

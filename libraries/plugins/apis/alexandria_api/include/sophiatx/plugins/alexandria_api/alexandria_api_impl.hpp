@@ -23,7 +23,7 @@ public:
    /**
     * Getters and setters
     */
-   std::shared_ptr<chain::database_interface> get_db() const;
+   const std::shared_ptr<chain::database_interface> &get_db() const;
 
    const shared_ptr<block_api::block_api> &get_block_api() const;
    void set_block_api(const shared_ptr<block_api::block_api> &block_api);

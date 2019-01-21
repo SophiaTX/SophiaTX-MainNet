@@ -1,5 +1,5 @@
 
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 #include <sophiatx/chain/witness_schedule.hpp>
 
@@ -8,7 +8,7 @@
 
 namespace sophiatx { namespace chain {
 
-void reset_virtual_schedule_time( const std::shared_ptr<database_interface>& db )
+void reset_virtual_schedule_time( const std::shared_ptr<database>& db )
 {
    const witness_schedule_object& wso = db->get_witness_schedule_object();
    db->modify( wso, [&](witness_schedule_object& o )
@@ -28,7 +28,7 @@ void reset_virtual_schedule_time( const std::shared_ptr<database_interface>& db 
    }
 }
 
-void update_median_witness_props( const std::shared_ptr<database_interface>& db )
+void update_median_witness_props( const std::shared_ptr<database>& db )
 {
    const witness_schedule_object& wso = db->get_witness_schedule_object();
 
@@ -65,7 +65,7 @@ void update_median_witness_props( const std::shared_ptr<database_interface>& db 
    } );
 }
 
-void update_witness_schedule4( const std::shared_ptr<database_interface>& db )
+void update_witness_schedule4( const std::shared_ptr<database>& db )
 {
    const witness_schedule_object& wso = db->get_witness_schedule_object();
    vector< account_name_type > active_witnesses;
@@ -273,7 +273,7 @@ void update_witness_schedule4( const std::shared_ptr<database_interface>& db )
  *
  *  See @ref witness_object::virtual_last_update
  */
-void update_witness_schedule(const std::shared_ptr<database_interface>& db)
+void update_witness_schedule(const std::shared_ptr<database>& db)
 {
    if( (db->head_block_num() % SOPHIATX_MAX_WITNESSES) == 0 ) //wso.next_shuffle_block_num )
    {

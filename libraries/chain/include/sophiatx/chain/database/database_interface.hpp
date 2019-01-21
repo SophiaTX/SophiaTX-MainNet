@@ -140,50 +140,13 @@ public:
 
    virtual std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const = 0;
 
-   virtual const witness_object &get_witness(const account_name_type &name) const = 0;
-
-   virtual const witness_object *find_witness(const account_name_type &name) const = 0;
-
    virtual const account_object &get_account(const account_name_type &name) const = 0;
-
-   virtual const account_object *find_account(const account_name_type &name) const = 0;
-
-   virtual const account_object *find_account(const account_id_type &id) const = 0;
-
-   virtual const escrow_object &get_escrow(const account_name_type &name, uint32_t escrow_id) const = 0;
-
-   virtual const escrow_object *find_escrow(const account_name_type &name, uint32_t escrow_id) const = 0;
-
-   virtual const application_object &get_application(const string &name) const = 0;
-
-   virtual const application_object &get_application_by_id(const application_id_type id) const = 0;
-
-   virtual const application_buying_object &
-   get_application_buying(const account_name_type &buyer, const application_id_type app_id) const = 0;
 
    virtual const dynamic_global_property_object &get_dynamic_global_properties() const = 0;
 
-   virtual const economic_model_object &get_economic_model() const = 0;
-
-   virtual const feed_history_object &get_feed_history(asset_symbol_type a) const = 0;
-
-   virtual const witness_schedule_object &get_witness_schedule_object() const = 0;
-
    virtual const hardfork_property_object &get_hardfork_property_object() const = 0;
 
-   /**
-    *  Deducts fee from the account and the share supply
-    */
-   virtual void pay_fee(const account_object &a, asset fee) = 0;
-
-   /**
-    *  Calculate the percent of block production slots that were missed in the
-    *  past 128 blocks, not including the current block.
-    */
-   virtual uint32_t witness_participation_rate() const = 0;
-
    virtual void add_checkpoints(const flat_map<uint32_t, block_id_type> &checkpts) = 0;
-
 
    virtual bool push_block(const signed_block &b, uint32_t skip) = 0;
 
@@ -194,10 +157,6 @@ public:
    virtual bool _push_block(const signed_block &b) = 0;
 
    virtual void _push_transaction(const signed_transaction &trx) = 0;
-
-   virtual void pop_block() = 0;
-
-   virtual void clear_pending() = 0;
 
    /**
     *  This method is used to track applied operations during the evaluation of a block, these
@@ -283,94 +242,11 @@ public:
     */
    //fc::signal<void(const vector<const object*>&)>  removed_objects;
 
-   //////////////////// db_witness_schedule.cpp ////////////////////
+   //////////////////// db_init.cpp ////////////////////
 
-   /**
-    * @brief Get the witness scheduled for block production in a slot.
-    *
-    * slot_num always corresponds to a time in the future.
-    *
-    * If slot_num == 1, returns the next scheduled witness.
-    * If slot_num == 2, returns the next scheduled witness after
-    * 1 block gap.
-    *
-    * Use the get_slot_time() and get_slot_at_time() functions
-    * to convert between slot_num and timestamp.
-    *
-    * Passing slot_num == 0 returns SOPHIATX_NULL_WITNESS
-    */
-   virtual account_name_type get_scheduled_witness(uint32_t slot_num) const = 0;
+   void set_custom_operation_interpreter(const uint32_t id, std::shared_ptr<custom_operation_interpreter> registry);
 
-   /**
-    * Get the time at which the given slot occurs.
-    *
-    * If slot_num == 0, return time_point_sec().
-    *
-    * If slot_num == N for N > 0, return the Nth next
-    * block-interval-aligned time greater than head_block_time().
-    */
-   virtual fc::time_point_sec get_slot_time(uint32_t slot_num) const = 0;
-
-   /**
-    * Get the last slot which occurs AT or BEFORE the given time.
-    *
-    * The return value is the greatest value N such that
-    * get_slot_time( N ) <= when.
-    *
-    * If no such N exists, return 0.
-    */
-   virtual uint32_t get_slot_at_time(fc::time_point_sec when) const = 0;
-
-   virtual void vest(const account_name_type &name, const share_type delta) = 0;
-
-   virtual void vest(const account_object &a, const share_type delta) = 0;
-
-   virtual void adjust_balance(const account_object &a, const asset &delta) = 0;
-
-   virtual void adjust_balance(const account_name_type &name, const asset &delta) = 0;
-
-   virtual void adjust_supply(const asset &delta) = 0;
-
-   virtual void update_owner_authority(const account_object &account, const authority &owner_authority) = 0;
-
-   virtual asset get_balance(const account_object &a, asset_symbol_type symbol) const = 0;
-
-   virtual asset get_balance(const string &aname, asset_symbol_type symbol) const {
-      return get_balance(get_account(aname), symbol);
-   }
-
-   /** this updates the votes for witnesses as a result of account voting proxy changing */
-   virtual void adjust_proxied_witness_votes(const account_object &a,
-                                             const std::array<share_type,
-                                                   SOPHIATX_MAX_PROXY_RECURSION_DEPTH + 1> &delta,
-                                             int depth = 0) = 0;
-
-   /** this updates the votes for all witnesses as a result of account VESTS changing */
-   virtual void adjust_proxied_witness_votes(const account_object &a, share_type delta, int depth = 0) = 0;
-
-   /** this is called by `adjust_proxied_witness_votes` when account proxy to self */
-   virtual void adjust_witness_votes(const account_object &a, share_type delta) = 0;
-
-   /** this updates the vote of a single witness as a result of a vote being added or removed*/
-   virtual void adjust_witness_vote(const witness_object &obj, share_type delta) = 0;
-
-   /** clears all vote records for a particular account but does not update the
-    * witness vote totals.  Vote totals should be updated first via a call to
-    * adjust_proxied_witness_votes( a, -a.witness_vote_weight() )
-    */
-   virtual void clear_witness_votes(const account_object &a) = 0;
-
-   bool is_private_net() const {
-      return get_dynamic_global_properties().private_net;
-   }
-
-   asset to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const {
-      return util::to_sbd(get_feed_history(to_symbol).current_median_history, sophiatx);
-   }
-
-   asset to_sophiatx(const asset &sbd) const {
-      return util::to_sophiatx(get_feed_history(sbd.symbol).current_median_history, sbd);
-   }
+   std::shared_ptr<custom_operation_interpreter> get_custom_json_evaluator(const uint64_t id);
 
    time_point_sec head_block_time() const {
       return get_dynamic_global_properties().time;
@@ -383,38 +259,20 @@ public:
    block_id_type head_block_id() const {
       return get_dynamic_global_properties().head_block_id;
    }
-
-   node_property_object &node_properties() {
-      return _node_property_object;
-   }
-
    uint32_t last_non_undoable_block_num() const {
       return get_dynamic_global_properties().last_irreversible_block_num;
    }
 
-   //////////////////// db_init.cpp ////////////////////
-
-   void set_custom_operation_interpreter(const uint32_t id, std::shared_ptr<custom_operation_interpreter> registry);
-
-   std::shared_ptr<custom_operation_interpreter> get_custom_json_evaluator(const uint64_t id);
+   bool has_hardfork(uint32_t hardfork) const {
+      return get_hardfork_property_object().processed_hardforks.size() > hardfork;
+   }
 
    /** when popping a block, the transactions that were removed get cached here so they
     * can be reapplied at the proper time */
    std::deque<signed_transaction> _popped_tx;
    vector<signed_transaction> _pending_tx;
 
-   virtual void retally_witness_votes() = 0;
-
-   bool has_hardfork(uint32_t hardfork) const {
-      return get_hardfork_property_object().processed_hardforks.size() > hardfork;
-   }
-
-   /* For testing and debugging only. Given a hardfork
-      with id N, applies all hardforks with id <= N */
-   virtual void set_hardfork(uint32_t hardfork, bool process_now = true) = 0;
-
    virtual void validate_invariants() const = 0;
-
 
    const std::string &get_json_schema() const {
       return _json_schema;
@@ -424,8 +282,6 @@ public:
       _flush_blocks = flush_blocks;
       _next_flush_block = 0;
    }
-
-   void check_free_memory(bool force_print, uint32_t current_block_num);
 
 #ifdef IS_TEST_NET
    bool disable_low_mem_warning = true;
@@ -438,8 +294,6 @@ public:
    void on_reindex_start_connect(on_reindex_start_t functor) { _on_reindex_start.connect(functor); }
 
    void on_reindex_done_connect(on_reindex_done_t functor) { _on_reindex_done.connect(functor); }
-
-   virtual optional<account_name_type> get_sponsor(const account_name_type &who) const = 0;
 
    chain_id_type get_chain_id() const {
       return get_dynamic_global_properties().chain_id;
@@ -462,8 +316,6 @@ protected:
    int32_t _current_trx_in_block = 0;
    uint16_t _current_op_in_trx = 0;
    uint16_t _current_virtual_op = 0;
-
-   node_property_object _node_property_object;
 
    uint32_t _flush_blocks = 0;
    uint32_t _next_flush_block = 0;

@@ -189,8 +189,6 @@ struct database_fixture {
    //   plugins
    std::shared_ptr<database> db = nullptr;
    signed_transaction trx;
-   public_key_type committee_key;
-   account_id_type committee_account;
    fc::ecc::private_key private_key = fc::ecc::private_key::generate();
    fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JusFLYUhNNsYV8PSTanqfADU5nhWAkTzogZwYjPrTYMw3nCAx3"));
    string debug_key = sophiatx::utilities::key_to_wif( init_account_priv_key );
@@ -201,7 +199,6 @@ struct database_fixture {
    plugins::debug_node::debug_node_plugin* db_plugin;
 
    optional<fc::temp_directory> data_dir;
-   uint32_t anon_acct_count;
 
    database_fixture() {}
    virtual ~database_fixture() { appbase::reset(); }

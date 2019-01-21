@@ -270,7 +270,7 @@ block_id_type database::find_block_id_for_num( uint32_t block_num )const
       if( b.valid() )
          return b->id();
 
-      // Finally we query the fork db->
+      // Finally we query the fork DB.
       shared_ptr< fork_item > fitem = _fork_db.fetch_block_on_main_branch_by_number( block_num );
       if( fitem )
          return fitem->id;
@@ -1266,7 +1266,7 @@ void database::expire_escrow_ratification()
 
 void database::initialize_evaluators()
 {
-   _evaluator_registry.register_db(shared_from_this());
+   _evaluator_registry.register_db(std::static_pointer_cast<database>(shared_from_this()));
 
    _evaluator_registry.register_evaluator< transfer_evaluator                       >();
    _evaluator_registry.register_evaluator< transfer_to_vesting_evaluator            >();
@@ -1334,14 +1334,14 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
    {
       struct auth_inhibitor
       {
-         auth_inhibitor(const std::shared_ptr<database_interface>& db) : db(db), old_flags(db->node_properties().skip_flags)
+         auth_inhibitor(const std::shared_ptr<database>& db) : db(db), old_flags(db->node_properties().skip_flags)
          { db->node_properties().skip_flags |= skip_authority_check; }
          ~auth_inhibitor()
          { db->node_properties().skip_flags = old_flags; }
       private:
-         std::shared_ptr<database_interface> db;
+         std::shared_ptr<database> db;
          uint32_t old_flags;
-      } inhibitor(shared_from_this());
+      } inhibitor(std::static_pointer_cast<database>(shared_from_this()));
 
       share_type total_initial_balance = 0;
       // Create blockchain accounts
@@ -1711,7 +1711,7 @@ void database::_apply_block( const signed_block& next_block )
 
    create_block_summary(next_block);
    clear_expired_transactions();
-   update_witness_schedule(shared_from_this());
+   update_witness_schedule(std::static_pointer_cast<database>(shared_from_this()));
    if(!is_private_net()) {
       process_interests();
       update_median_feeds();
@@ -1743,12 +1743,12 @@ FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) )
 
 struct process_header_visitor
 {
-   process_header_visitor( const std::string& witness, const std::shared_ptr<database_interface>& db ) : _witness( witness ), _db( db ) {}
+   process_header_visitor( const std::string& witness, const std::shared_ptr<database>& db ) : _witness( witness ), _db( db ) {}
 
    typedef void result_type;
 
    const std::string& _witness;
-   std::shared_ptr<database_interface> _db;
+   std::shared_ptr<database> _db;
 
    void operator()( const void_t& obj ) const
    {
@@ -1789,6 +1789,40 @@ struct process_header_visitor
    }
 };
 
+void database::check_free_memory(bool force_print, uint32_t current_block_num) {
+   uint64_t free_mem = get_free_memory();
+   uint64_t max_mem = get_max_memory();
+
+   if( BOOST_UNLIKELY(_shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ((uint128_t(
+         SOPHIATX_100_PERCENT - _shared_file_full_threshold) * max_mem) / SOPHIATX_100_PERCENT).to_uint64())) {
+      uint64_t new_max = (uint128_t(max_mem * _shared_file_scale_rate) / SOPHIATX_100_PERCENT).to_uint64() + max_mem;
+
+      wlog("Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024 * 1024)));
+
+      resize(new_max);
+
+      uint32_t free_mb = uint32_t(get_free_memory() / (1024 * 1024));
+      wlog("Free memory is now ${free}M", ("free", free_mb));
+      _last_free_gb_printed = free_mb / 1024;
+   } else {
+      uint32_t free_gb = uint32_t(free_mem / (1024 * 1024 * 1024));
+      if( BOOST_UNLIKELY(force_print || (free_gb < _last_free_gb_printed) || (free_gb > _last_free_gb_printed + 1))) {
+         ilog("Free memory is now ${n}G. Current block number: ${block}", ("n", free_gb)("block", current_block_num));
+         _last_free_gb_printed = free_gb;
+      }
+
+      if( BOOST_UNLIKELY(free_gb == 0)) {
+         uint32_t free_mb = uint32_t(free_mem / (1024 * 1024));
+
+#ifdef IS_TEST_NET
+         if( !disable_low_mem_warning )
+#endif
+            if( free_mb <= 100 && head_block_num() % 10 == 0 )
+               elog("Free memory is now ${n}M. Increase shared file size immediately!", ("n", free_mb));
+      }
+   }
+}
+
 void database::process_interests() {
    try {
       uint32_t block_no = head_block_num(); //process_interests is called after the current block is accepted
@@ -1827,7 +1861,7 @@ void database::process_interests() {
 
 void database::process_header_extensions( const signed_block& next_block )
 {
-   process_header_visitor _v( next_block.witness, shared_from_this() );
+   process_header_visitor _v( next_block.witness, std::static_pointer_cast<database>(shared_from_this()) );
 
    for( const auto& e : next_block.extensions )
       e.visit( _v );

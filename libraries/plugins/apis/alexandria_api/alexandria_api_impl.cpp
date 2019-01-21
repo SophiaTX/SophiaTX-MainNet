@@ -14,7 +14,7 @@ alexandria_api_impl::alexandria_api_impl()
 
 alexandria_api_impl::~alexandria_api_impl() {}
 
-std::shared_ptr<chain::database_interface> alexandria_api_impl::get_db() const {
+const std::shared_ptr<chain::database_interface> &alexandria_api_impl::get_db() const {
    return _db;
 }
 

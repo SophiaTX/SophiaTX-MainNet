@@ -147,7 +147,7 @@ void block_log_info_plugin::plugin_initialize( const boost::program_options::var
    try
    {
       ilog( "Initializing block_log_info plugin" );
-      std::shared_ptr<database_interface> db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      std::shared_ptr<database_interface>& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       my->on_applied_block_connection = db->applied_block.connect( [&]( const signed_block& b ){ my->on_applied_block( b ); } );
 

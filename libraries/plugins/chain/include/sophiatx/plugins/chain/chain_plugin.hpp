@@ -100,8 +100,8 @@ public:
    }
 
    // Exposed for backwards compatibility. In the future, plugins should manage their own internal database
-   virtual std::shared_ptr<database_interface> db() { return db_;}
-   virtual const std::shared_ptr<database_interface> db() const { return db_;}
+   virtual std::shared_ptr<database_interface>& db() { return db_;}
+   virtual const std::shared_ptr<database_interface>& db() const { return db_;}
 
    // Emitted when the blockchain is syncing/live.
    // This is to synchronize plugins that have the chain plugin as an optional dependency.

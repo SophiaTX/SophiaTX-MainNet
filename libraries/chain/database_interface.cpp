@@ -48,40 +48,6 @@ void database_interface::notify_on_applied_transaction(const signed_transaction 
    SOPHIATX_TRY_NOTIFY(on_applied_transaction, tx)
 }
 
-void database_interface::check_free_memory(bool force_print, uint32_t current_block_num) {
-   uint64_t free_mem = get_free_memory();
-   uint64_t max_mem = get_max_memory();
-
-   if( BOOST_UNLIKELY(_shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ((uint128_t(
-         SOPHIATX_100_PERCENT - _shared_file_full_threshold) * max_mem) / SOPHIATX_100_PERCENT).to_uint64())) {
-      uint64_t new_max = (uint128_t(max_mem * _shared_file_scale_rate) / SOPHIATX_100_PERCENT).to_uint64() + max_mem;
-
-      wlog("Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024 * 1024)));
-
-      resize(new_max);
-
-      uint32_t free_mb = uint32_t(get_free_memory() / (1024 * 1024));
-      wlog("Free memory is now ${free}M", ("free", free_mb));
-      _last_free_gb_printed = free_mb / 1024;
-   } else {
-      uint32_t free_gb = uint32_t(free_mem / (1024 * 1024 * 1024));
-      if( BOOST_UNLIKELY(force_print || (free_gb < _last_free_gb_printed) || (free_gb > _last_free_gb_printed + 1))) {
-         ilog("Free memory is now ${n}G. Current block number: ${block}", ("n", free_gb)("block", current_block_num));
-         _last_free_gb_printed = free_gb;
-      }
-
-      if( BOOST_UNLIKELY(free_gb == 0)) {
-         uint32_t free_mb = uint32_t(free_mem / (1024 * 1024));
-
-#ifdef IS_TEST_NET
-         if( !disable_low_mem_warning )
-#endif
-            if( free_mb <= 100 && head_block_num() % 10 == 0 )
-               elog("Free memory is now ${n}M. Increase shared file size immediately!", ("n", free_mb));
-      }
-   }
-}
-
 void database_interface::wipe( const fc::path& shared_mem_dir, bool include_blocks)
 {
    close();

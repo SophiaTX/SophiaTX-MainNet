@@ -1,5 +1,7 @@
 #include <appbase/application.hpp>
 
+#include <sophiatx/chain/database/database.hpp>
+
 #include <sophiatx/plugins/database_api/database_api.hpp>
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
@@ -69,7 +71,7 @@ class database_api_impl
 
 
 
-      std::shared_ptr<database_interface> _db;
+      std::shared_ptr<database> _db;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -87,7 +89,7 @@ database_api::database_api()
 database_api::~database_api() {}
 
 database_api_impl::database_api_impl()
-   : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+   : _db( std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ) {}
 
 database_api_impl::~database_api_impl() {}
 
@@ -137,7 +139,7 @@ DEFINE_API_IMPL( database_api_impl, get_feed_history )
 
 DEFINE_API_IMPL( database_api_impl, list_witnesses )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_witnesses_return result;
    result.witnesses.reserve( args.limit );
@@ -202,7 +204,7 @@ DEFINE_API_IMPL( database_api_impl, list_witnesses )
 
 DEFINE_API_IMPL( database_api_impl, find_witnesses )
 {
-   FC_ASSERT( args.owners.size() <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.owners.size() <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    find_witnesses_return result;
 
@@ -219,7 +221,7 @@ DEFINE_API_IMPL( database_api_impl, find_witnesses )
 
 DEFINE_API_IMPL( database_api_impl, list_witness_votes )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_witness_votes_return result;
    result.votes.reserve( args.limit );
@@ -280,7 +282,7 @@ DEFINE_API_IMPL( database_api_impl, get_active_witnesses )
 
 DEFINE_API_IMPL( database_api_impl, list_accounts )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_accounts_return result;
    result.accounts.reserve( args.limit );
@@ -348,7 +350,7 @@ DEFINE_API_IMPL( database_api_impl, list_accounts )
 DEFINE_API_IMPL( database_api_impl, find_accounts )
 {
    find_accounts_return result;
-   FC_ASSERT( args.accounts.size() <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.accounts.size() <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    for( auto& a : args.accounts )
    {
@@ -365,7 +367,7 @@ DEFINE_API_IMPL( database_api_impl, find_accounts )
 
 DEFINE_API_IMPL( database_api_impl, list_owner_histories )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_owner_histories_return result;
    result.owner_auths.reserve( args.limit );
@@ -387,7 +389,7 @@ DEFINE_API_IMPL( database_api_impl, find_owner_histories )
    const auto& hist_idx = _db->get_index< chain::owner_authority_history_index, chain::by_account >();
    auto itr = hist_idx.lower_bound( args.owner );
 
-   while( itr != hist_idx.end() && itr->account == args.owner && result.owner_auths.size() <= DATABASE_API_SINGLE_QUERY_LIMIT )
+   while( itr != hist_idx.end() && itr->account == args.owner && result.owner_auths.size() <= SOPHIATX_API_SINGLE_QUERY_LIMIT )
    {
       result.owner_auths.push_back( api_owner_authority_history_object( *itr ) );
       ++itr;
@@ -401,7 +403,7 @@ DEFINE_API_IMPL( database_api_impl, find_owner_histories )
 
 DEFINE_API_IMPL( database_api_impl, list_account_recovery_requests )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_account_recovery_requests_return result;
    result.requests.reserve( args.limit );
@@ -440,7 +442,7 @@ DEFINE_API_IMPL( database_api_impl, list_account_recovery_requests )
 DEFINE_API_IMPL( database_api_impl, find_account_recovery_requests )
 {
    find_account_recovery_requests_return result;
-   FC_ASSERT( args.accounts.size() <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.accounts.size() <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    for( auto& a : args.accounts )
    {
@@ -458,7 +460,7 @@ DEFINE_API_IMPL( database_api_impl, find_account_recovery_requests )
 
 DEFINE_API_IMPL( database_api_impl, list_change_recovery_account_requests )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_change_recovery_account_requests_return result;
    result.requests.reserve( args.limit );
@@ -497,7 +499,7 @@ DEFINE_API_IMPL( database_api_impl, list_change_recovery_account_requests )
 DEFINE_API_IMPL( database_api_impl, find_change_recovery_account_requests )
 {
    find_change_recovery_account_requests_return result;
-   FC_ASSERT( args.accounts.size() <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.accounts.size() <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    for( auto& a : args.accounts )
    {
@@ -515,7 +517,7 @@ DEFINE_API_IMPL( database_api_impl, find_change_recovery_account_requests )
 
 DEFINE_API_IMPL( database_api_impl, list_escrows )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_escrows_return result;
    result.escrows.reserve( args.limit );
@@ -560,7 +562,7 @@ DEFINE_API_IMPL( database_api_impl, find_escrows )
    const auto& escrow_idx = _db->get_index< chain::escrow_index, chain::by_from_id >();
    auto itr = escrow_idx.lower_bound( args.from );
 
-   while( itr != escrow_idx.end() && itr->from == args.from && result.escrows.size() <= DATABASE_API_SINGLE_QUERY_LIMIT )
+   while( itr != escrow_idx.end() && itr->from == args.from && result.escrows.size() <= SOPHIATX_API_SINGLE_QUERY_LIMIT )
    {
       result.escrows.push_back( *itr );
       ++itr;
@@ -577,7 +579,7 @@ DEFINE_API_IMPL( database_api_impl, find_escrows )
 
 DEFINE_API_IMPL( database_api_impl, list_applications )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    list_applications_return result;
    result.applications.reserve( args.limit );
@@ -614,7 +616,7 @@ DEFINE_API_IMPL( database_api_impl, list_applications )
 
 DEFINE_API_IMPL( database_api_impl, get_application_buyings )
 {
-   FC_ASSERT( args.limit <= DATABASE_API_SINGLE_QUERY_LIMIT );
+   FC_ASSERT( args.limit <= SOPHIATX_API_SINGLE_QUERY_LIMIT );
 
    get_application_buyings_return result;
    result.application_buyings.reserve( args.limit );

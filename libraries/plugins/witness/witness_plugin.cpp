@@ -2,6 +2,7 @@
 #include <sophiatx/plugins/witness/witness_objects.hpp>
 
 #include <sophiatx/chain/database/database_exceptions.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/account_object.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 #include <sophiatx/chain/index.hpp>
@@ -51,7 +52,7 @@ namespace detail {
    public:
       witness_plugin_impl( boost::asio::io_service& io ) :
          _timer(io),
-         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ),
          _chain_plugin( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >()) {}
 
       void pre_transaction( const sophiatx::protocol::signed_transaction& trx );
@@ -70,7 +71,7 @@ namespace detail {
       std::set< sophiatx::protocol::account_name_type >                     _witnesses;
       boost::asio::deadline_timer                                          _timer;
 
-      std::shared_ptr<chain::database_interface>  _db;
+      std::shared_ptr<chain::database>  _db;
       plugins::chain::chain_plugin& _chain_plugin;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   applied_block_connection;
@@ -254,7 +255,7 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::block_production_loop()
    {
-      auto db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       if( fc::time_point::now() < fc::time_point(db->get_genesis_time()) )
       {
          wlog( "waiting until genesis time to produce block: ${t}, now is: ${n}", ("t", db->get_genesis_time())("n", fc::time_point::now()) );
@@ -324,7 +325,7 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::maybe_produce_block(fc::mutable_variant_object& capture)
    {
-      auto db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       fc::time_point now_fine = fc::time_point::now();
       fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
 
@@ -457,7 +458,7 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
 void witness_plugin::plugin_startup()
 { try {
    ilog("witness plugin:  plugin_startup() begin");
-      auto d = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto d = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
 
    if( !my->_witnesses.empty() )
    {

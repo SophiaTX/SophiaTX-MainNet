@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
 
       BOOST_TEST_MESSAGE( "--- Test failure covering witness fee" );
       generate_block();
-      db_plugin->debug_update( [=]( const std::shared_ptr<database_interface>& db )
+      db_plugin->debug_update( [=]( const std::shared_ptr<database>& db )
       {
          db->modify( db->get_witness_schedule_object(), [&]( witness_schedule_object& wso )
          {
@@ -802,7 +802,7 @@ BOOST_AUTO_TEST_CASE( withdraw_vesting_apply )
       generate_block();
       }
 
-      db_plugin->debug_update( [=]( const std::shared_ptr<database_interface>& db )
+      db_plugin->debug_update( [=]( const std::shared_ptr<database>& db )
       {
          auto& wso = db->get_witness_schedule_object();
 

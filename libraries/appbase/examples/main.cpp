@@ -43,7 +43,7 @@ class plugin_a : public appbase::plugin<plugin_a>
       std::cout << "shutdown plugin_a plugin \n";
     }
 
-   std::shared_ptr<database_interface> db() { return _db; }
+   std::shared_ptr<database_interface>& db() { return _db; }
 
    private:
    std::shared_ptr<database_interface> _db;

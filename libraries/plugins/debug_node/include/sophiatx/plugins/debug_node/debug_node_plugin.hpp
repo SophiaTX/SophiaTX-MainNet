@@ -1,5 +1,6 @@
 
 #pragma once
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 
 #include <fc/variant_object.hpp>
@@ -51,17 +52,17 @@ class debug_node_plugin : public plugin< debug_node_plugin >
       virtual void plugin_startup() override;
       virtual void plugin_shutdown() override;
 
-      std::shared_ptr<chain::database_interface> database();
+      std::shared_ptr<chain::database>& database();
 
       template< typename Lambda >
       void debug_update( Lambda&& callback, uint32_t skip = sophiatx::chain::database_interface::skip_nothing )
       {
          // this was a method on database in Graphene
-         auto db = database();
+         auto& db = database();
          chain::block_id_type head_id = db->head_block_id();
          auto it = _debug_updates.find( head_id );
          if( it == _debug_updates.end() )
-            it = _debug_updates.emplace( head_id, std::vector< std::function< void( std::shared_ptr<chain::database_interface>& ) > >() ).first;
+            it = _debug_updates.emplace( head_id, std::vector< std::function< void( std::shared_ptr<chain::database>& ) > >() ).first;
          it->second.emplace_back( callback );
 
          fc::optional<chain::signed_block> head_block = db->fetch_block_by_id( head_id );
@@ -113,7 +114,7 @@ class debug_node_plugin : public plugin< debug_node_plugin >
 
       std::vector< std::string > _edit_scripts;
       //std::map< protocol::block_id_type, std::vector< fc::variant_object > > _debug_updates;
-      std::map< protocol::block_id_type, std::vector< std::function< void( std::shared_ptr<chain::database_interface>& ) > > > _debug_updates;
+      std::map< protocol::block_id_type, std::vector< std::function< void( std::shared_ptr<chain::database>& ) > > > _debug_updates;
 };
 
 } } }

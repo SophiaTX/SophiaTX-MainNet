@@ -122,7 +122,7 @@ void track_and_trace_plugin::plugin_initialize( const boost::program_options::va
    try
    {
       ilog( "Initializing track_and_trace_plugin_impl plugin" );
-      auto db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::tat_interpreter>(my->interpreter));
       add_plugin_index< posession_index >(db);
