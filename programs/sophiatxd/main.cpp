@@ -26,6 +26,8 @@
 #include <vector>
 
 #include <fc/crypto/rand.hpp>
+#include <sophiatx/config/config.hpp>
+#include "../../libraries/config/include/sophiatx/config/config.hpp"
 
 namespace bpo = boost::program_options;
 using sophiatx::protocol::version;
@@ -90,6 +92,9 @@ int main( int argc, char** argv )
          return 0;
 
       auto& args = appbase::app().get_args();
+
+      debug_config(appbase::app().get_options(), args);
+
 
       try
       {

@@ -9,7 +9,7 @@ condenser_api_plugin::~condenser_api_plugin() {}
 
 void condenser_api_plugin::set_program_options( options_description& cli, options_description& cfg )
 {
-   cli.add_options()
+   cfg.add_options()
       ("disable-get-block", "Disable get_block API call" )
       ;
 }

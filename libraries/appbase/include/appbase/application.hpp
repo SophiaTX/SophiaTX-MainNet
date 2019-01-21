@@ -126,6 +126,7 @@ namespace appbase {
 
          void add_program_options( const bpo::options_description& cli, const bpo::options_description& cfg );
          const bpo::variables_map& get_args() const;
+         const options_description& get_options() const;
 
          void set_version_string( const string& version ) { version_info = version; }
 

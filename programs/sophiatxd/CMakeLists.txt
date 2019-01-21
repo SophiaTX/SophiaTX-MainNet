@@ -15,6 +15,7 @@ if( SOPHIATX_STATIC_BUILD )
       appbase
       sophiatx_utilities
       sophiatx_plugins
+      sophiatx_config
       ${CMAKE_DL_LIBS}
       ${PLATFORM_SPECIFIC_LIBS}
    )
@@ -23,6 +24,7 @@ else( SOPHIATX_STATIC_BUILD )
       appbase
       sophiatx_utilities
       sophiatx_plugins
+      sophiatx_config
       ${CMAKE_DL_LIBS}
       ${PLATFORM_SPECIFIC_LIBS}
    )

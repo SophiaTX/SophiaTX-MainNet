@@ -18,6 +18,55 @@ using bpo::options_description;
 using bpo::variables_map;
 using std::cout;
 
+namespace{
+// TODO: delete after HF2
+/**
+ * @brief Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
+ *        Applies fixes only when users did not specify some custom paths to data-dir and config file
+ *
+ * @param actual_data_dir
+ * @param cfg_data_dir
+ * @param cfg_config
+ */
+void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
+                                          const boost::program_options::variable_value& cfg_data_dir,
+                                          const boost::program_options::variable_value& cfg_config)
+{
+   // If data_dir has default(new) name and there is existing directory with old name -> rename it
+   if (cfg_data_dir.defaulted() == true) {
+      bfs::path deprecated_default_data_dir = bfs::current_path() / "witness_node_data_dir";
+      if (bfs::exists(deprecated_default_data_dir) == true) {
+         bfs::rename(deprecated_default_data_dir, actual_data_dir);
+      }
+   }
+
+   // If config with default name exists and is not in subdirectory configs -> move it there
+   if (cfg_config.defaulted() == true) {
+      bfs::path deprecated_default_config_path = actual_data_dir / "config.ini";
+      if (bfs::exists(deprecated_default_config_path) == true) {
+         if (bfs::exists(actual_data_dir) == false) {
+            bfs::create_directory(actual_data_dir);
+         }
+
+         bfs::path configs_dir = actual_data_dir / "configs/";
+         if (bfs::exists(configs_dir) == false) {
+            bfs::create_directory(configs_dir);
+         }
+
+         bfs::rename(deprecated_default_config_path, configs_dir / cfg_config.as<bfs::path>());
+      }
+   }
+}
+
+void migrate_config_to_json(const bfs::path& actual_data_dir,
+                            const boost::program_options::variable_value& cfg_data_dir,
+                            const boost::program_options::variable_value& cfg_config)
+{
+
+}
+
+}
+
 
 class application_impl {
    public:
@@ -72,7 +121,7 @@ void application::set_program_options()
          ("help,h", "Print this help message and exit.")
          ("version,v", "Print version information.")
          ("data-dir,d", bpo::value<bfs::path>()->default_value( "sophia_app_data" ), "Directory containing configuration files, blockchain data and external plugins")
-         ("config,c", bpo::value<bfs::path>()->default_value( "config.ini" ), "Main configuration file path (absolute path or relative to the data-dir/configs/)");
+         ("config,c", bpo::value<bfs::path>()->default_value( "config.ini" ), "Obsolete. Main configuration file path (absolute path or relative to the data-dir/configs/)");
 
    my->_cfg_options.add(app_cfg_opts);
    my->_app_options.add(app_cfg_opts);
@@ -174,43 +223,6 @@ void application::load_external_plugin_config(const std::shared_ptr<abstract_plu
                                               plugin_options.get_cfg_options(), true ), my->_args );
 }
 
-// TODO: delete after HF2
-/**
- * @brief Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
- *        Applies fixes only when users did not specify some custom paths to data-dir and config file
- *
- * @param actual_data_dir
- * @param cfg_data_dir
- * @param cfg_config
- */
-void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
-                                          const boost::program_options::variable_value& cfg_data_dir,
-                                          const boost::program_options::variable_value& cfg_config) {
-   // If data_dir has default(new) name and there is existing directory with old name -> rename it
-   if (cfg_data_dir.defaulted() == true) {
-      bfs::path deprecated_default_data_dir = bfs::current_path() / "witness_node_data_dir";
-      if (bfs::exists(deprecated_default_data_dir) == true) {
-         bfs::rename(deprecated_default_data_dir, actual_data_dir);
-      }
-   }
-
-   // If config with default name exists and is not in subdirectory configs -> move it there
-   if (cfg_config.defaulted() == true) {
-      bfs::path deprecated_default_config_path = actual_data_dir / "config.ini";
-      if (bfs::exists(deprecated_default_config_path) == true) {
-         if (bfs::exists(actual_data_dir) == false) {
-            bfs::create_directory(actual_data_dir);
-         }
-
-         bfs::path configs_dir = actual_data_dir / "configs/";
-         if (bfs::exists(configs_dir) == false) {
-            bfs::create_directory(configs_dir);
-         }
-
-         bfs::rename(deprecated_default_config_path, configs_dir / cfg_config.as<bfs::path>());
-      }
-   }
-}
 
 bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*> autostart_plugins)
 {
@@ -246,6 +258,7 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
       // TODO: delete after HF2
       // Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
       fix_deprecated_data_folder_structure(my->_data_dir, my->_args["data-dir"], my->_args["config"]);
+      migrate_config_to_json(my->_data_dir, my->_args["data-dir"], my->_args["config"] );
 
 
       // Writes config if it does not already exists
@@ -399,6 +412,11 @@ void application::add_program_options( const options_description& cli, const opt
 const variables_map& application::get_args() const
 {
    return my->_args;
+}
+
+const options_description& application::get_options() const
+{
+   return my->_cfg_options;
 }
 
 } /// namespace appbase

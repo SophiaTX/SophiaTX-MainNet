@@ -296,6 +296,8 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("checkpoint,c", bpo::value<vector<string>>()->composing(), "Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.")
          ("flush-state-interval", bpo::value<uint32_t>(),
             "flush shared memory changes to disk every N blocks")
+         ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
+         ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
          ;
    cli.add_options()
          ("replay-blockchain", bpo::bool_switch()->default_value(false), "clear chain database and replay all blocks" )
@@ -305,8 +307,7 @@ void chain_plugin::set_program_options(options_description& cli, options_descrip
          ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
          ("check-locks", bpo::bool_switch()->default_value(false), "Check correctness of chainbase locking" )
          ("validate-database-invariants", bpo::bool_switch()->default_value(false), "Validate all supply invariants check out" )
-         ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
-         ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
+
          ;
 }
 
