@@ -9,11 +9,6 @@ condenser_api::get_version_return remote_node_api::get_version()
    FC_ASSERT( false );
 }
 
-condenser_api::state remote_node_api::get_state( string )
-{
-   FC_ASSERT( false );
-}
-
 vector< account_name_type > remote_node_api::get_active_witnesses()
 {
    FC_ASSERT( false );

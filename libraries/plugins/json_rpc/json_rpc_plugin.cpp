@@ -591,6 +591,12 @@ string json_rpc_plugin::call( const string& message, std::function<void(const st
 
 }
 
+fc::optional< fc::variant > json_rpc_plugin::call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args) const {
+
+   api_method* call = my->find_api_method( api_name, method_name);
+   return (*call)(func_args);
+}
+
 
 } } } // sophiatx::plugins::json_rpc
 

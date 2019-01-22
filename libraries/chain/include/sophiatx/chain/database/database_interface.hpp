@@ -140,8 +140,6 @@ public:
 
    virtual std::vector<block_id_type> get_block_ids_on_fork(block_id_type head_of_fork) const = 0;
 
-   virtual const account_object &get_account(const account_name_type &name) const = 0;
-
    virtual const dynamic_global_property_object &get_dynamic_global_properties() const = 0;
 
    virtual const hardfork_property_object &get_hardfork_property_object() const = 0;

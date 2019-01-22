@@ -33,7 +33,6 @@ namespace detail
 
          DECLARE_API_IMPL(
             (get_version)
-            (get_state)
             (get_active_witnesses)
             (get_block_header)
             (get_block)
@@ -103,131 +102,6 @@ namespace detail
          fc::string( fc::git_revision_sha ),
          fc::string( _database_api->get_dynamic_global_properties({}).chain_id  )
       );
-   }
-
-   DEFINE_API_IMPL( condenser_api_impl, get_state )
-   {
-      CHECK_ARG_SIZE( 1 )
-      string path = args[0].as< string >();
-
-      state _state;
-      _state.props         = get_dynamic_global_properties( {} );
-      _state.current_route = path;
-      _state.feed_price    = _database_api->get_current_price_feed( {} );
-
-      try
-      {
-         if( path.size() && path[0] == '/' )
-            path = path.substr(1); /// remove '/' from front
-
-         /// END FETCH CATEGORY STATE
-
-         set<string> accounts;
-
-         vector<string> part; part.reserve(4);
-         boost::split( part, path, boost::is_any_of("/") );
-         part.resize(std::max( part.size(), size_t(4) ) ); // at least 4
-
-         auto tag = fc::to_lower( part[1] );
-
-         if( part[0].size() && part[0][0] == '@' ) {
-            auto acnt = part[0].substr(1);
-            _state.accounts[acnt] = extended_account( database_api::api_account_object( _db->get_account( acnt ), _db ) );
-
-            auto& eacnt = _state.accounts[acnt];
-            if( part[1] == "transfers" )
-            {
-               if( _account_history_api )
-               {
-                  legacy_operation l_op;
-                  legacy_operation_conversion_visitor visitor( l_op );
-                  auto history = _account_history_api->get_account_history( { acnt, int64_t(-1), 1000 } ).history;
-                  for( auto& item : history )
-                  {
-                     switch( item.second.op.which() ) {
-                        case operation::tag<transfer_to_vesting_operation>::value:
-                        case operation::tag<withdraw_vesting_operation>::value:
-                        case operation::tag<interest_operation>::value:
-                        case operation::tag<transfer_operation>::value:
-                        case operation::tag<escrow_transfer_operation>::value:
-                        case operation::tag<escrow_approve_operation>::value:
-                        case operation::tag<escrow_dispute_operation>::value:
-                        case operation::tag<escrow_release_operation>::value:
-                           if( item.second.op.visit( visitor ) )
-                           {
-                              eacnt.transfer_history.emplace( item.first, api_operation_object( item.second, visitor.l_op ) );
-                           }
-                           break;
-                        case operation::tag<account_witness_vote_operation>::value:
-                        case operation::tag<account_witness_proxy_operation>::value:
-                           //TODO_SOPHIA Shall we return the vote history???
-                        //   eacnt.vote_history[item.first] =  item.second;
-                           break;
-                        case operation::tag<account_create_operation>::value:
-                        case operation::tag<account_update_operation>::value:
-                        case operation::tag<witness_update_operation>::value:
-                        case operation::tag<witness_stop_operation>::value:
-
-                        case operation::tag<custom_operation>::value:
-                        case operation::tag<producer_reward_operation>::value:
-                        default:
-                           if( item.second.op.visit( visitor ) )
-                           {
-                              eacnt.other_history.emplace( item.first, api_operation_object( item.second, visitor.l_op ) );
-                           }
-                     }
-                  }
-               }
-            }
-            //else if( part[1].size() == 0 || part[1] == "blog" )
-
-         }
-         /// pull a complete discussion
-         else if( part[1].size() && part[1][0] == '@' )
-         {
-            auto account  = part[1].substr( 1 );
-            auto slug     = part[2];
-
-            string key = account + "/" + slug;
-
-         }
-         else if( part[0] == "witnesses" || part[0] == "~witnesses")
-         {
-            auto wits = get_witnesses_by_vote( { fc::variant(""), fc::variant(50) } );
-            for( const auto& w : wits )
-            {
-               _state.witnesses[w.owner] = w;
-            }
-         }
-         else if( part[0] == "payout"  )
-         {
-            //TODO_SOPHIA - payouts from mining
-         }
-         else if( part[0] == "votes"  )
-         {
-            //TODO_SOPHIA Shall we return the vote history???
-         }
-         else {
-            elog( "What... no matches" );
-         }
-
-         for( const auto& a : accounts )
-         {
-            _state.accounts.erase("");
-            _state.accounts[a] = extended_account( database_api::api_account_object( _db->get_account( a ), _db ) );
-
-         }
-
-
-         _state.witness_schedule = _database_api->get_witness_schedule( {} );
-
-      }
-      catch ( const fc::exception& e )
-      {
-         _state.error = e.to_detail_string();
-      }
-
-      return _state;
    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_active_witnesses )
@@ -813,7 +687,6 @@ DEFINE_LOCKLESS_APIS( condenser_api,
 )
 
 DEFINE_READ_APIS( condenser_api,
-   (get_state)
    (get_active_witnesses)
    (get_block_header)
    (get_block)

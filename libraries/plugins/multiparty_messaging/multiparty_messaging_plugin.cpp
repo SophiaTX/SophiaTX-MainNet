@@ -257,7 +257,9 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
    FC_CAPTURE_AND_RETHROW()
 }
 
-void multiparty_messaging_plugin::plugin_startup() {}
+void multiparty_messaging_plugin::plugin_startup() {
+   api->api_startup();
+}
 
 void multiparty_messaging_plugin::plugin_shutdown() {}
 

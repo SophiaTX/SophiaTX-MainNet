@@ -16,7 +16,6 @@ using namespace plugins;
 struct remote_node_api
 {
    condenser_api::get_version_return get_version();
-   condenser_api::state get_state( string );
    vector< account_name_type > lookup_accounts( account_name_type, uint32_t );
    vector< account_name_type > get_active_witnesses();
    optional< block_header > get_block_header( uint32_t );
@@ -70,7 +69,6 @@ struct remote_node_api
 } }
 
 FC_API( sophiatx::alexandria::remote_node_api,
-        (get_state)
         (lookup_accounts)
         (get_version)
         (get_active_witnesses)

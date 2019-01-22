@@ -78,13 +78,6 @@ public:
       return std::vector<block_id_type>();
    }
 
-   const account_object &get_account(const account_name_type &name) const {
-      not_implemented();
-      //TODO ugly hack so it will compile without warnings
-      account_object *dummy = nullptr;
-      return *dummy;
-   }
-
    const dynamic_global_property_object &get_dynamic_global_properties() const {
       not_implemented();
       //TODO ugly hack so it will compile without warnings
