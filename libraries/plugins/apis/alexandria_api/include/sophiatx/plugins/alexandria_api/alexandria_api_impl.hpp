@@ -11,6 +11,7 @@
 #include <sophiatx/plugins/custom_api/custom_api.hpp>
 #include <sophiatx/plugins/subscribe_api/subscribe_api.hpp>
 #include <sophiatx/plugins/witness_api/witness_api.hpp>
+#include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_api.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
@@ -22,7 +23,7 @@ public:
    /**
     * Getters and setters
     */
-   chain::database &get_db() const;
+   const std::shared_ptr<chain::database_interface> &get_db() const;
 
    const shared_ptr<block_api::block_api> &get_block_api() const;
    void set_block_api(const shared_ptr<block_api::block_api> &block_api);
@@ -51,6 +52,8 @@ public:
    const chain_id_type &get_chain_id();
    void set_chain_id(const chain_id_type &_chain_id);
 
+   const shared_ptr<multiparty_messaging::multiparty_messaging_api> &get_mpm_api() const;
+   void set_mpm_api(const shared_ptr<multiparty_messaging::multiparty_messaging_api> &multiparty_messaging_api);
 
    /**
     * API methods declarations
@@ -130,9 +133,11 @@ public:
          (get_key_references)
          (get_version)
          (get_dynamic_global_properties)
+         (get_witness_schedule_object)
+         (get_hardfork_property_object)
    )
 
-   chain::database &_db;
+   std::shared_ptr<chain::database_interface> _db;
 
 private:
    std::shared_ptr< database_api::database_api >                     _database_api;
@@ -143,7 +148,7 @@ private:
    std::shared_ptr< witness::witness_api >                           _witness_api;
    std::shared_ptr< custom::custom_api >                             _custom_api;
    std::shared_ptr< subscribe::subscribe_api >                       _subscribe_api;
-
+   std::shared_ptr< multiparty_messaging::multiparty_messaging_api > _mpm_api;
 
    chain_id_type             _chain_id;
    static constexpr uint32_t _tx_expiration_seconds = 30;

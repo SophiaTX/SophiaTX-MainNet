@@ -109,7 +109,7 @@ namespace sophiatx { namespace protocol {
       if( itr != props.end() )
       {
          asset account_creation_fee;
-         fc::raw::unpack_from_vector( itr->second, account_creation_fee );
+         fc::raw::unpack_from_vector( itr->second, account_creation_fee, 0 );
          FC_ASSERT( account_creation_fee.symbol == SOPHIATX_SYMBOL, "account_creation_fee must be in SOPHIATX" );
          FC_ASSERT( account_creation_fee.amount >= SOPHIATX_MIN_ACCOUNT_CREATION_FEE , "account_creation_fee smaller than minimum account creation fee" );
       }
@@ -118,7 +118,7 @@ namespace sophiatx { namespace protocol {
       if( itr != props.end() )
       {
          uint32_t maximum_block_size;
-         fc::raw::unpack_from_vector( itr->second, maximum_block_size );
+         fc::raw::unpack_from_vector( itr->second, maximum_block_size, 0 );
          FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT, "maximum_block_size smaller than minimum max block size" );
       }
 
@@ -126,7 +126,7 @@ namespace sophiatx { namespace protocol {
       if( itr != props.end() )
       {
          public_key_type signing_key;
-         fc::raw::unpack_from_vector( itr->second, signing_key );
+         fc::raw::unpack_from_vector( itr->second, signing_key, 0 );
          FC_UNUSED( signing_key ); // This tests the deserialization of the key
       }
 
@@ -134,7 +134,7 @@ namespace sophiatx { namespace protocol {
       if( itr != props.end() )
       {
          std::vector<price> exchange_rates;
-         fc::raw::unpack_from_vector( itr->second, exchange_rates );
+         fc::raw::unpack_from_vector( itr->second, exchange_rates, 0 );
          for(const auto &rate: exchange_rates){
             if(rate.base.symbol == SOPHIATX_SYMBOL){
                FC_ASSERT(rate.quote.symbol == SBD1_SYMBOL || rate.quote.symbol == SBD2_SYMBOL ||
@@ -157,7 +157,7 @@ namespace sophiatx { namespace protocol {
       if( itr != props.end() )
       {
          std::string url;
-         fc::raw::unpack_from_vector< std::string >( itr->second, url );
+         fc::raw::unpack_from_vector< std::string >( itr->second, url, 0 );
 
          FC_ASSERT( url.size() <= SOPHIATX_MAX_WITNESS_URL_LENGTH, "URL is too long" );
          FC_ASSERT( url.size() > 0, "URL size must be greater than 0" );

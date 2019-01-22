@@ -16,7 +16,7 @@ struct api_operation_object
       timestamp( op_obj.timestamp ),
       fee_payer( op_obj.fee_payer )
    {
-      op = fc::raw::unpack_from_buffer< sophiatx::protocol::operation >( op_obj.serialized_op );
+      op = fc::raw::unpack_from_buffer< sophiatx::protocol::operation >( op_obj.serialized_op, 0 );
    }
 
    sophiatx::protocol::transaction_id_type trx_id;

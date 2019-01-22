@@ -17,13 +17,13 @@ class track_and_trace_api_impl
    get_transfer_requests_return get_transfer_requests(const get_transfer_requests_args& args)const;
    get_item_details_return get_item_details(const get_item_details_args& args)const;
 
-   chain::database& _db;
+   std::shared_ptr<database_interface> _db;
 };
 
 get_current_holder_return track_and_trace_api_impl::get_current_holder( const get_current_holder_args& args )const
 {
    get_current_holder_return final_result;
-   const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_serial >();
+   const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_serial >();
    const auto& holder_itr = holder_idx.find(args.serial);
    if(holder_itr != holder_idx.end())
       final_result.holder = holder_itr->holder;
@@ -35,7 +35,7 @@ get_current_holder_return track_and_trace_api_impl::get_current_holder( const ge
 get_holdings_return track_and_trace_api_impl::get_holdings( const get_holdings_args& args )const
 {
    get_holdings_return final_result;
-   const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_holder >();
+   const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_holder >();
    auto itr = holder_idx.lower_bound( args.holder );
    while (itr!=holder_idx.end() && itr->holder == args.holder ) {
       final_result.serials.push_back(itr->serial);
@@ -47,7 +47,7 @@ get_holdings_return track_and_trace_api_impl::get_holdings( const get_holdings_a
 get_tracked_object_history_return track_and_trace_api_impl::get_tracked_object_history( const get_tracked_object_history_args& args )const
 {
    get_tracked_object_history_return final_result;
-   const auto& history_idx = _db.get_index< transfer_history_index >().indices().get< by_serial_date >();
+   const auto& history_idx = _db->get_index< transfer_history_index >().indices().get< by_serial_date >();
    auto itr = history_idx.lower_bound( std::make_tuple(args.serial, fc::time_point_sec::min() ) );
    while (itr!=history_idx.end() && itr->serial == args.serial ) {
       final_result.history_items.push_back(*itr);
@@ -59,7 +59,7 @@ get_tracked_object_history_return track_and_trace_api_impl::get_tracked_object_h
 get_transfer_requests_return track_and_trace_api_impl::get_transfer_requests(const get_transfer_requests_args& args)const
 {
    get_transfer_requests_return final_result;
-   const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_new_holder >();
+   const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_new_holder >();
    auto itr = holder_idx.lower_bound( args.new_holder );
    while (itr!=holder_idx.end() && itr->holder == args.new_holder ) {
       final_result.serials.push_back(itr->serial);
@@ -70,7 +70,7 @@ get_transfer_requests_return track_and_trace_api_impl::get_transfer_requests(con
 
 get_item_details_return track_and_trace_api_impl::get_item_details(const get_item_details_args& args)const
 {
-   const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_serial >();
+   const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_serial >();
    const auto& holder_itr = holder_idx.find(args.serial);
    if(holder_itr != holder_idx.end())
       return *holder_itr;

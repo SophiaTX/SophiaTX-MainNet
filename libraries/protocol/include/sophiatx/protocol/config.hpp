@@ -27,9 +27,6 @@
 
 #define SOPHIATX_MIN_FEEDS                       1 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
-/// Allows to limit number of total produced blocks.
-#define TESTNET_BLOCK_LIMIT                   (3000000)
-
 #else // IS LIVE SOPHIATX NETWORK
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
@@ -233,3 +230,4 @@
 /// Represents the canonical root post parent account
 #define SOPHIATX_ROOT_POST_PARENT                (account_name_type())
 ///@}
+#define SOPHIATX_API_SINGLE_QUERY_LIMIT           1000
