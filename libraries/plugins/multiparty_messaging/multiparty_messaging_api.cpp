@@ -47,7 +47,7 @@ class multiparty_messaging_api_impl
    disband_group_return  disband_group(const disband_group_args& args) const;
    send_group_message_return  send_group_message(const send_group_message_args& args) const;
 
-   std::shared_ptr<database_interface> _db;
+   chain::database& _db;
    multiparty_messaging_plugin& _plugin;
 private:
    vector<char> generate_random_key() const;
@@ -108,7 +108,7 @@ vector<char> multiparty_messaging_api_impl::generate_random_key() const
 get_group_return  multiparty_messaging_api_impl::get_group(const get_group_args& args) const
 {
    get_group_return final_result;
-   const auto& group_idx = _db->get_index< group_index >().indices().get< by_group_name >();
+   const auto& group_idx = _db.get_index< group_index >().indices().get< by_group_name >();
    const auto& group_itr = group_idx.find(args.group_name);
    if(group_itr != group_idx.end())
       final_result = *group_itr;
@@ -118,7 +118,7 @@ get_group_return  multiparty_messaging_api_impl::get_group(const get_group_args&
 get_group_name_return  multiparty_messaging_api_impl::get_group_name(const get_group_name_args& args) const
 {
    get_group_name_return final_result;
-   const auto& group_idx = _db->get_index< group_index >().indices().get< by_current_name >();
+   const auto& group_idx = _db.get_index< group_index >().indices().get< by_current_name >();
    const auto& group_itr = group_idx.find(args.current_group_name);
    if(group_itr != group_idx.end())
       final_result = group_itr->group_name;
@@ -131,7 +131,7 @@ list_my_groups_return  multiparty_messaging_api_impl::list_my_groups(const list_
 {
    list_my_groups_return ret;
    FC_ASSERT(args.count<1000);
-   const auto& group_idx = _db->get_index< group_index >().indices().get< by_group_name >();
+   const auto& group_idx = _db.get_index< group_index >().indices().get< by_group_name >();
    auto group_itr = group_idx.lower_bound(args.start);
    while( group_itr != group_idx.end() && ret.size() < args.count) {
       ret.push_back(*group_itr);
@@ -144,7 +144,7 @@ list_messages_return  multiparty_messaging_api_impl::list_messages(const list_me
 {
    list_messages_return ret;
    FC_ASSERT(args.count<1000);
-   const auto& message_idx = _db->get_index< message_index >().indices().get< by_group_seq >();
+   const auto& message_idx = _db.get_index< message_index >().indices().get< by_group_seq >();
    auto message_itr = message_idx.find( std::make_tuple(args.group_name, args.start));
    while( message_itr != message_idx.end() && message_itr->group_name == args.group_name && ret.size() < args.count) {
       ret.push_back(*message_itr);
@@ -156,7 +156,7 @@ list_messages_return  multiparty_messaging_api_impl::list_messages(const list_me
 create_group_return  multiparty_messaging_api_impl::create_group(const create_group_args& args) const
 {
    create_group_return ret;
-   const account_object& admin = _db->get_account(args.admin);
+   const account_object& admin = _db.get_account(args.admin);
    account_name_type group_name = suggest_group_name(args.description);
 
    vector<char> group_key = generate_random_key();
@@ -170,7 +170,7 @@ create_group_return  multiparty_messaging_api_impl::create_group(const create_gr
    members.erase(last, members.end());
 
    for( auto m: members ){
-      const account_object& member = _db->get_account(m);
+      const account_object& member = _db.get_account(m);
       group_op g_op( "add", group_name, args.description, members, admin.memo_key);
       g_op.user_list->push_back(admin.name);
       fc::sha512 sc = pk_itr->second.get_shared_secret(member.memo_key);
@@ -189,11 +189,11 @@ create_group_return  multiparty_messaging_api_impl::create_group(const create_gr
 add_group_participants_return  multiparty_messaging_api_impl::add_group_participants(const add_group_participants_args& args) const
 {
    add_group_participants_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
-   const account_object& admin = _db->get_account(args.admin);
+   const account_object& admin = _db.get_account(args.admin);
 
    account_name_type new_group_name = suggest_group_name(to_string(g_ob->description));  //add some more entrophy in this
    vector<char> new_group_key = generate_random_key();
@@ -212,7 +212,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
    }
 
    for( auto m: new_members ){
-      const account_object& member = _db->get_account(m);
+      const account_object& member = _db.get_account(m);
       group_op g_op( "add", new_group_name, to_string(g_ob->description), all_members, admin.memo_key);
 
       fc::sha512 sc = pk_itr->second.get_shared_secret(member.memo_key);
@@ -241,11 +241,11 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
 delete_group_participants_return  multiparty_messaging_api_impl::delete_group_participants(const delete_group_participants_args& args) const
 {
    delete_group_participants_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
-   const account_object& admin = _db->get_account(args.admin);
+   const account_object& admin = _db.get_account(args.admin);
 
    account_name_type new_group_name = suggest_group_name(to_string(g_ob->description));
    vector<char> new_group_key = generate_random_key();
@@ -274,7 +274,7 @@ delete_group_participants_return  multiparty_messaging_api_impl::delete_group_pa
       group_op g_op( "update", new_group_name, to_string(g_ob->description), all_members, admin.memo_key);
       //TODO - we should send two updates instead of one, so old members won't learn the new group name
       for( auto m: new_members ){
-         const account_object& member = _db->get_account(m);
+         const account_object& member = _db.get_account(m);
          fc::sha512 sc = pk_itr->second.get_shared_secret(member.memo_key);
          vector<char> encrypted_key = fc::aes_encrypt( sc, new_group_key );
          g_op.new_key[member.memo_key] = encrypted_key;
@@ -289,11 +289,11 @@ delete_group_participants_return  multiparty_messaging_api_impl::delete_group_pa
 update_group_return  multiparty_messaging_api_impl::update_group(const update_group_args& args) const
 {
    update_group_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
-   const account_object& admin = _db->get_account(args.admin);
+   const account_object& admin = _db.get_account(args.admin);
 
    account_name_type new_group_name = suggest_group_name(to_string(g_ob->description));  //add some more entrophy in this
    vector<char> new_group_key = generate_random_key();
@@ -318,11 +318,11 @@ update_group_return  multiparty_messaging_api_impl::update_group(const update_gr
 disband_group_return  multiparty_messaging_api_impl::disband_group(const disband_group_args& args) const
 {
    disband_group_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
-   const account_object& admin = _db->get_account(args.admin);
+   const account_object& admin = _db.get_account(args.admin);
 
    auto pk_itr = _plugin._private_keys.find(admin.memo_key);
    FC_ASSERT( pk_itr != _plugin._private_keys.end(), "the respective key not imported" );
@@ -340,10 +340,10 @@ disband_group_return  multiparty_messaging_api_impl::disband_group(const disband
 send_group_message_return  multiparty_messaging_api_impl::send_group_message(const send_group_message_args& args) const
 {
    send_group_message_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
-   const account_object& sender = _db->get_account(args.sender);
+   const account_object& sender = _db.get_account(args.sender);
 
    auto pk_itr = _plugin._private_keys.find(sender.memo_key);
    FC_ASSERT( pk_itr != _plugin._private_keys.end(), "the respective key not imported" );

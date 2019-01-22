@@ -1,7 +1,6 @@
 #include <sophiatx/plugins/debug_node/debug_node_plugin.hpp>
 
 #include <sophiatx/chain/witness_objects.hpp>
-#include <sophiatx/chain/database/database.hpp>
 
 #include <fc/io/buffered_iostream.hpp>
 #include <fc/io/fstream.hpp>
@@ -25,12 +24,12 @@ class debug_node_plugin_impl
       debug_node_plugin_impl();
       virtual ~debug_node_plugin_impl();
 
-      std::shared_ptr<chain::database>       _db;
+      chain::database&                          _db;
       boost::signals2::connection               applied_block_connection;
 };
 
 debug_node_plugin_impl::debug_node_plugin_impl() :
-   _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< chain::chain_plugin >().db()) ) {}
+   _db( appbase::app().get_plugin< chain::chain_plugin >().db() ) {}
 debug_node_plugin_impl::~debug_node_plugin_impl() {}
 
 }
@@ -59,7 +58,7 @@ void debug_node_plugin::plugin_initialize( const variables_map& options )
    }
 
    // connect needed signals
-   my->applied_block_connection = my->_db->applied_block.connect( 0, [this](const chain::signed_block& b){ on_applied_block(b); });
+   my->applied_block_connection = my->_db.applied_block.connect( 0, [this](const chain::signed_block& b){ on_applied_block(b); });
 }
 
 void debug_node_plugin::plugin_startup()
@@ -73,7 +72,7 @@ void debug_node_plugin::plugin_startup()
    }*/
 }
 
-std::shared_ptr<chain::database>& debug_node_plugin::database() { return my->_db; }
+chain::database& debug_node_plugin::database() { return my->_db; }
 
 /*
 void debug_apply_update( chain::database& db, const fc::variant_object& vo, bool logging )
@@ -138,7 +137,7 @@ void debug_apply_update( chain::database& db, const fc::variant_object& vo, bool
          FC_ASSERT( false );
          break;
       case db_action_write:
-         db->modify( db->get_object( oid ), [&]( graphene::db::object& obj )
+         db.modify( db.get_object( oid ), [&]( graphene::db::object& obj )
          {
             idx.object_default( obj );
             idx.object_from_variant( vo, obj );
@@ -146,16 +145,16 @@ void debug_apply_update( chain::database& db, const fc::variant_object& vo, bool
          FC_ASSERT( false );
          break;
       case db_action_update:
-         db->modify_variant( oid, mvo );
+         db.modify_variant( oid, mvo );
          break;
       case db_action_delete:
-         db->remove_object( oid );
+         db.remove_object( oid );
          break;
       case db_action_set_hardfork:
          {
             uint32_t hardfork_id;
             from_variant( vo[ "hardfork_id" ], hardfork_id );
-            db->set_hardfork( hardfork_id, false );
+            db.set_hardfork( hardfork_id, false );
          }
          break;
       default:
@@ -207,14 +206,14 @@ void debug_node_plugin::debug_generate_blocks(
       return;
    }
 
-   auto& db = database();
+   chain::database& db = database();
    uint32_t slot = args.miss_blocks+1, produced = 0;
    while( produced < args.count )
    {
       uint32_t new_slot = args.miss_blocks+1;
-      std::string scheduled_witness_name = db->get_scheduled_witness( slot );
-      fc::time_point_sec scheduled_time = db->get_slot_time( slot );
-      const chain::witness_object& scheduled_witness = db->get_witness( scheduled_witness_name );
+      std::string scheduled_witness_name = db.get_scheduled_witness( slot );
+      fc::time_point_sec scheduled_time = db.get_slot_time( slot );
+      const chain::witness_object& scheduled_witness = db.get_witness( scheduled_witness_name );
       chain::public_key_type scheduled_key = scheduled_witness.signing_key;
       if( logging )
       {
@@ -226,9 +225,9 @@ void debug_node_plugin::debug_generate_blocks(
          if( args.edit_if_needed )
          {
             if( logging ) wlog( "Modified key for witness ${w}", ("w", scheduled_witness_name) );
-            debug_update( [=]( auto& db )
+            debug_update( [=]( chain::database& db )
             {
-               db->modify( db->get_witness( scheduled_witness_name ), [&]( chain::witness_object& w )
+               db.modify( db.get_witness( scheduled_witness_name ), [&]( chain::witness_object& w )
                {
                   w.signing_key = debug_public_key;
                });
@@ -238,7 +237,7 @@ void debug_node_plugin::debug_generate_blocks(
             break;
       }
 
-      db->generate_block( scheduled_time, scheduled_witness_name, *debug_private_key, args.skip );
+      db.generate_block( scheduled_time, scheduled_witness_name, *debug_private_key, args.skip );
       ++produced;
       slot = new_slot;
    }
@@ -254,9 +253,9 @@ uint32_t debug_node_plugin::debug_generate_blocks_until(
    uint32_t skip
 )
 {
-   auto& db = database();
+   chain::database& db = database();
 
-   if( db->head_block_time() >= head_block_time )
+   if( db.head_block_time() >= head_block_time )
       return 0;
 
    uint32_t new_blocks = 0;
@@ -264,7 +263,7 @@ uint32_t debug_node_plugin::debug_generate_blocks_until(
    if( generate_sparsely )
    {
       new_blocks += debug_generate_blocks( debug_key, 1, skip );
-      auto slots_to_miss = db->get_slot_at_time( head_block_time );
+      auto slots_to_miss = db.get_slot_at_time( head_block_time );
       if( slots_to_miss > 1 )
       {
          slots_to_miss--;
@@ -273,7 +272,7 @@ uint32_t debug_node_plugin::debug_generate_blocks_until(
    }
    else
    {
-      while( db->head_block_time() < head_block_time )
+      while( db.head_block_time() < head_block_time )
          new_blocks += debug_generate_blocks( debug_key, 1 );
    }
 
@@ -283,8 +282,8 @@ uint32_t debug_node_plugin::debug_generate_blocks_until(
 void debug_node_plugin::apply_debug_updates()
 {
    // this was a method on database in Graphene
-   auto db = database();
-   chain::block_id_type head_id = db->head_block_id();
+   chain::database& db = database();
+   chain::block_id_type head_id = db.head_block_id();
    auto it = _debug_updates.find( head_id );
    if( it == _debug_updates.end() )
       return;

@@ -230,4 +230,3 @@
 /// Represents the canonical root post parent account
 #define SOPHIATX_ROOT_POST_PARENT                (account_name_type())
 ///@}
-#define SOPHIATX_API_SINGLE_QUERY_LIMIT           1000

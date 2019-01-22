@@ -81,7 +81,7 @@ namespace detail
 
 
 
-         std::shared_ptr<database_interface> _db;
+         chain::database& _db;
 
          std::shared_ptr< database_api::database_api > _database_api;
          std::shared_ptr< block_api::block_api > _block_api;
@@ -132,7 +132,7 @@ namespace detail
 
          if( part[0].size() && part[0][0] == '@' ) {
             auto acnt = part[0].substr(1);
-            _state.accounts[acnt] = extended_account( database_api::api_account_object( _db->get_account( acnt ), _db ) );
+            _state.accounts[acnt] = extended_account( database_api::api_account_object( _db.get_account( acnt ), _db ) );
 
             auto& eacnt = _state.accounts[acnt];
             if( part[1] == "transfers" )
@@ -214,7 +214,7 @@ namespace detail
          for( const auto& a : accounts )
          {
             _state.accounts.erase("");
-            _state.accounts[a] = extended_account( database_api::api_account_object( _db->get_account( a ), _db ) );
+            _state.accounts[a] = extended_account( database_api::api_account_object( _db.get_account( a ), _db ) );
 
          }
 
@@ -331,7 +331,7 @@ namespace detail
    {
       CHECK_ARG_SIZE( 0 )
       scheduled_hardfork shf;
-      const auto& hpo = _db->get( hardfork_property_id_type() );
+      const auto& hpo = _db.get( hardfork_property_id_type() );
       shf.hf_version = hpo.next_hardfork;
       shf.live_time = hpo.next_hardfork_time;
       return shf;
@@ -351,8 +351,8 @@ namespace detail
       CHECK_ARG_SIZE(1)
       vector< account_name_type > names = args[0].as< vector< account_name_type > >();
 
-      const auto& idx  = _db->get_index< account_index >().indices().get< by_name >();
-      const auto& vidx = _db->get_index< witness_vote_index >().indices().get< by_account_witness >();
+      const auto& idx  = _db.get_index< account_index >().indices().get< by_name >();
+      const auto& vidx = _db.get_index< witness_vote_index >().indices().get< by_account_witness >();
       vector< extended_account > results;
       results.reserve(names.size());
 
@@ -365,7 +365,7 @@ namespace detail
 
             auto vitr = vidx.lower_bound( boost::make_tuple( itr->name, account_name_type() ) );
             while( vitr != vidx.end() && vitr->account == itr->name ) {
-               results.back().witness_votes.insert( _db->get< witness_object, by_name >( vitr->witness ).owner );
+               results.back().witness_votes.insert( _db.get< witness_object, by_name >( vitr->witness ).owner );
                ++vitr;
             }
          }
@@ -389,7 +389,7 @@ namespace detail
 
       for( auto& name : account_names )
       {
-         auto itr = _db->find< account_object, by_name >( name );
+         auto itr = _db.find< account_object, by_name >( name );
 
          if( itr )
          {
@@ -412,7 +412,7 @@ namespace detail
 
 
       FC_ASSERT( limit <= 1000 );
-      const auto& accounts_by_name = _db->get_index< account_index, by_name >();
+      const auto& accounts_by_name = _db.get_index< account_index, by_name >();
       set<string> result;
 
       auto itr = accounts_by_name.upper_bound( lower_bound_name );
@@ -431,7 +431,7 @@ namespace detail
    DEFINE_API_IMPL( condenser_api_impl, get_account_count )
    {
       CHECK_ARG_SIZE( 0 )
-      return _db->get_index<account_index>().indices().size();
+      return _db.get_index<account_index>().indices().size();
    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_owner_history )
@@ -486,7 +486,7 @@ namespace detail
          std::back_inserter(result),
          [this](witness_id_type id) -> optional< api_witness_object >
          {
-            if( auto o = _db->find(id) )
+            if( auto o = _db.find(id) )
                return api_witness_object( database_api::api_witness_object ( *o ) );
             return {};
          });
@@ -565,7 +565,7 @@ namespace detail
    DEFINE_API_IMPL( condenser_api_impl, get_witness_count )
    {
       CHECK_ARG_SIZE( 0 )
-      return _db->get_index< witness_index >().indices().size();
+      return _db.get_index< witness_index >().indices().size();
    }
 
    DEFINE_API_IMPL( condenser_api_impl, get_transaction_hex )
@@ -626,15 +626,15 @@ namespace detail
 
       vector< account_vote > result;
 
-      const auto& voter_acnt = _db->get_account( voter );
-      const auto& idx = _db->get_index< comment_vote_index, by_voter_comment >();
+      const auto& voter_acnt = _db.get_account( voter );
+      const auto& idx = _db.get_index< comment_vote_index, by_voter_comment >();
 
       account_id_type aid( voter_acnt.id );
       auto itr = idx.lower_bound( aid );
       auto end = idx.upper_bound( aid );
       while( itr != end )
       {
-         const auto& vo = _db->get( itr->comment );
+         const auto& vo = _db.get( itr->comment );
          account_vote avote;
          avote.authorperm = vo.author + "/" + to_string( vo.permlink );
          avote.weight = itr->weight;
@@ -712,7 +712,7 @@ namespace detail
 
       for( auto& name : app_names )
       {
-         auto itr = _db->find< application_object, by_name >( name );
+         auto itr = _db.find< application_object, by_name >( name );
 
          if( itr )
          {
@@ -732,7 +732,7 @@ DEFINE_API_IMPL( condenser_api_impl, get_applications )
 
    for( auto& id : app_ids )
    {
-      auto itr = _db->find< application_object, by_id >( id );
+      auto itr = _db.find< application_object, by_id >( id );
 
       if( itr )
       {
