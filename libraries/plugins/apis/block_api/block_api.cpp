@@ -18,7 +18,7 @@ class block_api_impl
          (get_block)
       )
 
-      chain::database& _db;
+   std::shared_ptr<chain::database_interface> _db;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ block_api_impl::~block_api_impl() {}
 DEFINE_API_IMPL( block_api_impl, get_block_header )
 {
    get_block_header_return result;
-   auto block = _db.fetch_block_by_number( args.block_num );
+   auto block = _db->fetch_block_by_number( args.block_num );
 
    if( block )
       result.header = *block;
@@ -60,7 +60,7 @@ DEFINE_API_IMPL( block_api_impl, get_block_header )
 DEFINE_API_IMPL( block_api_impl, get_block )
 {
    get_block_return result;
-   auto block = _db.fetch_block_by_number( args.block_num );
+   auto block = _db->fetch_block_by_number( args.block_num );
 
    if( block )
       result.block = *block;

@@ -108,15 +108,3 @@ namespace sophiatx { namespace chain {
    SOPHIATX_DECLARE_INTERNAL_EXCEPTION( verify_auth_account_not_found, 2, "Auth account not found" )
 
 } } // sophiatx::chain
-
-
-#pragma once
-
-#include <fc/exception/exception.hpp>
-#include <sophiatx/protocol/exceptions.hpp>
-
-namespace sophiatx { namespace chain {
-
-
-
-} } // sophiatx::chain

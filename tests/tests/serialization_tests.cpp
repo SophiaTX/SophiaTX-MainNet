@@ -25,7 +25,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <sophiatx/chain/sophiatx_objects.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 
 #include <sophiatx/plugins/condenser_api/condenser_api_legacy_asset.hpp>
 #include <sophiatx/plugins/condenser_api/condenser_api_legacy_objects.hpp>
