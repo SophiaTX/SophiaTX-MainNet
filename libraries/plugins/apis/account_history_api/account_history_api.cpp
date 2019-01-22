@@ -20,12 +20,12 @@ class account_history_api_impl
          (get_account_history)
       )
 
-      std::shared_ptr<chain::database_interface> _db;
+      chain::database& _db;
 };
 
 DEFINE_API_IMPL( account_history_api_impl, get_ops_in_block )
 {
-   const auto& idx = _db->get_index< chain::operation_index, chain::by_location >();
+   const auto& idx = _db.get_index< chain::operation_index, chain::by_location >();
    auto itr = idx.lower_bound( args.block_num );
    get_ops_in_block_return result;
    while( itr != idx.end() && itr->block == args.block_num )
@@ -44,11 +44,11 @@ DEFINE_API_IMPL( account_history_api_impl, get_transaction )
    FC_ASSERT( false, "This node's operator has disabled operation indexing by transaction_id" );
 #else
    FC_ASSERT( args.id != sophiatx::protocol::transaction_id_type(), "Invalid id parameter" );
-   const auto& idx = _db->get_index< chain::operation_index, chain::by_transaction_id >();
+   const auto& idx = _db.get_index< chain::operation_index, chain::by_transaction_id >();
    auto itr = idx.lower_bound( args.id );
    if( itr != idx.end() && itr->trx_id == args.id )
    {
-      auto blk = _db->fetch_block_by_number( itr->block );
+      auto blk = _db.fetch_block_by_number( itr->block );
       FC_ASSERT( blk.valid() );
       FC_ASSERT( blk->transactions.size() > itr->trx_in_block );
       get_transaction_return result = blk->transactions[itr->trx_in_block];
@@ -65,7 +65,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
    FC_ASSERT( args.limit <= 10000, "limit of ${l} is greater than maxmimum allowed", ("l",args.limit) );
    FC_ASSERT( args.reverse_order || args.start >= args.limit, "start must be greater than limit" );
 
-   const auto& idx = _db->get_index< chain::account_history_index, chain::by_account >();
+   const auto& idx = _db.get_index< chain::account_history_index, chain::by_account >();
    get_account_history_return result;
 
    if (args.reverse_order && args.start >=0 ) {
@@ -75,7 +75,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
 
       if(itr!=idx.end()){
          while(result.history.size() < args.limit){
-            result.history[ itr->sequence ] = _db->get(itr->op);
+            result.history[ itr->sequence ] = _db.get(itr->op);
             if(itr == end)
                break;
             --itr;
@@ -88,7 +88,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
       auto end = idx.upper_bound(boost::make_tuple(args.account, std::max(int64_t(0), int64_t(itr->sequence) - args.limit)));
 
       while( itr != end ) {
-         result.history[ itr->sequence ] = _db->get(itr->op);
+         result.history[ itr->sequence ] = _db.get(itr->op);
          ++itr;
       }
 
@@ -98,7 +98,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
       auto end = idx.upper_bound(boost::make_tuple(args.account, std::max(int64_t(0), int64_t(itr->sequence) - args.limit)));
 
       while(result.history.size() < args.limit && itr != end ) {
-         result.history[ itr->sequence ] = _db->get(itr->op);
+         result.history[ itr->sequence ] = _db.get(itr->op);
          ++itr;
       }
    }

@@ -149,8 +149,6 @@ DEFINE_READ_APIS(alexandria_api,
 		(get_key_references)
 		(get_dynamic_global_properties)
 		(get_version)
-		(get_witness_schedule_object)
-		(get_hardfork_property_object)
 )
 
 } } } // sophiatx::plugins::alexandria_api

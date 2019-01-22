@@ -470,32 +470,6 @@ struct get_version_info
    fc::string chain_id;
 };
 
-struct api_hardfork_property_object
-{
-   api_hardfork_property_object( const database_api::api_hardfork_property_object& h ) :
-         id( h.id ),
-         last_hardfork( h.last_hardfork ),
-         current_hardfork_version( h.current_hardfork_version ),
-         next_hardfork( h.next_hardfork ),
-         next_hardfork_time( h.next_hardfork_time )
-   {
-      size_t n = h.processed_hardforks.size();
-      processed_hardforks.reserve( n );
-
-      for( size_t i = 0; i < n; i++ )
-         processed_hardforks.push_back( h.processed_hardforks[i] );
-   }
-
-   api_hardfork_property_object() {}
-
-   chain::hardfork_property_id_type     id;
-   vector< fc::time_point_sec >         processed_hardforks;
-   uint32_t                             last_hardfork;
-   protocol::hardfork_version           current_hardfork_version;
-   protocol::hardfork_version           next_hardfork;
-   fc::time_point_sec                   next_hardfork_time;
-};
-
 } } } // sophiatx::plugins::database_api
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::key_pair_st, (pub_key)(wif_priv_key) )
@@ -569,29 +543,3 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_application_object,
                   (url)
                   (metadata)
                   (price_param) )
-
-FC_REFLECT( sophiatx::plugins::alexandria_api::api_witness_schedule_object,
-            (id)
-                  (current_virtual_time)
-                  (next_shuffle_block_num)
-                  (current_shuffled_witnesses)
-                  (num_scheduled_witnesses)
-                  (top19_weight)
-                  (timeshare_weight)
-                  (witness_pay_normalization_factor)
-                  (median_props)
-                  (majority_version)
-                  (max_voted_witnesses)
-                  (max_runner_witnesses)
-                  (hardfork_required_witnesses)
-)
-
-FC_REFLECT( sophiatx::plugins::alexandria_api::api_hardfork_property_object,
-            (id)
-                  (processed_hardforks)
-                  (last_hardfork)
-                  (current_hardfork_version)
-                  (next_hardfork)
-                  (next_hardfork_time)
-)
-

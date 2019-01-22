@@ -2,7 +2,7 @@
 #include <sophiatx/protocol/config.hpp>
 #include <sophiatx/protocol/types.hpp>
 #include <sophiatx/chain/sophiatx_object_types.hpp>
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database.hpp>
 #include <boost/interprocess/managed_mapped_file.hpp>
 
 
