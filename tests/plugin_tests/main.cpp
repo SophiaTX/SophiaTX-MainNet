@@ -23,11 +23,7 @@
  */
 #include <cstdlib>
 #include <iostream>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-overflow="
-#include <boost/test/included/unit_test.hpp>
-#pragma GCC diagnostic pop
+#include <unit_test.hpp>
 
 extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
 

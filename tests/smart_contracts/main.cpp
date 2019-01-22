@@ -23,11 +23,7 @@
  */
 #include <cstdlib>
 #include <iostream>
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-overflow="
-#include <boost/test/included/unit_test.hpp>
-#pragma GCC diagnostic push
+#include <unit_test.hpp>
 
 boost::unit_test::test_suite* init_unit_test_suite(int argc, char* argv[])
 {
