@@ -289,25 +289,6 @@ namespace detail {
       {
          case block_production_condition::produced:
             ilog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
-//            static size_t idx = 1;
-//
-//            ilog("Got 123 transactions on block ${b} by ${w} --latency: ${l} ms --block gen time: ${gt}",
-//                 ("b", idx)
-//                       ("w", "miner" + std::to_string(idx))
-//                       ("l", idx + 100).db();
-//                       ("gt", fc::time_point::now()));
-//
-//            wlog("test warning " + std::to_string(idx));
-//            if (idx%2 == 0) {
-//               elog("test error " + std::to_string(idx));
-//            }
-//
-//            if (idx%51 == 0) {
-//               idx = 1;
-//            }
-//            else {
-//               idx++;
-//            }
             break;
          case block_production_condition::not_synced:
             elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");

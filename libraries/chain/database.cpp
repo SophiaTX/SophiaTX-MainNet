@@ -612,7 +612,7 @@ void database::_maybe_warn_multiple_production( uint32_t height )const
          witness_time_pairs.push_back( std::make_pair( b->data.witness, b->data.timestamp ) );
       }
 
-      ilog( "Encountered block num collision at block ${n} due to a fork, witnesses are: ${w}", ("n", height)("w", witness_time_pairs) );
+      wlog( "Encountered block num collision at block ${n} due to a fork, witnesses are: ${w}", ("n", height)("w", witness_time_pairs) );
    }
    return;
 }
