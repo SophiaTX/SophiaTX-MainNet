@@ -13,7 +13,7 @@ class template_api_impl
 
       example_call_return example_call( const example_call_args& args )const;
 
-      std::shared_ptr<database_interface> _db;
+      chain::database& _db;
 };
 
 example_call_return template_api_impl::example_call( const example_call_args& args )const

@@ -18,14 +18,14 @@ public:
    p2p_plugin();
    virtual ~p2p_plugin();
 
-   void set_program_options(bpo::options_description &,
-                            bpo::options_description &config_file_options) override;
+   virtual void set_program_options(bpo::options_description &,
+                                    bpo::options_description &config_file_options) override;
 
    static const std::string& name() { static std::string name = SOPHIATX_P2P_PLUGIN_NAME; return name; }
 
-   void plugin_initialize(const bpo::variables_map& options) override;
-   void plugin_startup() override;
-   void plugin_shutdown() override;
+   virtual void plugin_initialize(const bpo::variables_map& options) override;
+   virtual void plugin_startup() override;
+   virtual void plugin_shutdown() override;
 
    void broadcast_block( const sophiatx::protocol::signed_block& block );
    void broadcast_transaction( const sophiatx::protocol::signed_transaction& tx );

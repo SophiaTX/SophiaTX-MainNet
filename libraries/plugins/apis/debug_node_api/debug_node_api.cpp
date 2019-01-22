@@ -7,7 +7,7 @@
 
 #include <sophiatx/chain/block_log.hpp>
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 
 #include <sophiatx/utilities/key_conversion.hpp>
@@ -20,7 +20,7 @@ class debug_node_api_impl
 {
    public:
       debug_node_api_impl() :
-         _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< chain::chain_plugin >().db()) ),
+         _db( appbase::app().get_plugin< chain::chain_plugin >().db() ),
          _debug_node( appbase::app().get_plugin< debug_node_plugin >() ) {}
 
       DECLARE_API_IMPL(
@@ -35,7 +35,7 @@ class debug_node_api_impl
          (debug_get_json_schema)
       )
 
-      std::shared_ptr<chain::database> _db;
+      chain::database& _db;
       debug_node::debug_node_plugin& _debug_node;
 };
 
@@ -58,10 +58,10 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_push_blocks )
       idump( (src_filename)(count)(skip_validate_invariants) );
       chain::block_log log;
       log.open( src_path );
-      uint32_t first_block = _db->head_block_num()+1;
-      uint32_t skip_flags = chain::database_interface::skip_nothing;
+      uint32_t first_block = _db.head_block_num()+1;
+      uint32_t skip_flags = chain::database::skip_nothing;
       if( skip_validate_invariants )
-         skip_flags = skip_flags | chain::database_interface::skip_validate_invariants;
+         skip_flags = skip_flags | chain::database::skip_validate_invariants;
       for( uint32_t i=0; i<count; i++ )
       {
          //fc::optional< chain::signed_block > block = log.read_block( log.get_block_pos( first_block + i ) );
@@ -86,7 +86,7 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_push_blocks )
 
          try
          {
-            _db->push_block( result.first, skip_flags );
+            _db.push_block( result.first, skip_flags );
          }
          catch( const fc::exception& e )
          {
@@ -109,22 +109,22 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_generate_blocks )
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_generate_blocks_until )
 {
-   return { _debug_node.debug_generate_blocks_until( args.debug_key, args.head_block_time, args.generate_sparsely, chain::database_interface::skip_nothing ) };
+   return { _debug_node.debug_generate_blocks_until( args.debug_key, args.head_block_time, args.generate_sparsely, chain::database::skip_nothing ) };
 }
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_pop_block )
 {
-   return { _db->fetch_block_by_number( _db->head_block_num() ) };
+   return { _db.fetch_block_by_number( _db.head_block_num() ) };
 }
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_get_witness_schedule )
 {
-   return _db->get( chain::witness_schedule_id_type() );
+   return _db.get( chain::witness_schedule_id_type() );
 }
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_get_hardfork_property_object )
 {
-   return _db->get( chain::hardfork_property_id_type() );
+   return _db.get( chain::hardfork_property_id_type() );
 }
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_set_hardfork )
@@ -132,9 +132,9 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_set_hardfork )
    if( args.hardfork_id > SOPHIATX_NUM_HARDFORKS )
       return {};
 
-   _debug_node.debug_update( [=]( std::shared_ptr<chain::database>& db )
+   _debug_node.debug_update( [=]( chain::database& db )
    {
-      db->set_hardfork( args.hardfork_id, false );
+      db.set_hardfork( args.hardfork_id, false );
    });
 
    return {};
@@ -142,12 +142,12 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_set_hardfork )
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_has_hardfork )
 {
-   return { _db->get( chain::hardfork_property_id_type() ).last_hardfork >= args.hardfork_id };
+   return { _db.get( chain::hardfork_property_id_type() ).last_hardfork >= args.hardfork_id };
 }
 
 DEFINE_API_IMPL( debug_node_api_impl, debug_get_json_schema )
 {
-   return { _db->get_json_schema() };
+   return { _db.get_json_schema() };
 }
 
 } // detail

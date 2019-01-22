@@ -17,7 +17,7 @@ namespace detail
             _p2p( appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >() ),
             _chain( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >() )
          {
-            _on_applied_block_connection = _chain.db()->applied_block.connect(
+            _on_applied_block_connection = _chain.db().applied_block.connect(
                0, [&]( const signed_block& b ){ on_applied_block( b ); } );
          }
 
@@ -111,7 +111,7 @@ namespace detail
    DEFINE_API_IMPL( network_broadcast_api_impl, broadcast_block )
    {
       FC_ASSERT( fc::raw::pack_size(args.block) <= SOPHIATX_MAX_BLOCK_SIZE, "Block size is bigger than SOPHIATX_MAX_BLOCK_SIZE" );
-      _chain.accept_block( args.block, /*currently syncing*/ false, /*skip*/ chain::database_interface::skip_nothing );
+      _chain.accept_block( args.block, /*currently syncing*/ false, /*skip*/ chain::database::skip_nothing );
       _p2p.broadcast_block( args.block );
       return broadcast_block_return();
    }
@@ -121,10 +121,10 @@ namespace detail
       if( max_block_age < 0 )
          return false;
 
-      return _chain.db()->with_read_lock( [&]()
+      return _chain.db().with_read_lock( [&]()
       {
          fc::time_point_sec now = fc::time_point::now();
-         const auto& dgpo = _chain.db()->get_dynamic_global_properties();
+         const auto& dgpo = _chain.db().get_dynamic_global_properties();
 
          return ( dgpo.time < now - fc::seconds( max_block_age ) );
       });

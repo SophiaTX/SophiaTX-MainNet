@@ -1,8 +1,7 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/witness/witness_objects.hpp>
 
-#include <sophiatx/chain/database/database_exceptions.hpp>
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database_exceptions.hpp>
 #include <sophiatx/chain/account_object.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
 #include <sophiatx/chain/index.hpp>
@@ -32,7 +31,7 @@ using std::vector;
 namespace bpo = boost::program_options;
 
 
-void new_chain_banner()
+void new_chain_banner( const chain::database& db )
 {
    std::cerr << "\n"
       "********************************\n"
@@ -52,7 +51,7 @@ namespace detail {
    public:
       witness_plugin_impl( boost::asio::io_service& io ) :
          _timer(io),
-         _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _chain_plugin( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >()) {}
 
       void pre_transaction( const sophiatx::protocol::signed_transaction& trx );
@@ -65,13 +64,13 @@ namespace detail {
 
       bool _production_enabled = false;
       uint32_t _required_witness_participation = 33 * SOPHIATX_1_PERCENT;
-      uint32_t _production_skip_flags = chain::database_interface::skip_nothing;
+      uint32_t _production_skip_flags = chain::database::skip_nothing;
 
       std::map< sophiatx::protocol::public_key_type, fc::ecc::private_key > _private_keys;
       std::set< sophiatx::protocol::account_name_type >                     _witnesses;
       boost::asio::deadline_timer                                          _timer;
 
-      std::shared_ptr<chain::database>  _db;
+      chain::database&     _db;
       plugins::chain::chain_plugin& _chain_plugin;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   applied_block_connection;
@@ -127,9 +126,9 @@ namespace detail {
 
    struct operation_visitor
    {
-      operation_visitor( const std::shared_ptr<chain::database_interface>& db ) : _db( db ) {}
+      operation_visitor( const chain::database& db ) : _db( db ) {}
 
-      const std::shared_ptr<database_interface> _db;
+      const chain::database& _db;
 
       typedef void result_type;
 
@@ -140,8 +139,8 @@ namespace detail {
       {
          if( o.memo.length() > 0 )
             check_memo( o.memo,
-                        _db->get< chain::account_object, chain::by_name >( o.from ),
-                        _db->get< account_authority_object, chain::by_account >( o.from ) );
+                        _db.get< chain::account_object, chain::by_name >( o.from ),
+                        _db.get< account_authority_object, chain::by_account >( o.from ) );
       }
 
    };
@@ -158,7 +157,7 @@ namespace detail {
 
    void witness_plugin_impl::pre_operation( const chain::operation_notification& note )
    {
-      if( _db->is_producing() )
+      if( _db.is_producing() )
       {
          note.op.visit( operation_visitor( _db ) );
       }
@@ -166,13 +165,13 @@ namespace detail {
 
    void witness_plugin_impl::on_block( const signed_block& b )
    { try {
-      int64_t max_block_size = _db->get_dynamic_global_properties().maximum_block_size;
+      int64_t max_block_size = _db.get_dynamic_global_properties().maximum_block_size;
 
-      auto reserve_ratio_ptr = _db->find( reserve_ratio_id_type() );
+      auto reserve_ratio_ptr = _db.find( reserve_ratio_id_type() );
 
       if( BOOST_UNLIKELY( reserve_ratio_ptr == nullptr ) )
       {
-         _db->create< reserve_ratio_object >( [&]( reserve_ratio_object& r )
+         _db.create< reserve_ratio_object >( [&]( reserve_ratio_object& r )
          {
             r.average_block_size = 0;
             r.current_reserve_ratio = SOPHIATX_MAX_RESERVE_RATIO * RESERVE_RATIO_PRECISION;
@@ -183,7 +182,7 @@ namespace detail {
       }
       else
       {
-         _db->modify( *reserve_ratio_ptr, [&]( reserve_ratio_object& r )
+         _db.modify( *reserve_ratio_ptr, [&]( reserve_ratio_object& r )
          {
             r.average_block_size = ( 99 * r.average_block_size + fc::raw::pack_size( b ) ) / 100;
 
@@ -200,7 +199,7 @@ namespace detail {
             * different from past observed behavior and make small adjustments when
             * behavior is within expected norms.
             */
-            if( _db->head_block_num() % 20 == 0 )
+            if( _db.head_block_num() % 20 == 0 )
             {
                int64_t distance = ( ( r.average_block_size - ( max_block_size / 4 ) ) * DISTANCE_CALC_PRECISION )
                   / ( max_block_size / 4 );
@@ -228,7 +227,7 @@ namespace detail {
                   ilog( "Reserve ratio updated from ${old} to ${new}. Block: ${blocknum}",
                      ("old", old_reserve_ratio)
                      ("new", r.current_reserve_ratio)
-                     ("blocknum", _db->head_block_num()) );
+                     ("blocknum", _db.head_block_num()) );
                }
 
                r.max_virtual_bandwidth = ( uint128_t( max_block_size ) * uint128_t( r.current_reserve_ratio )
@@ -255,10 +254,10 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::block_production_loop()
    {
-      auto db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
-      if( fc::time_point::now() < fc::time_point(db->get_genesis_time()) )
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      if( fc::time_point::now() < fc::time_point(db.get_genesis_time()) )
       {
-         wlog( "waiting until genesis time to produce block: ${t}, now is: ${n}", ("t", db->get_genesis_time())("n", fc::time_point::now()) );
+         wlog( "waiting until genesis time to produce block: ${t}, now is: ${n}", ("t", db.get_genesis_time())("n", fc::time_point::now()) );
          schedule_production_loop();
          return block_production_condition::wait_for_genesis;
       }
@@ -325,38 +324,38 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::maybe_produce_block(fc::mutable_variant_object& capture)
    {
-      auto db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
       fc::time_point now_fine = fc::time_point::now();
       fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
 
       // If the next block production opportunity is in the present or future, we're synced.
       if( !_production_enabled )
       {
-         if( db->get_slot_time(1) >= now )
+         if( db.get_slot_time(1) >= now )
             _production_enabled = true;
          else
             return block_production_condition::not_synced;
       }
 
       // is anyone scheduled to produce now or one second in the future?
-      uint32_t slot = db->get_slot_at_time( now );
+      uint32_t slot = db.get_slot_at_time( now );
       if( slot == 0 )
       {
-         capture("next_time", db->get_slot_time(1));
+         capture("next_time", db.get_slot_time(1));
          return block_production_condition::not_time_yet;
       }
 
       //
-      // this assert should not fail, because now <= db->head_block_time()
+      // this assert should not fail, because now <= db.head_block_time()
       // should have resulted in slot == 0.
       //
       // if this assert triggers, there is a serious bug in get_slot_at_time()
       // which would result in allowing a later block to have a timestamp
       // less than or equal to the previous block
       //
-      assert( now > db->head_block_time() );
+      assert( now > db.head_block_time() );
 
-      chain::account_name_type scheduled_witness = db->get_scheduled_witness( slot );
+      chain::account_name_type scheduled_witness = db.get_scheduled_witness( slot );
       // we must control the witness scheduled to produce the next block.
       if( _witnesses.find( scheduled_witness ) == _witnesses.end() )
       {
@@ -364,8 +363,8 @@ namespace detail {
          return block_production_condition::not_my_turn;
       }
 
-      fc::time_point_sec scheduled_time = db->get_slot_time( slot );
-      chain::public_key_type scheduled_key = db->get< chain::witness_object, chain::by_name >(scheduled_witness).signing_key;
+      fc::time_point_sec scheduled_time = db.get_slot_time( slot );
+      chain::public_key_type scheduled_key = db.get< chain::witness_object, chain::by_name >(scheduled_witness).signing_key;
       auto private_key_itr = _private_keys.find( scheduled_key );
 
       if( private_key_itr == _private_keys.end() )
@@ -375,7 +374,7 @@ namespace detail {
          return block_production_condition::no_private_key;
       }
 
-      uint32_t prate = db->witness_participation_rate();
+      uint32_t prate = db.witness_participation_rate();
       if( prate < _required_witness_participation )
       {
          capture("pct", uint32_t(100*uint64_t(prate) / SOPHIATX_1_PERCENT));
@@ -444,9 +443,9 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
       my->_required_witness_participation = SOPHIATX_1_PERCENT * options.at( "required-participation" ).as< uint32_t >();
    }
 
-   my->on_pre_apply_transaction_connection = my->_db->on_pre_apply_transaction.connect( 0, [&]( const signed_transaction& tx ){ my->pre_transaction( tx ); } );
-   my->pre_apply_connection = my->_db->pre_apply_operation.connect( 0, [&]( const operation_notification& note ){ my->pre_operation( note ); } );
-   my->applied_block_connection = my->_db->applied_block.connect( 0, [&]( const signed_block& b ){ my->on_block( b ); } );
+   my->on_pre_apply_transaction_connection = my->_db.on_pre_apply_transaction.connect( 0, [&]( const signed_transaction& tx ){ my->pre_transaction( tx ); } );
+   my->pre_apply_connection = my->_db.pre_apply_operation.connect( 0, [&]( const operation_notification& note ){ my->pre_operation( note ); } );
+   my->applied_block_connection = my->_db.applied_block.connect( 0, [&]( const signed_block& b ){ my->on_block( b ); } );
 
    add_plugin_index< account_bandwidth_index >( my->_db );
    add_plugin_index< reserve_ratio_index     >( my->_db );
@@ -458,7 +457,7 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
 void witness_plugin::plugin_startup()
 { try {
    ilog("witness plugin:  plugin_startup() begin");
-      auto d = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+   chain::database& d = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
    if( !my->_witnesses.empty() )
    {
@@ -466,9 +465,9 @@ void witness_plugin::plugin_startup()
       appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >().set_block_production( true );
       if( my->_production_enabled )
       {
-         if( d->head_block_num() == 0 )
-            new_chain_banner();
-         my->_production_skip_flags |= chain::database_interface::skip_undo_history_check;
+         if( d.head_block_num() == 0 )
+            new_chain_banner( d );
+         my->_production_skip_flags |= chain::database::skip_undo_history_check;
       }
       my->schedule_production_loop();
    } else

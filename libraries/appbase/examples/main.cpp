@@ -2,7 +2,7 @@
 #include <iostream>
 #include <boost/exception/diagnostic_information.hpp>
 
-struct database_interface { };
+struct database { };
 
 namespace bpo = boost::program_options;
 
@@ -43,10 +43,10 @@ class plugin_a : public appbase::plugin<plugin_a>
       std::cout << "shutdown plugin_a plugin \n";
     }
 
-   std::shared_ptr<database_interface>& db() { return _db; }
+     database& db() { return _db; }
 
    private:
-   std::shared_ptr<database_interface> _db;
+     database _db;
 };
 
 class plugin_b : public appbase::plugin<plugin_b>

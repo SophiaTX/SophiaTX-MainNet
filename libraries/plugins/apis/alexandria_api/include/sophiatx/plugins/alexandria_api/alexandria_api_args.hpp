@@ -896,20 +896,6 @@ struct get_dynamic_global_properties_return {
    extended_dynamic_global_properties properties;
 };
 
-/**
- *  get_witness_schedule_object
- */
-struct get_witness_schedule_object_return {
-   api_witness_schedule_object schedule_obj;
-};
-
-/**
- *  get_hardfork_property_object
- */
-struct get_hardfork_property_object_return {
-   api_hardfork_property_object hf_obj;
-};
-
 
 /**
  * @brief Macro defining api method _args and _return types
@@ -994,8 +980,6 @@ DEFINE_API_ARGS( sponsor_account_fees,			                     sponsor_account_fe
 DEFINE_API_ARGS( get_version,			                              json_rpc::void_type,			                           get_version_return);
 DEFINE_API_ARGS( get_dynamic_global_properties,			            json_rpc::void_type,			                           get_dynamic_global_properties_return);
 DEFINE_API_ARGS( get_key_references,			                     get_key_references_args,			                     get_key_references_return);
-DEFINE_API_ARGS( get_witness_schedule_object,			            json_rpc::void_type,			                           get_witness_schedule_object_return);
-DEFINE_API_ARGS( get_hardfork_property_object,			            json_rpc::void_type,			                           get_hardfork_property_object_return);
 
 #undef DEFINE_API_ARGS
 
@@ -1577,15 +1561,3 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::get_key_references_args,
             (keys) )
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_key_references_return,
             (accounts) )
-
-/**
-* get_witness_schedule_object
-*/
-FC_REFLECT( sophiatx::plugins::alexandria_api::get_witness_schedule_object_return,
-            (schedule_obj) )
-
-/**
-* get_hardfork_property_object
-*/
-FC_REFLECT( sophiatx::plugins::alexandria_api::get_hardfork_property_object_return,
-            (hf_obj) )
