@@ -86,7 +86,7 @@ will build out of the box without further effort:
 
 ## Building Boost 1.67
 
-SophiaTX requires Boost 1.65 and works with versions up to 1.68 (including).
+SophiaTX requires Boost 1.65 and works with versions up to 1.67 (including).
 Here is how to build and install Boost 1.67 into your user's home directory
 
     export BOOST_ROOT=$HOME/opt/boost_1_67_0
