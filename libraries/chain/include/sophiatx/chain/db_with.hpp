@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database.hpp>
 
 /*
  * This file provides with() functions which modify the database

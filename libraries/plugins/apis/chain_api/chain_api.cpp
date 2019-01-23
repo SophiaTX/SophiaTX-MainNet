@@ -26,7 +26,7 @@ DEFINE_API_IMPL( chain_api_impl, push_block )
 
    try
    {
-      _chain.accept_block(args.block, args.currently_syncing, chain::database_interface::skip_nothing);
+      _chain.accept_block(args.block, args.currently_syncing, chain::database::skip_nothing);
       result.success = true;
    }
    catch (const fc::exception& e)

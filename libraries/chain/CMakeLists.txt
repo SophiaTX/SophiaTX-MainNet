@@ -1,4 +1,4 @@
-file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp" "include/sophiatx/chain/database/*.hpp")
+file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp")
 
 ## SORT .cpp by most likely to change / break compile
 add_library( sophiatx_chain
@@ -8,6 +8,7 @@ add_library( sophiatx_chain
              database_interface.cpp
              hybrid_database.cpp
 
+             smt_evaluator.cpp
              sophiatx_evaluator.cpp
              sophiatx_objects.cpp
 

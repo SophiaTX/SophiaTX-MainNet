@@ -2,8 +2,7 @@ file(GLOB HEADERS "include/sophiatx/chain_plugin/*.hpp")
 file(GLOB EGENESIS_HEADERS "../../egenesis/include/sophiatx/egenesis/*.hpp")
 
 add_library( chain_plugin
-             chain_plugin_full.cpp
-             chain_plugin_lite.cpp
+             chain_plugin.cpp
              ${HEADERS}
              ${EGENESIS_HEADERS}
         )

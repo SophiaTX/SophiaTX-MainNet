@@ -3,8 +3,8 @@
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/hardfork.hpp>
 
-#include <sophiatx/chain/database/database_interface.hpp>
-#include <sophiatx/chain/database/database_exceptions.hpp>
+#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database_exceptions.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/application_object.hpp>
 

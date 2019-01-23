@@ -15,14 +15,14 @@ class witness_api_impl
          (get_reserve_ratio)
       )
 
-      std::shared_ptr<database_interface> _db;
+      chain::database& _db;
 };
 
 DEFINE_API_IMPL( witness_api_impl, get_account_bandwidth )
 {
    get_account_bandwidth_return result;
 
-   auto band = _db->find< witness::account_bandwidth_object, witness::by_account_bandwidth_type >( boost::make_tuple( args.account, args.type ) );
+   auto band = _db.find< witness::account_bandwidth_object, witness::by_account_bandwidth_type >( boost::make_tuple( args.account, args.type ) );
    if( band != nullptr )
       result.bandwidth = *band;
 
@@ -31,7 +31,7 @@ DEFINE_API_IMPL( witness_api_impl, get_account_bandwidth )
 
 DEFINE_API_IMPL( witness_api_impl, get_reserve_ratio )
 {
-   return _db->get( reserve_ratio_id_type() );
+   return _db.get( reserve_ratio_id_type() );
 }
 
 } // detail

@@ -48,7 +48,7 @@ class multiparty_messaging_api_impl
    disband_group_return  disband_group(const disband_group_args& args) const;
    send_group_message_return  send_group_message(const send_group_message_args& args) const;
 
-   std::shared_ptr<database_interface> _db;
+   chain::database& _db;
    multiparty_messaging_plugin& _plugin;
    plugins::json_rpc::json_rpc_plugin* json_api;
 
@@ -122,7 +122,7 @@ alexandria_api::api_account_object multiparty_messaging_api_impl::get_account(co
 get_group_return  multiparty_messaging_api_impl::get_group(const get_group_args& args) const
 {
    get_group_return final_result;
-   const auto& group_idx = _db->get_index< group_index >().indices().get< by_group_name >();
+   const auto& group_idx = _db.get_index< group_index >().indices().get< by_group_name >();
    const auto& group_itr = group_idx.find(args.group_name);
    if(group_itr != group_idx.end())
       final_result = *group_itr;
@@ -132,7 +132,7 @@ get_group_return  multiparty_messaging_api_impl::get_group(const get_group_args&
 get_group_name_return  multiparty_messaging_api_impl::get_group_name(const get_group_name_args& args) const
 {
    get_group_name_return final_result;
-   const auto& group_idx = _db->get_index< group_index >().indices().get< by_current_name >();
+   const auto& group_idx = _db.get_index< group_index >().indices().get< by_current_name >();
    const auto& group_itr = group_idx.find(args.current_group_name);
    if(group_itr != group_idx.end())
       final_result = group_itr->group_name;
@@ -145,7 +145,7 @@ list_my_groups_return  multiparty_messaging_api_impl::list_my_groups(const list_
 {
    list_my_groups_return ret;
    FC_ASSERT(args.count<1000);
-   const auto& group_idx = _db->get_index< group_index >().indices().get< by_group_name >();
+   const auto& group_idx = _db.get_index< group_index >().indices().get< by_group_name >();
    auto group_itr = group_idx.lower_bound(args.start);
    while( group_itr != group_idx.end() && ret.size() < args.count) {
       ret.push_back(*group_itr);
@@ -158,7 +158,7 @@ list_messages_return  multiparty_messaging_api_impl::list_messages(const list_me
 {
    list_messages_return ret;
    FC_ASSERT(args.count<1000);
-   const auto& message_idx = _db->get_index< message_index >().indices().get< by_group_seq >();
+   const auto& message_idx = _db.get_index< message_index >().indices().get< by_group_seq >();
    auto message_itr = message_idx.find( std::make_tuple(args.group_name, args.start));
    while( message_itr != message_idx.end() && message_itr->group_name == args.group_name && ret.size() < args.count) {
       ret.push_back(*message_itr);
@@ -203,8 +203,8 @@ create_group_return  multiparty_messaging_api_impl::create_group(const create_gr
 add_group_participants_return  multiparty_messaging_api_impl::add_group_participants(const add_group_participants_args& args) const
 {
    add_group_participants_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
    auto admin = get_account(args.admin);
@@ -226,6 +226,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
    }
 
    for( auto m: new_members ){
+
       auto member = get_account(m);
       group_op g_op( "add", new_group_name, to_string(g_ob->description), all_members, admin.memo_key);
 
@@ -255,8 +256,8 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
 delete_group_participants_return  multiparty_messaging_api_impl::delete_group_participants(const delete_group_participants_args& args) const
 {
    delete_group_participants_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
    auto admin = get_account(args.admin);
@@ -303,8 +304,8 @@ delete_group_participants_return  multiparty_messaging_api_impl::delete_group_pa
 update_group_return  multiparty_messaging_api_impl::update_group(const update_group_args& args) const
 {
    update_group_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
    auto admin = get_account(args.admin);
@@ -332,8 +333,8 @@ update_group_return  multiparty_messaging_api_impl::update_group(const update_gr
 disband_group_return  multiparty_messaging_api_impl::disband_group(const disband_group_args& args) const
 {
    disband_group_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    FC_ASSERT( g_ob->admin == args.admin, "you are not group admin" );
    auto admin = get_account(args.admin);
@@ -354,8 +355,8 @@ disband_group_return  multiparty_messaging_api_impl::disband_group(const disband
 send_group_message_return  multiparty_messaging_api_impl::send_group_message(const send_group_message_args& args) const
 {
    send_group_message_return ret;
-   const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
-   if(!g_ob)  g_ob = _db->find< group_object, by_group_name >( args.group_name );
+   const group_object* g_ob = _db.find< group_object, by_current_name >( args.group_name );
+   if(!g_ob)  g_ob = _db.find< group_object, by_group_name >( args.group_name );
    FC_ASSERT( g_ob, "Group not found");
    auto sender = get_account(args.sender);
 

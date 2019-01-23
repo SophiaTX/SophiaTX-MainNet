@@ -14,7 +14,7 @@ class account_by_key_api_impl
 
       get_key_references_return get_key_references( const get_key_references_args& args )const;
 
-    std::shared_ptr<database_interface> _db;
+      chain::database& _db;
 };
 
 get_key_references_return account_by_key_api_impl::get_key_references( const get_key_references_args& args )const
@@ -22,7 +22,7 @@ get_key_references_return account_by_key_api_impl::get_key_references( const get
    get_key_references_return final_result;
    final_result.accounts.reserve( args.keys.size() );
 
-   const auto& key_idx = _db->get_index< account_by_key::key_lookup_index >().indices().get< account_by_key::by_key >();
+   const auto& key_idx = _db.get_index< account_by_key::key_lookup_index >().indices().get< account_by_key::by_key >();
 
    for( auto& key : args.keys )
    {

@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_objects.hpp>
 #include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_api.hpp>
 
-#include <sophiatx/chain/database/database_interface.hpp>
+#include <sophiatx/chain/database.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
@@ -23,7 +23,7 @@ public:
          app_id(_plugin.app_id) { }
 
    virtual ~multiparty_messaging_plugin_impl(){}
-   std::shared_ptr<database_interface>  _db;
+   database&                     _db;
    multiparty_messaging_plugin&  _self;
 
    uint64_t                      app_id;
@@ -56,12 +56,12 @@ message_wrapper decode_message( const vector<char>& message, const fc::sha512& k
 
 const group_object* multiparty_messaging_plugin_impl::find_group(account_name_type name) const
 {
-   return _db->find< group_object, by_current_name >( name );
+   return _db.find< group_object, by_current_name >( name );
 }
 
 template<typename T> void multiparty_messaging_plugin_impl::save_message(const group_object& go, const account_name_type sender, bool system_message, const T& data)const
 {
-   _db->create<message_object>([&](message_object& mo){
+   _db.create<message_object>([&](message_object& mo){
         mo.group_name = go.group_name;
         mo.sequence = go.current_seq;
         mo.sender = sender;
@@ -69,7 +69,7 @@ template<typename T> void multiparty_messaging_plugin_impl::save_message(const g
         mo.system_message = system_message;
         std::copy( data.begin(), data.end(), std::back_inserter(mo.data));
    });
-   _db->modify(go, [&]( group_object& go){
+   _db.modify(go, [&]( group_object& go){
         go.current_seq++;
    });
 }
@@ -129,13 +129,13 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
             fc::sha256 new_key = extract_key( g_op.new_key, g_ob->group_key, *message_meta.iv, g_op.senders_pubkey );
 
             if(g_op.type == "disband"){ //current_name changed to "" and perticipant list emptied
-               _db->modify(*g_ob, [&](group_object& go) {
+               _db.modify(*g_ob, [&](group_object& go) {
                     go.members.clear();
                     go.current_group_name = "";
                     go.group_key = fc::sha256();
                });
             }else if( g_op.type == "update" ){
-               _db->modify(*g_ob, [&](group_object& go) {
+               _db.modify(*g_ob, [&](group_object& go) {
                     //TODO - save the delta in user lists so we can store it in save_message
                     go.members.clear();
                     std::copy( g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
@@ -185,7 +185,7 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
 
             fc::sha256 new_key = extract_key(g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender);
             FC_ASSERT(new_key != fc::sha256());
-            const auto &g_ob = _db->create<group_object>([ & ](group_object &go) {
+            const auto &g_ob = _db.create<group_object>([ & ](group_object &go) {
                  go.group_name = *g_op.new_group_name;
                  go.current_group_name = go.group_name;
                  go.members.clear();
@@ -248,9 +248,9 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
    try
    {
       ilog( "Initializing multiparty_messaging_plugin_impl plugin" );
-      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::multiparty_messaging_plugin_impl>(_my));
+      db.set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::multiparty_messaging_plugin_impl>(_my));
       add_plugin_index< group_index >(db);
       add_plugin_index< message_index >(db);
    }
