@@ -175,24 +175,12 @@ set(SQLITECPP_DOC
 )
 source_group(doc FILES ${SQLITECPP_DOC})
 
-# list of script files of the library
-set(SQLITECPP_SCRIPT
- .travis.yml
- appveyor.yml
- build.bat
- build.sh
- cpplint.py
- Doxyfile
- FindSQLiteCpp.cmake
-)
-source_group(scripts FILES ${SQLITECPP_SCRIPT})
-
 # All includes are relative to the "include" directory
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories("${SQLite3_INCLUDE_DIRS}")
 
 # add sources of the wrapper as a "SQLiteCpp" static library
-add_library(SQLiteCpp ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
+add_library(SQLiteCpp ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC})
 # make the sqlite3 library part of the interface of the SQLiteCpp wrapper itself (the client app does not need to link to sqlite3)
 # PR https://github.com/SRombauts/SQLiteCpp/pull/111 "linked SQLiteCpp to sqlite3" commented out since it breacks install step from PR #118
 #target_link_libraries(SQLiteCpp PUBLIC sqlite3)
