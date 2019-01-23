@@ -36,10 +36,6 @@ void hybrid_database::open(const open_args &args, const genesis_state_type &gene
 
       _running = true;
 
-      auto results = remote::remote_db::get_app_custom_messages(
-            {_app_id, _head_op_number + SOPHIATX_API_SINGLE_QUERY_LIMIT,
-             SOPHIATX_API_SINGLE_QUERY_LIMIT});
-
       start_sync_with_full_node();
 
    }
@@ -69,11 +65,12 @@ void hybrid_database::close(bool /*rewind*/) {
    FC_CAPTURE_AND_RETHROW()
 }
 
-bool hybrid_database::is_sync() const {
+
+bool hybrid_database::is_sync(fc::api<sophiatx::chain::remote_db_api> &con) const {
    if( _head_op_id == _head_op_number && _head_op_number == 0 )
       return false;
 
-   auto result = remote::remote_db::get_app_custom_messages({_app_id, std::numeric_limits<uint64_t>::max(), 1});
+    auto result = remote::remote_db::get_app_custom_messages({_app_id, std::numeric_limits<uint64_t>::max(), 1});
 
    if( result.empty() || result.begin()->second.id != _head_op_id )
       return false;
@@ -84,12 +81,14 @@ bool hybrid_database::is_sync() const {
 const remote::get_app_custom_messages_return::iterator &
 hybrid_database::get_unprocessed_op(const remote::get_app_custom_messages_return::iterator &start,
                                     const remote::get_app_custom_messages_return::iterator &end, size_t size) const {
+
    if( start->second.id > _head_op_id || start == end )
       return start;
 
    auto mid = start;
-   std::advance(mid, size / 2);
-   if( std::distance(mid, end) > static_cast<int64_t>(size / 2))
+
+   std::advance(mid, size/2);
+   if (std::distance(mid,end) > static_cast<int64_t>(size / 2))
       return start;
 
    if( mid->second.id == _head_op_id ) {

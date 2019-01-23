@@ -1,6 +1,6 @@
 #include <sophiatx/chain/fork_database.hpp>
 
-#include <sophiatx/chain/database_exceptions.hpp>
+#include <sophiatx/chain/database/database_exceptions.hpp>
 
 namespace sophiatx { namespace chain {
 

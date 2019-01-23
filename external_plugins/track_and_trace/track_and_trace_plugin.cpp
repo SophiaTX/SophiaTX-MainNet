@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/track_and_trace/track_and_trace_objects.hpp>
 #include <sophiatx/plugins/track_and_trace/track_and_trace_api.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
@@ -13,9 +13,9 @@ namespace detail {
 class tat_interpreter : public custom_operation_interpreter
 {
 public:
-   tat_interpreter(database& db):_db(db){};
+   tat_interpreter(const std::shared_ptr<database_interface>& db):_db(db){};
    virtual ~tat_interpreter() = default;
-   database&                     _db;
+   std::shared_ptr<database_interface> _db;
    virtual void apply( const protocol::custom_json_operation& op );
    virtual void apply( const protocol::custom_binary_operation & op ){ FC_ASSERT(false, "Track and trace handles only json operations");};
    //virtual std::shared_ptr< sophiatx::schema::abstract_schema > get_operation_schema();
@@ -31,7 +31,7 @@ class track_and_trace_plugin_impl
         interpreter = std::make_shared<tat_interpreter>(_db);
      }
 
-      database&                     _db;
+      std::shared_ptr<database_interface>  _db;
       track_and_trace_plugin&              _self;
       uint64_t                      app_id;
       std::shared_ptr< tat_interpreter > interpreter;
@@ -48,7 +48,7 @@ void tat_interpreter::apply( const protocol::custom_json_operation& op ) {
    FC_ASSERT( (std::string)serial == tmp[ "serial" ].as<string>() );
 
    if( tmp[ "action" ].as<string>() == std::string("register")) {
-      _db.create<possession_object>([&](possession_object& po){
+      _db->create<possession_object>([&](possession_object& po){
          po.holder="";
          po.new_holder = "";
          po.serial = serial;
@@ -57,39 +57,39 @@ void tat_interpreter::apply( const protocol::custom_json_operation& op ) {
       });//*/
    } else {
       //read the db entry here
-      const auto& holder_idx = _db.get_index< posession_index >().indices().get< by_serial >();
+      const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_serial >();
       const auto& holder_itr = holder_idx.find(serial);
       FC_ASSERT(holder_itr != holder_idx.end(), "Item with given number not found");
       if( tmp[ "action" ].as<string>() == std::string("claim")) {
          FC_ASSERT(tmp["claimKey"].as<string>() == to_string(holder_itr->claim_key), "incorrect claim key");
-         _db.modify(*holder_itr,[&](possession_object& po){
+         _db->modify(*holder_itr,[&](possession_object& po){
               po.holder = sender;
               from_string(po.info, tmp["info"].as<string>());
          });
       } else if( tmp[ "action" ].as<string>() == std::string("updateInfo")) {
          FC_ASSERT(sender == holder_itr->holder);
-         _db.modify(*holder_itr,[&](possession_object& po){
+         _db->modify(*holder_itr,[&](possession_object& po){
               from_string(po.info, tmp["info"].as<string>());
          });
       } else if( tmp[ "action" ].as<string>() == std::string("handoverRequest")) {
          FC_ASSERT(sender == holder_itr->holder);
-         _db.modify(*holder_itr,[&](possession_object& po){
+         _db->modify(*holder_itr,[&](possession_object& po){
               po.new_holder = tmp["newOwner"].as<string>();
          });
       } else if( tmp[ "action" ].as<string>() == std::string("handoverAck")) {
          FC_ASSERT(sender == holder_itr->new_holder);
-         _db.modify(*holder_itr,[&](possession_object& po){
+         _db->modify(*holder_itr,[&](possession_object& po){
               po.new_holder = "";
               po.holder = sender;
          });
-         _db.create<transfer_history_object>([&](transfer_history_object& o){
+         _db->create<transfer_history_object>([&](transfer_history_object& o){
               o.new_holder = sender;
               o.serial = serial;
               o.change_date = fc::time_point::now();
          });
       } else if( tmp[ "action" ].as<string>() == std::string("handoverReject")) {
          FC_ASSERT(sender == holder_itr->new_holder);
-         _db.modify(*holder_itr,[&](possession_object& po){
+         _db->modify(*holder_itr,[&](possession_object& po){
               po.new_holder = "";
          });
 
@@ -122,9 +122,9 @@ void track_and_trace_plugin::plugin_initialize( const boost::program_options::va
    try
    {
       ilog( "Initializing track_and_trace_plugin_impl plugin" );
-      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      db.set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::tat_interpreter>(my->interpreter));
+      db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::tat_interpreter>(my->interpreter));
       add_plugin_index< posession_index >(db);
       add_plugin_index< transfer_history_index >(db);
    }

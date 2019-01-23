@@ -5,19 +5,6 @@
 
 #include <sophiatx/remote_db/remote_db.hpp>
 
-#include <fc/string.hpp>
-#include <fc/io/fstream.hpp>
-
-#include <boost/asio.hpp>
-#include <boost/optional.hpp>
-#include <boost/bind.hpp>
-#include <boost/preprocessor/stringize.hpp>
-#include <boost/thread/future.hpp>
-#include <boost/lockfree/queue.hpp>
-
-#include <thread>
-#include <memory>
-#include <iostream>
 
 namespace sophiatx {
 namespace plugins {
@@ -92,7 +79,7 @@ void chain_plugin_lite::plugin_startup() {
    db_open_args.shared_mem_dir = shared_memory_dir;
    db_open_args.shared_file_size = shared_memory_size;
    db_open_args.shared_file_full_threshold = shared_file_full_threshold;
-   db_open_args.shared_file_scale_rate = shared_file_scale_rate;
+   db_open_args.shared_file_scale_rate = shared_file_scale_rate;D
    db_open_args.app_id = app_id;
 
    remote::remote_db::init(ws_endpoint);

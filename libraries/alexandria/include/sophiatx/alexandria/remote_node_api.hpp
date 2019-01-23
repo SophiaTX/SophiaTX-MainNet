@@ -9,12 +9,6 @@ using fc::optional;
 
 using namespace chain;
 using namespace plugins;
-/*using namespace plugins::condenser_api;
-using namespace plugins::database_api;
-using namespace plugins::account_history;
-using namespace plugins::follow;
-using namespace plugins::market_history;
-using namespace plugins::witness;*/
 
 /**
  * This is a dummy API so that the alexandria can create properly formatted API calls

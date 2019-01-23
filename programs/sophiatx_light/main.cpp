@@ -8,8 +8,7 @@
 #include <sophiatx/utilities/key_conversion.hpp>
 #include <sophiatx/utilities/git_revision.hpp>
 
-#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
-#include <sophiatx/plugins/p2p/p2p_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
 #include <fc/exception/exception.hpp>
@@ -26,6 +25,7 @@
 #include <vector>
 
 #include <fc/crypto/rand.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_lite.hpp>
 
 namespace bpo = boost::program_options;
 using sophiatx::protocol::version;
@@ -35,31 +35,17 @@ using std::vector;
 string& version_string()
 {
    static string v_str =
-      "sophiatx_blockchain_version: " + fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) + "\n" +
-      "sophiatx_git_revision:       " + fc::string( sophiatx::utilities::git_revision_sha ) + "\n" +
-      "fc_git_revision:          " + fc::string( fc::git_revision_sha ) + "\n";
+         "sophiatx_blockchain_version: " + fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) + "\n" +
+         "sophiatx_git_revision:       " + fc::string( sophiatx::utilities::git_revision_sha ) + "\n" +
+         "fc_git_revision:          " + fc::string( fc::git_revision_sha ) + "\n";
    return v_str;
 }
 
 void info()
 {
-#if IS_TEST_NET
-      std::cerr << "------------------------------------------------------\n\n";
-      std::cerr << "            STARTING TEST NETWORK\n\n";
-      std::cerr << "------------------------------------------------------\n";
-      auto initminer_private_key = sophiatx::utilities::key_to_wif( SOPHIATX_INIT_PRIVATE_KEY );
-      std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
-      std::cerr << "initminer private key: " << initminer_private_key << "\n";
-      std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
-      std::cerr << "------------------------------------------------------\n";
-#else
-      std::cerr << "------------------------------------------------------\n\n";
-      std::cerr << "            STARTING SOPHIATX NETWORK\n\n";
-      std::cerr << "------------------------------------------------------\n";
-      std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
-      std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
-      std::cerr << "------------------------------------------------------\n";
-#endif
+   std::cerr << "------------------------------------------------------\n\n";
+   std::cerr << "            STARTING SOPHIATX LIGHT CLIENT\n\n";
+   std::cerr << "------------------------------------------------------\n";
 }
 
 int main( int argc, char** argv )
@@ -71,20 +57,18 @@ int main( int argc, char** argv )
 
       sophiatx::utilities::set_logging_program_options( options );
       options.add_options()
-         ("backtrace", bpo::value< string >()->default_value( "yes" ), "Whether to print backtrace on SIGSEGV" );
+            ("backtrace", bpo::value< string >()->default_value( "yes" ), "Whether to print backtrace on SIGSEGV" );
 
       appbase::app().add_program_options( bpo::options_description(), options );
 
-      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_lite>();
       sophiatx::plugins::register_plugins();
-
       appbase::app().set_version_string( version_string() );
 
       bool initialized = appbase::app().initialize<
-            sophiatx::plugins::chain::chain_plugin_full,
-            sophiatx::plugins::p2p::p2p_plugin,
-            sophiatx::plugins::webserver::webserver_plugin >
-            ( argc, argv );
+                     sophiatx::plugins::chain::chain_plugin_lite,
+                     sophiatx::plugins::json_rpc::json_rpc_plugin,
+                     sophiatx::plugins::webserver::webserver_plugin >( argc, argv );
 
       info();
 
@@ -111,11 +95,6 @@ int main( int argc, char** argv )
       }
 
       appbase::app().startup();
-
-      ilog("ilog omg");
-      wlog("wlog omg");
-      elog("elog omg");
-
       appbase::app().exec();
       std::cout << "exited cleanly\n";
 

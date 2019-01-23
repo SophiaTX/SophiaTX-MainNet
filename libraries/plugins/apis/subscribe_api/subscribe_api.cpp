@@ -17,7 +17,7 @@ class subscribe_api_impl
 {
 public:
    subscribe_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
-      post_apply_connection = _db.post_apply_operation.connect( 0, [&]( const chain::operation_notification& note ){ on_operation(note); } );
+      post_apply_connection = _db->post_apply_operation.connect( 0, [&]( const chain::operation_notification& note ){ on_operation(note); } );
    }
 
    DECLARE_API_IMPL(
@@ -26,7 +26,7 @@ public:
 
    void on_operation( const chain::operation_notification& note );
 
-   chain::database&                 _db;
+   std::shared_ptr<chain::database_interface>  _db;
    boost::signals2::connection      post_apply_connection;
    std::vector<custom_content_callback>  _content_subscriptions;
    plugins::json_rpc::json_rpc_plugin* json_api;

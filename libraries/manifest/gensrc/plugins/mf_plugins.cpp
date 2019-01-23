@@ -53,6 +53,7 @@ namespace sophiatx { namespace plugins {
 
 void register_plugins()
 {
+   appbase::app().register_plugin< sophiatx::plugins::chain::chain_plugin_full >();
    
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
    
@@ -83,8 +84,6 @@ void register_plugins()
    appbase::app().register_plugin< sophiatx::plugins::multiparty_messaging::multiparty_messaging_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
-   
-   appbase::app().register_plugin< sophiatx::plugins::chain::chain_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
    

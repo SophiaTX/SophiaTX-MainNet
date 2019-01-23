@@ -5,6 +5,8 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <sophiatx/remote_db/remote_db.hpp>
 
+
+
 namespace sophiatx {
 namespace chain {
 
@@ -140,6 +142,7 @@ private:
    void apply_custom_op(const remote::received_object &obj);
 
    const hybrid_db_property_object &get_hybrid_db_properties() const;
+
 
    uint64_t _head_op_number;
    uint64_t _head_op_id;
