@@ -393,18 +393,6 @@ namespace fc { namespace http {
             fc::promise<void>::ptr      _closed;
       };
 
-
-
-
-
-
-
-
-
-
-
-
-
       typedef websocketpp::client<asio_with_stub_log> websocket_client_type;
       typedef websocketpp::client<asio_tls_stub_log> websocket_tls_client_type;
 
@@ -417,7 +405,7 @@ namespace fc { namespace http {
             typedef websocket_client_type::message_ptr message_ptr;
 
             websocket_client_impl()
-            :_client_thread( fc::thread::current() )
+            :_client_thread( "websocket_client_impl" )
             {
                 _client.clear_access_channels( websocketpp::log::alevel::all );
                 _client.set_message_handler( [&]( connection_hdl hdl, message_ptr msg ){
@@ -459,7 +447,7 @@ namespace fc { namespace http {
             }
             fc::promise<void>::ptr             _connected;
             fc::promise<void>::ptr             _closed;
-            fc::thread&                        _client_thread;
+            fc::thread                         _client_thread;
             websocket_client_type              _client;
             websocket_connection_ptr           _connection;
             std::string                        _uri;
