@@ -1,3 +1,4 @@
+include_directories(include)
 add_subdirectory(db_fixture)
 
 find_package( Gperftools QUIET )

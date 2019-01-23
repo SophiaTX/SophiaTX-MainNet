@@ -431,7 +431,7 @@ void chain_plugin::plugin_startup()
       bfs::rename( app().data_dir() / "blockchain", my->shared_memory_dir );
    }
 
-   elog("Starting node with chain id ${i}", ("i", chain_id));
+   ilog("Starting node with chain id ${i}", ("i", chain_id));
 
    my->start_write_processing();
 
