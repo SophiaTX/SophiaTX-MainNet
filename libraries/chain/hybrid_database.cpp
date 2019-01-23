@@ -66,7 +66,7 @@ void hybrid_database::close(bool /*rewind*/) {
 }
 
 
-bool hybrid_database::is_sync(fc::api<sophiatx::chain::remote_db_api> &con) const {
+bool hybrid_database::is_sync() const {
    if( _head_op_id == _head_op_number && _head_op_number == 0 )
       return false;
 
