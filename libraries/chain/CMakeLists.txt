@@ -7,7 +7,6 @@ add_library( sophiatx_chain
              database.cpp
              database_interface.cpp
              hybrid_database.cpp
-             remote_db_api.cpp
 
              sophiatx_evaluator.cpp
              sophiatx_objects.cpp
@@ -24,7 +23,7 @@ add_library( sophiatx_chain
              ${HEADERS}
        )
 
-target_link_libraries( sophiatx_chain sophiatx_protocol fc chainbase sophiatx_schema ${PATCH_MERGE_LIB} )
+target_link_libraries( sophiatx_chain sophiatx_protocol fc chainbase sophiatx_schema sophiatx_remote_db ${PATCH_MERGE_LIB} )
 target_include_directories( sophiatx_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
 if (USE_PCH)

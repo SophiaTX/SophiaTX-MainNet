@@ -1,6 +1,8 @@
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/utility.hpp>
 
+#include <sophiatx/remote_db/remote_db.hpp>
+
 #include <boost/algorithm/string.hpp>
 
 #include <fc/log/logger_config.hpp>
@@ -9,8 +11,6 @@
 #include <fc/io/fstream.hpp>
 
 #include <chainbase/chainbase.hpp>
-
-#define ENABLE_JSON_RPC_LOG
 
 namespace sophiatx { namespace plugins { namespace json_rpc {
 
@@ -593,8 +593,12 @@ string json_rpc_plugin::call( const string& message, std::function<void(const st
 
 fc::optional< fc::variant > json_rpc_plugin::call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args) const {
 
-   api_method* call = my->find_api_method( api_name, method_name);
-   return (*call)(func_args);
+   if(remote::remote_db::initialized()) {
+      return fc::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
+   } else {
+      api_method* call = my->find_api_method( api_name, method_name);
+      return (*call)(func_args);
+   }
 }
 
 

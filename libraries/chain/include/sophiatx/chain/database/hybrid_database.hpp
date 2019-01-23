@@ -2,11 +2,8 @@
 #define SOPHIATX_HYBRID_DATABASE_HPP
 
 #include <sophiatx/chain/database/database_interface.hpp>
-#include <sophiatx/chain/database/remote_db_api.hpp>
 #include <sophiatx/chain/sophiatx_object_types.hpp>
-
-#include <fc/rpc/websocket_api.hpp>
-#include <fc/network/http/websocket.hpp>
+#include <sophiatx/remote_db/remote_db.hpp>
 
 namespace sophiatx {
 namespace chain {
@@ -17,6 +14,13 @@ using sophiatx::protocol::authority;
 using sophiatx::protocol::asset;
 using sophiatx::protocol::asset_symbol_type;
 using sophiatx::protocol::price;
+
+template<class T, class U>
+std::weak_ptr<T>
+static_pointer_cast(std::weak_ptr<U> const& r)
+{
+   return std::static_pointer_cast<T>(std::shared_ptr<U>(r));
+}
 
 /**
  *   @class database
@@ -122,28 +126,26 @@ public:
       not_implemented();
    }
 
-   ///////////
+private:
 
    void start_sync_with_full_node();
 
-   bool is_sync(fc::api<sophiatx::chain::remote_db_api> &con) const;
+   bool is_sync() const;
 
-   const get_app_custom_messages_return::const_iterator &
-   get_unprocessed_op(const get_app_custom_messages_return::const_iterator &start,
-                      const get_app_custom_messages_return::const_iterator &end,
+   const remote::get_app_custom_messages_return::iterator &
+   get_unprocessed_op(const remote::get_app_custom_messages_return::iterator &start,
+                      const remote::get_app_custom_messages_return::iterator &end,
                       size_t size) const;
 
-   void apply_custom_op(const received_object &obj);
+   void apply_custom_op(const remote::received_object &obj);
 
    const hybrid_db_property_object &get_hybrid_db_properties() const;
 
-private:
    uint64_t _head_op_number;
    uint64_t _head_op_id;
    uint64_t _app_id;
    fc::thread _remote_api_thread;
    bool _running;
-   string _ws_endpoint;
 };
 
 }

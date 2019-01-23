@@ -3,6 +3,8 @@
 #include <sophiatx/chain/database/database_exceptions.hpp>
 #include <sophiatx/chain/database/hybrid_database.hpp>
 
+#include <sophiatx/remote_db/remote_db.hpp>
+
 #include <fc/string.hpp>
 #include <fc/io/fstream.hpp>
 
@@ -91,8 +93,9 @@ void chain_plugin_lite::plugin_startup() {
    db_open_args.shared_file_size = shared_memory_size;
    db_open_args.shared_file_full_threshold = shared_file_full_threshold;
    db_open_args.shared_file_scale_rate = shared_file_scale_rate;
-   db_open_args.ws_endpoint = ws_endpoint;
    db_open_args.app_id = app_id;
+
+   remote::remote_db::init(ws_endpoint);
 
    db_->open(db_open_args, genesis_state_type(), public_key_type());
 }

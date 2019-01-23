@@ -80,7 +80,6 @@ public:
       uint16_t shared_file_scale_rate = 0;
       uint32_t chainbase_flags = 0;
       bool do_validate_invariants = false;
-      string ws_endpoint = "";
       uint64_t app_id = 0;
 
       // The following fields are only used on reindexing
