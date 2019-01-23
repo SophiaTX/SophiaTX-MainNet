@@ -288,7 +288,7 @@ namespace detail {
       switch(result)
       {
          case block_production_condition::produced:
-            elog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
+            ilog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
             break;
          case block_production_condition::not_synced:
             elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");

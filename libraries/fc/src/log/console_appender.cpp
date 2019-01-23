@@ -91,6 +91,7 @@ namespace fc {
       //fc::string message = fc::format_string( m.get_format(), m.get_data() );
       //fc::variant lmsg(m);
 
+
       FILE* out = stream::std_error ? stderr : stdout;
 
       //fc::string fmt_str = fc::format_string( cfg.format, mutable_variant_object(m.get_context())( "message", message)  );
@@ -99,7 +100,8 @@ namespace fc {
 
       ///////////////
       std::stringstream line;
-      line << (m.get_context().get_timestamp().time_since_epoch().count() % (1000ll*1000ll*60ll*60))/1000 <<"ms ";
+      line << string(m.get_context().get_timestamp()) << " ";
+      //line << (m.get_context().get_timestamp().time_since_epoch().count() % (1000ll*1000ll*60ll*60))/1000 <<"ms ";
       line << std::setw(30)<< std::left <<file_line.str();
 
       auto me = m.get_context().get_method();
@@ -113,9 +115,11 @@ namespace fc {
          }
 
          if( me[p] == ':' ) ++p;
-         line << std::setw( 20 ) << std::left << m.get_context().get_method().substr(p,20).c_str() <<" ";
+         line << std::setw( 25 ) << std::left << m.get_context().get_method().substr(p,25).c_str() <<" ";
       }
-      line << "] ";
+      line << "] (";
+      line << m.get_context().get_log_level().to_string();
+      line << ") ";
       fc::string message = fc::format_string( m.get_format(), m.get_data() );
       line << message;//.c_str();
 

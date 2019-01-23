@@ -97,7 +97,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
    try
    {
       init_schema();
-      elog("initializing database...");
+      ilog("initializing database...");
       chain_id_type chain_id = genesis.compute_chain_id();
 
       chainbase::database::open( args.shared_mem_dir, args.chainbase_flags, args.shared_file_size );
@@ -612,7 +612,7 @@ void database::_maybe_warn_multiple_production( uint32_t height )const
          witness_time_pairs.push_back( std::make_pair( b->data.witness, b->data.timestamp ) );
       }
 
-      ilog( "Encountered block num collision at block ${n} due to a fork, witnesses are: ${w}", ("n", height)("w", witness_time_pairs) );
+      wlog( "Encountered block num collision at block ${n} due to a fork, witnesses are: ${w}", ("n", height)("w", witness_time_pairs) );
    }
    return;
 }

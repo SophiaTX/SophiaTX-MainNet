@@ -109,6 +109,11 @@ int main( int argc, char** argv )
       }
 
       appbase::app().startup();
+
+      ilog("ilog omg");
+      wlog("wlog omg");
+      elog("elog omg");
+
       appbase::app().exec();
       std::cout << "exited cleanly\n";
 
