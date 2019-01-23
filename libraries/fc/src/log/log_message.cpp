@@ -38,6 +38,25 @@ namespace fc
       };
    }
 
+   string log_level::to_string() {
+      switch( value )
+      {
+         case log_level::all:
+            return "all";
+         case log_level::debug:
+            return "debug";
+         case log_level::info:
+            return "info";
+         case log_level::warn:
+            return "warn";
+         case log_level::error:
+            return "error";
+         case log_level::off:
+            return "off";
+         default:
+            return "unknown: " + std::to_string(value);
+      }
+   }
 
 
    log_context::log_context()
@@ -109,27 +128,7 @@ namespace fc
 
    void  to_variant( log_level e, variant& v )
    {
-      switch( e )
-      {
-        case log_level::all:
-           v = "all";
-           return;
-        case log_level::debug:
-           v = "debug";
-           return;
-        case log_level::info:
-           v = "info";
-           return;
-        case log_level::warn:
-           v = "warn";
-           return;
-        case log_level::error:
-           v = "error";
-           return;
-        case log_level::off:
-           v = "off";
-           return;
-      }
+      v = e.to_string();
    }
    void from_variant( const variant& v, log_level& e )
    {
@@ -154,7 +153,7 @@ namespace fc
    string     log_context::get_method()const     { return my->method; }
    string     log_context::get_task_name()const { return my->task_name; }
    string     log_context::get_host_name()const   { return my->hostname; }
-   time_point  log_context::get_timestamp()const  { return my->timestamp; }
+   time_point log_context::get_timestamp()const  { return my->timestamp; }
    log_level  log_context::get_log_level()const{ return my->level;   }
    string     log_context::get_context()const   { return my->context; }
 

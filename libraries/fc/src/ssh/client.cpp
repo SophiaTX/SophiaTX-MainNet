@@ -391,7 +391,7 @@ namespace fc { namespace ssh {
           resolved = true;
           break;
         } catch ( fc::exception& er ) {
-          fc_ilog( logr, "Failed to connect to ${endpoint}\n${error_reprot}", 
+          fc_elog( logr, "Failed to connect to ${endpoint}\n${error_reprot}",
                     ("endpoint",ss.str().c_str())("error_report", er.to_detail_string()) );
           sock->close();
         }
@@ -562,7 +562,7 @@ namespace fc { namespace ssh {
 					  privkey.c_str(),
 					  passphrase.c_str())))
         return true; // successful authentication from file
-      fc_ilog( logr, "failed to authenticate with private key from file '${privkey_filename}'", ("privkey_filename",privkey));
+      fc_elog( logr, "failed to authenticate with private key from file '${privkey_filename}'", ("privkey_filename",privkey));
     } else
       fc_ilog( logr, "no private key file set, skiping pubkey authorization from file");
 
@@ -573,12 +573,12 @@ namespace fc { namespace ssh {
     }
 
     if (call_ssh2_function(boost::bind(libssh2_agent_connect, agent))) {
-      fc_ilog( logr, "failed to connect to ssh-agent");
+      fc_elog( logr, "failed to connect to ssh-agent");
       return false;
     }
 
     if (call_ssh2_function(boost::bind(libssh2_agent_list_identities, agent))) {
-      fc_ilog( logr, "failed requesting identities from ssh-agent");
+      fc_elog( logr, "failed requesting identities from ssh-agent");
       return false;
     }
 
@@ -589,7 +589,7 @@ namespace fc { namespace ssh {
       if (ec == 1)
         break; // done iterating over keys
       if (ec < 0) {
-        fc_ilog( logr, "failed obtaining identity from ssh-agent");
+        fc_elog( logr, "failed obtaining identity from ssh-agent");
         return false;
       }
 
