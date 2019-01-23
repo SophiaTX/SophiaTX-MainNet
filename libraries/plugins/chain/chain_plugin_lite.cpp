@@ -79,7 +79,7 @@ void chain_plugin_lite::plugin_startup() {
    db_open_args.shared_mem_dir = shared_memory_dir;
    db_open_args.shared_file_size = shared_memory_size;
    db_open_args.shared_file_full_threshold = shared_file_full_threshold;
-   db_open_args.shared_file_scale_rate = shared_file_scale_rate;D
+   db_open_args.shared_file_scale_rate = shared_file_scale_rate;
    db_open_args.app_id = app_id;
 
    remote::remote_db::init(ws_endpoint);
