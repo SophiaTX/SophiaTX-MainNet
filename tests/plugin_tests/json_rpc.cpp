@@ -274,10 +274,10 @@ BOOST_AUTO_TEST_CASE( positive_validation )
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"alexandria_api.get_accounts\", \"params\":{\"account_names\":[\"init_miner\"]}, \"id\":7}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_accounts\", {\"account_names\":[]}, \"id\":8}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_accounts\", {}], \"id\":8}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"alexandria_api.get_accounts\", \"params\":{\"account_names\":[]}, \"id\":9}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"alexandria_api.get_accounts\", \"params\":{}, \"id\":9}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": [\"block_api\",\"get_block\", {\"block_num\":23} ], \"id\": 10}";
