@@ -10,7 +10,6 @@
 #include <sophiatx/utilities/key_conversion.hpp>
 
 #include <sophiatx/plugins/block_api/block_api_plugin.hpp>
-#include <sophiatx/plugins/condenser_api/condenser_api_legacy_asset.hpp>
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
 #include <fc/network/http/connection.hpp>
@@ -18,8 +17,6 @@
 
 #include <array>
 #include <iostream>
-
-#define INITIAL_TEST_SUPPLY (SOPHIATX_INIT_SUPPLY)
 
 extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
 
@@ -140,7 +137,7 @@ extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
    asset_symbol_type name ## _symbol = name_to_asset_symbol( #name , decimal_places );
 
 #define ASSET( s ) \
-   sophiatx::plugins::condenser_api::legacy_asset::from_string( s ).to_asset()
+   sophiatx::protocol::asset::from_string(s)
 
 #define FUND( account_name, amount ) \
    fund( account_name, amount ); \

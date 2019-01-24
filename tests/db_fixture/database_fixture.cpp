@@ -9,7 +9,6 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
-#include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include <fc/smart_ref_impl.hpp>
@@ -20,15 +19,11 @@
 
 #include "database_fixture.hpp"
 
-//using namespace sophiatx::chain::test;
-
 uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP = 1431700000;
 
 using namespace sophiatx::plugins::webserver;
 using namespace sophiatx::plugins::database_api;
 using namespace sophiatx::plugins::block_api;
-using sophiatx::plugins::condenser_api::condenser_api_plugin;
-
 
 #define DUMP( x ) {fc::variant vo; fc::to_variant( x , vo); std::cout<< fc::json::to_string(vo) <<"\n";}
 
@@ -850,7 +845,6 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    rpc_plugin = &appbase::app().register_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >();
 
    db_plugin->logging = false;
    appbase::app().initialize<
@@ -859,11 +853,9 @@ json_rpc_database_fixture::json_rpc_database_fixture()
       sophiatx::plugins::witness::witness_plugin,
       sophiatx::plugins::json_rpc::json_rpc_plugin,
       sophiatx::plugins::block_api::block_api_plugin,
-      sophiatx::plugins::database_api::database_api_plugin,
-      sophiatx::plugins::condenser_api::condenser_api_plugin
+      sophiatx::plugins::database_api::database_api_plugin
       >( argc, argv );
 
-   appbase::app().get_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >().plugin_startup();
 
    db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
    BOOST_REQUIRE( db );

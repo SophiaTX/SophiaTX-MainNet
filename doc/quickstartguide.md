@@ -147,7 +147,6 @@ Go & Download the latest version of sophiatx binary and config files from the Gi
 #### Unpack downloaded sophiatx.tar.gz file 
 ```
 sphtxadm@EUGREEN02:~/sphtxd> tar -xvf sophiatx.tar.gz 
-alexandria_deamon 
 cli_wallet 
 sophiatxd 
 witness_config.ini 
@@ -183,7 +182,7 @@ Adjust a list of plugins
 #plugin = block_api 
 #plugin = network_broadcast_api 
 #plugin = database_api 
-#plugin = condenser_api 
+#plugin = alexandria_api 
 #plugin = account_history 
 #plugin = account_history_api 
 #plugin = account_by_key 

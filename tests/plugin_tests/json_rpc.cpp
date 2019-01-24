@@ -241,10 +241,10 @@ BOOST_AUTO_TEST_CASE( positive_validation )
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"database_api.get_dynamic_global_properties\", \"params\":{}, \"id\":5}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"condenser_api\", \"get_dynamic_global_properties\", []], \"id\":8}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_dynamic_global_properties\", {}], \"id\":8}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"condenser_api.get_dynamic_global_properties\", \"params\":[], \"id\":12}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"alexandria_api.get_dynamic_global_properties\", \"params\":{}, \"id\":12}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"find_accounts\", {\"accounts\":[\"init_miner\"]}], \"id\":13}";
@@ -268,16 +268,16 @@ BOOST_AUTO_TEST_CASE( positive_validation )
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"database_api.find_accounts\", \"id\":18}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"condenser_api\", \"get_accounts\", [[\"init_miner\"]]], \"id\":6}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_accounts\", {\"account_names\":[\"init_miner\"]}], \"id\":6}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"condenser_api.get_accounts\", \"params\":[[\"init_miner\"]], \"id\":7}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"alexandria_api.get_accounts\", \"params\":{\"account_names\":[\"init_miner\"]}, \"id\":7}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"condenser_api\", \"get_accounts\", [[]]], \"id\":8}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_accounts\", {\"account_names\":[]}, \"id\":8}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"condenser_api.get_accounts\", \"params\":[[]], \"id\":9}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"alexandria_api.get_accounts\", \"params\":{\"account_names\":[]}, \"id\":9}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": [\"block_api\",\"get_block\", {\"block_num\":23} ], \"id\": 10}";
