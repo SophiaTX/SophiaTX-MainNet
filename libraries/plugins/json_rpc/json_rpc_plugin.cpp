@@ -238,7 +238,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
          method_name = v[1].as_string();
          func_args = ( v.size() == 3 ) ? v[2] : fc::json::from_string( "{}" );
 
-         auto it = find (_subscribe_methods.begin(), _subscribe_methods.end(), v[0].as_string() + "." + v[1].as_string());
+         auto it = find (_subscribe_methods.begin(), _subscribe_methods.end(), api_name + "." + method_name);
          if( it!=_subscribe_methods.end() )
             is_subscribe = true;
       }
@@ -279,15 +279,15 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
       }
    }
 
-fc::optional< fc::variant > json_rpc_plugin_impl::call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args) {
-
-   if( remote::remote_db::initialized()) {
-      return fc::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
-   } else {
-      api_method *call = find_api_method(api_name, method_name);
-      return (*call)(func_args);
+   fc::optional<fc::variant>
+   json_rpc_plugin_impl::call_api_method(const string &api_name, const string &method_name, const fc::variant &func_args) {
+      if( _registered_apis.find(api_name) == _registered_apis.end() && remote::remote_db::initialized()) {
+         return fc::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
+      } else {
+         api_method *call = find_api_method(api_name, method_name);
+         return (*call)(func_args);
+      }
    }
-}
 
    void json_rpc_plugin_impl::rpc_jsonrpc( const fc::variant_object& request, json_rpc_response& response, std::function<void(string)> callback )
    {
