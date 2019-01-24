@@ -318,13 +318,15 @@ fc::optional< fc::variant > json_rpc_plugin_impl::call_api_method(const string& 
 
                   try
                   {
-                     if(subscribe){
-                        _subscribe_callbacks[response.result->as_uint64()] = callback;
-                        response.result = 1;
-                     } else {
-                        response.result = call_api_method(api_name, method_name, func_args);
+                     if(!response.error.valid())
+                     {
+                        if(subscribe){
+                           _subscribe_callbacks[response.result->as_uint64()] = callback;
+                           response.result = 1;
+                        } else {
+                           response.result = call_api_method(api_name, method_name, func_args);
+                        }
                      }
-
                   }
                   catch( chainbase::lock_exception& e )
                   {
