@@ -17,12 +17,6 @@ using sophiatx::protocol::asset;
 using sophiatx::protocol::asset_symbol_type;
 using sophiatx::protocol::price;
 
-template<class T, class U>
-std::weak_ptr<T>
-static_pointer_cast(std::weak_ptr<U> const& r)
-{
-   return std::static_pointer_cast<T>(std::shared_ptr<U>(r));
-}
 
 /**
  *   @class database

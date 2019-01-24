@@ -70,7 +70,7 @@ bool hybrid_database::is_sync() const {
    if( _head_op_id == _head_op_number && _head_op_number == 0 )
       return false;
 
-    auto result = remote::remote_db::get_app_custom_messages({_app_id, std::numeric_limits<uint64_t>::max(), 1});
+   auto result = remote::remote_db::get_app_custom_messages({_app_id, std::numeric_limits<uint64_t>::max(), 1});
 
    if( result.empty() || result.begin()->second.id != _head_op_id )
       return false;
@@ -87,8 +87,8 @@ hybrid_database::get_unprocessed_op(const remote::get_app_custom_messages_return
 
    auto mid = start;
 
-   std::advance(mid, size/2);
-   if (std::distance(mid,end) > static_cast<int64_t>(size / 2))
+   std::advance(mid, size / 2);
+   if( std::distance(mid, end) > static_cast<int64_t>(size / 2))
       return start;
 
    if( mid->second.id == _head_op_id ) {
@@ -101,16 +101,14 @@ hybrid_database::get_unprocessed_op(const remote::get_app_custom_messages_return
 }
 
 void hybrid_database::start_sync_with_full_node() {
-   _remote_api_thread.async([ wp = static_pointer_cast<hybrid_database>(weak_from_this()) ]() {
-                                 while( std::shared_ptr<hybrid_database> ptr = wp.lock()) {
-                                    if( !ptr->_running )
-                                       break;
+   _remote_api_thread.async([ & ]() {
+                                 while( _running ) {
                                     do {
-                                       if( ptr->is_sync())
+                                       if( is_sync())
                                           break;
 
                                        auto results = remote::remote_db::get_app_custom_messages(
-                                             {ptr->_app_id, ptr->_head_op_number + SOPHIATX_API_SINGLE_QUERY_LIMIT,
+                                             {_app_id, _head_op_number + SOPHIATX_API_SINGLE_QUERY_LIMIT,
                                               SOPHIATX_API_SINGLE_QUERY_LIMIT});
 
                                        if( results.empty())
@@ -118,17 +116,17 @@ void hybrid_database::start_sync_with_full_node() {
 
                                        auto itr = results.begin();
 
-                                       if( ptr->_head_op_id != 0 )
-                                          itr = ptr->get_unprocessed_op(results.begin(), results.end(), results.size());
+                                       if( _head_op_id != 0 )
+                                          itr = get_unprocessed_op(results.begin(), results.end(), results.size());
 
                                        if( itr == results.end())
                                           break;
 
                                        for( ; itr != results.end(); ++itr ) {
-                                          if( itr->second.id > ptr->_head_op_id || itr->second.id == 0 ) {
-                                             ptr->apply_custom_op(itr->second);
-                                             ptr->_head_op_number++;
-                                             ptr->_head_op_id = itr->second.id;
+                                          if( itr->second.id > _head_op_id || itr->second.id == 0 ) {
+                                             apply_custom_op(itr->second);
+                                             _head_op_number++;
+                                             _head_op_id = itr->second.id;
                                           }
                                        }
                                     } while( true );
