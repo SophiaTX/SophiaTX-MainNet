@@ -121,12 +121,3 @@
   - name: Starting sophia demon
     command: screen -dmS sophia bash -c '{{ source_dir }}sophiatxd --data-dir {{ data_dir }} --config {{ configs_dir }}{{ config_file_name }}; exec $SHELL'
     when: replayBlockchain == "false"
-
-
-  - name: Waiting 5 seconds for sophia demon to fully initialize and start.
-    pause:
-      seconds: 5
-
-
-  - name: Starting alexandria demon
-    command: screen -dmS alexandria bash -c '{{ source_dir }}alexandria_deamon -H0.0.0.0:9195 -C*; exec $SHELL'
