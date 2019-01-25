@@ -18,7 +18,7 @@ class plugin_a : public appbase::plugin<plugin_a>
 
      static const std::string& name() { static std::string name = "plugin_a"; return name; }
 
-     virtual void set_program_options( options_description& cli, options_description& cfg ) override
+     static void set_program_options( options_description& cli, options_description& cfg )
      {
          cfg.add_options()
                ("dbsize", bpo::value<uint64_t>()->default_value( 8*1024 ), "Minimum size MB of database shared memory file")
@@ -59,7 +59,7 @@ class plugin_b : public appbase::plugin<plugin_b>
 
      static const std::string& name() { static std::string name = "plugin_b"; return name; }
 
-     virtual void set_program_options( options_description& cli, options_description& cfg ) override
+     static void set_program_options( options_description& cli, options_description& cfg )
      {
         cfg.add_options()
               ("listen-endpoint", bpo::value<string>()->default_value( "127.0.0.1:9876" ), "The local IP address and port to listen for incoming connections.")
@@ -90,11 +90,12 @@ class plugin_b : public appbase::plugin<plugin_b>
 
 int main( int argc, char** argv ) {
    try {
-      appbase::app().register_plugin<plugin_b>();
-      if( !appbase::app().initialize( argc, argv ) )
+      appbase::app_factory().register_plugin_factory<plugin_b>();
+
+      if( !appbase::app_factory().initialize( argc, argv, {} ) )
          return -1;
-      appbase::app().startup();
-      appbase::app().exec();
+      appbase::app_factory().startup();
+      appbase::app_factory().exec();
    } catch ( const boost::exception& e ) {
       std::cerr << boost::diagnostic_information(e) << "\n";
    } catch ( const std::exception& e ) {

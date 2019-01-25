@@ -49,10 +49,11 @@ namespace detail {
 
    class witness_plugin_impl {
    public:
-      witness_plugin_impl( boost::asio::io_service& io ) :
+      witness_plugin_impl( witness_plugin& plugin, boost::asio::io_service& io ) :
          _timer(io),
-         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
-         _chain_plugin( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >()) {}
+         _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _chain_plugin( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >()),
+         _p2p_plugin( plugin.app()->get_plugin<plugins::p2p::p2p_plugin>()){}
 
       void pre_transaction( const sophiatx::protocol::signed_transaction& trx );
       void pre_operation( const chain::operation_notification& note );
@@ -72,6 +73,7 @@ namespace detail {
 
       chain::database&     _db;
       plugins::chain::chain_plugin& _chain_plugin;
+      plugins::p2p::p2p_plugin&     _p2p_plugin;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   applied_block_connection;
       boost::signals2::connection   on_pre_apply_transaction_connection;
@@ -254,7 +256,7 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::block_production_loop()
    {
-      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      chain::database& db = _db;
       if( fc::time_point::now() < fc::time_point(db.get_genesis_time()) )
       {
          wlog( "waiting until genesis time to produce block: ${t}, now is: ${n}", ("t", db.get_genesis_time())("n", fc::time_point::now()) );
@@ -324,7 +326,7 @@ namespace detail {
 
    block_production_condition::block_production_condition_enum witness_plugin_impl::maybe_produce_block(fc::mutable_variant_object& capture)
    {
-      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      chain::database& db = _db;
       fc::time_point now_fine = fc::time_point::now();
       fc::time_point_sec now = now_fine + fc::microseconds( 500000 );
 
@@ -395,7 +397,7 @@ namespace detail {
          );
       capture("n", block.block_num())("t", block.timestamp)("c", now);
 
-      appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >().broadcast_block( block );
+      _p2p_plugin.broadcast_block( block );
       return block_production_condition::produced;
    }
 
@@ -421,7 +423,7 @@ void witness_plugin::set_program_options(
 
 void witness_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 { try {
-   my = std::make_unique< detail::witness_plugin_impl >( appbase::app().get_io_service() );
+   my = std::make_unique< detail::witness_plugin_impl >( *this, app()->get_io_service() );
 
    SOPHIATX_LOAD_VALUE_SET( options, "witness", my->_witnesses, sophiatx::protocol::account_name_type )
 
@@ -457,12 +459,12 @@ void witness_plugin::plugin_initialize(const boost::program_options::variables_m
 void witness_plugin::plugin_startup()
 { try {
    ilog("witness plugin:  plugin_startup() begin");
-   chain::database& d = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+   chain::database& d = app()->template get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
    if( !my->_witnesses.empty() )
    {
       ilog( "Launching block production for ${n} witnesses.", ("n", my->_witnesses.size()) );
-      appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >().set_block_production( true );
+      app()->template get_plugin< sophiatx::plugins::p2p::p2p_plugin >().set_block_production( true );
       if( my->_production_enabled )
       {
          if( d.head_block_num() == 0 )

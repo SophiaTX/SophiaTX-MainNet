@@ -10,7 +10,7 @@ namespace detail {
 class account_by_key_api_impl
 {
    public:
-      account_by_key_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+      account_by_key_api_impl( account_by_key_api_plugin& plugin ) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       get_key_references_return get_key_references( const get_key_references_args& args )const;
 
@@ -43,9 +43,9 @@ get_key_references_return account_by_key_api_impl::get_key_references( const get
 
 } // detail
 
-account_by_key_api::account_by_key_api(): my( new detail::account_by_key_api_impl() )
+account_by_key_api::account_by_key_api(account_by_key_api_plugin& plugin): my( new detail::account_by_key_api_impl(plugin) )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_BY_KEY_API_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_BY_KEY_API_PLUGIN_NAME, plugin.app() );
 }
 
 account_by_key_api::~account_by_key_api() {}

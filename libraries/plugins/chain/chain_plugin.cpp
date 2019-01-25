@@ -333,37 +333,21 @@ void chain_plugin::plugin_initialize(const variables_map& options) {
 
    auto initial_state = [&] {
 
-        if( private_net){
-           if ( options.count("initminer-account-pubkey")) {
-              // Creates genesis based on provided initminer account public key
-              genesis_state_type genesis;
-              genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
-              genesis.initial_balace = 0;
-              genesis.initial_public_key = public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >());
-              genesis.is_private_net = true;
+        if( (private_net && options.count("initminer-account-pubkey")) ||
+            (private_net && options.count("genesis-json") == 0 ) ){
+           genesis_state_type genesis;
+           genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
+           genesis.initial_balace = 0;
+           genesis.initial_public_key = options.count("initminer-account-pubkey") ?
+                   public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >()) :
+                   public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
+           genesis.is_private_net = true;
 
-              fc::sha256::encoder enc;
-              fc::raw::pack( enc, genesis );
-              genesis.initial_chain_id = enc.result();
+           fc::sha256::encoder enc;
+           fc::raw::pack( enc, genesis );
+           genesis.initial_chain_id = enc.result();
 
-              return genesis;
-           }
-           // private net might be also started with custom genesis file
-           else {
-              if (options.count("genesis-json") == 0) {
-                 genesis_state_type genesis;
-                 genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
-                 genesis.initial_balace = 0;
-                 genesis.initial_public_key = public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
-                 genesis.is_private_net = true;
-
-                 fc::sha256::encoder enc;
-                 fc::raw::pack( enc, genesis );
-                 genesis.initial_chain_id = enc.result();
-
-                 return genesis;
-              }
-           }
+           return genesis;
         }
 
         if( options.count("genesis-json") )
@@ -424,12 +408,12 @@ void chain_plugin::plugin_startup()
 
    chain_id_type chain_id = my->genesis.compute_chain_id();
 
-   my->shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
+   my->shared_memory_dir = app_factory().data_dir / chain_id.str() / "blockchain";
 
    // correct directories, TODO can be removed after next HF2
-   if( ! my->genesis.is_private_net && bfs::exists( app().data_dir() / "blockchain" ) ){
+   if( ! my->genesis.is_private_net && bfs::exists( app_factory().data_dir / "blockchain" ) ){
       bfs::create_directories ( my->shared_memory_dir );
-      bfs::rename( app().data_dir() / "blockchain", my->shared_memory_dir );
+      bfs::rename( app_factory().data_dir / "blockchain", my->shared_memory_dir );
    }
 
    elog("Starting node with chain id ${i}", ("i", chain_id));
@@ -528,7 +512,7 @@ void chain_plugin::plugin_startup()
       if( my->stop_replay_at > 0 && my->stop_replay_at == last_block_number )
       {
          ilog("Stopped blockchain replaying on user request. Last applied block number: ${n}.", ("n", last_block_number));
-         appbase::app().quit();
+         app()->quit();
          return;
       }
    }

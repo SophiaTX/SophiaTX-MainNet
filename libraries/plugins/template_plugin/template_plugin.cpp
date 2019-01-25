@@ -14,7 +14,7 @@ class template_plugin_impl
 {
    public:
      template_plugin_impl( template_plugin& _plugin ) :
-         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ) {}
 
       void pre_operation( const operation_notification& op_obj );

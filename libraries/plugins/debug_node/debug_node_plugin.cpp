@@ -21,15 +21,15 @@ namespace detail {
 class debug_node_plugin_impl
 {
    public:
-      debug_node_plugin_impl();
-      virtual ~debug_node_plugin_impl();
+      debug_node_plugin_impl( debug_node_plugin& _plugin);
+      virtual ~debug_node_plugin_impl( );
 
       chain::database&                          _db;
       boost::signals2::connection               applied_block_connection;
 };
 
-debug_node_plugin_impl::debug_node_plugin_impl() :
-   _db( appbase::app().get_plugin< chain::chain_plugin >().db() ) {}
+debug_node_plugin_impl::debug_node_plugin_impl(debug_node_plugin& _plugin) :
+   _db( _plugin.app()->get_plugin< chain::chain_plugin >().db() ) {}
 debug_node_plugin_impl::~debug_node_plugin_impl() {}
 
 }

@@ -75,10 +75,10 @@ int main( int argc, char** argv )
       options.add_options()
          ("backtrace", bpo::value< string >()->default_value( "yes" ), "Whether to print backtrace on SIGSEGV" );
 
-      appbase::app().add_program_options( bpo::options_description(), options );
+      appbase::app_factory().add_program_options( options );
 
       sophiatx::plugins::register_plugins();
-      appbase::app().set_version_string( version_string() );
+      appbase::app_factory().set_version_string( version_string() );
 
       bool initialized = appbase::app().initialize<
             sophiatx::plugins::chain::chain_plugin,
@@ -91,14 +91,11 @@ int main( int argc, char** argv )
       if( !initialized )
          return 0;
 
-      auto& args = appbase::app().get_args();
-
-      debug_config(appbase::app().get_options(), args);
-
+      auto& args = appbase::app_factory().global_args;
 
       try
       {
-         fc::optional< fc::logging_config > logging_config = sophiatx::utilities::load_logging_config( args, appbase::app().data_dir() );
+         fc::optional< fc::logging_config > logging_config = sophiatx::utilities::load_logging_config( args, appbase::app_factory().data_dir );
          if( logging_config )
             fc::configure_logging( *logging_config );
       }

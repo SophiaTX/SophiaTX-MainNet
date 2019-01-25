@@ -18,7 +18,7 @@ class multiparty_messaging_plugin_impl : public custom_operation_interpreter
 {
 public:
    multiparty_messaging_plugin_impl( multiparty_messaging_plugin& _plugin ) :
-         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ),
          app_id(_plugin.app_id) { }
 

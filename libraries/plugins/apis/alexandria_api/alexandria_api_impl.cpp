@@ -9,8 +9,8 @@
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
-alexandria_api_impl::alexandria_api_impl()
-      : _db(appbase::app().get_plugin<sophiatx::plugins::chain::chain_plugin>().db()) {}
+alexandria_api_impl::alexandria_api_impl(alexandria_api_plugin& plugin)
+      : _db(plugin.app()->get_plugin<sophiatx::plugins::chain::chain_plugin>().db()) {}
 
 alexandria_api_impl::~alexandria_api_impl() {}
 
