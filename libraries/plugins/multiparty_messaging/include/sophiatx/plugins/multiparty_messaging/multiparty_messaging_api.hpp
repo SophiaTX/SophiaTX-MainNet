@@ -139,6 +139,7 @@ class multiparty_messaging_api
    public:
       multiparty_messaging_api(multiparty_messaging_plugin& plugin);
       ~multiparty_messaging_api();
+      void api_startup();
 
       DECLARE_API( (get_group) (get_group_name) (list_my_groups) (list_messages)
                    (create_group) (add_group_participants) (delete_group_participants) (update_group) (disband_group) (send_group_message))

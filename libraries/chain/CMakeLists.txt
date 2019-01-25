@@ -1,12 +1,13 @@
-file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp")
+file(GLOB HEADERS "include/sophiatx/chain/*.hpp" "include/sophiatx/chain/util/*.hpp" "include/sophiatx/chain/database/*.hpp")
 
 ## SORT .cpp by most likely to change / break compile
 add_library( sophiatx_chain
 
              # As database takes the longest to compile, start it first
              database.cpp
+             database_interface.cpp
+             hybrid_database.cpp
 
-             smt_evaluator.cpp
              sophiatx_evaluator.cpp
              sophiatx_objects.cpp
 
@@ -17,12 +18,12 @@ add_library( sophiatx_chain
              block_log.cpp
              economics.cpp
 
-        util/impacted.cpp
+             util/impacted.cpp
 
              ${HEADERS}
        )
 
-target_link_libraries( sophiatx_chain sophiatx_protocol fc chainbase sophiatx_schema ${PATCH_MERGE_LIB} )
+target_link_libraries( sophiatx_chain sophiatx_protocol fc chainbase sophiatx_schema sophiatx_remote_db ${PATCH_MERGE_LIB} )
 target_include_directories( sophiatx_chain
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include" )
 if (USE_PCH)

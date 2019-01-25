@@ -26,11 +26,12 @@
 
 #include <sophiatx/protocol/exceptions.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/history_object.hpp>
 
 #include <sophiatx/plugins/account_history/account_history_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 
 #include <sophiatx/utilities/tempdir.hpp>
 
@@ -46,22 +47,22 @@ using namespace sophiatx::protocol;
 
 BOOST_AUTO_TEST_SUITE(block_tests)
 
-void open_test_database( database& db, const fc::path& dir )
+void open_test_database( const std::shared_ptr<database>& db, const fc::path& dir )
 {
    fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
    public_key_type init_account_pub_key = init_account_priv_key.get_public_key();
 
    genesis_state_type gen;
    gen.genesis_time = fc::time_point_sec(1530644400);
-   database::open_args args;
+   database_interface::open_args args;
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
-   db.open( args, gen, public_key_type(init_account_pub_key) );
-   db.modify( db.get_witness( "initminer" ), [&]( witness_object& a )
+   db->open( args, gen, public_key_type(init_account_pub_key) );
+   db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
         a.signing_key = init_account_pub_key;
    });
-   db.modify( db.get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
+   db->modify( db->get< account_authority_object, by_account >( "initminer" ), [&]( account_authority_object& a )
    {
         a.active.add_authority(init_account_pub_key, 1);
         a.owner.add_authority(init_account_pub_key, 1);
@@ -79,47 +80,47 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
       fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       signed_block cutoff_block;
       {
-         database db;
-         db._log_hardforks = false;
+         auto db = std::make_shared<database>();
+         db->_log_hardforks = false;
          open_test_database( db, data_dir.path() );
-         b = db.generate_block(db.get_slot_time(1), db.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+         b = db->generate_block(db->get_slot_time(1), db->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
 
          // TODO:  Change this test when we correct #406
          // n.b. we generate SOPHIATX_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
          for( uint32_t i = 1; ; ++i )
          {
-            BOOST_CHECK( db.head_block_id() == b.id() );
+            BOOST_CHECK( db->head_block_id() == b.id() );
             //witness_id_type prev_witness = b.witness;
-            string cur_witness = db.get_scheduled_witness(1);
+            string cur_witness = db->get_scheduled_witness(1);
             //BOOST_CHECK( cur_witness != prev_witness );
-            b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
+            b = db->generate_block(db->get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
             BOOST_CHECK( b.witness == cur_witness );
-            uint32_t cutoff_height = db.get_dynamic_global_properties().last_irreversible_block_num;
+            uint32_t cutoff_height = db->get_dynamic_global_properties().last_irreversible_block_num;
             if( cutoff_height >= 200 )
             {
-               auto block = db.fetch_block_by_number( cutoff_height );
+               auto block = db->fetch_block_by_number( cutoff_height );
                BOOST_REQUIRE( block.valid() );
                cutoff_block = *block;
                break;
             }
          }
-         db.close();
+         db->close();
       }
       {
-         database db;
-         db._log_hardforks = false;
+         auto db = std::make_shared<database>();
+         db->_log_hardforks = false;
          open_test_database( db, data_dir.path() );
-         BOOST_CHECK_EQUAL( db.head_block_num(), cutoff_block.block_num() );
+         BOOST_CHECK_EQUAL( db->head_block_num(), cutoff_block.block_num() );
          b = cutoff_block;
          for( uint32_t i = 0; i < 200; ++i )
          {
-            BOOST_CHECK( db.head_block_id() == b.id() );
+            BOOST_CHECK( db->head_block_id() == b.id() );
             //witness_id_type prev_witness = b.witness;
-            string cur_witness = db.get_scheduled_witness(1);
+            string cur_witness = db->get_scheduled_witness(1);
             //BOOST_CHECK( cur_witness != prev_witness );
-            b = db.generate_block(db.get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
+            b = db->generate_block(db->get_slot_time(1), cur_witness, init_account_priv_key, database::skip_nothing);
          }
-         BOOST_CHECK_EQUAL( db.head_block_num(), cutoff_block.block_num()+200 );
+         BOOST_CHECK_EQUAL( db->head_block_num(), cutoff_block.block_num()+200 );
       }
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
@@ -132,8 +133,8 @@ BOOST_AUTO_TEST_CASE( undo_block )
    try {
       fc::temp_directory data_dir( sophiatx::utilities::temp_directory_path() );
       {
-         database db;
-         db._log_hardforks = false;
+         auto db = std::make_shared<database>();
+         db->_log_hardforks = false;
          open_test_database( db, data_dir.path() );
          fc::time_point_sec now( SOPHIATX_TESTING_GENESIS_TIMESTAMP );
          std::vector< time_point_sec > time_stack;
@@ -141,34 +142,34 @@ BOOST_AUTO_TEST_CASE( undo_block )
          fc::ecc::private_key  init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
          for( uint32_t i = 0; i < 5; ++i )
          {
-            now = db.get_slot_time(1);
+            now = db->get_slot_time(1);
             time_stack.push_back( now );
-            auto b = db.generate_block( now, db.get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing );
+            auto b = db->generate_block( now, db->get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing );
          }
-         BOOST_CHECK( db.head_block_num() == 5 );
-         BOOST_CHECK( db.head_block_time() == now );
-         db.pop_block();
+         BOOST_CHECK( db->head_block_num() == 5 );
+         BOOST_CHECK( db->head_block_time() == now );
+         db->pop_block();
          time_stack.pop_back();
          now = time_stack.back();
-         BOOST_CHECK( db.head_block_num() == 4 );
-         BOOST_CHECK( db.head_block_time() == now );
-         db.pop_block();
+         BOOST_CHECK( db->head_block_num() == 4 );
+         BOOST_CHECK( db->head_block_time() == now );
+         db->pop_block();
          time_stack.pop_back();
          now = time_stack.back();
-         BOOST_CHECK( db.head_block_num() == 3 );
-         BOOST_CHECK( db.head_block_time() == now );
-         db.pop_block();
+         BOOST_CHECK( db->head_block_num() == 3 );
+         BOOST_CHECK( db->head_block_time() == now );
+         db->pop_block();
          time_stack.pop_back();
          now = time_stack.back();
-         BOOST_CHECK( db.head_block_num() == 2 );
-         BOOST_CHECK( db.head_block_time() == now );
+         BOOST_CHECK( db->head_block_num() == 2 );
+         BOOST_CHECK( db->head_block_time() == now );
          for( uint32_t i = 0; i < 5; ++i )
          {
-            now = db.get_slot_time(1);
+            now = db->get_slot_time(1);
             time_stack.push_back( now );
-            auto b = db.generate_block( now, db.get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing );
+            auto b = db->generate_block( now, db->get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing );
          }
-         BOOST_CHECK( db.head_block_num() == 7 );
+         BOOST_CHECK( db->head_block_num() == 7 );
       }
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
@@ -184,45 +185,45 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
 
       //TODO This test needs 6-7 ish witnesses prior to fork
 
-      database db1;
-      db1._log_hardforks = false;
+      auto db1 = std::make_shared<database>();
+      db1->_log_hardforks = false;
       open_test_database( db1, data_dir1.path() );
-      database db2;
-      db2._log_hardforks = false;
+      auto db2 = std::make_shared<database>();
+      db2->_log_hardforks = false;
       open_test_database( db2, data_dir2.path() );
 
       fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       for( uint32_t i = 0; i < 10; ++i )
       {
-         auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+         auto b = db1->generate_block(db1->get_slot_time(1), db1->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
          try {
             PUSH_BLOCK( db2, b );
          } FC_CAPTURE_AND_RETHROW( ("db2") );
       }
       for( uint32_t i = 10; i < 13; ++i )
       {
-         auto b =  db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+         auto b =  db1->generate_block(db1->get_slot_time(1), db1->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       }
-      string db1_tip = db1.head_block_id().str();
+      string db1_tip = db1->head_block_id().str();
       uint32_t next_slot = 3;
       for( uint32_t i = 13; i < 16; ++i )
       {
-         auto b =  db2.generate_block(db2.get_slot_time(next_slot), db2.get_scheduled_witness(next_slot), init_account_priv_key, database::skip_nothing);
+         auto b =  db2->generate_block(db2->get_slot_time(next_slot), db2->get_scheduled_witness(next_slot), init_account_priv_key, database::skip_nothing);
          next_slot = 1;
          // notify both databases of the new block.
          // only db2 should switch to the new fork, db1 should not
          PUSH_BLOCK( db1, b );
-         BOOST_CHECK_EQUAL(db1.head_block_id().str(), db1_tip);
-         BOOST_CHECK_EQUAL(db2.head_block_id().str(), b.id().str());
+         BOOST_CHECK_EQUAL(db1->head_block_id().str(), db1_tip);
+         BOOST_CHECK_EQUAL(db2->head_block_id().str(), b.id().str());
       }
 
       //The two databases are on distinct forks now, but at the same height. Make a block on db2, make it invalid, then
       //pass it to db1 and assert that db1 doesn't switch to the new fork.
       signed_block good_block;
-      BOOST_CHECK_EQUAL(db1.head_block_num(), static_cast<uint32_t>(13));
-      BOOST_CHECK_EQUAL(db2.head_block_num(), static_cast<uint32_t>(13));
+      BOOST_CHECK_EQUAL(db1->head_block_num(), static_cast<uint32_t>(13));
+      BOOST_CHECK_EQUAL(db2->head_block_num(), static_cast<uint32_t>(13));
       {
-         auto b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+         auto b = db2->generate_block(db2->get_slot_time(1), db2->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
          good_block = b;
          b.transactions.emplace_back(signed_transaction());
          b.transactions.back().operations.emplace_back(transfer_operation());
@@ -230,13 +231,13 @@ BOOST_AUTO_TEST_CASE( fork_blocks )
          BOOST_CHECK_EQUAL(b.block_num(), static_cast<uint32_t>(14));
          SOPHIATX_CHECK_THROW(PUSH_BLOCK( db1, b ), fc::exception);
       }
-      BOOST_CHECK_EQUAL(db1.head_block_num(), static_cast<uint32_t>(13));
-      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db1_tip);
+      BOOST_CHECK_EQUAL(db1->head_block_num(), static_cast<uint32_t>(13));
+      BOOST_CHECK_EQUAL(db1->head_block_id().str(), db1_tip);
 
       // assert that db1 switches to new fork with good block
-      BOOST_CHECK_EQUAL(db2.head_block_num(), static_cast<uint32_t>(14));
+      BOOST_CHECK_EQUAL(db2->head_block_num(), static_cast<uint32_t>(14));
       PUSH_BLOCK( db1, good_block );
-      BOOST_CHECK_EQUAL(db1.head_block_id().str(), db2.head_block_id().str());
+      BOOST_CHECK_EQUAL(db1->head_block_id().str(), db2->head_block_id().str());
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -248,16 +249,17 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
    try {
       fc::temp_directory dir1( sophiatx::utilities::temp_directory_path() ),
                          dir2( sophiatx::utilities::temp_directory_path() );
-      database db1,
-               db2;
-      db1._log_hardforks = false;
+
+      auto db1 = std::make_shared<database>();
+      auto db2 = std::make_shared<database>();
+      db1->_log_hardforks = false;
       open_test_database( db1, dir1.path() );
-      db2._log_hardforks = false;
+      db2->_log_hardforks = false;
       open_test_database( db2, dir2.path() );
 
       fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       public_key_type init_account_pub_key  = init_account_priv_key.get_public_key();
-      db1.get_index< account_index >();
+      db1->get_index< account_index >();
 
       //*
       signed_transaction trx;
@@ -268,35 +270,35 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.active = cop.owner;
       cop.fee = asset(50000, SOPHIATX_SYMBOL);
       trx.operations.push_back(cop);
-      trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
+      trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
       PUSH_TX( db1, trx );
       //*/
       // generate blocks
       // db1 : A
       // db2 : B C D
 
-      auto b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      auto b = db1->generate_block(db1->get_slot_time(1), db1->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
 
-      auto alice_id = db1.get_account( AN("alice") ).id;
-      BOOST_CHECK( db1.get(alice_id).name == AN("alice") );
+      auto alice_id = db1->get_account( AN("alice") ).id;
+      BOOST_CHECK( db1->get(alice_id).name == AN("alice") );
 
-      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
-      db1.push_block(b);
-      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
-      db1.push_block(b);
-      SOPHIATX_REQUIRE_THROW(db2.get(alice_id), std::exception);
-      db1.get(alice_id); /// it should be included in the pending state
-      db1.clear_pending(); // clear it so that we can verify it was properly removed from pending state.
-      SOPHIATX_REQUIRE_THROW(db1.get(alice_id), std::exception);
+      b = db2->generate_block(db2->get_slot_time(1), db2->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      db1->push_block(b);
+      b = db2->generate_block(db2->get_slot_time(1), db2->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      db1->push_block(b);
+      SOPHIATX_REQUIRE_THROW(db2->get(alice_id), std::exception);
+      db1->get(alice_id); /// it should be included in the pending state
+      db1->clear_pending(); // clear it so that we can verify it was properly removed from pending state.
+      SOPHIATX_REQUIRE_THROW(db1->get(alice_id), std::exception);
 
       PUSH_TX( db2, trx );
 
-      b = db2.generate_block(db2.get_slot_time(1), db2.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
-      db1.push_block(b);
+      b = db2->generate_block(db2->get_slot_time(1), db2->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      db1->push_block(b);
 
-      BOOST_CHECK( db1.get(alice_id).name == AN("alice"));
-      BOOST_CHECK( db2.get(alice_id).name == AN("alice"));
+      BOOST_CHECK( db1->get(alice_id).name == AN("alice"));
+      BOOST_CHECK( db2->get(alice_id).name == AN("alice"));
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -308,13 +310,13 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
    try {
       fc::temp_directory dir1( sophiatx::utilities::temp_directory_path() ),
                          dir2( sophiatx::utilities::temp_directory_path() );
-      database db1,
-               db2;
-      db1._log_hardforks = false;
+      auto db1 = std::make_shared<database>();
+      auto db2 = std::make_shared<database>();
+      db1->_log_hardforks = false;
       open_test_database( db1, dir1.path() );
-      db2._log_hardforks = false;
+      db2->_log_hardforks = false;
       open_test_database( db2, dir2.path() );
-      BOOST_CHECK( db1.get_chain_id() == db2.get_chain_id() );
+      BOOST_CHECK( db1->get_chain_id() == db2->get_chain_id() );
 
       auto skip_sigs = database::skip_transaction_signatures | database::skip_authority_check;
 
@@ -330,8 +332,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       cop.fee = asset(50000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back(cop);
-      trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
+      trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
       PUSH_TX( db1, trx, skip_sigs );
 
       trx = decltype(trx)();
@@ -341,19 +343,19 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       t.amount = asset(500,SOPHIATX_SYMBOL);
       t.fee = asset(100000, SOPHIATX_SYMBOL);
       trx.operations.push_back(t);
-      trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
+      trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
       PUSH_TX( db1, trx, skip_sigs );
 
       SOPHIATX_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
 
-      auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_witness( 1 ), init_account_priv_key, skip_sigs );
+      auto b = db1->generate_block( db1->get_slot_time(1), db1->get_scheduled_witness( 1 ), init_account_priv_key, skip_sigs );
       PUSH_BLOCK( db2, b, skip_sigs );
 
       SOPHIATX_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
       SOPHIATX_CHECK_THROW(PUSH_TX( db2, trx, skip_sigs ), fc::exception);
-      BOOST_CHECK_EQUAL(db1.get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
-      BOOST_CHECK_EQUAL(db2.get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db1->get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db2->get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -364,20 +366,20 @@ BOOST_AUTO_TEST_CASE( tapos )
 {
    try {
       fc::temp_directory dir1( sophiatx::utilities::temp_directory_path() );
-      database db1;
-      db1._log_hardforks = false;
+      auto db1 = std::make_shared<database>();
+      db1->_log_hardforks = false;
       open_test_database( db1, dir1.path() );
 
       fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JPwY3bwFgfsGtxMeLkLqXzUrQDMAsqSyAZDnMBkg7PDDRhQgaV"));
       public_key_type init_account_pub_key  = init_account_priv_key.get_public_key();
 
-      auto b = db1.generate_block( db1.get_slot_time(1), db1.get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing);
+      auto b = db1->generate_block( db1->get_slot_time(1), db1->get_scheduled_witness( 1 ), init_account_priv_key, database::skip_nothing);
 
       BOOST_TEST_MESSAGE( "Creating a transaction with reference block" );
-      idump((db1.head_block_id()));
+      idump((db1->head_block_id()));
       signed_transaction trx;
       //This transaction must be in the next block after its reference, or it is invalid.
-      trx.set_reference_block( db1.head_block_id() );
+      trx.set_reference_block( db1->head_block_id() );
 
       account_create_operation cop;
       cop.name_seed = "alice";
@@ -387,14 +389,14 @@ BOOST_AUTO_TEST_CASE( tapos )
       cop.fee = asset(50000, SOPHIATX_SYMBOL);
 
       trx.operations.push_back(cop);
-      trx.set_expiration( db1.head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
+      trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
 
       BOOST_TEST_MESSAGE( "Pushing Pending Transaction" );
       idump((trx));
-      db1.push_transaction(trx);
+      db1->push_transaction(trx);
       BOOST_TEST_MESSAGE( "Generating a block" );
-      b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      b = db1->generate_block(db1->get_slot_time(1), db1->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       trx.clear();
 
       transfer_operation t;
@@ -402,15 +404,15 @@ BOOST_AUTO_TEST_CASE( tapos )
       t.to = AN("alice");
       t.amount = asset(50,SOPHIATX_SYMBOL);
       trx.operations.push_back(t);
-      trx.set_expiration( db1.head_block_time() + fc::seconds(2) );
-      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
-      idump((trx)(db1.head_block_time()));
-      b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      trx.set_expiration( db1->head_block_time() + fc::seconds(2) );
+      trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
+      idump((trx)(db1->head_block_time()));
+      b = db1->generate_block(db1->get_slot_time(1), db1->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       idump((b));
-      b = db1.generate_block(db1.get_slot_time(1), db1.get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
+      b = db1->generate_block(db1->get_slot_time(1), db1->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
       trx.signatures.clear();
-      trx.sign( init_account_priv_key, db1.get_chain_id(), fc::ecc::fc_canonical );
-      BOOST_REQUIRE_THROW( db1.push_transaction(trx, 0/*database::skip_transaction_signatures | database::skip_authority_check*/), fc::exception );
+      trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
+      BOOST_REQUIRE_THROW( db1->push_transaction(trx, 0/*database::skip_transaction_signatures | database::skip_authority_check*/), fc::exception );
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -444,14 +446,14 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       sign( tx, alice_private_key );
-      PUSH_TX( *db, tx );
+      PUSH_TX( db, tx );
 
       BOOST_TEST_MESSAGE( "proper ref_block_num, ref_block_prefix" );
 
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       sign( tx, alice_private_key );
-      PUSH_TX( *db, tx, database::skip_transaction_dupe_check );
+      PUSH_TX( db, tx, database::skip_transaction_dupe_check );
 
       BOOST_TEST_MESSAGE( "ref_block_num=0, ref_block_prefix=12345678" );
 
@@ -460,7 +462,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       sign( tx, alice_private_key );
-      SOPHIATX_REQUIRE_THROW( PUSH_TX( *db, tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( PUSH_TX( db, tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_TEST_MESSAGE( "ref_block_num=1, ref_block_prefix=12345678" );
 
@@ -469,7 +471,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       sign( tx, alice_private_key );
-      SOPHIATX_REQUIRE_THROW( PUSH_TX( *db, tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( PUSH_TX( db, tx, database::skip_transaction_dupe_check ), fc::exception );
 
       BOOST_TEST_MESSAGE( "ref_block_num=9999, ref_block_prefix=12345678" );
 
@@ -478,7 +480,7 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       sign( tx, alice_private_key );
-      SOPHIATX_REQUIRE_THROW( PUSH_TX( *db, tx, database::skip_transaction_dupe_check ), fc::exception );
+      SOPHIATX_REQUIRE_THROW( PUSH_TX( db, tx, database::skip_transaction_dupe_check ), fc::exception );
    }
    catch (fc::exception& e)
    {
@@ -745,16 +747,18 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
          if( arg == "--show-test-names" )
             std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
       }
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
       init_account_pub_key = init_account_priv_key.get_public_key();
 
       appbase::app().initialize<
+         sophiatx::plugins::chain::chain_plugin_full,
          sophiatx::plugins::account_history::account_history_plugin,
          sophiatx::plugins::debug_node::debug_node_plugin
       >( argc, argv );
 
-      db = &appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
 

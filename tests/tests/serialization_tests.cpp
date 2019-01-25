@@ -25,7 +25,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <sophiatx/chain/sophiatx_objects.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include <fc/crypto/elliptic.hpp>

@@ -19,13 +19,13 @@ public:
    )
 
 
-   chain::database&                 _db;
+   std::shared_ptr<chain::database_interface>  _db;
 };
 
 
 DEFINE_API_IMPL( custom_api_impl, get_received_document )
 {
-   const auto& idx = _db.get_index< chain::custom_content_index, chain::by_id >();
+   const auto& idx = _db->get_index< chain::custom_content_index, chain::by_id >();
    auto res = idx.find(args.id);
    return *res;
 }
@@ -35,7 +35,7 @@ DEFINE_API_IMPL( custom_api_impl, get_app_custom_messages)
    FC_ASSERT( args.limit <= CUSTOM_API_SINGLE_QUERY_LIMIT, "limit of ${l} is greater than maxmimum allowed", ("l",args.limit) );
    FC_ASSERT( args.start >= args.limit, "start must be greater than limit" );
 
-   const auto& idx = _db.get_index< chain::custom_content_index, chain::by_app_id >();
+   const auto& idx = _db->get_index< chain::custom_content_index, chain::by_app_id >();
    auto itr = idx.lower_bound( boost::make_tuple( args.app_id, args.start ) );
    auto end = idx.upper_bound( boost::make_tuple( args.app_id, std::max( int64_t(0), int64_t(itr->app_message_sequence) - args.limit ) ) );
 
@@ -57,7 +57,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
    if(args.search_type == "by_sender"){
       uint64_t start = std::stoull(args.start);
       FC_ASSERT( start >= args.count, "start must be greater than limit" );
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_sender >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, std::max( int64_t(0), int64_t(itr->sender_sequence) - args.count ) ) );
 
@@ -71,7 +71,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
    }else if(args.search_type == "by_recipient"){
       uint64_t start = std::stoull(args.start);
       FC_ASSERT( start >= args.count, "start must be greater than limit" );
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_recipient >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_recipient >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, std::max( int64_t(0), int64_t(itr->recipient_sequence) - args.count ) ) );
 
@@ -85,7 +85,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       return result;
    }else if(args.search_type == "by_sender_datetime"){
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender_time >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_sender_time >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::min() ) );
 
@@ -99,7 +99,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       return result;
    }else if(args.search_type == "by_recipient_datetime"){
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_recipient_time >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_recipient_time >();
       auto itr = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::min() ) );
 
@@ -115,7 +115,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
    }else if(args.search_type == "by_sender_reverse"){
       uint64_t start = std::stoull(args.start);
       //FC_ASSERT( start >= args.count, "start must be greater than limit" );
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_sender >();
       auto itr = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, int64_t(itr->sender_sequence) + args.count  ) );
 
@@ -129,7 +129,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
    }else if(args.search_type == "by_recipient_reverse"){
       uint64_t start = std::stoull(args.start);
       //FC_ASSERT( start >= args.count, "start must be greater than limit" );
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_recipient >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_recipient >();
       auto itr = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, int64_t(itr->recipient_sequence) + args.count ) ) ;
 
@@ -143,7 +143,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       return result;
    }else if(args.search_type == "by_sender_datetime_reverse"){
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
-      const auto& idx = _db.get_index< chain::custom_content_index, chain::by_sender_time >();
+      const auto& idx = _db->get_index< chain::custom_content_index, chain::by_sender_time >();
       auto itr = idx.upper_bound( boost::make_tuple( args.account_name, args.app_id, start ) );
       auto end = idx.lower_bound( boost::make_tuple( args.account_name, args.app_id, fc::time_point_sec::max() ) );
 
@@ -157,7 +157,7 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
       return result;
    }else if(args.search_type == "by_recipient_datetime_reverse") {
       fc::time_point_sec start = fc::time_point_sec::from_iso_string(args.start);
-      const auto &idx = _db.get_index<chain::custom_content_index, chain::by_recipient_time>();
+      const auto &idx = _db->get_index<chain::custom_content_index, chain::by_recipient_time>();
       auto itr = idx.upper_bound(boost::make_tuple(args.account_name, args.app_id, start ));
       auto end = idx.lower_bound(boost::make_tuple(args.account_name, args.app_id, fc::time_point_sec::max()));
 

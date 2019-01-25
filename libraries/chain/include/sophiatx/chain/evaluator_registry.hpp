@@ -8,16 +8,29 @@ template< typename OperationType >
 class evaluator_registry
 {
    public:
-      evaluator_registry( database& d )
-         : _db(d)
+      evaluator_registry()
       {
+         _db = nullptr;
+
          for( int i=0; i<OperationType::count(); i++ )
              _op_evaluators.emplace_back();
+      }
+
+      evaluator_registry(const std::shared_ptr<database>& d) : _db(d)
+      {
+         for( int i=0; i<OperationType::count(); i++ )
+            _op_evaluators.emplace_back();
+      }
+
+      void register_db(const std::shared_ptr<database>& d)
+      {
+         _db = d;
       }
 
       template< typename EvaluatorType, typename... Args >
       void register_evaluator( Args... args )
       {
+         assert( _db != nullptr && "DB was not registered" );
          _op_evaluators[ OperationType::template tag< typename EvaluatorType::operation_type >::value ].reset( new EvaluatorType(_db, args...) );
       }
 
@@ -36,7 +49,7 @@ class evaluator_registry
       }
 
       std::vector< std::unique_ptr< evaluator<OperationType> > > _op_evaluators;
-      database& _db;
+      std::shared_ptr<database> _db;
 };
 
 } }

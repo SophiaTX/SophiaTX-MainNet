@@ -3,14 +3,12 @@
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/compound.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
-#include <sophiatx/chain/database.hpp>
-#include <sophiatx/chain/database_exceptions.hpp>
-#include <sophiatx/chain/db_with.hpp>
-#include <sophiatx/chain/evaluator_registry.hpp>
+#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/chain/database/database_exceptions.hpp>
+#include <sophiatx/chain/database/db_with.hpp>
 #include <sophiatx/chain/global_property_object.hpp>
 #include <sophiatx/chain/history_object.hpp>
 #include <sophiatx/chain/index.hpp>
-#include <sophiatx/chain/smt_objects.hpp>
 #include <sophiatx/chain/sophiatx_evaluator.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/custom_content_object.hpp>
@@ -20,7 +18,6 @@
 #include <sophiatx/chain/witness_schedule.hpp>
 #include <sophiatx/chain/application_object.hpp>
 
-#include <sophiatx/chain/util/asset.hpp>
 #include <sophiatx/chain/util/uint256.hpp>
 
 #include <fc/smart_ref_impl.hpp>
@@ -69,24 +66,6 @@ namespace sophiatx { namespace chain {
 
 using boost::container::flat_set;
 
-
-class database_impl
-{
-   public:
-      database_impl( database& self );
-
-      database&                              _self;
-      evaluator_registry< operation >        _evaluator_registry;
-};
-
-database_impl::database_impl( database& self )
-   : _self(self), _evaluator_registry(self) {}
-
-database::database()
-   : _my( new database_impl(*this) )
-{
-}
-
 database::~database()
 {
    clear_pending();
@@ -96,7 +75,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
 {
    try
    {
-      init_schema();
+
       ilog("initializing database...");
       chain_id_type chain_id = genesis.compute_chain_id();
 
@@ -235,17 +214,6 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 
 }
 
-void database::wipe( const fc::path& shared_mem_dir, bool include_blocks)
-{
-   close();
-   chainbase::database::wipe( shared_mem_dir );
-   if( include_blocks )
-   {
-      fc::remove_all( shared_mem_dir / "block_log" );
-      fc::remove_all( shared_mem_dir / "block_log.index" );
-   }
-}
-
 void database::close(bool rewind)
 {
    try
@@ -379,16 +347,6 @@ std::vector< block_id_type > database::get_block_ids_on_fork( block_id_type head
    return result;
 } FC_CAPTURE_AND_RETHROW() }
 
-chain_id_type database::get_chain_id() const
-{
-   return get_dynamic_global_properties().chain_id;
-}
-
-time_point_sec database::get_genesis_time()const
-{
-   return get_dynamic_global_properties().genesis_time;
-}
-
 const witness_object& database::get_witness( const account_name_type& name ) const
 { try {
    return get< witness_object, by_name >( name );
@@ -454,11 +412,6 @@ const economic_model_object&database::get_economic_model() const
 { try {
    return get< economic_model_object >();
 } FC_CAPTURE_AND_RETHROW() }
-
-const node_property_object& database::get_node_properties() const
-{
-   return _node_property_object;
-}
 
 const feed_history_object & database::get_feed_history(asset_symbol_type a) const
 { try {
@@ -620,7 +573,7 @@ void database::_maybe_warn_multiple_production( uint32_t height )const
 bool database::_push_block(const signed_block& new_block)
 { try {
 
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
    //uint32_t skip_undo_db = skip & skip_undo_block;
 
    if( !(skip&skip_fork_db) )
@@ -785,7 +738,7 @@ signed_block database::_generate_block(
    const fc::ecc::private_key& block_signing_private_key
    )
 {
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
    uint32_t slot_num = get_slot_at_time( when );
    FC_ASSERT( slot_num > 0 );
    string scheduled_witness = get_scheduled_witness( slot_num );
@@ -936,42 +889,6 @@ void database::clear_pending()
       _pending_tx_session.reset();
    }
    FC_CAPTURE_AND_RETHROW()
-}
-
-void database::notify_pre_apply_operation( operation_notification& note )
-{
-   note.trx_id       = _current_trx_id;
-   note.block        = _current_block_num;
-   note.trx_in_block = _current_trx_in_block;
-   note.op_in_trx    = _current_op_in_trx;
-
-
-   SOPHIATX_TRY_NOTIFY( pre_apply_operation, note )
-}
-
-void database::notify_post_apply_operation( const operation_notification& note )
-{
-   SOPHIATX_TRY_NOTIFY( post_apply_operation, note )
-}
-
-void database::notify_applied_block( const signed_block& block )
-{
-   SOPHIATX_TRY_NOTIFY( applied_block, block )
-}
-
-void database::notify_on_pending_transaction( const signed_transaction& tx )
-{
-   SOPHIATX_TRY_NOTIFY( on_pending_transaction, tx )
-}
-
-void database::notify_on_pre_apply_transaction( const signed_transaction& tx )
-{
-   SOPHIATX_TRY_NOTIFY( on_pre_apply_transaction, tx )
-}
-
-void database::notify_on_applied_transaction( const signed_transaction& tx )
-{
-   SOPHIATX_TRY_NOTIFY( on_applied_transaction, tx )
 }
 
 account_name_type database::get_scheduled_witness( uint32_t slot_num )const
@@ -1293,16 +1210,6 @@ void database::process_funds()
 
 }
 
-asset database::to_sbd(const asset &sophiatx, asset_symbol_type to_symbol) const
-{
-   return util::to_sbd(get_feed_history(to_symbol).current_median_history, sophiatx );
-}
-
-asset database::to_sophiatx( const asset& sbd )const
-{
-   return util::to_sophiatx(get_feed_history(sbd.symbol).current_median_history, sbd );
-}
-
 void database::account_recovery_processing()
 {
    // Clear expired recovery requests
@@ -1358,179 +1265,68 @@ void database::expire_escrow_ratification()
    }
 }
 
-time_point_sec database::head_block_time()const
-{
-   return get_dynamic_global_properties().time;
-}
-
-uint32_t database::head_block_num()const
-{
-   return get_dynamic_global_properties().head_block_number;
-}
-
-block_id_type database::head_block_id()const
-{
-   return get_dynamic_global_properties().head_block_id;
-}
-
-node_property_object& database::node_properties()
-{
-   return _node_property_object;
-}
-
-uint32_t database::last_non_undoable_block_num() const
-{
-   return get_dynamic_global_properties().last_irreversible_block_num;
-}
-
 void database::initialize_evaluators()
 {
-   _my->_evaluator_registry.register_evaluator< transfer_evaluator                       >();
-   _my->_evaluator_registry.register_evaluator< transfer_to_vesting_evaluator            >();
-   _my->_evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();
-   _my->_evaluator_registry.register_evaluator< account_create_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< account_update_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< account_delete_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< witness_update_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();
-   _my->_evaluator_registry.register_evaluator< account_witness_proxy_evaluator          >();
-   _my->_evaluator_registry.register_evaluator< custom_evaluator                         >();
-   _my->_evaluator_registry.register_evaluator< custom_binary_evaluator                  >();
-   _my->_evaluator_registry.register_evaluator< custom_json_evaluator                    >();
-   _my->_evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
-   _my->_evaluator_registry.register_evaluator< recover_account_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< change_recovery_account_evaluator        >();
-   _my->_evaluator_registry.register_evaluator< escrow_transfer_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< escrow_approve_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< escrow_dispute_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< escrow_release_evaluator                 >();
-   _my->_evaluator_registry.register_evaluator< reset_account_evaluator                  >();
-   _my->_evaluator_registry.register_evaluator< set_reset_account_evaluator              >();
-   _my->_evaluator_registry.register_evaluator< application_create_evaluator             >();
-   _my->_evaluator_registry.register_evaluator< application_update_evaluator             >();
-   _my->_evaluator_registry.register_evaluator< application_delete_evaluator             >();
-   _my->_evaluator_registry.register_evaluator< buy_application_evaluator                >();
-   _my->_evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
-   _my->_evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
-   _my->_evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
-   _my->_evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
-   _my->_evaluator_registry.register_evaluator< admin_witness_update_evaluator            >();
+   _evaluator_registry.register_db(std::static_pointer_cast<database>(shared_from_this()));
 
-}
-
-
-void database::set_custom_operation_interpreter( const uint32_t id, std::shared_ptr< custom_operation_interpreter > registry )
-{
-   bool inserted = _custom_operation_interpreters.emplace( id, registry ).second;
-   // This assert triggering means we're mis-configured (multiple registrations of custom JSON evaluator for same ID)
-   FC_ASSERT( inserted );
-}
-
-std::shared_ptr< custom_operation_interpreter > database::get_custom_json_evaluator( const uint32_t id )
-{
-   auto it = _custom_operation_interpreters.find( id );
-   if( it != _custom_operation_interpreters.end() )
-      return it->second;
-   return std::shared_ptr< custom_operation_interpreter >();
-}
-
-bool database::is_private_net()const
-{
-   return get_dynamic_global_properties().private_net;
+   _evaluator_registry.register_evaluator< transfer_evaluator                       >();
+   _evaluator_registry.register_evaluator< transfer_to_vesting_evaluator            >();
+   _evaluator_registry.register_evaluator< withdraw_vesting_evaluator               >();
+   _evaluator_registry.register_evaluator< account_create_evaluator                 >();
+   _evaluator_registry.register_evaluator< account_update_evaluator                 >();
+   _evaluator_registry.register_evaluator< account_delete_evaluator                 >();
+   _evaluator_registry.register_evaluator< witness_update_evaluator                 >();
+   _evaluator_registry.register_evaluator< witness_stop_evaluator                   >();
+   _evaluator_registry.register_evaluator< account_witness_vote_evaluator           >();
+   _evaluator_registry.register_evaluator< account_witness_proxy_evaluator          >();
+   _evaluator_registry.register_evaluator< custom_evaluator                         >();
+   _evaluator_registry.register_evaluator< custom_binary_evaluator                  >();
+   _evaluator_registry.register_evaluator< custom_json_evaluator                    >();
+   _evaluator_registry.register_evaluator< feed_publish_evaluator                   >();
+   _evaluator_registry.register_evaluator< request_account_recovery_evaluator       >();
+   _evaluator_registry.register_evaluator< recover_account_evaluator                >();
+   _evaluator_registry.register_evaluator< change_recovery_account_evaluator        >();
+   _evaluator_registry.register_evaluator< escrow_transfer_evaluator                >();
+   _evaluator_registry.register_evaluator< escrow_approve_evaluator                 >();
+   _evaluator_registry.register_evaluator< escrow_dispute_evaluator                 >();
+   _evaluator_registry.register_evaluator< escrow_release_evaluator                 >();
+   _evaluator_registry.register_evaluator< reset_account_evaluator                  >();
+   _evaluator_registry.register_evaluator< set_reset_account_evaluator              >();
+   _evaluator_registry.register_evaluator< application_create_evaluator             >();
+   _evaluator_registry.register_evaluator< application_update_evaluator             >();
+   _evaluator_registry.register_evaluator< application_delete_evaluator             >();
+   _evaluator_registry.register_evaluator< buy_application_evaluator                >();
+   _evaluator_registry.register_evaluator< cancel_application_buying_evaluator      >();
+   _evaluator_registry.register_evaluator< witness_set_properties_evaluator         >();
+   _evaluator_registry.register_evaluator< transfer_from_promotion_pool_evaluator   >();
+   _evaluator_registry.register_evaluator< sponsor_fees_evaluator                   >();
+   _evaluator_registry.register_evaluator< admin_witness_update_evaluator           >();
 }
 
 void database::initialize_indexes()
 {
-   add_core_index< dynamic_global_property_index           >(*this);
-   add_core_index< economic_model_index                    >(*this);
-   add_core_index< account_index                           >(*this);
-   add_core_index< account_authority_index                 >(*this);
-   add_core_index< witness_index                           >(*this);
-   add_core_index< transaction_index                       >(*this);
-   add_core_index< block_summary_index                     >(*this);
-   add_core_index< witness_schedule_index                  >(*this);
-   add_core_index< witness_vote_index                      >(*this);
-   add_core_index< feed_history_index                      >(*this);
-   add_core_index< operation_index                         >(*this);
-   add_core_index< account_history_index                   >(*this);
-   add_core_index< hardfork_property_index                 >(*this);
-   add_core_index< owner_authority_history_index           >(*this);
-   add_core_index< account_recovery_request_index          >(*this);
-   add_core_index< change_recovery_account_request_index   >(*this);
-   add_core_index< escrow_index                            >(*this);
-   add_core_index< application_index                       >(*this);
-   add_core_index< application_buying_index                >(*this);
-   add_core_index< custom_content_index                    >(*this);
-   add_core_index< account_fee_sponsor_index               >(*this);
+   add_core_index< dynamic_global_property_index           >(shared_from_this());
+   add_core_index< economic_model_index                    >(shared_from_this());
+   add_core_index< account_index                           >(shared_from_this());
+   add_core_index< account_authority_index                 >(shared_from_this());
+   add_core_index< witness_index                           >(shared_from_this());
+   add_core_index< transaction_index                       >(shared_from_this());
+   add_core_index< block_summary_index                     >(shared_from_this());
+   add_core_index< witness_schedule_index                  >(shared_from_this());
+   add_core_index< witness_vote_index                      >(shared_from_this());
+   add_core_index< feed_history_index                      >(shared_from_this());
+   add_core_index< operation_index                         >(shared_from_this());
+   add_core_index< account_history_index                   >(shared_from_this());
+   add_core_index< hardfork_property_index                 >(shared_from_this());
+   add_core_index< owner_authority_history_index           >(shared_from_this());
+   add_core_index< account_recovery_request_index          >(shared_from_this());
+   add_core_index< change_recovery_account_request_index   >(shared_from_this());
+   add_core_index< escrow_index                            >(shared_from_this());
+   add_core_index< application_index                       >(shared_from_this());
+   add_core_index< application_buying_index                >(shared_from_this());
+   add_core_index< custom_content_index                    >(shared_from_this());
+   add_core_index< account_fee_sponsor_index               >(shared_from_this());
    _plugin_index_signal();
-}
-
-const std::string& database::get_json_schema()const
-{
-   return _json_schema;
-}
-
-void database::init_schema()
-{
-   /*done_adding_indexes();
-
-   db_schema ds;
-
-   std::vector< std::shared_ptr< abstract_schema > > schema_list;
-
-   std::vector< object_schema > object_schemas;
-   get_object_schemas( object_schemas );
-
-   for( const object_schema& oschema : object_schemas )
-   {
-      ds.object_types.emplace_back();
-      ds.object_types.back().space_type.first = oschema.space_id;
-      ds.object_types.back().space_type.second = oschema.type_id;
-      oschema.schema->get_name( ds.object_types.back().type );
-      schema_list.push_back( oschema.schema );
-   }
-
-   std::shared_ptr< abstract_schema > operation_schema = get_schema_for_type< operation >();
-   operation_schema->get_name( ds.operation_type );
-   schema_list.push_back( operation_schema );
-
-   for( const std::pair< std::string, std::shared_ptr< custom_operation_interpreter > >& p : _custom_operation_interpreters )
-   {
-      ds.custom_operation_types.emplace_back();
-      ds.custom_operation_types.back().id = p.first;
-      schema_list.push_back( p.second->get_operation_schema() );
-      schema_list.back()->get_name( ds.custom_operation_types.back().type );
-   }
-
-   graphene::db::add_dependent_schemas( schema_list );
-   std::sort( schema_list.begin(), schema_list.end(),
-      []( const std::shared_ptr< abstract_schema >& a,
-          const std::shared_ptr< abstract_schema >& b )
-      {
-         return a->id < b->id;
-      } );
-   auto new_end = std::unique( schema_list.begin(), schema_list.end(),
-      []( const std::shared_ptr< abstract_schema >& a,
-          const std::shared_ptr< abstract_schema >& b )
-      {
-         return a->id == b->id;
-      } );
-   schema_list.erase( new_end, schema_list.end() );
-
-   for( std::shared_ptr< abstract_schema >& s : schema_list )
-   {
-      std::string tname;
-      s->get_name( tname );
-      FC_ASSERT( ds.types.find( tname ) == ds.types.end(), "types with different ID's found for name ${tname}", ("tname", tname) );
-      std::string ss;
-      s->get_str_schema( ss );
-      ds.types.emplace( tname, ss );
-   }
-
-   _json_schema = fc::json::to_string( ds );
-   return;*/
 }
 
 void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id, const public_key_type& init_pubkey )
@@ -1539,14 +1335,14 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
    {
       struct auth_inhibitor
       {
-         auth_inhibitor(database& db) : db(db), old_flags(db.node_properties().skip_flags)
-         { db.node_properties().skip_flags |= skip_authority_check; }
+         auth_inhibitor(const std::shared_ptr<database>& db) : db(db), old_flags(db->node_properties().skip_flags)
+         { db->node_properties().skip_flags |= skip_authority_check; }
          ~auth_inhibitor()
-         { db.node_properties().skip_flags = old_flags; }
+         { db->node_properties().skip_flags = old_flags; }
       private:
-         database& db;
+         std::shared_ptr<database> db;
          uint32_t old_flags;
-      } inhibitor(*this);
+      } inhibitor(std::static_pointer_cast<database>(shared_from_this()));
 
       share_type total_initial_balance = 0;
       // Create blockchain accounts
@@ -1725,12 +1521,6 @@ void database::notify_changed_objects()
 
 }
 
-void database::set_flush_interval( uint32_t flush_blocks )
-{
-   _flush_blocks = flush_blocks;
-   _next_flush_block = 0;
-}
-
 //////////////////// private methods ////////////////////
 
 void database::apply_block( const signed_block& next_block, uint32_t skip )
@@ -1804,51 +1594,12 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
 
 } FC_CAPTURE_AND_RETHROW( (next_block) ) }
 
-void database::check_free_memory( bool force_print, uint32_t current_block_num )
-{
-   uint64_t free_mem = get_free_memory();
-   uint64_t max_mem = get_max_memory();
-
-   if( BOOST_UNLIKELY( _shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ( ( uint128_t( SOPHIATX_100_PERCENT - _shared_file_full_threshold ) * max_mem ) / SOPHIATX_100_PERCENT ).to_uint64() ) )
-   {
-      uint64_t new_max = ( uint128_t( max_mem * _shared_file_scale_rate ) / SOPHIATX_100_PERCENT ).to_uint64() + max_mem;
-
-      wlog( "Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024*1024)) );
-
-      resize( new_max );
-
-      uint32_t free_mb = uint32_t( get_free_memory() / (1024*1024) );
-      wlog( "Free memory is now ${free}M", ("free", free_mb) );
-      _last_free_gb_printed = free_mb / 1024;
-   }
-   else
-   {
-      uint32_t free_gb = uint32_t( free_mem / (1024*1024*1024) );
-      if( BOOST_UNLIKELY( force_print || (free_gb < _last_free_gb_printed) || (free_gb > _last_free_gb_printed+1) ) )
-      {
-         ilog( "Free memory is now ${n}G. Current block number: ${block}", ("n", free_gb)("block",current_block_num) );
-         _last_free_gb_printed = free_gb;
-      }
-
-      if( BOOST_UNLIKELY( free_gb == 0 ) )
-      {
-         uint32_t free_mb = uint32_t( free_mem / (1024*1024) );
-
-   #ifdef IS_TEST_NET
-      if( !disable_low_mem_warning )
-   #endif
-         if( free_mb <= 100 && head_block_num() % 10 == 0 )
-            elog( "Free memory is now ${n}M. Increase shared file size immediately!" , ("n", free_mb) );
-      }
-   }
-}
-
 void database::_apply_block( const signed_block& next_block )
 { try {
    uint32_t next_block_num = next_block.block_num();
    //block_id_type next_block_id = next_block.id();
 
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
 
    if( BOOST_UNLIKELY( next_block_num == 1 ) )
    {
@@ -1961,7 +1712,7 @@ void database::_apply_block( const signed_block& next_block )
 
    create_block_summary(next_block);
    clear_expired_transactions();
-   update_witness_schedule(*this);
+   update_witness_schedule(std::static_pointer_cast<database>(shared_from_this()));
    if(!is_private_net()) {
       process_interests();
       update_median_feeds();
@@ -1993,12 +1744,12 @@ FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) )
 
 struct process_header_visitor
 {
-   process_header_visitor( const std::string& witness, database& db ) : _witness( witness ), _db( db ) {}
+   process_header_visitor( const std::string& witness, const std::shared_ptr<database>& db ) : _witness( witness ), _db( db ) {}
 
    typedef void result_type;
 
    const std::string& _witness;
-   database& _db;
+   std::shared_ptr<database> _db;
 
    void operator()( const void_t& obj ) const
    {
@@ -2007,12 +1758,12 @@ struct process_header_visitor
 
    void operator()( const version& reported_version ) const
    {
-      const auto& signing_witness = _db.get_witness( _witness );
+      const auto& signing_witness = _db->get_witness( _witness );
       //idump( (next_block.witness)(signing_witness.running_version)(reported_version) );
 
       if( reported_version != signing_witness.running_version )
       {
-         _db.modify( signing_witness, [&]( witness_object& wo )
+         _db->modify( signing_witness, [&]( witness_object& wo )
          {
             wo.running_version = reported_version;
          });
@@ -2021,11 +1772,11 @@ struct process_header_visitor
 
    void operator()( const hardfork_version_vote& hfv ) const
    {
-      const auto& signing_witness = _db.get_witness( _witness );
+      const auto& signing_witness = _db->get_witness( _witness );
       //idump( (next_block.witness)(signing_witness.running_version)(hfv) );
 
       if( hfv.hf_version != signing_witness.hardfork_version_vote || hfv.hf_time != signing_witness.hardfork_time_vote )
-         _db.modify( signing_witness, [&]( witness_object& wo )
+         _db->modify( signing_witness, [&]( witness_object& wo )
          {
             wo.hardfork_version_vote = hfv.hf_version;
             wo.hardfork_time_vote = hfv.hf_time;
@@ -2038,6 +1789,40 @@ struct process_header_visitor
       FC_ASSERT( false, "Unknown extension in block header" );
    }
 };
+
+void database::check_free_memory(bool force_print, uint32_t current_block_num) {
+   uint64_t free_mem = get_free_memory();
+   uint64_t max_mem = get_max_memory();
+
+   if( BOOST_UNLIKELY(_shared_file_full_threshold != 0 && _shared_file_scale_rate != 0 && free_mem < ((uint128_t(
+         SOPHIATX_100_PERCENT - _shared_file_full_threshold) * max_mem) / SOPHIATX_100_PERCENT).to_uint64())) {
+      uint64_t new_max = (uint128_t(max_mem * _shared_file_scale_rate) / SOPHIATX_100_PERCENT).to_uint64() + max_mem;
+
+      wlog("Memory is almost full, increasing to ${mem}M", ("mem", new_max / (1024 * 1024)));
+
+      resize(new_max);
+
+      uint32_t free_mb = uint32_t(get_free_memory() / (1024 * 1024));
+      wlog("Free memory is now ${free}M", ("free", free_mb));
+      _last_free_gb_printed = free_mb / 1024;
+   } else {
+      uint32_t free_gb = uint32_t(free_mem / (1024 * 1024 * 1024));
+      if( BOOST_UNLIKELY(force_print || (free_gb < _last_free_gb_printed) || (free_gb > _last_free_gb_printed + 1))) {
+         ilog("Free memory is now ${n}G. Current block number: ${block}", ("n", free_gb)("block", current_block_num));
+         _last_free_gb_printed = free_gb;
+      }
+
+      if( BOOST_UNLIKELY(free_gb == 0)) {
+         uint32_t free_mb = uint32_t(free_mem / (1024 * 1024));
+
+#ifdef IS_TEST_NET
+         if( !disable_low_mem_warning )
+#endif
+            if( free_mb <= 100 && head_block_num() % 10 == 0 )
+               elog("Free memory is now ${n}M. Increase shared file size immediately!", ("n", free_mb));
+      }
+   }
+}
 
 void database::process_interests() {
    try {
@@ -2077,7 +1862,7 @@ void database::process_interests() {
 
 void database::process_header_extensions( const signed_block& next_block )
 {
-   process_header_visitor _v( next_block.witness, *this );
+   process_header_visitor _v( next_block.witness, std::static_pointer_cast<database>(shared_from_this()) );
 
    for( const auto& e : next_block.extensions )
       e.visit( _v );
@@ -2132,7 +1917,7 @@ void database::_apply_transaction(const signed_transaction& trx)
 { try {
    _current_trx_id = trx.id();
    _current_virtual_op = 0;
-   uint32_t skip = get_node_properties().skip_flags;
+   uint32_t skip = node_properties().skip_flags;
 
    if( !(skip&skip_validate) ) {   /* issue #505 explains why this skip_flag is disabled */
       trx.validate();
@@ -2216,7 +2001,7 @@ void database::apply_operation(const operation& op)
 
    notify_pre_apply_operation( note );
    process_operation_fee(op);
-   _my->_evaluator_registry.get_evaluator( op ).apply( op );
+   _evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
 }
 
@@ -2312,7 +2097,7 @@ void database::update_global_dynamic_data( const signed_block& b )
       }
    } );
 
-   if( !(get_node_properties().skip_flags & skip_undo_history_check) )
+   if( !(node_properties().skip_flags & skip_undo_history_check) )
    {
       SOPHIATX_ASSERT( _dgp.head_block_number - _dgp.last_irreversible_block_num  < SOPHIATX_MAX_UNDO_HISTORY, undo_database_exception,
                  "The database does not have enough undo history to support a blockchain with so many missed blocks. "
@@ -2386,7 +2171,7 @@ void database::update_last_irreversible_block()
 
    commit( dpo.last_irreversible_block_num );
 
-   if( !( get_node_properties().skip_flags & skip_block_log ) )
+   if( !( node_properties().skip_flags & skip_block_log ) )
    {
       // output to block log based on new last irreverisible block num
       const auto& tmp_head = _block_log.head();
@@ -2543,11 +2328,6 @@ void database::process_hardforks()
 
    }
    FC_CAPTURE_AND_RETHROW()
-}
-
-bool database::has_hardfork( uint32_t hardfork )const
-{
-   return get_hardfork_property_object().processed_hardforks.size() > hardfork;
 }
 
 void database::set_hardfork( uint32_t hardfork, bool apply_now )

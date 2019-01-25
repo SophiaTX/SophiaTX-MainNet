@@ -209,10 +209,10 @@ BOOST_AUTO_TEST_CASE( misc_validation )
       make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"fake_api.fake_method\", \"params\": [\"a\",\"b\", {} ], \"id\": 1}";
-      make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
+      make_request( request, JSON_RPC_ERROR_DURING_CALL );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": [\"fake_api\",\"fake_method\", {} ], \"id\": 1}";
-      make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
+      make_request( request, JSON_RPC_ERROR_DURING_CALL );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": {}, \"id\": 1}";
       make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );

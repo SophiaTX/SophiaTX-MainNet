@@ -3,7 +3,7 @@
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/hardfork.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/sophiatx_objects.hpp>
 
 #include <fc/crypto/digest.hpp>
