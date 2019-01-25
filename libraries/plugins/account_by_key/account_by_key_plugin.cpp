@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/account_by_key/account_by_key_objects.hpp>
 
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
 
@@ -25,7 +25,7 @@ class account_by_key_plugin_impl
       void delete_cached_key(const account_name_type& a);
 
       flat_set< public_key_type >   cached_keys;
-      database&                     _db;
+      std::shared_ptr<database_interface>  _db;
       account_by_key_plugin&        _self;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   post_apply_connection;
@@ -50,21 +50,21 @@ struct pre_operation_visitor
    void operator()( const account_update_operation& op )const
    {
       _plugin.clear_cache();
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( op.account );
       if( acct_itr ) _plugin.cache_auths( *acct_itr );
    }
 
    void operator()( const recover_account_operation& op )const
    {
       _plugin.clear_cache();
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account_to_recover );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( op.account_to_recover );
       if( acct_itr ) _plugin.cache_auths( *acct_itr );
    }
 
    void operator()( const account_delete_operation& op )const
    {
       _plugin.clear_cache();
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( op.account );
       if( acct_itr ) _plugin.cache_auths( *acct_itr );
    }
 
@@ -95,25 +95,25 @@ struct post_operation_visitor
    void operator()( const account_create_operation& op )const
    {
       account_name_type new_account_name = make_random_fixed_string(op.name_seed);
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( new_account_name );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( new_account_name );
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
    void operator()( const account_update_operation& op )const
    {
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( op.account );
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
    void operator()( const recover_account_operation& op )const
    {
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account_to_recover );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( op.account_to_recover );
       if( acct_itr ) _plugin.update_key_lookup( *acct_itr );
    }
 
    void operator()( const account_delete_operation& op )const
    {
-      auto acct_itr = _plugin._db.find< account_authority_object, by_account >( op.account );
+      auto acct_itr = _plugin._db->find< account_authority_object, by_account >( op.account );
       if( acct_itr == nullptr) _plugin.delete_cached_key( op.account );
    }
 };
@@ -149,11 +149,11 @@ void account_by_key_plugin_impl::update_key_lookup( const account_authority_obje
       // If the key was not in the authority, add it to the lookup
       if( cached_keys.find( key ) == cached_keys.end() )
       {
-         auto lookup_itr = _db.find< key_lookup_object, by_key >( std::make_tuple( key, a.account ) );
+         auto lookup_itr = _db->find< key_lookup_object, by_key >( std::make_tuple( key, a.account ) );
 
          if( lookup_itr == nullptr )
          {
-            _db.create< key_lookup_object >( [&]( key_lookup_object& o )
+            _db->create< key_lookup_object >( [&]( key_lookup_object& o )
             {
                o.key = key;
                o.account = a.account;
@@ -175,11 +175,11 @@ void account_by_key_plugin_impl::delete_cached_key(const account_name_type& a)
    // Loop over the keys that were in authority but are no longer and remove them from the lookup
    for( const auto& key : cached_keys )
    {
-      auto lookup_itr = _db.find< key_lookup_object, by_key >( std::make_tuple( key, a ) );
+      auto lookup_itr = _db->find< key_lookup_object, by_key >( std::make_tuple( key, a ) );
 
       if( lookup_itr != nullptr )
       {
-         _db.remove( *lookup_itr );
+         _db->remove( *lookup_itr );
       }
    }
 
@@ -209,10 +209,10 @@ void account_by_key_plugin::plugin_initialize( const boost::program_options::var
    try
    {
       ilog( "Initializing account_by_key plugin" );
-      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      std::shared_ptr<database_interface>& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      my->pre_apply_connection = db.pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
-      my->post_apply_connection = db.post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );
+      my->pre_apply_connection = db->pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
+      my->post_apply_connection = db->post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );
 
       add_plugin_index< key_lookup_index >(db);
    }

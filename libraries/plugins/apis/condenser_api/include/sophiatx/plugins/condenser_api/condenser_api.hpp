@@ -320,20 +320,6 @@ struct api_application_object
 
 typedef sophiatx::plugins::database_api::api_application_buying_object api_application_buying_object;
 
-struct state
-{
-   string                                             current_route;
-
-   extended_dynamic_global_properties                 props;
-
-   map< string, extended_account >                    accounts;
-
-   map< string, api_witness_object >                  witnesses;
-   api_witness_schedule_object                        witness_schedule;
-   legacy_price                                       feed_price;
-   string                                             error;
-};
-
 struct scheduled_hardfork
 {
    hardfork_version     hf_version;
@@ -365,7 +351,6 @@ typedef arg_type api_name ## _args;                         \
 typedef return_type api_name ## _return;
 
 /*               API,                                    args,                return */
-DEFINE_API_ARGS( get_state,                              vector< variant >,   state )
 DEFINE_API_ARGS( get_active_witnesses,                   vector< variant >,   vector< account_name_type > )
 DEFINE_API_ARGS( get_block_header,                       vector< variant >,   optional< block_header > )
 DEFINE_API_ARGS( get_block,                              vector< variant >,   optional< legacy_signed_block > )
@@ -421,7 +406,6 @@ public:
 
    DECLARE_API(
       (get_version)
-      (get_state)
       (get_active_witnesses)
       (get_block_header)
       (get_block)
@@ -474,9 +458,6 @@ public:
 };
 
 } } } // sophiatx::plugins::condenser_api
-
-FC_REFLECT( sophiatx::plugins::condenser_api::state,
-            (current_route)(props)(accounts)(witnesses)(witness_schedule)(feed_price)(error) )
 
 FC_REFLECT( sophiatx::plugins::condenser_api::api_operation_object,
              (trx_id)(block)(trx_in_block)(op_in_trx)(virtual_op)(timestamp)(op)(fee_payer) )
