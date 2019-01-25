@@ -20,6 +20,7 @@ target_link_libraries(db_fixture
                       webserver_plugin
                       witness_plugin
                       debug_node_plugin
-                      condenser_api_plugin
+                      witness_api_plugin
+                      alexandria_api_plugin
                       fc
                       ${PLATFORM_SPECIFIC_LIBS})

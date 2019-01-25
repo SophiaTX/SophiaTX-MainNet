@@ -28,8 +28,6 @@
 
 #include <sophiatx/plugins/debug_node_api/debug_node_api_plugin.hpp>
 
-#include <sophiatx/plugins/condenser_api/condenser_api_plugin.hpp>
-
 #include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_plugin.hpp>
 
 #include <sophiatx/plugins/account_history/account_history_plugin.hpp>
@@ -78,9 +76,7 @@ void register_plugins()
    appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_api_plugin >();
-   
-   appbase::app().register_plugin< sophiatx::plugins::condenser_api::condenser_api_plugin >();
-   
+
    appbase::app().register_plugin< sophiatx::plugins::multiparty_messaging::multiparty_messaging_plugin >();
    
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();

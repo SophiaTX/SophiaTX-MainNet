@@ -194,11 +194,11 @@ def run_archive() {
 
           if( params.build_as_testnet ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
-           sh "tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
            } else {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
-           sh "tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini" //create tar file
          }
        }
        archiveArtifacts '*.gz'
