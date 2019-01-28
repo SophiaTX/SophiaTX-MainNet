@@ -8,7 +8,7 @@
 #include <sophiatx/utilities/key_conversion.hpp>
 #include <sophiatx/utilities/git_revision.hpp>
 
-#include <sophiatx/plugins/chain/chain_plugin.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 #include <sophiatx/plugins/p2p/p2p_plugin.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
@@ -77,11 +77,12 @@ int main( int argc, char** argv )
 
       appbase::app_factory().add_program_options( options );
 
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       sophiatx::plugins::register_plugins();
       appbase::app_factory().set_version_string( version_string() );
 
       bool initialized = appbase::app().initialize<
-            sophiatx::plugins::chain::chain_plugin,
+            sophiatx::plugins::chain::chain_plugin_full,
             sophiatx::plugins::p2p::p2p_plugin,
             sophiatx::plugins::webserver::webserver_plugin >
             ( argc, argv );

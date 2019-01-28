@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/block_log_info/block_log_info_objects.hpp>
 
 #include <sophiatx/chain/account_object.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/global_property_object.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
@@ -25,7 +25,7 @@ class block_log_info_plugin_impl
       void on_applied_block( const signed_block& b );
       void print_message( const block_log_message_data& data );
 
-      database&                     _db;
+      std::shared_ptr<database_interface>     _db;
       block_log_info_plugin&        _self;
       boost::signals2::connection   on_applied_block_connection;
       int32_t                       print_interval_seconds = 0;
@@ -40,12 +40,12 @@ void block_log_info_plugin_impl::on_applied_block( const signed_block& b )
 
    if( is_genesis )
    {
-      _db.create< block_log_hash_state_object >( []( block_log_hash_state_object& bso )
+      _db->create< block_log_hash_state_object >( []( block_log_hash_state_object& bso )
       {
       } );
    }
 
-   const block_log_hash_state_object& state = _db.get< block_log_hash_state_object, by_id >( block_log_hash_state_id_type(0) );
+   const block_log_hash_state_object& state = _db->get< block_log_hash_state_object, by_id >( block_log_hash_state_id_type(0) );
    uint64_t current_interval = state.last_interval;
 
    if( (print_interval_seconds > 0) && !is_genesis )
@@ -65,16 +65,16 @@ void block_log_info_plugin_impl::on_applied_block( const signed_block& b )
          }
          else
          {
-            _db.create< block_log_pending_message_object >( [&data]( block_log_pending_message_object& msg )
+            _db->create< block_log_pending_message_object >( [&data]( block_log_pending_message_object& msg )
             {
                msg.data = data;
             } );
          }
       }
 
-      const dynamic_global_property_object& dgpo = _db.get_dynamic_global_properties();
+      const dynamic_global_property_object& dgpo = _db->get_dynamic_global_properties();
 
-      const auto& idx = _db.get_index< block_log_pending_message_index, by_id >();
+      const auto& idx = _db->get_index< block_log_pending_message_index, by_id >();
       while( true )
       {
          auto it = idx.begin();
@@ -83,7 +83,7 @@ void block_log_info_plugin_impl::on_applied_block( const signed_block& b )
          if( it->data.block_num > dgpo.last_irreversible_block_num )
             break;
          print_message( it->data );
-         _db.remove( *it );
+         _db->remove( *it );
       }
    }
 
@@ -96,7 +96,7 @@ void block_log_info_plugin_impl::on_applied_block( const signed_block& b )
       offset >>= 8;
    }
 
-   _db.modify( state, [&]( block_log_hash_state_object& bso )
+   _db->modify( state, [&]( block_log_hash_state_object& bso )
    {
       bso.total_size += data.size();
       bso.rsha256.update( data.data(), data.size() );
@@ -147,9 +147,9 @@ void block_log_info_plugin::plugin_initialize( const boost::program_options::var
    try
    {
       ilog( "Initializing block_log_info plugin" );
-      chain::database& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      std::shared_ptr<database_interface>& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      my->on_applied_block_connection = db.applied_block.connect( [&]( const signed_block& b ){ my->on_applied_block( b ); } );
+      my->on_applied_block_connection = db->applied_block.connect( [&]( const signed_block& b ){ my->on_applied_block( b ); } );
 
       add_plugin_index< block_log_hash_state_index >(db);
       add_plugin_index< block_log_pending_message_index >(db);

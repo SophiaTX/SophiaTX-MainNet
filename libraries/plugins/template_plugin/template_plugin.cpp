@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/template/template_objects.hpp>
 #include <sophiatx/plugins/template/template_api.hpp>
 
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/index.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
 
@@ -20,7 +20,7 @@ class template_plugin_impl
       void pre_operation( const operation_notification& op_obj );
       void post_operation( const operation_notification& op_obj );
 
-      database&                     _db;
+      std::shared_ptr<database_interface>    _db;
       template_plugin&              _self;
       boost::signals2::connection   pre_apply_connection;
       boost::signals2::connection   post_apply_connection;
@@ -97,10 +97,10 @@ void template_plugin::plugin_initialize( const boost::program_options::variables
    try
    {
       ilog( "Initializing template_plugin_impl plugin" );
-      chain::database& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      my->pre_apply_connection = db.pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
-      my->post_apply_connection = db.post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );
+      my->pre_apply_connection = db->pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
+      my->post_apply_connection = db->post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );
 
       add_plugin_index< template_lookup_index >(db);
    }

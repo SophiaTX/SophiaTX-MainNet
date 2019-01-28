@@ -146,7 +146,7 @@ def start_build() {
       BUILD_TYPE = "Debug"
     }
   }
-  sh "cmake -DUSE_PCH=OFF -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
+  sh "cmake -DUSE_PCH=OFF -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
   sh 'make -j4'
 }
 
@@ -156,6 +156,7 @@ def tests() {
       sh './tests/chain_test'
       sh './tests/plugin_test'
       sh './tests/smart_contracts_tests'
+      sh './libraries/fc/vendor/secp256k1-zkp/src/project_secp256k1-build/tests'
       sh './libraries/fc/tests/all_tests'
       sh './libraries/SQLiteCpp/SQLiteCpp_tests'
     }
@@ -193,11 +194,11 @@ def run_archive() {
 
           if( params.build_as_testnet ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
-           sh "tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd testnet_config.ini" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
            } else {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
-           sh "tar -czf ${ARCHIVE_NAME} alexandria_deamon cli_wallet sophiatxd fullnode_config.ini witness_config.ini" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini" //create tar file
          }
        }
        archiveArtifacts '*.gz'

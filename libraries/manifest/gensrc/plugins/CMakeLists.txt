@@ -30,8 +30,6 @@ target_link_libraries( sophiatx_plugins appbase fc
 
    debug_node_api_plugin
 
-   condenser_api_plugin
-
    multiparty_messaging_plugin
 
    account_history_plugin

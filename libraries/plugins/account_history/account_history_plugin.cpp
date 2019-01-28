@@ -21,7 +21,7 @@ namespace sophiatx { namespace plugins { namespace account_history {
 
 using namespace sophiatx::protocol;
 
-using chain::database;
+using chain::database_interface;
 using chain::operation_notification;
 using chain::operation_object;
 
@@ -42,18 +42,18 @@ class account_history_plugin_impl
       bool                                             _blacklist = false;
       flat_set< string >                               _op_list;
       bool                                             _prune = true;
-      database&                        _db;
+      std::shared_ptr<database_interface>              _db;
       boost::signals2::connection      pre_apply_connection;
 };
 
 struct operation_visitor
 {
-   operation_visitor( database& db, const operation_notification& note, const operation_object*& n, account_name_type i, bool prune )
+   operation_visitor( std::shared_ptr<database_interface>& db, const operation_notification& note, const operation_object*& n, account_name_type i, bool prune )
       :_db(db), _note(note), new_obj(n), item(i), _prune(prune) {}
 
    typedef void result_type;
 
-   database& _db;
+   std::shared_ptr<database_interface> _db;
    const operation_notification& _note;
    const operation_object*& new_obj;
    account_name_type item;
@@ -62,17 +62,17 @@ struct operation_visitor
    template<typename Op>
    void operator()( Op&& )const
    {
-      const auto& hist_idx = _db.get_index< chain::account_history_index >().indices().get< chain::by_account >();
+      const auto& hist_idx = _db->get_index< chain::account_history_index >().indices().get< chain::by_account >();
       if( !new_obj )
       {
-         new_obj = &_db.create<operation_object>( [&]( operation_object& obj )
+         new_obj = &_db->create<operation_object>( [&]( operation_object& obj )
          {
             obj.trx_id       = _note.trx_id;
             obj.block        = _note.block;
             obj.trx_in_block = _note.trx_in_block;
             obj.op_in_trx    = _note.op_in_trx;
             obj.virtual_op   = _note.virtual_op;
-            obj.timestamp    = _db.head_block_time();
+            obj.timestamp    = _db->head_block_time();
 
             obj.fee_payer = _note.fee_payer;
             //fc::raw::pack( obj.serialized_op , _note.op);  //call to 'pack' is ambiguous
@@ -88,7 +88,7 @@ struct operation_visitor
       if( hist_itr != hist_idx.end() && hist_itr->account == item )
          sequence = hist_itr->sequence + 1;
 
-      _db.create< chain::account_history_object >( [&]( chain::account_history_object& ahist )
+      _db->create< chain::account_history_object >( [&]( chain::account_history_object& ahist )
       {
          ahist.account  = item;
          ahist.sequence = sequence;
@@ -98,10 +98,10 @@ struct operation_visitor
       if( _prune )
       {
          // Clean up accounts to last 30 days or 30 items, whichever is more.
-         const auto& seq_idx = _db.get_index< chain::account_history_index, chain::by_account >();
+         const auto& seq_idx = _db->get_index< chain::account_history_index, chain::by_account >();
          auto seq_itr = seq_idx.lower_bound( boost::make_tuple( item, 0 ) );
          vector< const chain::account_history_object* > to_remove;
-         auto now = _db.head_block_time();
+         auto now = _db->head_block_time();
 
          if( seq_itr == seq_idx.begin() )
             return;
@@ -110,7 +110,7 @@ struct operation_visitor
 
          while( seq_itr->account == item
                && sequence - seq_itr->sequence > 30
-               && now - _db.get< chain::operation_object >( seq_itr->op ).timestamp > fc::days(30) )
+               && now - _db->get< chain::operation_object >( seq_itr->op ).timestamp > fc::days(30) )
          {
             to_remove.push_back( &(*seq_itr) );
             --seq_itr;
@@ -118,7 +118,7 @@ struct operation_visitor
 
          for( const auto* seq_ptr : to_remove )
          {
-            _db.remove( *seq_ptr );
+            _db->remove( *seq_ptr );
          }
       }
    }
@@ -126,7 +126,7 @@ struct operation_visitor
 
 struct operation_visitor_filter : operation_visitor
 {
-   operation_visitor_filter( database& db, const operation_notification& note, const operation_object*& n, account_name_type i, const flat_set< string >& filter, bool p, bool blacklist ):
+   operation_visitor_filter( std::shared_ptr<database_interface>& db, const operation_notification& note, const operation_object*& n, account_name_type i, const flat_set< string >& filter, bool p, bool blacklist ):
       operation_visitor( db, note, n, i, p ), _filter( filter ), _blacklist( blacklist ) {}
 
    const flat_set< string >& _filter;
@@ -220,7 +220,7 @@ void account_history_plugin::plugin_initialize( const boost::program_options::va
 {
    my = std::make_unique< detail::account_history_plugin_impl >(*this);
 
-   my->pre_apply_connection = my->_db.pre_apply_operation.connect( 0, [&]( const operation_notification& note ){ my->on_operation(note); } );
+   my->pre_apply_connection = my->_db->pre_apply_operation.connect( 0, [&]( const operation_notification& note ){ my->on_operation(note); } );
 
    typedef pair< account_name_type, account_name_type > pairstring;
    SOPHIATX_LOAD_VALUE_SET(options, "account-history-track-account-range", my->_tracked_accounts, pairstring);

@@ -6,7 +6,7 @@
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/transaction_object.hpp>
 #include <sophiatx/chain/witness_objects.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 
 namespace sophiatx { namespace plugins { namespace block_api {
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <appbase/application.hpp>
-#include <sophiatx/chain/database.hpp>
+#include <sophiatx/chain/database/database.hpp>
 #include <fc/io/json.hpp>
 #include <fc/smart_ref_impl.hpp>
 
@@ -10,7 +10,6 @@
 #include <sophiatx/utilities/key_conversion.hpp>
 
 #include <sophiatx/plugins/block_api/block_api_plugin.hpp>
-#include <sophiatx/plugins/condenser_api/condenser_api_legacy_asset.hpp>
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
 #include <fc/network/http/connection.hpp>
@@ -18,8 +17,6 @@
 
 #include <array>
 #include <iostream>
-
-#define INITIAL_TEST_SUPPLY (SOPHIATX_INIT_SUPPLY)
 
 extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
 
@@ -140,7 +137,7 @@ extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
    asset_symbol_type name ## _symbol = name_to_asset_symbol( #name , decimal_places );
 
 #define ASSET( s ) \
-   sophiatx::plugins::condenser_api::legacy_asset::from_string( s ).to_asset()
+   sophiatx::protocol::asset::from_string(s)
 
 #define FUND( account_name, amount ) \
    fund( account_name, amount ); \
@@ -187,22 +184,18 @@ using namespace sophiatx::protocol;
 struct database_fixture {
    // the reason we use an app is to exercise the indexes of built-in
    //   plugins
-   chain::database* db = nullptr;
+   std::shared_ptr<database> db = nullptr;
    signed_transaction trx;
-   public_key_type committee_key;
-   account_id_type committee_account;
    fc::ecc::private_key private_key = fc::ecc::private_key::generate();
    fc::ecc::private_key init_account_priv_key = *(sophiatx::utilities::wif_to_key("5JusFLYUhNNsYV8PSTanqfADU5nhWAkTzogZwYjPrTYMw3nCAx3"));
    string debug_key = sophiatx::utilities::key_to_wif( init_account_priv_key );
    public_key_type init_account_pub_key = init_account_priv_key.get_public_key();
-   uint32_t default_skip = 0 | database::skip_undo_history_check | database::skip_authority_check;
+   uint32_t default_skip = 0 | database_interface::skip_undo_history_check | database_interface::skip_authority_check;
    fc::ecc::canonical_signature_type default_sig_canon = fc::ecc::fc_canonical;
 
    plugins::debug_node::debug_node_plugin* db_plugin;
 
    optional<fc::temp_directory> data_dir;
-   bool skip_key_index_test = false;
-   uint32_t anon_acct_count;
 
    database_fixture() {}
    virtual ~database_fixture() { appbase::reset(); }
@@ -210,7 +203,6 @@ struct database_fixture {
    static fc::ecc::private_key generate_private_key( string seed = "init_key" );
    static asset_symbol_type name_to_asset_symbol( const std::string& name, uint8_t decimal_places );
 
-   string generate_anon_acct_name();
    void open_database();
    void open_database_private();
    void generate_block(uint32_t skip = 0,
@@ -315,8 +307,8 @@ struct private_database_fixture : public database_fixture
 
 namespace test
 {
-   bool _push_block( database& db, const signed_block& b, uint32_t skip_flags = 0 );
-   void _push_transaction( database& db, const signed_transaction& tx, uint32_t skip_flags = 0 );
+   bool _push_block( const std::shared_ptr<database>& db, const signed_block& b, uint32_t skip_flags = 0 );
+   void _push_transaction( const std::shared_ptr<database>& db, const signed_transaction& tx, uint32_t skip_flags = 0 );
 }
 
 } }

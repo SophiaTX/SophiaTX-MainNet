@@ -23,7 +23,7 @@
  */
 #include <cstdlib>
 #include <iostream>
-#include <boost/test/included/unit_test.hpp>
+#include <unit_test.hpp>
 
 // extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
 

@@ -25,10 +25,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <sophiatx/chain/sophiatx_objects.hpp>
-#include <sophiatx/chain/database.hpp>
-
-#include <sophiatx/plugins/condenser_api/condenser_api_legacy_asset.hpp>
-#include <sophiatx/plugins/condenser_api/condenser_api_legacy_objects.hpp>
+#include <sophiatx/chain/database/database_interface.hpp>
 
 #include <fc/crypto/digest.hpp>
 #include <fc/crypto/elliptic.hpp>
@@ -117,52 +114,52 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
 {
    try
    {
-      using sophiatx::plugins::condenser_api::legacy_asset;
+      using sophiatx::protocol::asset;
 
-      BOOST_CHECK_EQUAL( legacy_asset().symbol.decimals(), 6 );
-      BOOST_CHECK_EQUAL( legacy_asset().to_string(), "0.000000 SPHTX" );
+      BOOST_CHECK_EQUAL( asset().symbol.decimals(), 6 );
+      BOOST_CHECK_EQUAL( asset().to_string(), "0.000000 SPHTX" );
 
       BOOST_TEST_MESSAGE( "Asset Test" );
-      legacy_asset sophiatx = legacy_asset::from_string( "123.456000 SPHTX" );
-      legacy_asset sbd = legacy_asset::from_string( "654.321000 USD" );
-      legacy_asset tmp = legacy_asset::from_string( "0.456000 SPHTX" );
+      asset sophiatx = asset::from_string( "123.456000 SPHTX" );
+      asset sbd = asset::from_string( "654.321000 USD" );
+      asset tmp = asset::from_string( "0.456000 SPHTX" );
       BOOST_CHECK_EQUAL( tmp.amount.value, 456000 );
-      tmp = legacy_asset::from_string( "0.056000 SPHTX" );
+      tmp = asset::from_string( "0.056000 SPHTX" );
       BOOST_CHECK_EQUAL( tmp.amount.value, 56000 );
 
       BOOST_CHECK_EQUAL( sophiatx.amount.value, 123456000 );
       BOOST_CHECK_EQUAL( sophiatx.symbol.decimals(), 6 );
       BOOST_CHECK_EQUAL( sophiatx.to_string(), "123.456000 SPHTX" );
       BOOST_CHECK( sophiatx.symbol == SOPHIATX_SYMBOL );
-      BOOST_CHECK_EQUAL( legacy_asset::from_asset( asset( 50000, SOPHIATX_SYMBOL ) ).to_string(), "0.050000 SPHTX" );
-      BOOST_CHECK_EQUAL( legacy_asset::from_asset( asset(50000000, SOPHIATX_SYMBOL ) ) .to_string(), "50.000000 SPHTX" );
+      BOOST_CHECK_EQUAL( asset( asset( 50000, SOPHIATX_SYMBOL ) ).to_string(), "0.050000 SPHTX" );
+      BOOST_CHECK_EQUAL( asset( asset(50000000, SOPHIATX_SYMBOL ) ) .to_string(), "50.000000 SPHTX" );
 
       BOOST_CHECK_EQUAL( sbd.amount.value, 654321000 );
       BOOST_CHECK_EQUAL( sbd.symbol.decimals(), 6 );
       BOOST_CHECK_EQUAL( sbd.to_string(), "654.321000 USD" );
       BOOST_CHECK( sbd.symbol == SBD1_SYMBOL );
-      BOOST_CHECK_EQUAL( legacy_asset::from_asset( asset(50000, SBD1_SYMBOL ) ).to_string(), "0.050000 USD" );
-      BOOST_CHECK_EQUAL( legacy_asset::from_asset( asset(50000000, SBD1_SYMBOL ) ).to_string(), "50.000000 USD" );
+      BOOST_CHECK_EQUAL( asset( asset(50000, SBD1_SYMBOL ) ).to_string(), "0.050000 USD" );
+      BOOST_CHECK_EQUAL( asset( asset(50000000, SBD1_SYMBOL ) ).to_string(), "50.000000 USD" );
 
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1.00000000000000000000 SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1.000SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1. 333 SPHTX" ), fc::exception ); // Fails because symbol is '333 SPHTX', which is too long
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1 .333 SPHTX" ), fc::exception );
-      //BOOST_CHECK_THROW( legacy_asset::from_string( "1. 333 X" ), fc::exception ); // Not a system asset
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1 .333 X" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1 .333" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1 1.1" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "11111111111111111111111111111111111111111111111 SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1.1.1 SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1.abc SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( " SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1.333" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "1.333 " ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "" ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( " " ), fc::exception );
-      BOOST_CHECK_THROW( legacy_asset::from_string( "  " ), fc::exception );
-      //BOOST_CHECK_THROW( legacy_asset::from_string( "100 SPHTX" ), fc::exception ); // Does not match system asset precision
+      BOOST_CHECK_THROW( asset::from_string( "1.00000000000000000000 SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.000SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1. 333 SPHTX" ), fc::exception ); // Fails because symbol is '333 SPHTX', which is too long
+      BOOST_CHECK_THROW( asset::from_string( "1 .333 SPHTX" ), fc::exception );
+      //BOOST_CHECK_THROW( asset::from_string( "1. 333 X" ), fc::exception ); // Not a system asset
+      BOOST_CHECK_THROW( asset::from_string( "1 .333 X" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1 .333" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1 1.1" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "11111111111111111111111111111111111111111111111 SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.1.1 SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.abc SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( " SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.333" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.333 " ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( " " ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "  " ), fc::exception );
+      //BOOST_CHECK_THROW( asset::from_string( "100 SPHTX" ), fc::exception ); // Does not match system asset precision
    }
    FC_LOG_AND_RETHROW()
 }
@@ -527,7 +524,7 @@ BOOST_AUTO_TEST_CASE( min_block_size )
 
 BOOST_AUTO_TEST_CASE( legacy_signed_transaction )
 {
-   using sophiatx::plugins::condenser_api::legacy_signed_transaction;
+   using sophiatx::protocol::signed_transaction;
 
    signed_transaction tx;
    transfer_operation op;
@@ -539,7 +536,7 @@ BOOST_AUTO_TEST_CASE( legacy_signed_transaction )
    tx.expiration = fc::time_point_sec( 1514764800 );
    tx.operations.push_back( op );
 
-   signed_transaction tx2 = signed_transaction( fc::json::from_string( "{\"ref_block_num\":4000,\"ref_block_prefix\":4000000000,\"expiration\":\"2018-01-01T00:00:00\",\"operations\":[[\"transfer\",{\"from\":\"nbyckkPfkdV4OQtmdTh93QjB5CIA\",\"to\":\"8I1Pt6T2ovPJgEhTaMPP3Qv4uCoA\",\"amount\":\"0.000050 SPHTX\"}]],\"extensions\":[],\"signatures\":[\"\"]}" ).as< legacy_signed_transaction >() );
+   signed_transaction tx2 = signed_transaction( fc::json::from_string( "{\"ref_block_num\":4000,\"ref_block_prefix\":4000000000,\"expiration\":\"2018-01-01T00:00:00\",\"operations\":[[\"transfer\",{\"from\":\"nbyckkPfkdV4OQtmdTh93QjB5CIA\",\"to\":\"8I1Pt6T2ovPJgEhTaMPP3Qv4uCoA\",\"amount\":\"0.000050 SPHTX\"}]],\"extensions\":[],\"signatures\":[\"\"]}" ).as< signed_transaction >() );
 
    BOOST_REQUIRE( tx.id() == tx2.id() );
 }

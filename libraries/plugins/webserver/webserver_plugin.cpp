@@ -139,6 +139,7 @@ class webserver_plugin_impl
       asio::io_service           http_ios;
       optional< tcp::endpoint >  http_endpoint;
       websocket_server_type      http_server;
+      string                     http_cors;
 
       shared_ptr< std::thread >  https_thread;
       asio::io_service           https_ios;
@@ -356,6 +357,9 @@ void webserver_plugin_impl::handle_http_message(typename T::connection_ptr con) 
    {
       auto body = con->get_request_body();
 
+      if(!http_cors.empty())
+         con->append_header("Access-Control-Allow-Origin", http_cors);
+
       try
       {
        bool is_error = false;
@@ -466,6 +470,7 @@ void webserver_plugin::set_program_options( options_description&, options_descri
       ("webserver-https-endpoint", bpo::value< string >(), "Local https endpoint for webserver requests.")
       ("https-certificate-chain-file", bpo::value< string >(), "File with certificate chain to present on https connections. Required for https.")
       ("https-private-key-file", bpo::value< string >(), "File with https private key in PEM format. Required for https.")
+      ("http-cors", bpo::value<string>()->default_value("*"), "Access-Control-Allow-Origin response header")
       ("webserver-thread-pool-size", bpo::value<thread_pool_size_t>()->default_value(16), "Number of threads used to handle queries. Default: 16.");
 }
 
@@ -483,6 +488,10 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
       FC_ASSERT( endpoints.size(), "ws-server-endpoint ${hostname} did not resolve", ("hostname", ws_endpoint) );
       my->ws_endpoint = tcp::endpoint( boost::asio::ip::address_v4::from_string( ( string )endpoints[0].get_address() ), endpoints[0].port() );
       ilog( "configured ws to listen on ${ep}", ("ep", endpoints[0]) );
+   }
+
+   if(options.count( "webserver-http-endpoint" ) || options.count("webserver-https-endpoint")) {
+      my->http_cors = options.at( "http-cors" ).as< string >();
    }
 
    if( options.count( "webserver-http-endpoint" ) )

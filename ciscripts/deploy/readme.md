@@ -10,7 +10,6 @@ Created file structure on server:
      │   ├── sophiatx_#<NUM>.tar.gz             # SophiaTX archived binaries
      │   ├── sophiatx_#<NUM>.tar.gz.old         # Previous version of SophiaTX archived binaries
      │   ├── sophiatxd                          # SophiaTX demon
-     │   ├── alexandria_deamon                  # Alexandria demon
      │   └── sophia_app_data                    # Master data folder
      │       ├── configs                        # Configs data folder
      │       │   ├── testnet_config.ini         # SophiaTX demon config file

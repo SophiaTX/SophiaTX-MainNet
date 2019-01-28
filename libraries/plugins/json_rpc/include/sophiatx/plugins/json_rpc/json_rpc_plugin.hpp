@@ -106,6 +106,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
       virtual void plugin_startup() override;
       virtual void plugin_shutdown() override;
 
+      fc::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args) const;
       void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
       void add_api_subscribe_method( const string& api_name, const string& method_name );
 
