@@ -68,7 +68,7 @@ namespace{
 bfs::path write_default_config( const options_description& options_desc, const bfs::path& cfg_file, std::string suffix = "" ) {
    bfs::path _cfg_file = cfg_file;
    if( suffix != "" ){
-      _cfg_file += suffix;
+      _cfg_file += std::string(".") + suffix;
    }
 
    bfs::path config_file_name = app_factory().data_dir / "configs" / _cfg_file ;
@@ -140,7 +140,7 @@ void application::startup() {
       plugin->startup();
 }
 
-plugin_program_options application_factory::get_plugin_program_options(std::shared_ptr<abstract_plugin_factory> & plugin_factory) {
+plugin_program_options application_factory::get_plugin_program_options(std::shared_ptr<abstract_plugin_factory> plugin_factory) {
    options_description plugin_cli_opts("Command Line Options for " + plugin_factory->get_name());
    options_description plugin_cfg_opts("Config Options for " + plugin_factory->get_name());
    plugin_factory->set_program_options(plugin_cli_opts, plugin_cfg_opts);
@@ -151,17 +151,7 @@ plugin_program_options application_factory::get_plugin_program_options(std::shar
 
 bool application::load_external_plugins() {
    // plugins-dir par (even if it is default) must be always present
-   assert(my->_args.count( "external-plugins-dir" ));
 
-   boost::program_options::variable_value cfg_plugins_dir = my->_args["external-plugins-dir"];
-   bfs::path plugins_dir = cfg_plugins_dir.as<bfs::path>();
-   if (plugins_dir.is_relative() == true) {
-      plugins_dir = my->_data_dir / plugins_dir;
-
-      if (bfs::exists(plugins_dir) == false) {
-         bfs::create_directory(plugins_dir);
-      }
-   }
 
    if(my->_args.count("external-plugin") > 0)
    {
@@ -172,16 +162,18 @@ bool application::load_external_plugins() {
          boost::split(plugins_names, arg, boost::is_any_of(" \t,"));
 
          for(const std::string& plugin_name : plugins_names) {
-            bfs::path plugin_binary_path = plugins_dir / std::string("lib" + plugin_name + "_plugin.so");
+            bfs::path plugin_binary_path = app_factory().plugins_dir / std::string("lib" + plugin_name + "_plugin.so");
             if (bfs::exists(plugin_binary_path) == false) {
                std::cerr << "Missing binary: " << plugin_binary_path << " for plugin: \"" << plugin_name << "\"" << std::endl;
                return false;
             }
 
             std::shared_ptr<abstract_plugin> loaded_plugin;
+            std::function<void(options_description&,options_description&)> options_setter;
             try {
-               auto plugin_creator = boost::dll::import<std::shared_ptr<abstract_plugin>()>(plugin_binary_path, "get_plugin", boost::dll::load_mode::append_decorations);
-               loaded_plugin = plugin_creator();
+               auto plugin_factory = boost::dll::import<std::shared_ptr<abstract_plugin>()>(plugin_binary_path, "plugin_factory", boost::dll::load_mode::append_decorations);
+               options_setter = boost::dll::import<void(options_description&,options_description&)>(plugin_binary_path, "options_setter", boost::dll::load_mode::append_decorations);
+               loaded_plugin = plugin_factory();
             }
             catch ( const boost::exception& e )
             {
@@ -189,12 +181,12 @@ bool application::load_external_plugins() {
                return false;
             }
 
-            loaded_plugin->set_app(shared_from_this());
+            loaded_plugin->set_app( shared_from_this() );
             // Registers loaded plugin for application
             register_external_plugin(loaded_plugin);
 
             // Loads plugins config parameters
-            load_external_plugin_config(loaded_plugin, plugin_name);
+            load_external_plugin_config(options_setter, plugin_name);
 
             // Initializes plugin
             loaded_plugin->initialize(my->_args);
@@ -210,10 +202,10 @@ void application::register_external_plugin(const std::shared_ptr<abstract_plugin
    plugin->register_dependencies();
 }
 
-void application::load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin, const std::string& cfg_plugin_name) {
-   options_description plugin_cli_opts("Command Line Options for " + plugin->get_name());
-   options_description plugin_cfg_opts("Config Options for " + plugin->get_name());
-   plugin->set_program_options(plugin_cli_opts, plugin_cfg_opts);
+void application::load_external_plugin_config(const std::function<void(options_description&,options_description&)> options_setter, const std::string& cfg_plugin_name) {
+   options_description plugin_cli_opts("Command Line Options for " + cfg_plugin_name);
+   options_description plugin_cfg_opts("Config Options for " + cfg_plugin_name);
+   options_setter(plugin_cli_opts, plugin_cfg_opts);
 
    // Writes config if it does not already exists
    bfs::path config_file_path = write_default_config(plugin_cfg_opts,  bfs::path(cfg_plugin_name + "_plugin_config.ini"), id);
@@ -362,38 +354,25 @@ void application_factory::set_program_options()
 
    app_options.add(app_cfg_opts);
    global_options.add(app_cli_opts);
-
-   for(auto& plug : plugin_factories ) {
-      const plugin_program_options& plugin_options = get_plugin_program_options(plug);
-
-      const options_description& plugin_cfg_options = plugin_options.get_cfg_options();
-      if (plugin_cfg_options.options().size()) {
-         app_options.add(plugin_cfg_options);
-      }
-
-      const options_description& plugin_cli_options = plugin_options.get_cli_options();
-      if (plugin_cli_options.options().size()) {
-         global_options.add(plugin_cli_options);
-      }
-   }
 }
 
-bool application_factory::initialize( int argc, char** argv, vector< string > _autostart_plugins )
+map<string, std::shared_ptr<application>> application_factory::initialize( int argc, char** argv, vector< string > _autostart_plugins, bool start_apps )
 {
    try
    {
+      map<string, std::shared_ptr<application>> ret;
       bpo::store( bpo::parse_command_line( argc, argv, global_options ), global_args );
       std::copy(_autostart_plugins.begin(), _autostart_plugins.end(), std::back_inserter(autostart_plugins));
 
       if( global_args.count( "help" ) ) {
          cout << global_options << "\n";
-         return false;
+         return ret;
       }
 
       if( global_args.count( "version" ) )
       {
          cout << version_info << "\n";
-         return false;
+         return ret;
       }
 
       // data-dir par (even if it is default) must be always present
@@ -402,6 +381,20 @@ bool application_factory::initialize( int argc, char** argv, vector< string > _a
       data_dir = global_args["data-dir"].as<bfs::path>();
       if( data_dir.is_relative() )
          data_dir = bfs::current_path() / data_dir;
+
+      assert(global_args.count( "external-plugins-dir" ));
+
+      boost::program_options::variable_value cfg_plugins_dir = global_args["external-plugins-dir"];
+      plugins_dir = cfg_plugins_dir.as<bfs::path>();
+      if (plugins_dir.is_relative() == true) {
+         plugins_dir = data_dir / plugins_dir;
+
+         if (bfs::exists(plugins_dir) == false) {
+            bfs::create_directory(plugins_dir);
+         }
+      }
+
+
 
       // config par (even if it is default) must be always present
       assert(global_args.count( "config" ));
@@ -415,40 +408,46 @@ bool application_factory::initialize( int argc, char** argv, vector< string > _a
 
       //TODO: migrate the config here
 
-      if(global_args.count("startup-apps") > 0)
-      {
-         auto chains = global_args.at("startup-apps").as<std::vector<string>>();
-         for(auto& arg : chains )
-         {
-            vector<string> names;
-            boost::split(names, arg, boost::is_any_of(" \t,"));
-            for(const std::string& name : names)
-            {
-               bfs::path config_file_path = write_default_config(app_options, global_args["config"].as<bfs::path>(), name );
-               variables_map app_args;
-               bpo::store(bpo::parse_config_file< char >( config_file_path.make_preferred().string().c_str(),
-                                                          app_options, true ), app_args );
-               auto new_app = new_application(app_args, name);
-
+      if(start_apps) {
+         if( global_args.count("startup-apps") > 0 ) {
+            auto chains = global_args.at("startup-apps").as<std::vector<string>>();
+            for( auto &arg : chains ) {
+               vector<string> names;
+               boost::split(names, arg, boost::is_any_of(" \t,"));
+               for( const std::string &name : names ) {
+                  variables_map app_args = read_app_config(name);
+                  auto new_app = new_application(name);
+                  new_app->initialize(app_args, autostart_plugins);
+                  ret[ name ] = new_app;
+               }
             }
+         } else {
+            //load default (public) one.
+            variables_map app_args = read_app_config(_public_net_chain_id);
+            auto new_app = new_application(_public_net_chain_id);
+            new_app->initialize(app_args, autostart_plugins);
+            ret[ _public_net_chain_id ] = new_app;
          }
-      }else{
-         //load default (public) one.
-         bfs::path config_file_path = write_default_config(app_options, global_args["config"].as<bfs::path>(), _public_net_chain_id );
-         variables_map app_args;
-         bpo::store(bpo::parse_config_file< char >( config_file_path.make_preferred().string().c_str(),
-                                                    app_options, true ), app_args );
-         auto new_app = new_application(app_args, _public_net_chain_id);
       }
-
-      return true;
+      return ret;
    }
    catch (const boost::program_options::error& e)
    {
+      map<string, std::shared_ptr<application>> ret;
       std::cerr << "Error parsing command line: " << e.what() << "\n";
-      return false;
+      return ret;
    }
-
 }
+
+variables_map application_factory::read_app_config(std::string name)
+{
+   bfs::path config_file_path = write_default_config(app_options, global_args[ "config" ].as<bfs::path>(),
+                                                     name);
+   variables_map app_args;
+   bpo::store(bpo::parse_config_file<char>(config_file_path.make_preferred().string().c_str(),
+                                           app_options, true), app_args);
+   return app_args;
+}
+
 
 } /// namespace appbase

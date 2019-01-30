@@ -14,10 +14,12 @@
 #include <sophiatx/plugins/multiparty_messaging/multiparty_messaging_api.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
+class alexandria_api_plugin;
+
 
 class alexandria_api_impl {
 public:
-   alexandria_api_impl();
+   alexandria_api_impl(alexandria_api_plugin& plugin);
    ~alexandria_api_impl();
 
    /**

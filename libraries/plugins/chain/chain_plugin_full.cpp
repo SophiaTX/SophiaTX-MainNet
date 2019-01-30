@@ -342,7 +342,7 @@ void chain_plugin_full::plugin_startup()
    // correct directories, TODO can be removed after next HF2
    if( ! genesis.is_private_net && bfs::exists( app_factory().data_dir / "blockchain" ) ){
       bfs::create_directories ( shared_memory_dir );
-      bfs::rename( app_factory().data_dir / "blockchain", my->shared_memory_dir );
+      bfs::rename( app_factory().data_dir / "blockchain", shared_memory_dir );
    }
 
    ilog("Starting node with chain id ${i}", ("i", chain_id));

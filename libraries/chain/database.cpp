@@ -1,4 +1,5 @@
 #include <sophiatx/protocol/sophiatx_operations.hpp>
+#include <sophiatx/protocol/sophiatx_operations.hpp>
 
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/compound.hpp>

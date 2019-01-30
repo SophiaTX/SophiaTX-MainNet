@@ -123,7 +123,7 @@ namespace detail {
    class register_api_method_visitor
    {
       public:
-         register_api_method_visitor( const std::string& api_name, const std::shared_ptr<appbase::application>& app )
+         register_api_method_visitor( const std::string& api_name, std::shared_ptr<application> app )
             : _api_name( api_name ),
               _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() )
          {}

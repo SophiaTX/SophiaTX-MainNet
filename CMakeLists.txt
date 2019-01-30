@@ -1,5 +1,6 @@
 # Defines SophiaTX library target.
 
+
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     MESSAGE(STATUS "Building with ccache")

@@ -26,8 +26,6 @@
 #include <vector>
 
 #include <fc/crypto/rand.hpp>
-#include <sophiatx/config/config.hpp>
-#include "../../libraries/config/include/sophiatx/config/config.hpp"
 
 namespace bpo = boost::program_options;
 using sophiatx::protocol::version;
@@ -77,19 +75,15 @@ int main( int argc, char** argv )
 
       appbase::app_factory().add_program_options( options );
 
-      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
       sophiatx::plugins::register_plugins();
       appbase::app_factory().set_version_string( version_string() );
 
-      bool initialized = appbase::app().initialize<
-            sophiatx::plugins::chain::chain_plugin_full,
-            sophiatx::plugins::p2p::p2p_plugin,
-            sophiatx::plugins::webserver::webserver_plugin >
-            ( argc, argv );
+      auto initialized = appbase::app_factory().initialize( argc, argv, {"chain_plugin_full", "p2p_plugin", "webserver_plugin"} );
 
       info();
 
-      if( !initialized )
+      if( !initialized.size() )
          return 0;
 
       auto& args = appbase::app_factory().global_args;
@@ -111,8 +105,8 @@ int main( int argc, char** argv )
          ilog( "Backtrace on segfault is enabled." );
       }
 
-      appbase::app().startup();
-      appbase::app().exec();
+      appbase::app_factory().startup();
+      appbase::app_factory().exec();
       std::cout << "exited cleanly\n";
 
       return 0;

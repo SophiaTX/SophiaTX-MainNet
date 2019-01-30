@@ -92,7 +92,7 @@ int main( int argc, char** argv ) {
    try {
       appbase::app_factory().register_plugin_factory<plugin_b>();
 
-      if( !appbase::app_factory().initialize( argc, argv, {} ) )
+      if( appbase::app_factory().initialize( argc, argv, {} ).size() == 0 )
          return -1;
       appbase::app_factory().startup();
       appbase::app_factory().exec();

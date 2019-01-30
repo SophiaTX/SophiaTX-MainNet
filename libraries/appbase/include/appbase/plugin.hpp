@@ -8,7 +8,7 @@
 #include <map>
 
 #define APPBASE_PLUGIN_REQUIRES_VISIT( r, visitor, elem ) \
-  visitor( ( app()->get_plugin<elem>() ) );
+  visitor( ( app()->get_or_create_plugin<elem>() ) );
 
 #define APPBASE_PLUGIN_REQUIRES( PLUGINS )                               \
    virtual void plugin_for_each_dependency( plugin_processor&& l ) override {  \
@@ -44,8 +44,8 @@ public:
    virtual void initialize(const variables_map& options) = 0;
    virtual void startup() = 0;
    virtual void shutdown() = 0;
-   void set_app(const std::shared_ptr<application>& my_app) { _app = my_app; }
-   const std::shared_ptr<application> app() { return _app; }
+   void set_app(std::shared_ptr<application> my_app) { _app = my_app; }
+   std::shared_ptr<application> app() { return _app; }
 
 protected:
    typedef std::function<void(abstract_plugin&)> plugin_processor;
@@ -84,7 +84,7 @@ public:
 
    virtual void register_dependencies() override
    {
-      this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){} );
+      //this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){} );
    }
 
    virtual void initialize(const variables_map& options) override final
@@ -147,9 +147,9 @@ class plugin_factory : public abstract_plugin_factory
 public:
    virtual ~plugin_factory(){}
    virtual std::shared_ptr<abstract_plugin> new_plugin( std::shared_ptr<application> new_app ) const final {
-      std::shared_ptr<abstract_plugin> new_plugin = std::make_shared<Plugin>();
-      new_plugin->set_app( new_app );
-      return new_plugin;
+      std::shared_ptr<abstract_plugin> new_plg = std::make_shared<Plugin>();
+      new_plg->set_app( new_app );
+      return new_plg;
    }
 
    virtual void set_program_options( options_description& cli, options_description& cfg ) {

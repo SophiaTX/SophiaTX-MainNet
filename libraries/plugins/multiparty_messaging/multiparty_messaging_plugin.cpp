@@ -248,7 +248,7 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
    try
    {
       ilog( "Initializing multiparty_messaging_plugin_impl plugin" );
-      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::multiparty_messaging_plugin_impl>(_my));
       add_plugin_index< group_index >(db);

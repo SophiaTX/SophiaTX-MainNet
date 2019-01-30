@@ -9,7 +9,7 @@ namespace detail {
 class template_api_impl
 {
    public:
-   template_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+   template_api_impl(template_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       example_call_return example_call( const example_call_args& args )const;
 
@@ -28,9 +28,9 @@ example_call_return template_api_impl::example_call( const example_call_args& ar
 
 } // detail
 
-template_api::template_api(): my( new detail::template_api_impl() )
+template_api::template_api(template_plugin& plugin): my( new detail::template_api_impl(plugin) )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_TEMPLATE_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_TEMPLATE_PLUGIN_NAME, plugin.app() );
 }
 
 template_api::~template_api() {}

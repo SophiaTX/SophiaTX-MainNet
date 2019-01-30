@@ -49,20 +49,22 @@ clean_database_fixture::clean_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
-   appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
-   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
-   db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
 
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_plugin>();
+   appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness"}, false);
+   auto appconfig = appbase::app_factory().read_app_config("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+   w_app = appbase::app_factory().new_application("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+   auto app = w_app.lock();
+   auto _db_plugin = app->find_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
+   db_plugin = _db_plugin;
    db_plugin->logging = false;
-   appbase::app().initialize<
-      sophiatx::plugins::chain::chain_plugin_full,
-      sophiatx::plugins::account_history::account_history_plugin,
-      sophiatx::plugins::debug_node::debug_node_plugin,
-      sophiatx::plugins::witness::witness_plugin
-      >( argc, argv );
+   app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness"});
 
-   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+   db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -191,20 +193,20 @@ private_database_fixture::private_database_fixture()
             std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
       }
 
-      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
-      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
-      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
-      appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_plugin>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
 
+      auto appconfig = appbase::app_factory().read_app_config("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+      w_app = appbase::app_factory().new_application("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+      auto app = w_app.lock();
+      db_plugin = app->find_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
       db_plugin->logging = false;
-      appbase::app().initialize<
-            sophiatx::plugins::chain::chain_plugin_full,
-            sophiatx::plugins::account_history::account_history_plugin,
-            sophiatx::plugins::debug_node::debug_node_plugin,
-            sophiatx::plugins::witness::witness_plugin
-      >( argc, argv );
+      app->initialize(appconfig, {"chain", "account_history", "debug", "witness"});
 
-      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+      db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
       init_account_pub_key = init_account_priv_key.get_public_key();
@@ -279,16 +281,18 @@ live_database_fixture::live_database_fixture()
       _chain_dir = fc::current_path() / "test_blockchain";
       FC_ASSERT( fc::exists( _chain_dir ), "Requires blockchain to test on in ./test_blockchain" );
 
-      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
-      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
-      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
 
-      appbase::app().initialize<
-         sophiatx::plugins::chain::chain_plugin_full,
-         sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
-         >( argc, argv );
+      auto appconfig = appbase::app_factory().read_app_config("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+      w_app = appbase::app_factory().new_application("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+      auto app = w_app.lock();
+      db_plugin = app->find_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
+      db_plugin->logging = false;
+      app->initialize(appconfig, {"chain", "account_history_", "debug_node"});
 
-      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+      db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
       {
@@ -694,33 +698,28 @@ json_rpc_database_fixture::json_rpc_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
-   appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
-   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
-   db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
-   rpc_plugin = &appbase::app().register_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::witness::witness_api_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::json_rpc::json_rpc_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::block_api::block_api_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::database_api::database_api_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_api_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::alexandria_api::alexandria_api_plugin>();
+   appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
 
+   w_app = appbase::app_factory().new_application("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
+   auto app = w_app.lock();
+
+   db_plugin = app->find_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
    db_plugin->logging = false;
-   appbase::app().initialize<
-      sophiatx::plugins::chain::chain_plugin_full,
-      sophiatx::plugins::account_history::account_history_plugin,
-      sophiatx::plugins::debug_node::debug_node_plugin,
-      sophiatx::plugins::witness::witness_plugin,
-      sophiatx::plugins::json_rpc::json_rpc_plugin,
-      sophiatx::plugins::block_api::block_api_plugin,
-      sophiatx::plugins::database_api::database_api_plugin,
-      sophiatx::plugins::witness::witness_api_plugin,
-      sophiatx::plugins::alexandria_api::alexandria_api_plugin
-      >( argc, argv );
+   rpc_plugin = app->find_plugin<sophiatx::plugins::json_rpc::json_rpc_plugin>() ;
+   app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "witness_api", "alexandria_api"});
 
+   app->get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
 
-   appbase::app().get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
-
-   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+   db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();

@@ -43,7 +43,7 @@ void chain_plugin_lite::plugin_initialize(const variables_map &options) {
    if( options.count("shared-file-dir")) {
       auto sfd = options.at("shared-file-dir").as<bfs::path>();
       if( sfd.is_relative())
-         shared_memory_dir = app().data_dir() / sfd;
+         shared_memory_dir = app()->data_dir() / sfd;
       else
          shared_memory_dir = sfd;
    }
@@ -66,7 +66,7 @@ void chain_plugin_lite::plugin_startup() {
    ilog("Starting chain with shared_file_size: ${n} bytes", ("n", shared_memory_size));
 
    if( shared_memory_dir.generic_string().empty())
-      shared_memory_dir = app().data_dir() / "blockchain";
+      shared_memory_dir = app()->data_dir() / "blockchain";
 
    if( resync ) {
       wlog("resync requested: deleting block log and shared memory");

@@ -9,7 +9,7 @@ namespace detail {
 class track_and_trace_api_impl
 {
    public:
-   track_and_trace_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+   track_and_trace_api_impl(track_and_trace_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
    get_current_holder_return get_current_holder( const get_current_holder_args& args )const;
    get_holdings_return get_holdings( const get_holdings_args& args )const;
@@ -79,9 +79,9 @@ get_item_details_return track_and_trace_api_impl::get_item_details(const get_ite
 
 } // detail
 
-track_and_trace_api::track_and_trace_api(): my( new detail::track_and_trace_api_impl() )
+track_and_trace_api::track_and_trace_api(track_and_trace_plugin& plugin): my( new detail::track_and_trace_api_impl(plugin) )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_TAT_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_TAT_PLUGIN_NAME, plugin.app() );
 }
 
 track_and_trace_api::~track_and_trace_api() {}

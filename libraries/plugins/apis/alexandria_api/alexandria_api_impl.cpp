@@ -1,5 +1,7 @@
 
 #include <sophiatx/plugins/alexandria_api/alexandria_api_impl.hpp>
+#include <sophiatx/plugins/alexandria_api/alexandria_api.hpp>
+#include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 #include <sophiatx/plugins/alexandria_api/alexandria_api_objects.hpp>
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/utilities/key_conversion.hpp>
@@ -1317,9 +1319,9 @@ DEFINE_API_IMPL(alexandria_api_impl, get_required_signatures)
 
    FC_ASSERT( approving_account_objects.size() == v_approving_account_names.size(), "", ("aco.size:", approving_account_objects.size())("acn",v_approving_account_names.size()) );
 
-   flat_map<string, alexandria_api::api_account_object> approving_account_lut;
+   flat_map<string, api_account_object> approving_account_lut;
    size_t i = 0;
-   for( const optional<alexandria_api::api_account_object>& approving_acct : approving_account_objects )
+   for( const optional<api_account_object>& approving_acct : approving_account_objects )
    {
       if( !approving_acct.valid() )
       {
@@ -1338,7 +1340,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_required_signatures)
       const auto it = approving_account_lut.find( acct_name );
       if( it == approving_account_lut.end() )
          continue;
-      const alexandria_api::api_account_object& acct = it->second;
+      const api_account_object& acct = it->second;
       vector<public_key_type> v_approving_keys = acct.active.get_keys();
       for( const public_key_type& approving_key : v_approving_keys )
       {
@@ -1351,7 +1353,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_required_signatures)
       const auto it = approving_account_lut.find( acct_name );
       if( it == approving_account_lut.end() )
          continue;
-      const alexandria_api::api_account_object& acct = it->second;
+      const api_account_object& acct = it->second;
       vector<public_key_type> v_approving_keys = acct.owner.get_keys();
       for( const public_key_type& approving_key : v_approving_keys )
       {
@@ -1449,7 +1451,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_hardfork_property_object)
 {
    checkApiEnabled(_database_api);
 
-   alexandria_api::api_hardfork_property_object props = _database_api->get_hardfork_properties( {} );
+   api_hardfork_property_object props = _database_api->get_hardfork_properties( {} );
    get_hardfork_property_object_return result;
 
    result.hf_obj = std::move(props);

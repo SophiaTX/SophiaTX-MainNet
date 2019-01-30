@@ -20,8 +20,6 @@ using std::vector;
 
 namespace sophiatx { namespace plugins { namespace p2p {
 
-using appbase::app;
-
 using graphene::net::item_hash_t;
 using graphene::net::item_id;
 using graphene::net::message;
@@ -558,7 +556,7 @@ void p2p_plugin::plugin_startup()
    my->p2p_thread.async( [this]
    {
       my->node.reset(new graphene::net::node(my->user_agent));
-      my->node->load_configuration(app().data_dir() / "p2p");
+      my->node->load_configuration(app() -> data_dir() / "p2p");
       my->node->set_node_delegate( &(*my) );
 
       if( my->endpoint )

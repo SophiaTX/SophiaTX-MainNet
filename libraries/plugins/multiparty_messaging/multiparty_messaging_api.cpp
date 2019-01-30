@@ -36,7 +36,10 @@ void find_new_members ( shared_vector<account_name_type> current_members, vector
 class multiparty_messaging_api_impl
 {
    public:
-   multiparty_messaging_api_impl(multiparty_messaging_plugin& plugin) : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ), _plugin(plugin) {}
+   multiparty_messaging_api_impl(multiparty_messaging_plugin& plugin) :
+         _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ), _plugin(plugin),
+         _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >()) {}
+
    get_group_return  get_group(const get_group_args& args) const;
    get_group_name_return  get_group_name(const get_group_name_args& args) const;
    list_my_groups_return  list_my_groups(const list_my_groups_args& args) const;
@@ -50,7 +53,7 @@ class multiparty_messaging_api_impl
 
    std::shared_ptr<database_interface> _db;
    multiparty_messaging_plugin& _plugin;
-   plugins::json_rpc::json_rpc_plugin* json_api;
+   plugins::json_rpc::json_rpc_plugin* _json_api;
 
 private:
    vector<char> generate_random_key() const;
@@ -111,7 +114,7 @@ vector<char> multiparty_messaging_api_impl::generate_random_key() const
 
 alexandria_api::api_account_object multiparty_messaging_api_impl::get_account(const account_name_type& account) const {
    alexandria_api::get_account_args args {account};
-   auto result = json_api->call_api_method("alexandria_api", "get_account", fc::variant(args));
+   auto result = _json_api->call_api_method("alexandria_api", "get_account", fc::variant(args));
    FC_ASSERT(result.valid(), "Account does not exist!");
    alexandria_api::get_account_return acc_return;
    fc::from_variant( *result, acc_return );
@@ -384,13 +387,13 @@ send_group_message_return  multiparty_messaging_api_impl::send_group_message(con
 
 multiparty_messaging_api::multiparty_messaging_api(multiparty_messaging_plugin& plugin): my( new detail::multiparty_messaging_api_impl(plugin) )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_MPM_PLUGIN_NAME );
+   JSON_RPC_REGISTER_API( SOPHIATX_MPM_PLUGIN_NAME, plugin.app() );
+
 }
 
 multiparty_messaging_api::~multiparty_messaging_api() {}
 
 void multiparty_messaging_api::api_startup() {
-   my->json_api = appbase::app().find_plugin< plugins::json_rpc::json_rpc_plugin >();
 }
 
 DEFINE_READ_APIS( multiparty_messaging_api, (get_group) (get_group_name) (list_my_groups) (list_messages)

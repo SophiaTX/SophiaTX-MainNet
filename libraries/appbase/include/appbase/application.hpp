@@ -89,18 +89,12 @@ namespace appbase {
           *
           * @param plugin
           */
-         void load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin, const std::string& cfg_plugin_name);
+         void load_external_plugin_config(const std::function<void(options_description&,options_description&)> options_setter, const std::string& cfg_plugin_name);
 
          template< typename Plugin >
          Plugin* find_plugin()const
          {
             Plugin* plugin = dynamic_cast< Plugin* >( find_plugin( Plugin::name() ) );
-
-            // Do not return plugins that are registered but not at least initialized.
-            if( plugin != nullptr && plugin->get_state() == abstract_plugin::registered )
-            {
-               return nullptr;
-            }
 
             return plugin;
          }
@@ -112,6 +106,22 @@ namespace appbase {
             if( ptr == nullptr )
                BOOST_THROW_EXCEPTION( std::runtime_error( "unable to find plugin: " + Plugin::name() ) );
             return *ptr;
+         }
+
+         template< typename Plugin >
+         Plugin& get_or_create_plugin()
+         {
+            Plugin* plugin = dynamic_cast< Plugin* >( find_plugin( Plugin::name() ) );
+            if( plugin != nullptr )
+               return *plugin;
+            auto new_plg = std::make_shared<Plugin>();
+            new_plg->set_app( shared_from_this() );
+            plugins[ Plugin::name() ] = new_plg;
+            return *new_plg;
+         }
+
+         void reset(){
+            plugins.clear();
          }
 
          bfs::path data_dir()const;
@@ -159,54 +169,67 @@ namespace appbase {
       void operator=(application_factory const &) = delete;
 
       template<typename P> void register_plugin_factory(){
+         if( plugin_factories.find(P::name()) != plugin_factories.end() )
+            return;
          std::shared_ptr<plugin_factory<P>> new_plugin_factory = std::make_shared<plugin_factory<P>>();
-         plugin_factories.push_back(new_plugin_factory);
+         plugin_factories[P::name()] = new_plugin_factory;
+         const plugin_program_options& plugin_options = get_plugin_program_options(new_plugin_factory);
+         const options_description& plugin_cfg_options = plugin_options.get_cfg_options();
+         if (plugin_cfg_options.options().size()) {
+            app_options.add(plugin_cfg_options);
+         }
+
+         const options_description& plugin_cli_options = plugin_options.get_cli_options();
+         if (plugin_cli_options.options().size()) {
+            app_options.add(plugin_cli_options);
+         }
       }
 
-      std::shared_ptr<application> new_application(const variables_map& app_args, const string& id){
+      std::shared_ptr<application> new_application( const string& id){
          std::shared_ptr<application> new_app = std::make_shared<application>(id );
+         apps[id] = new_app;
          for( const auto& pf : plugin_factories){
-            auto new_plugin = pf->new_plugin(new_app);
+            auto new_plugin = pf.second->new_plugin(new_app);
             new_app->register_plugin(new_plugin);
          }
-         apps.push_back(new_app);
-         new_app->initialize(app_args, autostart_plugins);
          return new_app;
       }
 
       void add_program_options( const bpo::options_description& cli );
+      variables_map read_app_config(string name);
 
-      bool initialize( int argc, char** argv, vector< string > autostart_plugins );
+      map<string, std::shared_ptr<application>> initialize( int argc, char** argv, vector< string > autostart_plugins, bool start_apps = true );
       void set_version_string( const string& version ) { version_info = version; }
 
       options_description    app_options;
       options_description    global_options;
       bfs::path              data_dir;
+      bfs::path              plugins_dir;
       variables_map          global_args;
 
       void startup(){
          for(auto& app : apps)
-            app->startup();
+            app.second->startup();
       };
 
       void exec(){
          for(auto& app : apps)
-            app->exec();
+            app.second->exec();
       };
       void shutdown(){
          for(auto& app : apps)
-            app->shutdown();
+            app.second->shutdown();
       }
       void quit(){
          for(auto& app : apps)
-            app->quit();
+            app.second->quit();
       }
 
    private:
       void set_program_options();
-      vector<std::shared_ptr<abstract_plugin_factory>> plugin_factories;
+      std::map<string, std::shared_ptr<abstract_plugin_factory>> plugin_factories;
       vector<string>                               autostart_plugins;
-      vector<std::shared_ptr<application>>         apps;
+      std::map<string, std::shared_ptr<application>> apps;
       string                                       version_info;
 
       application_factory():global_options("Application Options") {
@@ -214,7 +237,7 @@ namespace appbase {
       };
 
 
-      plugin_program_options get_plugin_program_options(std::shared_ptr<abstract_plugin_factory> & plugin_factory);
+      plugin_program_options get_plugin_program_options(std::shared_ptr<abstract_plugin_factory>  plugin_factory);
    };
 
    application_factory& app_factory();
