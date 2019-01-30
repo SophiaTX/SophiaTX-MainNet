@@ -274,8 +274,8 @@ live_database_fixture::live_database_fixture()
 {
    try
    {
-      int argc = boost::unit_test::framework::master_test_suite().argc;
-      char** argv = boost::unit_test::framework::master_test_suite().argv;
+      //int argc = boost::unit_test::framework::master_test_suite().argc;
+      //char** argv = boost::unit_test::framework::master_test_suite().argv;
 
       ilog( "Loading saved chain" );
       _chain_dir = fc::current_path() / "test_blockchain";
@@ -708,6 +708,8 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::alexandria_api::alexandria_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
+
+   auto appconfig = appbase::app_factory().read_app_config("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
 
    w_app = appbase::app_factory().new_application("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
    auto app = w_app.lock();
