@@ -40,6 +40,7 @@ endif()
 
 add_library( appbase
              application.cpp
+             plugin.cpp
            )
 
 target_link_libraries( appbase fc ${Boost_LIBRARIES})

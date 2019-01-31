@@ -87,42 +87,14 @@ public:
       //this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){} );
    }
 
-   virtual void initialize(const variables_map& options) override final
-   {
-      if( _state == registered )
-      {
-         _state = initialized;
-         this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){ plug.initialize( options ); } );
-         this->plugin_initialize( options );
-         // std::cout << "Initializing plugin " << Impl::name() << std::endl;
-         app()->plugin_initialized( *this );
-      }
-      if (_state != initialized)
-         BOOST_THROW_EXCEPTION( std::runtime_error("Initial state was not registered, so final state cannot be initialized.") );
-   }
+   virtual void initialize(const variables_map& options) override final;
 
-   virtual void startup() override final
-   {
-      if( _state == initialized )
-      {
-         _state = started;
-         this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){ plug.startup(); } );
-         this->plugin_startup();
-         app()->plugin_started( *this );
-      }
-      if (_state != started )
-         BOOST_THROW_EXCEPTION( std::runtime_error("Initial state was not initialized, so final state cannot be started.") );
-   }
 
-   virtual void shutdown() override final
-   {
-      if( _state == started )
-      {
-         _state = stopped;
-         //ilog( "shutting down plugin ${name}", ("name",name()) );
-         this->plugin_shutdown();
-      }
-   }
+   virtual void startup() override final;
+
+
+   virtual void shutdown() override final;
+
 
 protected:
    plugin() = default;
