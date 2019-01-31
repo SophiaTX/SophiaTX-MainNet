@@ -323,7 +323,7 @@ const variables_map& application::get_args() const
 
 void application_factory::add_program_options( const options_description& cli )
 {
-   app_options.add( cli );
+   global_options.add( cli );
 }
 
 application_factory& app_factory() { return application_factory::get_app_factory(); }
