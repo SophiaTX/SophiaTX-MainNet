@@ -74,7 +74,7 @@ pipeline {
           when {
             anyOf {
               branch 'develop'
-              branch "origin/develop"
+              branch "*/develop"
               branch "PR-*"
             }
           }
