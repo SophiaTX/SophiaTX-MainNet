@@ -390,7 +390,7 @@ map<string, std::shared_ptr<application>> application_factory::initialize( int a
          plugins_dir = data_dir / plugins_dir;
 
          if (bfs::exists(plugins_dir) == false) {
-            bfs::create_directory(plugins_dir);
+            bfs::create_directories(plugins_dir);
          }
       }
 
