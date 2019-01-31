@@ -132,8 +132,8 @@ namespace appbase {
          boost::asio::io_service& get_io_service() { return *io_serv; }
 
       protected:
-         template< typename Impl >
-         friend class plugin;
+         template< typename Impl >friend class plugin;
+         friend class abstract_plugin;
 
          abstract_plugin* find_plugin( const string& name )const;
          abstract_plugin& get_plugin( const string& name )const;
