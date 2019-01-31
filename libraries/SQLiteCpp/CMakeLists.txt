@@ -18,7 +18,6 @@ endif (WIN32)
 
 # then Compiler/IDE differences:
 if (MSVC)
-    set(CPPLINT_ARG_OUTPUT      "--output=vs7")
     set(CPPCHECK_ARG_TEMPLATE   "--template=vs")
     # disable Visual Studio warnings for fopen() used in the example
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -35,7 +34,6 @@ if (MSVC)
       message(WARNING " MSVC < 2015 detected: Visual Studio prior to 2015 is not fully supported. BLOB storage seems to be corrupted.")
     endif (MSVC_TOOLSET_VERSION LESS 140)
 else (MSVC)
-    set(CPPLINT_ARG_OUTPUT      "--output=eclipse")
     set(CPPCHECK_ARG_TEMPLATE   "--template=gcc")
     # Useful compile flags and extra warnings
     add_compile_options(-fstack-protector -Wall -Wextra -Wpedantic -Wno-long-long -Wswitch-enum -Wshadow -Winline)
@@ -54,7 +52,6 @@ else (MSVC)
     endif (CMAKE_COMPILER_IS_GNUCXX)
 endif (MSVC)
 # and then common variables
-set(CPPLINT_ARG_VERBOSE "--verbose=3")
 set(CPPLINT_ARG_LINELENGTH "--linelength=120")
 
 # Print CXX compiler information
@@ -100,6 +97,16 @@ if (SQLITE_USE_LEGACY_STRUCT)
     add_definitions(-DSQLITE_USE_LEGACY_STRUCT)
 endif (SQLITE_USE_LEGACY_STRUCT)
 
+# Flag if static or shared sqlite library should be searched for
+if(SOPHIA_STATIC_BUILD)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+endif(SOPHIA_STATIC_BUILD)
+
+# Fing sqlite library
+find_package (SQLite3 3.25.3 REQUIRED)
+if (SQLite3_FOUND)
+    message (STATUS "Found SQLite version: ${SQLite3_VERSION}")
+endif (SQLite3_FOUND)
 
 ## Build the C++ Wrapper ##
 
@@ -165,23 +172,12 @@ set(SQLITECPP_DOC
 )
 source_group(doc FILES ${SQLITECPP_DOC})
 
-# list of script files of the library
-set(SQLITECPP_SCRIPT
- .travis.yml
- appveyor.yml
- build.bat
- build.sh
- cpplint.py
- Doxyfile
- FindSQLiteCpp.cmake
-)
-source_group(scripts FILES ${SQLITECPP_SCRIPT})
-
 # All includes are relative to the "include" directory
 include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${SQLite3_INCLUDE_DIRS}")
 
 # add sources of the wrapper as a "SQLiteCpp" static library
-add_library(SQLiteCpp ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
+add_library(SQLiteCpp ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC})
 # make the sqlite3 library part of the interface of the SQLiteCpp wrapper itself (the client app does not need to link to sqlite3)
 # PR https://github.com/SRombauts/SQLiteCpp/pull/111 "linked SQLiteCpp to sqlite3" commented out since it breacks install step from PR #118
 #target_link_libraries(SQLiteCpp PUBLIC sqlite3)
@@ -191,8 +187,7 @@ if (UNIX AND (CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Cla
     set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-fPIC")
 endif (UNIX AND (CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
 
-
-target_link_libraries(SQLiteCpp PUBLIC sqlite3 fc)
+target_link_libraries(SQLiteCpp PUBLIC ${SQLite3_LIBRARIES} fc)
 target_include_directories(SQLiteCpp PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/>)
@@ -219,30 +214,7 @@ target_include_directories(SQLiteCpp PUBLIC
 #    set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-DSQLITECPP_HAS_MEM_STRUCT")
 #endif()
 
-option(SQLITECPP_INTERNAL_SQLITE "Add the internal SQLite3 source to the project." ON)
-if (SQLITECPP_INTERNAL_SQLITE)
-    # build the SQLite3 C library (for ease of use/compatibility) versus Linux sqlite3-dev package
-    add_subdirectory(sqlite3)
-    include_directories("${PROJECT_SOURCE_DIR}/sqlite3")
-    target_include_directories(sqlite3 PUBLIC "${PROJECT_SOURCE_DIR}/sqlite3")
-endif (SQLITECPP_INTERNAL_SQLITE)
-
-
 # Optional additional targets:
-
-option(SQLITECPP_RUN_CPPLINT "Run cpplint.py tool for Google C++ StyleGuide." ON)
-if (SQLITECPP_RUN_CPPLINT)
-    find_package(PythonInterp)
-    if (PYTHONINTERP_FOUND)
-        # add a cpplint target to the "all" target
-        add_custom_target(SQLiteCpp_cpplint
-         ALL
-         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
-        )
-    endif (PYTHONINTERP_FOUND)
-else (SQLITECPP_RUN_CPPLINT)
-    message(STATUS "SQLITECPP_RUN_CPPLINT OFF")
-endif (SQLITECPP_RUN_CPPLINT)
 
 option(SQLITECPP_RUN_CPPCHECK "Run cppcheck C++ static analysis tool." ON)
 if (SQLITECPP_RUN_CPPCHECK)
@@ -281,7 +253,7 @@ option(SQLITECPP_BUILD_EXAMPLES "Build examples." ON)
 if (SQLITECPP_BUILD_EXAMPLES)
     # add the basic example executable
     add_executable(SQLiteCpp_example1 ${SQLITECPP_EXAMPLES})
-    target_link_libraries(SQLiteCpp_example1 SQLiteCpp sqlite3)
+    target_link_libraries(SQLiteCpp_example1 SQLiteCpp ${SQLite3_LIBRARIES})
     # Link target with pthread and dl for linux
     if (UNIX)
         target_link_libraries(SQLiteCpp_example1 pthread)
@@ -294,7 +266,7 @@ if (SQLITECPP_BUILD_EXAMPLES)
 
 
     add_executable(SQLiteCpp_example_fc_variant ${SQLITECPP_FC_VARIANT_EXAMPLES})
-    target_link_libraries(SQLiteCpp_example_fc_variant SQLiteCpp sqlite3 fc)
+    target_link_libraries(SQLiteCpp_example_fc_variant SQLiteCpp ${SQLite3_LIBRARIES} fc)
     # Link target with pthread and dl for linux
     if (UNIX)
         target_link_libraries(SQLiteCpp_example_fc_variant pthread)
@@ -337,7 +309,7 @@ if (SQLITECPP_BUILD_TESTS)
 
     # add the unit test executable
     add_executable(SQLiteCpp_tests ${SQLITECPP_TESTS})
-    target_link_libraries(SQLiteCpp_tests gtest_main SQLiteCpp sqlite3)
+    target_link_libraries(SQLiteCpp_tests gtest_main SQLiteCpp ${SQLite3_LIBRARIES})
     # Link target with dl for linux
     if (UNIX AND NOT APPLE)
         target_link_libraries(SQLiteCpp_tests dl)
