@@ -181,7 +181,7 @@ bool application::load_external_plugins() {
                return false;
             }
 
-            loaded_plugin->set_app( shared_from_this() );
+            loaded_plugin->set_app( *this );
             // Registers loaded plugin for application
             register_external_plugin(loaded_plugin);
 
@@ -222,6 +222,11 @@ bool application::initialize( const variables_map& app_settings, const vector<st
    {
       my->_args = app_settings;
 
+      //first start the autostart plugins, then the config.ini defined plugins and then the external ones
+
+      vector<string> plugin_names;
+      std::copy(autostart_plugins.begin(), autostart_plugins.end(), std::back_inserter(plugin_names));
+
       if(my->_args.count("plugin") > 0)
       {
          auto plugins = my->_args.at("plugin").as<std::vector<std::string>>();
@@ -229,20 +234,16 @@ bool application::initialize( const variables_map& app_settings, const vector<st
          {
             vector<string> names;
             boost::split(names, arg, boost::is_any_of(" \t,"));
-            for(const std::string& name : names)
-               get_plugin(name).initialize(my->_args);
+            std::copy(names.begin(), names.end(), std::back_inserter(plugin_names));
          }
       }
+
+      for(const std::string& name : plugin_names)
+         get_register_plugin(name)->initialize(my->_args);
 
       // Loads external plugins specified in config
       if (load_external_plugins() == false) {
          return false;
-      }
-
-      for (const auto& plugin_name : autostart_plugins){
-         auto plugin = find_plugin( plugin_name );
-         if (plugin != nullptr && plugin->get_state() == abstract_plugin::registered)
-            plugin->initialize(my->_args);
       }
 
       return true;
@@ -356,11 +357,11 @@ void application_factory::set_program_options()
    global_options.add(app_cli_opts);
 }
 
-map<string, std::shared_ptr<application>> application_factory::initialize( int argc, char** argv, vector< string > _autostart_plugins, bool start_apps )
+map<string, application& > application_factory::initialize( int argc, char** argv, vector< string > _autostart_plugins, bool start_apps )
 {
    try
    {
-      map<string, std::shared_ptr<application>> ret;
+      map< string, application& > ret;
       bpo::store( bpo::parse_command_line( argc, argv, global_options ), global_args );
       std::copy(_autostart_plugins.begin(), _autostart_plugins.end(), std::back_inserter(autostart_plugins));
 
@@ -394,8 +395,6 @@ map<string, std::shared_ptr<application>> application_factory::initialize( int a
          }
       }
 
-
-
       // config par (even if it is default) must be always present
       assert(global_args.count( "config" ));
 
@@ -416,27 +415,52 @@ map<string, std::shared_ptr<application>> application_factory::initialize( int a
                boost::split(names, arg, boost::is_any_of(" \t,"));
                for( const std::string &name : names ) {
                   variables_map app_args = read_app_config(name);
-                  auto new_app = new_application(name);
-                  new_app->initialize(app_args, autostart_plugins);
-                  ret[ name ] = new_app;
+                  auto& new_app = new_application(name);
+                  new_app.initialize(app_args, autostart_plugins);
+                  ret.emplace(name, new_app);
                }
             }
          } else {
             //load default (public) one.
             variables_map app_args = read_app_config(_public_net_chain_id);
-            auto new_app = new_application(_public_net_chain_id);
-            new_app->initialize(app_args, autostart_plugins);
-            ret[ _public_net_chain_id ] = new_app;
+            auto& new_app = new_application(_public_net_chain_id);
+            new_app.initialize(app_args, autostart_plugins);
+            ret.emplace(_public_net_chain_id, new_app);
          }
       }
       return ret;
    }
    catch (const boost::program_options::error& e)
    {
-      map<string, std::shared_ptr<application>> ret;
+      map<string, application&> ret;
       std::cerr << "Error parsing command line: " << e.what() << "\n";
       return ret;
    }
+}
+
+void application_factory::startup(){
+   for(auto& app : apps)
+      app.second.startup();
+};
+
+void application_factory::exec(){
+   for(auto& app : apps)
+      app.second.exec();
+};
+void application_factory::shutdown(){
+   for(auto& app : apps)
+      app.second.shutdown();
+}
+void application_factory::quit(){
+   for(auto& app : apps)
+      app.second.quit();
+}
+
+application& application_factory::new_application( const string& id){
+   if(apps.count(id))
+      apps.erase(id);
+   apps.emplace(id, id);
+   return apps.at(id);
 }
 
 variables_map application_factory::read_app_config(std::string name)

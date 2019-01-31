@@ -79,7 +79,7 @@ int main( int argc, char** argv )
       sophiatx::plugins::register_plugins();
       appbase::app_factory().set_version_string( version_string() );
 
-      auto initialized = appbase::app_factory().initialize( argc, argv, {"chain_plugin_full", "p2p_plugin", "webserver_plugin"} );
+      auto initialized = appbase::app_factory().initialize( argc, argv, {"chain", "p2p", "json_rpc", "webserver"} );
 
       info();
 

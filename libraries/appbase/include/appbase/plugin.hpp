@@ -8,7 +8,7 @@
 #include <map>
 
 #define APPBASE_PLUGIN_REQUIRES_VISIT( r, visitor, elem ) \
-  visitor( ( app()->get_or_create_plugin<elem>() ) );
+  visitor( *( app()->get_register_plugin<elem>() ) );
 
 #define APPBASE_PLUGIN_REQUIRES( PLUGINS )                               \
    virtual void plugin_for_each_dependency( plugin_processor&& l ) override {  \
@@ -25,7 +25,7 @@ using std::map;
 
 class application;
 
-class abstract_plugin : std::enable_shared_from_this<abstract_plugin>
+class abstract_plugin : public std::enable_shared_from_this<abstract_plugin>
 {
 public:
    enum state {
@@ -44,8 +44,8 @@ public:
    virtual void initialize(const variables_map& options) = 0;
    virtual void startup() = 0;
    virtual void shutdown() = 0;
-   void set_app(std::shared_ptr<application> my_app) { _app = my_app; }
-   std::shared_ptr<application> app() { return _app; }
+   void set_app(application& my_app) { _app = &my_app; }
+   application* app() { return _app; }
 
 protected:
    typedef std::function<void(abstract_plugin&)> plugin_processor;
@@ -72,7 +72,7 @@ protected:
    void notify_app_initialize();
    void notify_app_startup();
 private:
-   std::shared_ptr<application> _app;
+   application* _app;
 };
 
 template< typename Impl >
@@ -136,7 +136,7 @@ class abstract_plugin_factory
 {
 public:
    virtual ~abstract_plugin_factory(){}
-   virtual std::shared_ptr<abstract_plugin> new_plugin( std::shared_ptr<application> new_app ) const = 0;
+   virtual std::shared_ptr<abstract_plugin> new_plugin( ) const = 0;
    virtual void set_program_options( options_description& cli, options_description& cfg ) = 0;
    virtual std::string get_name() = 0;
 };
@@ -147,9 +147,8 @@ class plugin_factory : public abstract_plugin_factory
 {
 public:
    virtual ~plugin_factory(){}
-   virtual std::shared_ptr<abstract_plugin> new_plugin( std::shared_ptr<application> new_app ) const final {
+   virtual std::shared_ptr<abstract_plugin> new_plugin( ) const final {
       std::shared_ptr<abstract_plugin> new_plg = std::make_shared<Plugin>();
-      new_plg->set_app( new_app );
       return new_plg;
    }
 
