@@ -79,9 +79,9 @@ public:
    }
 
    void add_program_options( const bpo::options_description& cli );
-   variables_map read_app_config(string name);
+   variables_map read_app_config(const string& name);
 
-   map<string, application&> initialize( int argc, char** argv, vector< string > autostart_plugins, bool start_apps = true );
+   map<string, application&> initialize( int argc, char** argv, const vector< string >& autostart_plugins, bool start_apps = true );
    void set_version_string( const string& version ) { version_info = version; }
 
    options_description    app_options;
@@ -107,7 +107,7 @@ private:
    };
 
 
-   plugin_program_options get_plugin_program_options(std::shared_ptr<abstract_plugin_factory>  plugin_factory);
+   plugin_program_options get_plugin_program_options(const std::shared_ptr<abstract_plugin_factory>&  plugin_factory);
 };
 
 application_factory& app_factory();

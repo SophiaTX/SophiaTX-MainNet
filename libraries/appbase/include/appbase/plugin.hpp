@@ -48,7 +48,7 @@ public:
    application* app() { return _app; }
 
 protected:
-   typedef std::function<void(abstract_plugin&)> plugin_processor;
+   using plugin_processor = std::function<void(abstract_plugin&)>;
 
    /** Abstract method to be reimplemented in final plugin implementation.
        It is a part of initialization/startup process triggerred by main application.

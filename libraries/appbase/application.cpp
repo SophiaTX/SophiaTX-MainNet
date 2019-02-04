@@ -140,7 +140,7 @@ void application::startup() {
       plugin->startup();
 }
 
-plugin_program_options application_factory::get_plugin_program_options(std::shared_ptr<abstract_plugin_factory> plugin_factory) {
+plugin_program_options application_factory::get_plugin_program_options(const std::shared_ptr<abstract_plugin_factory>& plugin_factory) {
    options_description plugin_cli_opts("Command Line Options for " + plugin_factory->get_name());
    options_description plugin_cfg_opts("Config Options for " + plugin_factory->get_name());
    plugin_factory->set_program_options(plugin_cli_opts, plugin_cfg_opts);
@@ -357,7 +357,7 @@ void application_factory::set_program_options()
    global_options.add(app_cli_opts);
 }
 
-map<string, application& > application_factory::initialize( int argc, char** argv, vector< string > _autostart_plugins, bool start_apps )
+map<string, application& > application_factory::initialize( int argc, char** argv, const vector< string >& _autostart_plugins, bool start_apps )
 {
    try
    {
@@ -463,7 +463,7 @@ application& application_factory::new_application( const string& id){
    return apps.at(id);
 }
 
-variables_map application_factory::read_app_config(std::string name)
+variables_map application_factory::read_app_config(const std::string& name)
 {
    bfs::path config_file_path = write_default_config(app_options, global_args[ "config" ].as<bfs::path>(),
                                                      name);
