@@ -1,57 +1,78 @@
 #include <boost/test/unit_test.hpp>
 #include <fc/exception/exception.hpp>
-#include <sophiatx/smart_contracts/db_resource_pool.hpp>
+#include <sophiatx/utilities/lru_resource_pool.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
 
-using namespace sophiatx::smart_contracts;
+BOOST_AUTO_TEST_SUITE( lru_resource_pool_tests )
 
-BOOST_AUTO_TEST_SUITE( smart_contracts_tests )
-
-BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
+BOOST_AUTO_TEST_CASE( lru_resource_pool_tests )
 {
    try
    {
-      BOOST_TEST_MESSAGE( "Testing: db_resource_pool" );
-      boost::filesystem::path data_dir(boost::filesystem::current_path() / "databases/");
+      BOOST_TEST_MESSAGE( "Testing: lru_resource_pool" );
       constexpr uint32_t max_pool_size = 3;
 
-      db_resource_pool resource_pool(data_dir, max_pool_size);
-      resource_pool.create_resource("acc1");
-      resource_pool.create_resource("acc2");
-      resource_pool.create_resource("acc3");
-      resource_pool.create_resource("acc4");
+      sophiatx::utilities::LruResourcePool<std::string, std::string> resourcePool(max_pool_size);
+      resourcePool.createResource("key1", "value1");
+      resourcePool.createResource("key2", "value2");
+      resourcePool.createResource("key3", "value3");
+      resourcePool.createResource("key4", "value4");
 
 
       BOOST_TEST_MESSAGE( "--- Test max number of resources enabled in pool" );
-      BOOST_CHECK_EQUAL(max_pool_size, resource_pool.size());
+      BOOST_CHECK_EQUAL(max_pool_size, resourcePool.size());
 
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
-      BOOST_CHECK_THROW( resource_pool.get_resource("acc1", false/*do not create resource*/), sophiatx::smart_contracts::resource_error );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key1").has_value(), false );
 
 
-      BOOST_TEST_MESSAGE( "--- Test failure when trying to get non-existing resource" );
-      BOOST_CHECK_THROW( resource_pool.get_resource("acc5", false/*do not create resource*/), sophiatx::smart_contracts::resource_error );
+      BOOST_TEST_MESSAGE( "--- Test trying to get non-existing resource" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key5").has_value(), false);
 
 
-      BOOST_TEST_MESSAGE( "--- Test creating non-existing resource with get_resource method" );
-      BOOST_CHECK_NO_THROW( resource_pool.get_resource("acc5") );
+      BOOST_TEST_MESSAGE( "--- Test automatic creation of non-existing resource with getResourceAut method" );
+      BOOST_CHECK_EQUAL( resourcePool.getResourceAut("key6", "value6"), "value6" );
+
+      // There are now resources mapped to key key3, key4, key6 that are ordered(according to the last access_time): key3, key4, key6
+      resourcePool.getResource("key3"); // use resource key3 -> updates last access_time
+
+      // Now there should be present resources in order: key4, key6, key3
+      std::string& createdResource = resourcePool.createResource("key7", "value7");  // create new resource for key7
+      BOOST_TEST_MESSAGE( "--- Test if newly created resource original value" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key7").value(), "value7");
 
 
-      // There are now resources mapped to accounts acc3, acc4, acc5 that are ordered(according to the last access_time): acc3, acc4, acc5
-      resource_pool.get_resource("acc3", false/*do not create resource*/); // use resource acc3 -> updates last access_time
-      // Now there should be present resources in order: acc4, acc5, acc3
-      resource_pool.create_resource("acc6");                               // create new resource for acc6
-      // Now there should be present resources in order: acc5, acc3, acc6
-      BOOST_TEST_MESSAGE( "--- Test if last_access time of resource was updated when get_resource called" );
-      BOOST_CHECK_NO_THROW( resource_pool.get_resource("acc3") );
+      // Now there should be present resources in order: key6, key3, key7
+      BOOST_TEST_MESSAGE( "--- Test if last_access time of resource was updated when getResource called" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key3").has_value(), true );
 
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
-      BOOST_CHECK_THROW( resource_pool.get_resource("acc4", false/*do not create resource*/), sophiatx::smart_contracts::resource_error );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key4").has_value(), false );
 
-      boost::filesystem::remove_all(data_dir);
+      // Change internal value of newly created resource
+      createdResource = "here we go changing the value";
+      BOOST_TEST_MESSAGE( "--- Test if newly created resource value was changed" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key7").value(), "here we go changing the value");
+
+      // Change internal value of resource obtained by getResource method
+      boost::optional<std::string&> foundResourceOpt = resourcePool.getResource("key7");
+      std::string& foundResource = foundResourceOpt.get();
+      foundResource = "Change me again";
+      BOOST_TEST_MESSAGE( "--- Test if obtained resource value was changed" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key7").value(), "Change me again");
+
+      // Get resource by method, which automatically creates new resource, if there is none mapped to the provided key
+      std::string& foundResource2 = resourcePool.getResourceAut("key7", "default new value");
+      BOOST_TEST_MESSAGE( "--- Test if getResourceAut did not create new resource if there exist one with provided key" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key7").value(), "Change me again");
+
+      // Change internal value of resource obtained by getResourceAut method
+      foundResource2 = "And again";
+      BOOST_TEST_MESSAGE( "--- Test if obtained resource value was changed" );
+      BOOST_CHECK_EQUAL( resourcePool.getResource("key7").value(), "And again");
    }
    FC_LOG_AND_RETHROW()
 }
