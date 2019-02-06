@@ -3,6 +3,7 @@
 #include <sophiatx/utilities/lru_resource_pool.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <boost/filesystem/operations.hpp>
+#include <iostream>
 
 BOOST_AUTO_TEST_SUITE( smart_contracts_tests )
 
@@ -16,7 +17,7 @@ BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
          boost::filesystem::create_directory(data_dir);
       }
 
-      constexpr uint32_t max_pool_size = 1;
+      constexpr uint32_t max_pool_size = 2;
       sophiatx::utilities::LruResourcePool<std::string, SQLite::Database> resourcePool(max_pool_size);
 
 
@@ -29,7 +30,6 @@ BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
       BOOST_CHECK_EQUAL( resourcePool.size(), max_pool_size );
-      BOOST_CHECK( !resourcePool.getResource("acc1") );
 
       boost::filesystem::remove_all(data_dir);
    }
