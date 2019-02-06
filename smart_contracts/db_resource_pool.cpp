@@ -20,8 +20,8 @@ db_resource_pool::db_resource_pool(const boost::filesystem::path& data_directory
 }
 
 SQLite::Database& db_resource_pool::get_resource(const std::string &account_name, bool create_flag) {
-   auto resource = db_resources_by_name.find(account_name);
-   if (resource == db_resources_by_name.end()) {
+   auto resource_itr = db_resources_by_name.find(account_name);
+   if (resource_itr == db_resources_by_name.end()) {
       if (create_flag == true) {
          return create_resource(account_name);
       }
@@ -30,11 +30,11 @@ SQLite::Database& db_resource_pool::get_resource(const std::string &account_name
    }
 
    // Adjusts last_access of the found db
-   if (db_resources_by_name.modify(resource, [](db_resource &resource) { resource.update_access_time(); }) == false) {
+   if (db_resources_by_name.modify(resource_itr, [](db_resource &resource) { resource.update_access_time(); }) == false) {
       throw resource_error("Unable to modify last access time of resource mapped to the acc name: " + account_name);
    }
 
-   return resource->db_handle;
+   return resource_itr->db_handle;
 }
 
 SQLite::Database& db_resource_pool::create_resource(const std::string &account_name) {
