@@ -1,0 +1,31 @@
+include_directories(include)
+add_subdirectory(db_fixture)
+
+find_package( Gperftools QUIET )
+if( GPERFTOOLS_FOUND )
+    message( STATUS "Found gperftools; compiling tests with TCMalloc")
+    list( APPEND PLATFORM_SPECIFIC_LIBS tcmalloc )
+endif()
+
+file(GLOB UNIT_TESTS "tests/*.cpp")
+add_executable( chain_test ${UNIT_TESTS} )
+target_link_libraries( chain_test db_fixture chainbase sophiatx_chain sophiatx_protocol account_history_plugin witness_plugin debug_node_plugin fc ${PLATFORM_SPECIFIC_LIBS} )
+
+file(GLOB PLUGIN_TESTS "plugin_tests/*.cpp")
+add_executable( plugin_test ${PLUGIN_TESTS} )
+target_link_libraries( plugin_test db_fixture sophiatx_chain sophiatx_protocol account_history_plugin witness_plugin debug_node_plugin fc ${PLATFORM_SPECIFIC_LIBS} )
+
+file(GLOB SMART_CONTRACTS_TESTS "smart_contracts/*.cpp")
+add_executable( smart_contracts_tests ${SMART_CONTRACTS_TESTS} )
+target_link_libraries( smart_contracts_tests smart_contracts ${PLATFORM_SPECIFIC_LIBS})
+
+file(GLOB UTILITIES_TESTS "utilities/*.cpp")
+add_executable( utilities_tests ${UTILITIES_TESTS} )
+target_link_libraries( utilities_tests sophiatx_utilities ${PLATFORM_SPECIFIC_LIBS})
+
+
+if(MSVC)
+  set_source_files_properties( tests/serialization_tests.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
+endif(MSVC)
+
+#add_subdirectory( generate_empty_blocks )

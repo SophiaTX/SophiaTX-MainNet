@@ -12,7 +12,7 @@ namespace sophiatx { namespace utilities {
 
 
 /**
- * @brief Non-thread-safe resource pool. It stores maximum <max_resources_> resources of type "ValueType", which are mapped to the keys of type "KeyType".
+ * @brief Non-thread-safe Least-recently-used resource pool. It stores maximum <max_resources_> resources of type "ValueType", which are mapped to the keys of type "KeyType".
  *        In case max. num of resources is reached, the least used one is deleted and replaced with the one, which is needed at the moment.
  *
  * @tparam KeyType
@@ -23,9 +23,9 @@ class LruResourcePool {
 public:
    LruResourcePool(uint32_t max_resources_count) :
       max_resources_(max_resources_count),
-      cache_resources(),
-      cache_resources_by_key(cache_resources.template get<by_key>()),
-      cache_resources_by_last_access(cache_resources.template get<by_last_access>())
+      resources_(),
+      resources_by_key_(resources_.template get<by_key>()),
+      resources_by_last_access_(resources_.template get<by_last_access>())
    {}
 
 
@@ -39,22 +39,22 @@ public:
     */
    template <typename... ArgsType>
    ValueType& createResource(const KeyType& key, ArgsType... args) {
-      auto resource = cache_resources_by_key.find(key);
-      if (resource != cache_resources_by_key.end()) {
+      auto resource = resources_by_key_.find(key);
+      if (resource != resources_by_key_.end()) {
          // Adjusts last_access of the found resource
-         if (cache_resources_by_key.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
+         if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
             throw std::runtime_error("Unable to modify last access time of resource");
          }
 
          return resource->getValue();
       }
 
-      if (cache_resources_by_key.size() >= max_resources_) {
+      if (resources_by_key_.size() >= max_resources_) {
          popResource();
       }
 
       // Creates new database handle inside pool
-      auto emplace_result = cache_resources_by_key.emplace(key, std::forward<ArgsType>(args)...);
+      auto emplace_result = resources_by_key_.emplace(key, std::forward<ArgsType>(args)...);
       if (emplace_result.second == false) {
          throw std::runtime_error("Unable to create resource");
       }
@@ -72,13 +72,13 @@ public:
    boost::optional<ValueType&> getResource(const KeyType& key) {
       boost::optional<ValueType&> ret;
 
-      auto resource = cache_resources_by_key.find(key);
-      if (resource == cache_resources_by_key.end()) {
+      auto resource = resources_by_key_.find(key);
+      if (resource == resources_by_key_.end()) {
          return ret;
       }
 
       // Adjusts last_access of the found resource
-      if (cache_resources_by_key.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
+      if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
          throw std::runtime_error("Unable to modify last access time of resource");
       }
       
@@ -104,15 +104,15 @@ public:
     * @return actual number of resources in the pool
     */
    const uint32_t size() const {
-      return cache_resources.size();
+      return resources_.size();
    }
 
    /**
     * @brief Pops the least used resource
     */
    void popResource() {
-      if (cache_resources_by_key.empty() == false) {
-         cache_resources_by_key.erase(cache_resources_by_key.begin());
+      if (resources_by_last_access_.empty() == false) {
+         resources_by_last_access_.erase(resources_by_last_access_.begin());
       }
    }
 
@@ -122,10 +122,17 @@ public:
     * @param key
     */
    void eraseResource(const KeyType& key) {
-      auto resource = cache_resources_by_key.find(key);
-      if (resource != cache_resources_by_key.end()) {
-         cache_resources_by_key.erase(resource);
+      auto resource = resources_by_key_.find(key);
+      if (resource != resources_by_key_.end()) {
+         resources_by_key_.erase(resource);
       }
+   }
+
+   void printData() {
+      for (auto it = resources_by_last_access_.begin(); it != resources_by_last_access_.end(); it++ ) {
+         std::cout << it->value_ << std::endl;
+      }
+      std::cout << std::endl;
    }
 
 private:
@@ -172,7 +179,7 @@ private:
    struct by_key;
    struct by_last_access;
 
-   using cache_resources_index =
+   using resources_index =
    boost::multi_index::multi_index_container<
          Resource,
          boost::multi_index::indexed_by<
@@ -180,14 +187,14 @@ private:
                boost::multi_index::ordered_non_unique<boost::multi_index::tag<by_last_access>, boost::multi_index::member<Resource, std::chrono::system_clock::time_point, &Resource::last_access_> >
          >
    >;
-   using cache_resources_by_key_index           = typename cache_resources_index::template index<by_key>::type;
-   using cache_resources_by_last_access_index   = typename cache_resources_index::template index<by_last_access>::type;
+   using resources_by_key_index           = typename resources_index::template index<by_key>::type;
+   using resources_by_last_access_index   = typename resources_index::template index<by_last_access>::type;
 
    // maximum number of resources
-   uint32_t                               max_resources_;
-   cache_resources_index                  cache_resources;
-   cache_resources_by_key_index&          cache_resources_by_key;
-   cache_resources_by_last_access_index&  cache_resources_by_last_access;
+   uint32_t                         max_resources_;
+   resources_index                  resources_;
+   resources_by_key_index&          resources_by_key_;
+   resources_by_last_access_index&  resources_by_last_access_;
 };
 
 }}
