@@ -6,7 +6,6 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/optional.hpp>
 #include <chrono>
-#include <iostream>
 
 namespace sophiatx { namespace utilities {
 
@@ -126,13 +125,6 @@ public:
       if (resource != resources_by_key_.end()) {
          resources_by_key_.erase(resource);
       }
-   }
-
-   void printData() {
-      for (auto it = resources_by_last_access_.begin(); it != resources_by_last_access_.end(); it++ ) {
-         std::cout << it->value_ << std::endl;
-      }
-      std::cout << std::endl;
    }
 
 private:
