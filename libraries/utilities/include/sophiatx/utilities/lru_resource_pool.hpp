@@ -88,7 +88,7 @@ public:
    }
 
    /**
-    * @brief Returns resource(ValueType&) mapped to the provided key. In case no such resource exist, it creates new one.
+    * @brief Returns resource(ValueType&) mapped to the provided key. In case no such resource exists, it creates new one.
     *
     * @tparam ArgsType
     * @param key
