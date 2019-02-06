@@ -9,7 +9,7 @@
 
 #include <boost/dll/import.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-
+#include <boost/algorithm/string/trim.hpp>
 
 namespace appbase {
 
@@ -19,6 +19,9 @@ using bpo::variables_map;
 using std::cout;
 
 namespace{
+const static string _public_net_id = "mainnet";
+
+
 // TODO: delete after HF2
 /**
  * @brief Fix which renames default data directory and also moves config into subdirectory configs, so users do not need to do it themselves
@@ -28,7 +31,7 @@ namespace{
  * @param cfg_data_dir
  * @param cfg_config
  */
-/*void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
+void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
                                           const boost::program_options::variable_value& cfg_data_dir,
                                           const boost::program_options::variable_value& cfg_config)
 {
@@ -56,15 +59,87 @@ namespace{
          bfs::rename(deprecated_default_config_path, configs_dir / cfg_config.as<bfs::path>());
       }
    }
-}*/
+}
+
+void migrate_configs( const bfs::path& cfg_file, const string chain_suffix,
+      const options_description& global_options_desc, const options_description& chain_options_desc)
+{
+   bfs::path config_file_name = app_factory().data_dir / "configs" / cfg_file;
+
+   if( cfg_file.is_absolute() == true ) {
+      config_file_name = cfg_file;
+   }
+
+   bfs::path chain_config_file_name = config_file_name;
+   bfs::path temp_config_file_name = config_file_name;
+   chain_config_file_name += std::string(".") + chain_suffix;
+   temp_config_file_name += std::string(".backup");
+
+   if( ! bfs::exists(config_file_name) || bfs::exists(chain_config_file_name) )
+      return;
+
+   bfs::copy_file(config_file_name, temp_config_file_name, bfs::copy_option::overwrite_if_exists );
+
+   std::ifstream infile(temp_config_file_name.make_preferred().string().c_str());
+   std::ofstream outfile(config_file_name.make_preferred().string().c_str());
+   std::ofstream chainfile(chain_config_file_name.make_preferred().string().c_str());
+
+   std::string line;
+   while (std::getline(infile, line))
+   {
+      while( line.size() &&  isspace(line[0]))
+         line = line.substr(1);
+      if(line.size() == 0 ){
+         outfile << '\n';
+         chainfile << '\n';
+         continue;
+      }
+
+      if( line[0] == '#' ){
+         outfile << line <<'\n';
+         chainfile << line <<'\n';
+         continue;
+      }
+
+      int epos = line.find( '=' );
+      if( epos ==  string::npos ){//huh?
+         outfile << line <<'\n';
+         chainfile << line <<'\n';
+         continue;
+      }
+
+      string key = line.substr(0, epos );
+      string value = line.substr( epos + 1);
+      boost::algorithm::trim(key);
+      boost::algorithm::trim(value);
+
+      if(global_options_desc.find_nothrow(key, false)){
+         outfile << line <<'\n';
+         chainfile << "# This option is not used in chain config\n# " <<line <<'\n';
+         continue;
+      }
+
+      if(chain_options_desc.find_nothrow(key, false)){
+         outfile << "# This option is not used in main config\n# " <<line <<'\n';
+         chainfile << line <<'\n';
+      }
+   }
+   outfile << "#" << global_options_desc.find_nothrow("startup-apps", false)->description() <<"\n";
+   outfile << global_options_desc.find_nothrow("startup-apps", false)->long_name() << " = " << _public_net_id <<"\n";
+
+   outfile.close();
+   chainfile.close();
+}
+
+
 
 /**
-          * @brief Writes options_desc data into cfg_file file
-          *
-          * @param options_desc
-          * @param cfg_file
-          * @return created config file absolute path
-          */
+  * @brief Writes options_desc data into cfg_file file
+  *
+  * @param options_desc
+  * @param cfg_file
+  * @return created config file absolute path
+  */
 bfs::path write_default_config( const options_description& options_desc, const bfs::path& cfg_file, std::string suffix = "" ) {
    bfs::path _cfg_file = cfg_file;
    if( suffix != "" ){
@@ -112,7 +187,6 @@ bfs::path write_default_config( const options_description& options_desc, const b
    return config_file_name;
 }
 
-const static string _public_net_chain_id = "1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324";
 
 }
 
@@ -398,6 +472,10 @@ map<string, application& > application_factory::initialize( int argc, char** arg
       // config par (even if it is default) must be always present
       assert(global_args.count( "config" ));
 
+      //Migrate the config here
+      fix_deprecated_data_folder_structure(data_dir, global_args["data-dir"], global_args["config"]);
+      migrate_configs(global_args["config"].as<bfs::path>(), _public_net_id, global_options, app_options);
+
       // Writes config if it does not already exists
       bfs::path config_file_path = write_default_config(global_options, global_args["config"].as<bfs::path>());
 
@@ -405,7 +483,7 @@ map<string, application& > application_factory::initialize( int argc, char** arg
       bpo::store(bpo::parse_config_file< char >( config_file_path.make_preferred().string().c_str(),
                                                  global_options, true ), global_args );
 
-      //TODO: migrate the config here
+
 
       if(start_apps) {
          if( global_args.count("startup-apps") > 0 ) {
@@ -422,10 +500,10 @@ map<string, application& > application_factory::initialize( int argc, char** arg
             }
          } else {
             //load default (public) one.
-            variables_map app_args = read_app_config(_public_net_chain_id);
-            auto& new_app = new_application(_public_net_chain_id);
+            variables_map app_args = read_app_config(_public_net_id);
+            auto& new_app = new_application(_public_net_id);
             new_app.initialize(app_args, autostart_plugins);
-            ret.emplace(_public_net_chain_id, new_app);
+            ret.emplace(_public_net_id, new_app);
          }
       }
       return ret;

@@ -25,7 +25,7 @@ void chain_plugin_lite::set_program_options(options_description &cli, options_de
    cfg.add_options()
          ("server-rpc-endpoint", bpo::value<string>()->default_value("ws://127.0.0.1:9191"),
           "Server websocket RPC endpoint")
-         ("app-id", bpo::value<long long>()->default_value(1),
+         ("app-id", bpo::value<uint64_t>()->default_value(1),
           "App id used by the hybrid DB")
          ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"),
           "the location of the chain shared memory files (absolute path or relative to application data dir)")
