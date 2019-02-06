@@ -15,9 +15,9 @@ file(GLOB PLUGIN_TESTS "plugin_tests/*.cpp")
 add_executable( plugin_test ${PLUGIN_TESTS} )
 target_link_libraries( plugin_test db_fixture sophiatx_chain sophiatx_protocol account_history_plugin witness_plugin debug_node_plugin fc ${PLATFORM_SPECIFIC_LIBS} )
 
-file(GLOB SMART_CONTRACTS_TESTS "smart_contracts/*.cpp")
-add_executable( smart_contracts_tests ${SMART_CONTRACTS_TESTS} )
-target_link_libraries( smart_contracts_tests smart_contracts ${PLATFORM_SPECIFIC_LIBS})
+
+add_subdirectory(smart_contracts)
+add_subdirectory(utilities)
 
 if(MSVC)
   set_source_files_properties( tests/serialization_tests.cpp PROPERTIES COMPILE_FLAGS "/bigobj" )
