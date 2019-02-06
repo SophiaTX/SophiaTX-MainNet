@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE( db_resource_pool_tests )
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
       BOOST_CHECK_EQUAL( resourcePool.size(), max_pool_size );
-      BOOST_CHECK_EQUAL( resourcePool.getResource("acc1").has_value(), false );
+      BOOST_CHECK( !resourcePool.getResource("acc1") );
 
       boost::filesystem::remove_all(data_dir);
    }

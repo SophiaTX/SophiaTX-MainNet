@@ -25,11 +25,11 @@ BOOST_AUTO_TEST_CASE( lru_resource_pool_tests )
 
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
-      BOOST_CHECK_EQUAL( resourcePool.getResource("key1").has_value(), false );
+      BOOST_CHECK( !resourcePool.getResource("key1") );
 
 
       BOOST_TEST_MESSAGE( "--- Test trying to get non-existing resource" );
-      BOOST_CHECK_EQUAL( resourcePool.getResource("key5").has_value(), false);
+      BOOST_CHECK( !resourcePool.getResource("key5") );
 
 
       BOOST_TEST_MESSAGE( "--- Test automatic creation of non-existing resource with getResourceAut method" );
@@ -46,11 +46,11 @@ BOOST_AUTO_TEST_CASE( lru_resource_pool_tests )
 
       // Now there should be present resources in order: key6, key3, key7
       BOOST_TEST_MESSAGE( "--- Test if last_access time of resource was updated when getResource called" );
-      BOOST_CHECK_EQUAL( resourcePool.getResource("key3").has_value(), true );
+      BOOST_CHECK( resourcePool.getResource("key3") );
 
 
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
-      BOOST_CHECK_EQUAL( resourcePool.getResource("key4").has_value(), false );
+      BOOST_CHECK( !resourcePool.getResource("key4"));
 
       // Change internal value of newly created resource
       createdResource = "here we go changing the value";
