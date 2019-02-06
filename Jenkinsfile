@@ -157,7 +157,7 @@ def tests() {
       sh './tests/chain_test'
       sh './tests/plugin_test'
       sh './tests/smart_contracts/smart_contracts_tests'
-      sh './tests/utilities/lru_resource_pool/lru_resource_pool_tests'
+      sh './tests/utilities/lru_resource_pool/utility_lru_resource_pool_test'
       sh './libraries/fc/vendor/secp256k1-zkp/src/project_secp256k1-build/tests'
       sh './libraries/fc/tests/all_tests'
       sh './libraries/SQLiteCpp/SQLiteCpp_tests'
