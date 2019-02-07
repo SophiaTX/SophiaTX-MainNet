@@ -86,7 +86,7 @@ will build out of the box without further effort:
 
 ## Building Boost 1.67
 
-SophiaTX requires Boost 1.65 and works with versions up to 1.68 (including).
+SophiaTX requires Boost 1.65 and works with versions up to 1.69 (including).
 Here is how to build and install Boost 1.67 into your user's home directory
 
     export BOOST_ROOT=$HOME/opt/boost_1_67_0
@@ -103,7 +103,7 @@ Here is how to build and install Boost 1.67 into your user's home directory
 ## Building on macOS X
 
 Install Xcode and its command line tools by following the instructions here:
-https://guide.macports.org/#installing.xcode.  In OS X 10.11 (El Capitan)
+https://guide.macports.org/#installing.xcode. In OS X 10.11 (El Capitan)
 and newer, you will be prompted to install developer tools when running a
 developer command in the terminal.
 
