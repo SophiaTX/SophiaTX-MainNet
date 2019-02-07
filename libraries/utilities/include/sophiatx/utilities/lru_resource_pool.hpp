@@ -12,32 +12,52 @@ namespace sophiatx { namespace utilities {
 
 /**
  * @brief Non-thread-safe Least-recently-used resource pool. It stores maximum <max_resources_> resources of type "ValueType", which are mapped to the keys of type "KeyType".
- *        In case max. num of resources is reached, the least used one is deleted and replaced with the one, which is needed at the moment.
+ *        In case max. num of resources is reached, the least used one is deleted and replaced with the one, which is needed at the moment. If ResourceCreator(lambda
+ *        function) is provided, it is used for automatic resource creations, otherwise provided parameter in emplace method are forwarded to the ValueType constructor
  *
  * @tparam KeyType
  * @tparam ValueType
+ * @tparam ResourceCreator
  */
-template<typename KeyType, typename ValueType>
+template<typename KeyType, typename ValueType, typename ResourceCreator = void*>
 class LruResourcePool {
 public:
-   LruResourcePool(uint32_t max_resources_count) :
+   /**
+    * @brief Ctor
+    *
+    * @param max_resources_count max number of resources in pool. In case there is need to create new resource, least used one is automacially deleted.
+    * @param resource_creator lambda that creates resource of type "ValueType"
+    */
+   template<typename T = ResourceCreator, typename = typename std::enable_if<!std::is_same<void*, T>::value>::type>
+   LruResourcePool(uint32_t max_resources_count, const ResourceCreator& resource_creator) :
+      resource_creator_(resource_creator),
       max_resources_(max_resources_count),
       resources_(),
       resources_by_key_(resources_.template get<by_key>()),
       resources_by_last_access_(resources_.template get<by_last_access>())
    {}
 
+   template<typename T = ResourceCreator, typename = typename std::enable_if<std::is_same<void*, T>::value>::type>
+   LruResourcePool(uint32_t max_resources_count) :
+         resource_creator_(nullptr),
+         max_resources_(max_resources_count),
+         resources_(),
+         resources_by_key_(resources_.template get<by_key>()),
+         resources_by_last_access_(resources_.template get<by_last_access>())
+   {}
+
 
    /**
-    * @brief Creates new resource mapped to the key
+    * @brief Creates new resource mapped to the key(only if it does not exist in the pool already). For creation is
+    *        used forwarding to the ValueType constructor
     *
     * @tparam ArgsType
-    * @param key that new resource is going to be mapped to
-    * @param args arguments forwarded to the constructor of newly created resource
-    * @return ValueType& - reference to the newly created resource of type "ValueType"
+    * @param key that resource is mapped to
+    * @param args arguments forwarded to the resource_creator_
+    * @return ValueType& - reference to the resource of mapped to the key
     */
-   template <typename... ArgsType>
-   ValueType& createResource(const KeyType& key, ArgsType... args) {
+   template <typename T = ResourceCreator, typename... ArgsType>
+   typename std::enable_if<std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
       auto resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          // Adjusts last_access of the found resource
@@ -49,7 +69,7 @@ public:
       }
 
       if (resources_by_key_.size() >= max_resources_) {
-         popResource();
+         popLru();
       }
 
       // Creates new database handle inside pool
@@ -61,6 +81,42 @@ public:
       return emplace_result.first->getValue();
    }
 
+
+   /**
+    * @brief Creates new resource mapped to the key(only if it does not exist in the pool already). For creation is
+    *        used lambda function resource_creator_
+    *
+    * @tparam ArgsType
+    * @param key that resource is mapped to
+    * @param args arguments forwarded to the resource_creator_
+    * @return ValueType& - reference to the resource of mapped to the key
+    */
+   template <typename T = ResourceCreator, typename... ArgsType>
+   typename std::enable_if<!std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
+      auto resource = resources_by_key_.find(key);
+      if (resource != resources_by_key_.end()) {
+         // Adjusts last_access of the found resource
+         if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
+            throw std::runtime_error("Unable to modify last access time of resource");
+         }
+
+         return resource->getValue();
+      }
+
+      if (resources_by_key_.size() >= max_resources_) {
+         popLru();
+      }
+
+      // Creates new database handle inside pool
+      auto emplace_result = resources_by_key_.emplace(key, resource_creator_(std::forward<ArgsType>(args)...));
+      if (emplace_result.second == false) {
+         throw std::runtime_error("Unable to create resource");
+      }
+
+      return emplace_result.first->getValue();
+   }
+
+
    /**
     * @brief Returns resource(boost::optional<ValueType&>) mapped to the provided key. In case no such resource exist, empty boost::optional is returned. Otherwise
     *        it returnes optional with reference to the resource
@@ -68,7 +124,7 @@ public:
     * @param key
     * @return boost::optional<ValueType&>
     */
-   boost::optional<ValueType&> getResource(const KeyType& key) {
+   boost::optional<ValueType&> get(const KeyType& key) {
       boost::optional<ValueType&> ret;
 
       auto resource = resources_by_key_.find(key);
@@ -87,19 +143,6 @@ public:
    }
 
    /**
-    * @brief Returns resource(ValueType&) mapped to the provided key. In case no such resource exists, it creates new one.
-    *
-    * @tparam ArgsType
-    * @param key
-    * @param args arguments forwarded to the constructor of newly created resource, if it needs to be created.
-    * @return ValueType& - reference to the resource of type "ValueType"
-    */
-   template <typename... ArgsType>
-   ValueType& getResourceAut(const KeyType& key, ArgsType... args) {
-      return createResource(key, std::forward<ArgsType>(args)...);
-   }
-
-   /**
     * @return actual number of resources in the pool
     */
    const uint32_t size() const {
@@ -107,9 +150,9 @@ public:
    }
 
    /**
-    * @brief Pops the least used resource
+    * @brief Pops the least recent used used resource
     */
-   void popResource() {
+   void popLru() {
       if (resources_by_last_access_.empty() == false) {
          resources_by_last_access_.erase(resources_by_last_access_.begin());
       }
@@ -120,7 +163,7 @@ public:
     *
     * @param key
     */
-   void eraseResource(const KeyType& key) {
+   void erase(const KeyType& key) {
       auto resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          resources_by_key_.erase(resource);
@@ -138,7 +181,7 @@ private:
       std::chrono::system_clock::time_point  last_access_;
 
       template <typename... ArgsType>
-      Resource(const KeyType& key, ArgsType... args) :
+      Resource(const KeyType& key, ArgsType&&... args) :
             key_(key),
             value_(std::forward<ArgsType>(args)...),
             last_access_(std::chrono::system_clock::now())
@@ -147,7 +190,7 @@ private:
       ~Resource() = default;
 
       // Disables default/copy/move ctors - resources should not be copied
-      Resource()                             = delete;
+      Resource()                            = delete;
       Resource(const Resource &)            = delete;
       Resource &operator=(const Resource &) = delete;
       Resource(Resource &&)                 = delete;
@@ -163,6 +206,8 @@ private:
       ValueType& getValue() const   { return value_; }
    };
 
+   // Lambda that automatically creates new resource of type ValueType
+   ResourceCreator resource_creator_;
 
 
    /**
