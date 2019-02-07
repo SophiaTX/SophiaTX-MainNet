@@ -101,7 +101,7 @@ void migrate_configs( const bfs::path& cfg_file, const string chain_suffix,
          continue;
       }
 
-      int epos = line.find( '=' );
+      auto epos = line.find( '=' );
       if( epos ==  string::npos ){//huh?
          outfile << line <<'\n';
          chainfile << line <<'\n';
