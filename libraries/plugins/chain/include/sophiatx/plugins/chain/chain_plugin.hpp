@@ -28,7 +28,7 @@ public:
 
    static const std::string& name() { static std::string name = SOPHIATX_CHAIN_PLUGIN_NAME; return name; }
 
-   void set_program_options(options_description &cli, options_description &cfg) override {
+   static void set_program_options(options_description &cli, options_description &cfg) {
       FC_ASSERT(false, "Not implemented for base class of chain_plugin");
    }
 

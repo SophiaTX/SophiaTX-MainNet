@@ -71,11 +71,12 @@ typedef std::map< uint64_t, received_object > list_received_documents_return;
 typedef received_object get_received_document_return;
 typedef map<uint64_t, received_object> get_app_custom_messages_return;
 
+class custom_api_plugin;
 
 class custom_api
 {
 public:
-   custom_api();
+   custom_api(custom_api_plugin& plugin);
    ~custom_api();
 
    DECLARE_API(

@@ -128,7 +128,7 @@ namespace detail
    class json_rpc_plugin_impl
    {
       public:
-         json_rpc_plugin_impl();
+         json_rpc_plugin_impl(json_rpc_plugin& plugin);
          ~json_rpc_plugin_impl();
 
          void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
@@ -161,9 +161,10 @@ namespace detail
          std::unique_ptr< json_rpc_logger >                 _logger;
          vector<string>                                     _subscribe_methods;
          map<uint64_t, std::function<void(string)> >        _subscribe_callbacks;
+         json_rpc_plugin&                                   _plugin;
    };
 
-   json_rpc_plugin_impl::json_rpc_plugin_impl() {}
+   json_rpc_plugin_impl::json_rpc_plugin_impl(json_rpc_plugin& plugin):_plugin(plugin) {}
    json_rpc_plugin_impl::~json_rpc_plugin_impl() {}
 
    void json_rpc_plugin_impl::add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
@@ -185,7 +186,7 @@ namespace detail
 
    void json_rpc_plugin_impl::initialize()
    {
-      JSON_RPC_REGISTER_API( "jsonrpc" );
+      JSON_RPC_REGISTER_API( "jsonrpc", _plugin.app() );
    }
 
    get_methods_return json_rpc_plugin_impl::get_methods( const get_methods_args& args, bool lock )
@@ -430,7 +431,7 @@ using detail::json_rpc_error;
 using detail::json_rpc_response;
 using detail::json_rpc_logger;
 
-json_rpc_plugin::json_rpc_plugin() : my( new detail::json_rpc_plugin_impl() ) {}
+json_rpc_plugin::json_rpc_plugin() : my( new detail::json_rpc_plugin_impl( *this ) ) {}
 json_rpc_plugin::~json_rpc_plugin() {}
 
 void json_rpc_plugin::set_program_options( options_description& , options_description& cfg)

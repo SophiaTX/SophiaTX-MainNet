@@ -30,11 +30,12 @@ struct push_transaction_return
    optional<string>  error;
 };
 
+class chain_api_plugin;
 
 class chain_api
 {
    public:
-      chain_api();
+      chain_api(chain_api_plugin& plugin);
       ~chain_api();
 
       DECLARE_API(
