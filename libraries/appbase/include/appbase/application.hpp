@@ -61,7 +61,7 @@ public:
 
       const options_description& plugin_cli_options = plugin_options.get_cli_options();
       if (plugin_cli_options.options().size()) {
-         app_options.add(plugin_cli_options);
+         global_options.add(plugin_cli_options);
       }
    }
 
