@@ -16,8 +16,12 @@ struct custom_content_callback;
 class subscribe_api_impl
 {
 public:
-   subscribe_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
+   subscribe_api_impl(subscribe_api_plugin&plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
       post_apply_connection = _db->post_apply_operation.connect( 0, [&]( const chain::operation_notification& note ){ on_operation(note); } );
+      json_api = plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >();
+      auto custom = plugin.app()->find_plugin< custom::custom_api_plugin>();
+      if( custom != nullptr )
+         custom_api = custom->api;
    }
 
    DECLARE_API_IMPL(
@@ -118,17 +122,14 @@ DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
 
 } // namespace detail
 
-subscribe_api::subscribe_api(): my( new detail::subscribe_api_impl() )
+subscribe_api::subscribe_api(subscribe_api_plugin& plugin): my( new detail::subscribe_api_impl(plugin) )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME );
-   appbase::app().get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >().add_api_subscribe_method("subscribe_api", "custom_object_subscription" );
+   JSON_RPC_REGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME, plugin.app() );
+   plugin.app()->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >().add_api_subscribe_method("subscribe_api", "custom_object_subscription" );
 }
 
 void subscribe_api::api_startup(){
-   my->json_api = appbase::app().find_plugin< plugins::json_rpc::json_rpc_plugin >();
-   auto custom = appbase::app().find_plugin< custom::custom_api_plugin>();
-   if( custom != nullptr )
-      my->custom_api = custom->api;
+
 }
 
 subscribe_api::~subscribe_api() {}

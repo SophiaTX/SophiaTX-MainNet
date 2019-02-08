@@ -37,15 +37,15 @@
 
 #define SOPHIATX_JSON_RPC_PLUGIN_NAME "json_rpc"
 
-#define JSON_RPC_REGISTER_API( API_NAME )                                                       \
+#define JSON_RPC_REGISTER_API( API_NAME, APP )                                                       \
 {                                                                                               \
-   sophiatx::plugins::json_rpc::detail::register_api_method_visitor vtor( API_NAME );              \
+   sophiatx::plugins::json_rpc::detail::register_api_method_visitor vtor( API_NAME, APP );              \
    for_each_api( vtor );                                                                        \
 }
 
-#define JSON_RPC_REGISTER_SUBSCRIBE_API( API_NAME )                                                       \
+#define JSON_RPC_REGISTER_SUBSCRIBE_API( API_NAME, APP )                                                       \
 {                                                                                               \
-   sophiatx::plugins::json_rpc::detail::register_api_subscribe_method_visitor vtor( API_NAME );              \
+   sophiatx::plugins::json_rpc::detail::register_api_subscribe_method_visitor vtor( API_NAME, APP );              \
    for_each_api( vtor );                                                                        \
 }
 
@@ -98,7 +98,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
       virtual ~json_rpc_plugin();
 
       APPBASE_PLUGIN_REQUIRES();
-      virtual void set_program_options( options_description&, options_description& ) override;
+      static void set_program_options( options_description&, options_description& );
 
       static const std::string& name() { static std::string name = SOPHIATX_JSON_RPC_PLUGIN_NAME; return name; }
 
@@ -123,9 +123,9 @@ namespace detail {
    class register_api_method_visitor
    {
       public:
-         register_api_method_visitor( const std::string& api_name )
+         register_api_method_visitor( const std::string& api_name, application* app )
             : _api_name( api_name ),
-              _json_rpc_plugin( appbase::app().get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() )
+              _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() )
          {}
 
          template< typename Plugin, typename Method, typename Args, typename Ret >
@@ -152,9 +152,9 @@ namespace detail {
    class register_api_subscribe_method_visitor
    {
    public:
-      register_api_subscribe_method_visitor( const std::string& api_name )
+      register_api_subscribe_method_visitor( const std::string& api_name, const std::shared_ptr<appbase::application>& app )
             : _api_name( api_name ),
-              _json_rpc_plugin( appbase::app().get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() )
+              _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() )
       {}
 
       template< typename Plugin, typename Method, typename Args, typename Ret >

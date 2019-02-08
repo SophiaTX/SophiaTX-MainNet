@@ -8,11 +8,12 @@
 namespace sophiatx { namespace plugins { namespace database_api {
 
 class database_api_impl;
+class database_api_plugin;
 
 class database_api
 {
    public:
-      database_api();
+      database_api(database_api_plugin& plugin);
       ~database_api();
 
       DECLARE_API(

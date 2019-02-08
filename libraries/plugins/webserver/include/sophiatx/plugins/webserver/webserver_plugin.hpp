@@ -37,7 +37,7 @@ class webserver_plugin : public appbase::plugin< webserver_plugin >
 
       static const std::string& name() { static std::string name = SOPHIATX_WEBSERVER_PLUGIN_NAME; return name; }
 
-      virtual void set_program_options(options_description&, options_description& cfg) override;
+      static void set_program_options(options_description&, options_description& cfg);
 
    protected:
       virtual void plugin_initialize(const variables_map& options) override;

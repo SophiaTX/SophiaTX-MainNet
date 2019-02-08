@@ -73,29 +73,24 @@ int main( int argc, char** argv )
       options.add_options()
          ("backtrace", bpo::value< string >()->default_value( "yes" ), "Whether to print backtrace on SIGSEGV" );
 
-      appbase::app().add_program_options( bpo::options_description(), options );
+      appbase::app_factory().add_program_options( options );
 
-      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
       sophiatx::plugins::register_plugins();
+      appbase::app_factory().set_version_string( version_string() );
 
-      appbase::app().set_version_string( version_string() );
-
-      bool initialized = appbase::app().initialize<
-            sophiatx::plugins::chain::chain_plugin_full,
-            sophiatx::plugins::p2p::p2p_plugin,
-            sophiatx::plugins::webserver::webserver_plugin >
-            ( argc, argv );
+      auto initialized = appbase::app_factory().initialize( argc, argv, {"chain", "p2p", "json_rpc", "webserver"} );
 
       info();
 
-      if( !initialized )
+      if( !initialized.size() )
          return 0;
 
-      auto& args = appbase::app().get_args();
+      auto& args = appbase::app_factory().global_args;
 
       try
       {
-         fc::optional< fc::logging_config > logging_config = sophiatx::utilities::load_logging_config( args, appbase::app().data_dir() );
+         fc::optional< fc::logging_config > logging_config = sophiatx::utilities::load_logging_config( args, appbase::app_factory().data_dir );
          if( logging_config )
             fc::configure_logging( *logging_config );
       }
@@ -110,8 +105,8 @@ int main( int argc, char** argv )
          ilog( "Backtrace on segfault is enabled." );
       }
 
-      appbase::app().startup();
-      appbase::app().exec();
+      appbase::app_factory().startup();
+      appbase::app_factory().exec();
       std::cout << "exited cleanly\n";
 
       return 0;
