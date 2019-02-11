@@ -278,7 +278,6 @@ if (BUILD_PIC)
 add_subdirectory( external_plugins )
 endif(BUILD_PIC)
 
-add_subdirectory( smart_contracts )
 add_subdirectory( programs )
 add_subdirectory( tests )
 
