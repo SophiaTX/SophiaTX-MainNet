@@ -26,7 +26,7 @@ namespace sophiatx { namespace protocol {
 
    fc::ecc::public_key signed_block_header::signee(fc::ecc::canonical_signature_type canon_type)const
    {
-      return fc::ecc::public_key( witness_signature, digest(), canon_type );
+      return fc::ecc::public_key::recover_key( witness_signature, digest(), canon_type );
    }
 
    void signed_block_header::sign( const fc::ecc::private_key& signer, fc::ecc::canonical_signature_type canon_type )
