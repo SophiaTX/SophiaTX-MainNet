@@ -55,6 +55,8 @@ namespace fc {
            public_key( const public_key_data& v );
            public_key( const public_key_point_data& v );
 
+           static void init_cache(uint32_t cache_size);
+
            static public_key recover_key( const compact_signature& c, const fc::sha256& digest, canonical_signature_type canon_type = fc_canonical );
 
            public_key child( const fc::sha256& offset )const;
@@ -92,7 +94,7 @@ namespace fc {
           friend class private_key;
           static public_key from_key_data( const public_key_data& v );
           fc::fwd<detail::public_key_impl,33> my;
-
+          static fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key> kPubKeyCache;
     };
 
     /**
