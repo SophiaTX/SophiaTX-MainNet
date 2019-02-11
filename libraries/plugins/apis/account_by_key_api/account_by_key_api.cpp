@@ -12,12 +12,12 @@ class account_by_key_api_impl
    public:
       account_by_key_api_impl( account_by_key_api_plugin& plugin ) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
-      get_key_references_return get_key_references( const get_key_references_args& args )const;
+      DECLARE_API_IMPL( (get_key_references)  )
 
     std::shared_ptr<database_interface> _db;
 };
 
-get_key_references_return account_by_key_api_impl::get_key_references( const get_key_references_args& args )const
+DEFINE_API_IMPL(account_by_key_api_impl, get_key_references)
 {
    get_key_references_return final_result;
    final_result.accounts.reserve( args.keys.size() );
