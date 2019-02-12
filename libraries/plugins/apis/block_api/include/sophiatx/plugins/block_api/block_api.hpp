@@ -36,6 +36,11 @@ class block_api
          * @return the referenced block, or null if no matching block was found
          */
          (get_block)
+
+         /**
+          * @brief Retrieve average size of last 1000 blocks
+          */
+         (get_average_block_size)
       )
 
    private:

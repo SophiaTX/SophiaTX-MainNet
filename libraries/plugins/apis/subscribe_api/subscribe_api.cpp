@@ -40,17 +40,14 @@ struct custom_content_callback{
    uint64_t last_position=0;
    std::function<void(fc::variant&)> notify;
    bool invalid = false;
-   subscribe_api_impl* impl;
+   subscribe_api_impl& impl;
    custom_object_subscription_args args;
 
-   custom_content_callback(custom_object_subscription_args _args, subscribe_api_impl* _impl, std::function<void(fc::variant&)> _notify ){
+   custom_content_callback(const custom_object_subscription_args& _args, subscribe_api_impl& _impl, std::function<void(fc::variant&)>& _notify ):notify(_notify), impl(_impl), args(_args) {
       FC_ASSERT(_args.start > 0);
-      args = _args;
-      impl = _impl;
-      notify = _notify;
       last_position = _args.start-1;
    }
-   
+
    void operator ()() {
       custom::list_received_documents_args cb_args;
       cb_args.app_id = args.app_id;
@@ -58,7 +55,7 @@ struct custom_content_callback{
       cb_args.search_type = args.search_type;
       cb_args.count = 1;
       cb_args.start = std::to_string(last_position+1);
-      auto vdocs = impl->_json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
+      auto vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
       if(!vdocs)
          return;
       custom::list_received_documents_return docs;
@@ -73,7 +70,7 @@ struct custom_content_callback{
          notify(v);
          last_position++;
          cb_args.start = std::to_string(last_position+1);
-         vdocs = impl->_json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
+         vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
          if(!vdocs)
             break;
          fc::from_variant( *vdocs, docs );
@@ -106,7 +103,7 @@ DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription )
 {
    std::function<void(fc::variant&)> notify = [ notify_callback, args ](fc::variant& v )->void{ notify_callback(v, args.return_id);};
 
-   custom_content_callback cb(args, this, notify );
+   custom_content_callback cb(args, *this, notify );
 
    cb();
 

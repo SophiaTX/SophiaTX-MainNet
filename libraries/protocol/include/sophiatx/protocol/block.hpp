@@ -8,6 +8,8 @@ namespace sophiatx { namespace protocol {
    {
       checksum_type calculate_merkle_root()const;
       vector<signed_transaction> transactions;
+
+      uint32_t size();
    };
 
 } } // sophiatx::protocol
