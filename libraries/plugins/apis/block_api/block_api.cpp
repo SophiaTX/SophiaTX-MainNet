@@ -4,7 +4,6 @@
 #include <sophiatx/plugins/block_api/block_api_plugin.hpp>
 
 #include <sophiatx/protocol/get_config.hpp>
-#include <algorithm>
 
 namespace sophiatx { namespace plugins { namespace block_api {
 
@@ -73,7 +72,7 @@ DEFINE_API_IMPL( block_api_impl, get_block )
 DEFINE_API_IMPL( block_api_impl, get_average_block_size )
 {
    int64_t start = _db->head_block_num();
-   int64_t stop = std::max( start - 1000, 0ll );
+   int64_t stop = start > 1000? start - 1000 : 0;
    uint64_t total_size = 0;
    for( int64_t i = start; i > stop; i-- )
       total_size += fc::raw::pack_size( _db->fetch_block_by_number( i ) );
