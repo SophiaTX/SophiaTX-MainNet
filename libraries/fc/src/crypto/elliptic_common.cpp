@@ -207,7 +207,7 @@ namespace fc { namespace ecc {
     }
 
    void public_key::init_cache(uint32_t cache_size) {
-      FC_ASSERT( kPubKeyCache, "signature is not canonical" );
+      FC_ASSERT( kPubKeyCache, "Public key cache already initialized!");
       kPubKeyCache.emplace(cache_size);
     }
 
