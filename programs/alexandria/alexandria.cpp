@@ -165,7 +165,7 @@ bool verify_signature(const char *digest, const char *public_key, const char *si
          compact_signature sig;
          fc::from_hex( string(signed_digest), (char*)sig.begin(), sizeof(compact_signature) );
 
-         if(pub_key == fc::ecc::public_key(sig, dig, fc::ecc::fc_canonical)) {
+         if(pub_key == fc::ecc::public_key::recover_key(sig, dig, fc::ecc::fc_canonical)) {
             return true;
          }
 

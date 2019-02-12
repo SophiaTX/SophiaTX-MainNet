@@ -7,7 +7,7 @@
 #include <boost/optional.hpp>
 #include <chrono>
 
-namespace sophiatx { namespace utilities {
+namespace fc {
 
 
 /**
@@ -150,6 +150,25 @@ public:
    }
 
    /**
+    * @return max size of resources in the pool
+    */
+   const uint32_t getMaxSize() {
+      return max_resources_;
+   }
+
+   /**
+    * @brief Changes maximum pool size
+    * @param max_resources_count max number of resources in pool
+    */
+   void setMaxSize(uint32_t max_resources_count) {
+      if(resources_.size() > max_resources_count)
+      {
+         throw std::runtime_error("Can not resize pool, because actual size of pool is bigger then new maximum size!");
+      }
+      max_resources_ = max_resources_count;
+   }
+
+   /**
     * @brief Pops the least recent used used resource
     */
    void popLru() {
@@ -234,5 +253,5 @@ private:
    resources_by_last_access_index&  resources_by_last_access_;
 };
 
-}}
+}
 #endif //LRU_RESOURCE_POOL_HPP

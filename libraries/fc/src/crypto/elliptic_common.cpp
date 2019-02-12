@@ -19,6 +19,8 @@
 #define BTC_EXT_PUB_MAGIC   (0x0488B21E)
 #define BTC_EXT_PRIV_MAGIC  (0x0488ADE4)
 
+boost::optional<fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key>> fc::ecc::public_key::kPubKeyCache = boost::none;
+
 namespace fc { namespace ecc {
 
     using namespace boost::multiprecision::literals;
@@ -203,6 +205,22 @@ namespace fc { namespace ecc {
              return false;
        }
     }
+
+   void public_key::init_cache(uint32_t cache_size) {
+      FC_ASSERT( !kPubKeyCache, "Public key cache already initialized!");
+      kPubKeyCache.emplace(cache_size);
+    }
+
+   public_key public_key::recover_key( const compact_signature& c, const fc::sha256& digest, canonical_signature_type canon_type )
+   {
+      int nV = c.data[0];
+      if (nV<27 || nV>=35)
+         FC_THROW_EXCEPTION( exception, "unable to reconstruct public key from signature" );
+
+      FC_ASSERT( is_canonical( c, canon_type ), "signature is not canonical" );
+
+      return (kPubKeyCache) ? kPubKeyCache->emplace(c, c, digest) : public_key(c, digest);
+   }
 
     private_key private_key::generate_from_seed( const fc::sha256& seed, const fc::sha256& offset )
     {

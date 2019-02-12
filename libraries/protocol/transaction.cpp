@@ -117,7 +117,7 @@ flat_set<public_key_type> signed_transaction::get_signature_keys( const chain_id
    for( const auto&  sig : signatures )
    {
       SOPHIATX_ASSERT(
-         result.insert( fc::ecc::public_key(sig, d, canon_type) ).second,
+         result.insert( fc::ecc::public_key::recover_key(sig, d, canon_type) ).second,
          tx_duplicate_sig,
          "Duplicate Signature detected" );
    }

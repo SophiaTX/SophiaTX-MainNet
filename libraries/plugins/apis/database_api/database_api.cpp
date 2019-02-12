@@ -723,7 +723,7 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
    for( const auto&  sig : args.signatures )
    {
       SOPHIATX_ASSERT(
-         sig_keys.insert( fc::ecc::public_key( sig, args.hash ) ).second,
+         sig_keys.insert( fc::ecc::public_key::recover_key( sig, args.hash ) ).second,
          protocol::tx_duplicate_sig,
          "Duplicate Signature detected" );
    }

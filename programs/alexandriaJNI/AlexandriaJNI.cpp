@@ -330,7 +330,7 @@ JNIEXPORT jboolean JNICALL Java_AlexandriaJNI_verifySignature(JNIEnv *env, jclas
        auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key, 0);
        public_key_type public_key(bin_key.data);
 
-       if(public_key == fc::ecc::public_key(signature, dig)) {
+       if(public_key == fc::ecc::public_key::recover_key(signature, dig)) {
           return static_cast<jboolean>(true);
        }
    } catch (const fc::exception& e) {

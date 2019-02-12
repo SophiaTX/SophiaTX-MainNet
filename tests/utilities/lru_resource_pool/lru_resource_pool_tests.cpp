@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <fc/exception/exception.hpp>
-#include <sophiatx/utilities/lru_resource_pool.hpp>
+#include <fc/lru_resource_pool.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
 
@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_CASE( lru_resource_pool_tests )
       BOOST_TEST_MESSAGE( "Testing: lru_resource_pool" );
       constexpr uint32_t max_pool_size = 3;
 
-      sophiatx::utilities::LruResourcePool<std::string, std::string> resourcePool(max_pool_size);
+      fc::LruResourcePool<std::string, std::string> resourcePool(max_pool_size);
       resourcePool.emplace("key1", "value1");
       resourcePool.emplace("key2", "value2");
       resourcePool.emplace("key3", "value3");
