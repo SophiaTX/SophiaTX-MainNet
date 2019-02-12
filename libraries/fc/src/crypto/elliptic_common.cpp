@@ -207,7 +207,7 @@ namespace fc { namespace ecc {
     }
 
    void public_key::init_cache(uint32_t cache_size) {
-      kPubKeyCache.set_max_size(cache_size);
+      kPubKeyCache.setMaxSize(cache_size);
     }
 
    public_key public_key::recover_key( const compact_signature& c, const fc::sha256& digest, canonical_signature_type canon_type )
@@ -218,7 +218,7 @@ namespace fc { namespace ecc {
 
       FC_ASSERT( is_canonical( c, canon_type ), "signature is not canonical" );
 
-      return (kPubKeyCache.get_max_size()) ? kPubKeyCache.emplace(c, public_key(c, digest)) : public_key(c, digest);
+      return (kPubKeyCache.getMaxSize()) ? kPubKeyCache.emplace(c, public_key(c, digest)) : public_key(c, digest);
    }
 
     private_key private_key::generate_from_seed( const fc::sha256& seed, const fc::sha256& offset )

@@ -152,7 +152,7 @@ public:
    /**
     * @return max size of resources in the pool
     */
-   const uint32_t get_max_size() {
+   const uint32_t getMaxSize() {
       return max_resources_;
    }
 
@@ -160,7 +160,7 @@ public:
     * @brief Changes maximum pool size
     * @param max_resources_count max number of resources in pool
     */
-   void set_max_size(uint32_t max_resources_count) {
+   void setMaxSize(uint32_t max_resources_count) {
       if(resources_.size() > max_resources_count)
       {
          throw std::runtime_error("Can not resize pool, because actual size of pool is bigger then new maximum size!");
