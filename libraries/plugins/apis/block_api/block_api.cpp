@@ -75,7 +75,7 @@ DEFINE_API_IMPL( block_api_impl, get_average_block_size )
    int64_t start = _db->head_block_num();
    int64_t stop = std::max( start - 1000, 0ll );
    uint64_t total_size = 0;
-   for( uint64_t i = start; i > stop; i-- )
+   for( int64_t i = start; i > stop; i-- )
       total_size += fc::raw::pack_size( _db->fetch_block_by_number( i ) );
    return total_size / (start - stop );
 }
