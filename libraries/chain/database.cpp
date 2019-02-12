@@ -2056,7 +2056,7 @@ void database::update_global_dynamic_data( const signed_block& b )
             modify( witness_missed, [&]( witness_object& w )
             {
                w.total_missed++;
-               ilog("Witness ${w} missed block at time ${t}", ("w", witness_missed.owner)("t", get_slot_time(i + 1)));
+               wlog("Witness ${w} missed block at time ${t}", ("w", witness_missed.owner)("t", get_slot_time(i + 1)));
 
                if( head_block_num() - w.last_confirmed_block_num  > SOPHIATX_BLOCKS_PER_DAY )
                {
