@@ -15,7 +15,8 @@ namespace detail
       public:
          network_broadcast_api_impl(network_broadcast_api_plugin& plugin) :
             _p2p( plugin.app()->get_plugin< sophiatx::plugins::p2p::p2p_plugin >() ),
-            _chain( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >() )
+            _chain( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >()),
+            _last_checked_block_time(fc::time_point_sec())
          {
             _on_applied_block_connection = _chain.db()->applied_block.connect(
                0, [&]( const signed_block& b ){ on_applied_block( b ); } );
@@ -124,7 +125,7 @@ namespace detail
       if( max_block_age < 0 )
          return false;
 
-      return _chain.db()->with_read_lock( [&]()
+      return _chain.db()->with_read_lock( [&]() -> bool
       {
          fc::time_point_sec now = fc::time_point::now();
          const auto& dgpo = _chain.db()->get_dynamic_global_properties();
