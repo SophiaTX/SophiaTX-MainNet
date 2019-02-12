@@ -129,78 +129,75 @@ struct request_promise_visitor
 
 void chain_plugin_full::start_write_processing()
 {
-   write_processor_thread = std::make_shared< std::thread >( [&]()
-                                                             {
-                                                                  bool is_syncing = true;
-                                                                  write_context* cxt;
-                                                                  fc::time_point_sec start = fc::time_point::now();
-                                                                  write_request_visitor req_visitor;
-                                                                  req_visitor.db = std::static_pointer_cast<database>(db_);
+   write_processor_thread = std::make_shared< std::thread >( [&](){
+        bool is_syncing = true;
+        write_context* cxt;
+        fc::time_point_sec start = fc::time_point::now();
+        write_request_visitor req_visitor;
+        req_visitor.db = std::static_pointer_cast<database>(db_);
 
-                                                                  request_promise_visitor prom_visitor;
+        request_promise_visitor prom_visitor;
 
-                                                                  /* This loop monitors the write request queue and performs writes to the database. These
-                                                                   * can be blocks or pending transactions. Because the caller needs to know the success of
-                                                                   * the write and any exceptions that are thrown, a write context is passed in the queue
-                                                                   * to the processing thread which it will use to store the results of the write. It is the
-                                                                   * caller's responsibility to ensure the pointer to the write context remains valid until
-                                                                   * the contained promise is complete.
-                                                                   *
-                                                                   * The loop has two modes, sync mode and live mode. In sync mode we want to process writes
-                                                                   * as quickly as possible with minimal overhead. The outer loop busy waits on the queue
-                                                                   * and the inner loop drains the queue as quickly as possible. We exit sync mode when the
-                                                                   * head block is within 1 minute of system time.
-                                                                   *
-                                                                   * Live mode needs to balance between processing pending writes and allowing readers access
-                                                                   * to the database. It will batch writes together as much as possible to minimize lock
-                                                                   * overhead but will willingly give up the write lock after 500ms. The thread then sleeps for
-                                                                   * 10ms. This allows time for readers to access the database as well as more writes to come
-                                                                   * in. When the node is live the rate at which writes come in is slower and busy waiting is
-                                                                   * not an optimal use of system resources when we could give CPU time to read threads.
-                                                                   */
-                                                                  while( running )
-                                                                  {
-                                                                     if( !is_syncing )
-                                                                        start = fc::time_point::now();
+        /* This loop monitors the write request queue and performs writes to the database. These
+         * can be blocks or pending transactions. Because the caller needs to know the success of
+         * the write and any exceptions that are thrown, a write context is passed in the queue
+         * to the processing thread which it will use to store the results of the write. It is the
+         * caller's responsibility to ensure the pointer to the write context remains valid until
+         * the contained promise is complete.
+         *
+         * The loop has two modes, sync mode and live mode. In sync mode we want to process writes
+         * as quickly as possible with minimal overhead. The outer loop busy waits on the queue
+         * and the inner loop drains the queue as quickly as possible. We exit sync mode when the
+         * head block is within 1 minute of system time.
+         *
+         * Live mode needs to balance between processing pending writes and allowing readers access
+         * to the database. It will batch writes together as much as possible to minimize lock
+         * overhead but will willingly give up the write lock after 500ms. The thread then sleeps for
+         * 10ms. This allows time for readers to access the database as well as more writes to come
+         * in. When the node is live the rate at which writes come in is slower and busy waiting is
+         * not an optimal use of system resources when we could give CPU time to read threads.
+         */
+        while( running )
+        {
+           if( !is_syncing )
+              start = fc::time_point::now();
 
-                                                                     if( write_queue.pop( cxt ) )
-                                                                     {
-                                                                        db_->with_write_lock( [&]()
-                                                                                            {
-                                                                                                 while( true )
-                                                                                                 {
-                                                                                                    req_visitor.skip = cxt->skip;
-                                                                                                    req_visitor.except = &(cxt->except);
-                                                                                                    cxt->success = cxt->req_ptr.visit( req_visitor );
-                                                                                                    cxt->prom_ptr.visit( prom_visitor );
+           if( write_queue.pop( cxt ) )
+           {
+              db_->with_write_lock( [&](){
+                   while( true )
+                   {
+                      req_visitor.skip = cxt->skip;
+                      req_visitor.except = &(cxt->except);
+                      cxt->success = cxt->req_ptr.visit( req_visitor );
+                      cxt->prom_ptr.visit( prom_visitor );
 
-                                                                                                    //elog("head_block_time is: ${h}, start is:${s}, diff: ${d}, minute: ${m}, syncing ${sync}, holding ${hold}", ("h", db_->head_block_time())("s", start)("d", start - db_->head_block_time())("m",fc::minutes(1))("sync", is_syncing)("hold", write_lock_hold_time));
-                                                                                                    if( !is_syncing && write_lock_hold_time >= 0 && fc::time_point::now() - start > fc::milliseconds( write_lock_hold_time ) )
-                                                                                                    {
+                      if( is_syncing && start - db_->head_block_time() < fc::minutes(1) )
+                      {
+                         start = fc::time_point::now();
+                         is_syncing = false;
+                      }
 
-                                                                                                       start = fc::time_point::now();
-                                                                                                       is_syncing = false;
-                                                                                                    }
+                      if( !is_syncing && write_lock_hold_time >= 0 && fc::time_point::now() - start > fc::milliseconds( write_lock_hold_time ) )
+                      {
+                         break;
+                      }
 
-                                                                                                    if( !is_syncing && fc::time_point::now() - start > fc::milliseconds( 500 ) )
-                                                                                                    {
-                                                                                                       break;
-                                                                                                    }
+                      if( !write_queue.pop( cxt ) )
+                      {
+                         break;
+                      }
+                   }
+              });
 
-                                                                                                    if( !write_queue.pop( cxt ) )
-                                                                                                    {
-                                                                                                       break;
-                                                                                                    }
-                                                                                                 }
-                                                                                            });
-                                                                     }
+           }
 
-                                                                     if( !is_syncing ) {
-                                                                        boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
-                                                                     } else
-                                                                        boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
-                                                                  }
-                                                             });
+           if( !is_syncing ) {
+              boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+           } else
+              boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+        }
+   });
 }
 
 void chain_plugin_full::stop_write_processing()
