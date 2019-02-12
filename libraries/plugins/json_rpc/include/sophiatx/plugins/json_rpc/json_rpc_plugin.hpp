@@ -65,7 +65,7 @@ using namespace appbase;
  *
  * Arguments: Variant object of propert arg type
  */
-typedef std::function< fc::variant(const fc::variant&, const std::function<void( fc::variant&, uint64_t )>& notify_callback) > api_method;
+typedef std::function< fc::variant(const fc::variant&, const std::function<void( fc::variant&, uint64_t )>&, bool) > api_method;
 
 /**
  * @brief An API, containing APIs and Methods
@@ -139,9 +139,9 @@ namespace detail {
             Ret* ret )
          {
             _json_rpc_plugin.add_api_method( _api_name, method_name,
-               [&plugin,method]( const fc::variant& args, const std::function<void( fc::variant&, uint64_t )>& notify_callback ) -> fc::variant
+               [&plugin,method]( const fc::variant& args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true ) -> fc::variant
                {
-                  return fc::variant( (plugin.*method)( args.as< Args >(), notify_callback, true ) );
+                  return fc::variant( (plugin.*method)( args.as< Args >(), notify_callback, lock ) );
                },
                api_method_signature{ fc::variant( Args() ), fc::variant( Ret() ) } );
          }

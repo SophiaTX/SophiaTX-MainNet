@@ -1,5 +1,6 @@
 #pragma once
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
 #include <appbase/application.hpp>
 
@@ -15,6 +16,7 @@ class subscribe_api_plugin : public plugin< subscribe_api_plugin >
 public:
    APPBASE_PLUGIN_REQUIRES(
          (sophiatx::plugins::json_rpc::json_rpc_plugin)
+         (sophiatx::plugins::custom::custom_api_plugin)
    )
 
    subscribe_api_plugin();
