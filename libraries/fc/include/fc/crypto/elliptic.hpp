@@ -90,11 +90,12 @@ namespace fc {
            static bool is_canonical( const compact_signature& c, canonical_signature_type canon_type );
 
         private:
+          friend class fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key>;
           public_key( const compact_signature& c, const fc::sha256& digest);
           friend class private_key;
           static public_key from_key_data( const public_key_data& v );
           fc::fwd<detail::public_key_impl,33> my;
-          static fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key> kPubKeyCache;
+          static boost::optional<fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key>> kPubKeyCache;
     };
 
     /**
