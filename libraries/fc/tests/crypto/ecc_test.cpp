@@ -102,7 +102,7 @@ int main( int argc, char** argv )
 
    auto sig = priv.sign_compact( h );
    interop_do(sig);
-   auto recover = fc::ecc::public_key( sig, h );
+   auto recover = fc::ecc::public_key::recover_key( sig, h );
    interop_do(recover.serialize());
    interop_do(recover.serialize_ecc_point());
    FC_ASSERT( recover == pub );

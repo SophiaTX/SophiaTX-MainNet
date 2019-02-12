@@ -68,6 +68,7 @@ int main( int argc, char** argv )
    {
       // Setup logging config
       bpo::options_description options;
+      fc::ecc::public_key::init_cache(static_cast<uint32_t>(SOPHIATX_MAX_BLOCK_SIZE / SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT));
 
       sophiatx::utilities::set_logging_program_options( options );
       options.add_options()
