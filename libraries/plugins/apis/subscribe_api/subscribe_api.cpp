@@ -50,10 +50,7 @@ struct custom_content_callback{
       notify = _notify;
       last_position = _args.start-1;
    }
-
-   //custom_content_callback(custom_content_callback&c): last_position(c.last_position), notify(c.notify), args(c.args) {}
-   //custom_content_callback(const custom_content_callback&c): last_position(c.last_position), notify(c.notify), args(c.args){}
-
+   
    void operator ()() {
       custom::list_received_documents_args cb_args;
       cb_args.app_id = args.app_id;
