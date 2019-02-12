@@ -38,7 +38,7 @@ public:
    {}
 
    template<typename T = ResourceCreator, typename = typename std::enable_if<std::is_same<void*, T>::value>::type>
-   LruResourcePool(uint32_t max_resources_count = 100) :
+   LruResourcePool(uint32_t max_resources_count) :
          resource_creator_(nullptr),
          max_resources_(max_resources_count),
          resources_(),
