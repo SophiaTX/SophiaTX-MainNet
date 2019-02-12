@@ -76,7 +76,7 @@ private:
    genesis_state_type               genesis;
    flat_map<uint32_t,block_id_type> loaded_checkpoints;
 
-   int16_t                          write_lock_hold_time;
+   int16_t                          write_lock_hold_time=500;
 
    std::shared_ptr< std::thread >   write_processor_thread;
    boost::lockfree::queue< write_context* > write_queue;
