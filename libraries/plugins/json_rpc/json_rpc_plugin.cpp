@@ -145,8 +145,15 @@ namespace detail
          json_rpc_response rpc( const fc::variant& message, std::function<void(string)> callback );
          void initialize();
 
-         void log(const fc::variant_object& request, json_rpc_response& response)
+         void log(const fc::variant_object& request, json_rpc_response& response, const std::string& api, const std::string& method)
          {
+            std::string responseStr = "OK";
+            if (response.error) {
+               responseStr = "ERR";
+            }
+            // Logs request info for monitoring
+            ilog("Received request. Api: ${a}, Method: ${m}, Resp: ${r}", ("a", api)("m", method)("r", responseStr));
+
             if (_logger)
                _logger->log(request, response);
          }
@@ -280,6 +287,9 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
 
    void json_rpc_plugin_impl::rpc_jsonrpc( const fc::variant_object& request, json_rpc_response& response, std::function<void(string)> callback )
    {
+      string api_name;
+      string method_name;
+
       if( request.contains( "jsonrpc" ) && request[ "jsonrpc" ].is_string() && request[ "jsonrpc" ].as_string() == "2.0" )
       {
          if( request.contains( "method" ) && request[ "method" ].is_string() )
@@ -292,8 +302,6 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
                if( ( method == "call" && request.contains( "params" ) ) || method != "call" )
                {
                   fc::variant func_args;
-                  string api_name;
-                  string method_name;
 
                   try
                   {
@@ -353,7 +361,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
          response.error = json_rpc_error( JSON_RPC_INVALID_REQUEST, "jsonrpc value is not \"2.0\"" );
       }
 
-   log(request, response);
+      log(request, response, api_name, method_name);
    }
 
    json_rpc_response json_rpc_plugin_impl::rpc( const fc::variant& message, std::function<void(string)> callback )
