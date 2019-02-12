@@ -148,10 +148,8 @@ namespace detail
          void log(const fc::variant_object& request, json_rpc_response& response, const std::string& api, const std::string& method)
          {
             std::string responseStr = "OK";
-            std::string errorMsg;
             if (response.error) {
                responseStr = "ERR";
-               errorMsg = response.error->message;
             }
             // Logs request info for monitoring
             ilog("Received request. Api: ${a}, Method: ${m}, Resp: ${r}", ("a", api)("m", method)("r", responseStr));
