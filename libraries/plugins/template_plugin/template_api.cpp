@@ -8,15 +8,15 @@ namespace detail {
 
 class template_api_impl
 {
-   public:
+public:
    template_api_impl(template_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
-      example_call_return example_call( const example_call_args& args )const;
+   DECLARE_API_IMPL((example_call))
 
-      std::shared_ptr<database_interface> _db;
+   std::shared_ptr<database_interface> _db;
 };
 
-example_call_return template_api_impl::example_call( const example_call_args& args )const
+DEFINE_API_IMPL(template_api_impl, example_call)
 {
    example_call_return final_result;
 

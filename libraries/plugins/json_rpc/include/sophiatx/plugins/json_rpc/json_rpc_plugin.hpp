@@ -1,6 +1,7 @@
 #pragma once
 
 #include <appbase/application.hpp>
+#include <atomic>
 
 #include <fc/variant.hpp>
 #include <fc/io/json.hpp>
@@ -43,11 +44,6 @@
    for_each_api( vtor );                                                                        \
 }
 
-#define JSON_RPC_REGISTER_SUBSCRIBE_API( API_NAME, APP )                                                       \
-{                                                                                               \
-   sophiatx::plugins::json_rpc::detail::register_api_subscribe_method_visitor vtor( API_NAME, APP );              \
-   for_each_api( vtor );                                                                        \
-}
 
 #define JSON_RPC_PARSE_ERROR        (-32700)
 #define JSON_RPC_INVALID_REQUEST    (-32600)
@@ -69,7 +65,7 @@ using namespace appbase;
  *
  * Arguments: Variant object of propert arg type
  */
-typedef std::function< fc::variant(const fc::variant&) > api_method;
+typedef std::function< fc::variant(const fc::variant&, const std::function<void( fc::variant&, uint64_t )>&, bool) > api_method;
 
 /**
  * @brief An API, containing APIs and Methods
@@ -106,16 +102,22 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
       virtual void plugin_startup() override;
       virtual void plugin_shutdown() override;
 
-      fc::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args) const;
+      fc::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const;
       void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
-      void add_api_subscribe_method( const string& api_name, const string& method_name );
 
-      void send_ws_notice( uint64_t registration_id, uint64_t subscription_id, fc::variant& message);
       string call( const string& body, bool& is_error);
       string call( const string& message, std::function<void(const string& )> callback);
 
+      uint64_t generate_subscription_id();
+
    private:
       std::unique_ptr< detail::json_rpc_plugin_impl > my;
+      std::atomic<uint64_t> _next_id;
+};
+
+struct ws_notice{
+   string method="notice";
+   std::pair<uint64_t, std::vector<fc::variant>> params;
 };
 
 namespace detail {
@@ -137,9 +139,9 @@ namespace detail {
             Ret* ret )
          {
             _json_rpc_plugin.add_api_method( _api_name, method_name,
-               [&plugin,method]( const fc::variant& args ) -> fc::variant
+               [&plugin,method]( const fc::variant& args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true ) -> fc::variant
                {
-                  return fc::variant( (plugin.*method)( args.as< Args >(), true ) );
+                  return fc::variant( (plugin.*method)( args.as< Args >(), notify_callback, lock ) );
                },
                api_method_signature{ fc::variant( Args() ), fc::variant( Ret() ) } );
          }
@@ -149,32 +151,9 @@ namespace detail {
          sophiatx::plugins::json_rpc::json_rpc_plugin& _json_rpc_plugin;
    };
 
-   class register_api_subscribe_method_visitor
-   {
-   public:
-      register_api_subscribe_method_visitor( const std::string& api_name, const std::shared_ptr<appbase::application>& app )
-            : _api_name( api_name ),
-              _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() )
-      {}
-
-      template< typename Plugin, typename Method, typename Args, typename Ret >
-      void operator()(
-            Plugin& plugin,
-            const std::string& method_name,
-            Method method,
-            Args* args,
-            Ret* ret )
-      {
-         _json_rpc_plugin.add_api_subscribe_method( _api_name, method_name );
-      }
-
-   private:
-      std::string _api_name;
-      sophiatx::plugins::json_rpc::json_rpc_plugin& _json_rpc_plugin;
-   };
-
 }
 
 } } } // sophiatx::plugins::json_rpc
 
 FC_REFLECT( sophiatx::plugins::json_rpc::api_method_signature, (args)(ret) )
+FC_REFLECT( sophiatx::plugins::json_rpc::ws_notice, (method)(params))

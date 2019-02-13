@@ -11,16 +11,12 @@ class track_and_trace_api_impl
    public:
    track_and_trace_api_impl(track_and_trace_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
-   get_current_holder_return get_current_holder( const get_current_holder_args& args )const;
-   get_holdings_return get_holdings( const get_holdings_args& args )const;
-   get_tracked_object_history_return get_tracked_object_history( const get_tracked_object_history_args& args )const;
-   get_transfer_requests_return get_transfer_requests(const get_transfer_requests_args& args)const;
-   get_item_details_return get_item_details(const get_item_details_args& args)const;
+   DECLARE_API_IMPL((get_current_holder)(get_holdings)(get_tracked_object_history)(get_transfer_requests)(get_item_details));
 
    std::shared_ptr<database_interface> _db;
 };
 
-get_current_holder_return track_and_trace_api_impl::get_current_holder( const get_current_holder_args& args )const
+DEFINE_API_IMPL(track_and_trace_api_impl, get_current_holder)
 {
    get_current_holder_return final_result;
    const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_serial >();
@@ -32,7 +28,7 @@ get_current_holder_return track_and_trace_api_impl::get_current_holder( const ge
    return final_result;
 }
 
-get_holdings_return track_and_trace_api_impl::get_holdings( const get_holdings_args& args )const
+DEFINE_API_IMPL(track_and_trace_api_impl, get_holdings)
 {
    get_holdings_return final_result;
    const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_holder >();
@@ -44,7 +40,7 @@ get_holdings_return track_and_trace_api_impl::get_holdings( const get_holdings_a
    return final_result;
 }
 
-get_tracked_object_history_return track_and_trace_api_impl::get_tracked_object_history( const get_tracked_object_history_args& args )const
+DEFINE_API_IMPL(track_and_trace_api_impl, get_tracked_object_history)
 {
    get_tracked_object_history_return final_result;
    const auto& history_idx = _db->get_index< transfer_history_index >().indices().get< by_serial_date >();
@@ -56,7 +52,7 @@ get_tracked_object_history_return track_and_trace_api_impl::get_tracked_object_h
    return final_result;
 }
 
-get_transfer_requests_return track_and_trace_api_impl::get_transfer_requests(const get_transfer_requests_args& args)const
+DEFINE_API_IMPL(track_and_trace_api_impl, get_transfer_requests)
 {
    get_transfer_requests_return final_result;
    const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_new_holder >();
@@ -68,7 +64,7 @@ get_transfer_requests_return track_and_trace_api_impl::get_transfer_requests(con
    return final_result;
 }
 
-get_item_details_return track_and_trace_api_impl::get_item_details(const get_item_details_args& args)const
+DEFINE_API_IMPL(track_and_trace_api_impl, get_item_details)
 {
    const auto& holder_idx = _db->get_index< posession_index >().indices().get< by_serial >();
    const auto& holder_itr = holder_idx.find(args.serial);

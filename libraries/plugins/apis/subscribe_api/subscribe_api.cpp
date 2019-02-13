@@ -16,12 +16,11 @@ struct custom_content_callback;
 class subscribe_api_impl
 {
 public:
-   subscribe_api_impl(subscribe_api_plugin&plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
+   subscribe_api_impl(subscribe_api_plugin&plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+                                                     _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >())
+   {
+      //TODO - bind on custom evaluator instead
       post_apply_connection = _db->post_apply_operation.connect( 0, [&]( const chain::operation_notification& note ){ on_operation(note); } );
-      json_api = plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >();
-      auto custom = plugin.app()->find_plugin< custom::custom_api_plugin>();
-      if( custom != nullptr )
-         custom_api = custom->api;
    }
 
    DECLARE_API_IMPL(
@@ -33,32 +32,20 @@ public:
    std::shared_ptr<chain::database_interface>  _db;
    boost::signals2::connection      post_apply_connection;
    std::vector<custom_content_callback>  _content_subscriptions;
-   plugins::json_rpc::json_rpc_plugin* json_api;
-   std::shared_ptr< custom::custom_api > custom_api;
+   plugins::json_rpc::json_rpc_plugin* _json_api;
 
 };
 
 struct custom_content_callback{
    uint64_t last_position=0;
-   uint64_t websocket_handle = 0;
+   std::function<void(fc::variant&)> notify;
    bool invalid = false;
-   subscribe_api_impl* impl;
+   subscribe_api_impl& impl;
    custom_object_subscription_args args;
 
-   custom_content_callback(custom_object_subscription_args _args, subscribe_api_impl* _impl, uint64_t _websocket_handle ){
+   custom_content_callback(const custom_object_subscription_args& _args, subscribe_api_impl& _impl, std::function<void(fc::variant&)>& _notify ):notify(_notify), impl(_impl), args(_args) {
       FC_ASSERT(_args.start > 0);
-      args = _args;
-      impl = _impl;
-      websocket_handle = _websocket_handle;
       last_position = _args.start-1;
-   }
-
-   custom_content_callback(custom_content_callback&c){
-      args=c.args; impl=c.impl;websocket_handle=c.websocket_handle;last_position=c.last_position;
-   }
-
-   custom_content_callback(const custom_content_callback&c){
-      args=c.args; impl=c.impl;websocket_handle=c.websocket_handle;last_position=c.last_position;
    }
 
    void operator ()() {
@@ -68,7 +55,11 @@ struct custom_content_callback{
       cb_args.search_type = args.search_type;
       cb_args.count = 1;
       cb_args.start = std::to_string(last_position+1);
-      auto docs = impl->custom_api->list_received_documents(cb_args);
+      auto vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
+      if(!vdocs)
+         return;
+      custom::list_received_documents_return docs;
+      fc::from_variant( *vdocs, docs );
       while (docs.size()){
          const auto d_itr = docs.find(last_position+1);
          if(d_itr==docs.end())
@@ -76,10 +67,13 @@ struct custom_content_callback{
 
          fc::variant v;
          fc::to_variant(*d_itr,v);
-         impl->json_api->send_ws_notice(websocket_handle, args.return_id, v);
+         notify(v);
          last_position++;
          cb_args.start = std::to_string(last_position+1);
-         docs = impl->custom_api->list_received_documents(cb_args);
+         vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
+         if(!vdocs)
+            break;
+         fc::from_variant( *vdocs, docs );
       }
    }
 };
@@ -105,15 +99,17 @@ void subscribe_api_impl::on_operation( const chain::operation_notification& note
 }
 
 
-DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
+DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription )
 {
+   std::function<void(fc::variant&)> notify = [ notify_callback, args ](fc::variant& v )->void{ notify_callback(v, args.return_id);};
 
-   FC_ASSERT( custom_api, "custom_api_plugin not enabled." );
-   custom_content_callback cb(args, this, _content_subscriptions.size() );
+   custom_content_callback cb(args, *this, notify );
+
+   cb();
 
    _content_subscriptions.push_back(cb);
 
-   return _content_subscriptions.size()-1;
+   return args.return_id;
 }
 
 
@@ -125,7 +121,6 @@ DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription)
 subscribe_api::subscribe_api(subscribe_api_plugin& plugin): my( new detail::subscribe_api_impl(plugin) )
 {
    JSON_RPC_REGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME, plugin.app() );
-   plugin.app()->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >().add_api_subscribe_method("subscribe_api", "custom_object_subscription" );
 }
 
 void subscribe_api::api_startup(){

@@ -38,18 +38,9 @@ class multiparty_messaging_api_impl
    public:
    multiparty_messaging_api_impl(multiparty_messaging_plugin& plugin) :
          _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ), _plugin(plugin),
-         _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >()) {}
+         _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >()) {};
 
-   get_group_return  get_group(const get_group_args& args) const;
-   get_group_name_return  get_group_name(const get_group_name_args& args) const;
-   list_my_groups_return  list_my_groups(const list_my_groups_args& args) const;
-   list_messages_return  list_messages(const list_messages_args& args) const;
-   create_group_return  create_group(const create_group_args& args) const;
-   add_group_participants_return  add_group_participants(const add_group_participants_args& args) const;
-   delete_group_participants_return  delete_group_participants(const delete_group_participants_args& args) const;
-   update_group_return  update_group(const update_group_args& args) const;
-   disband_group_return  disband_group(const disband_group_args& args) const;
-   send_group_message_return  send_group_message(const send_group_message_args& args) const;
+   DECLARE_API_IMPL((get_group) (get_group_name) (list_my_groups) (list_messages) (create_group) (add_group_participants) (delete_group_participants) (update_group) (disband_group) (send_group_message))
 
    std::shared_ptr<database_interface> _db;
    multiparty_messaging_plugin& _plugin;
@@ -114,7 +105,7 @@ vector<char> multiparty_messaging_api_impl::generate_random_key() const
 
 alexandria_api::api_account_object multiparty_messaging_api_impl::get_account(const account_name_type& account) const {
    alexandria_api::get_account_args args {account};
-   auto result = _json_api->call_api_method("alexandria_api", "get_account", fc::variant(args));
+   auto result = _json_api->call_api_method("alexandria_api", "get_account", fc::variant(args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
    FC_ASSERT(result.valid(), "Account does not exist!");
    alexandria_api::get_account_return acc_return;
    fc::from_variant( *result, acc_return );
@@ -122,7 +113,7 @@ alexandria_api::api_account_object multiparty_messaging_api_impl::get_account(co
    return acc_return.account[0];
 }
 
-get_group_return  multiparty_messaging_api_impl::get_group(const get_group_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, get_group)
 {
    get_group_return final_result;
    const auto& group_idx = _db->get_index< group_index >().indices().get< by_group_name >();
@@ -132,7 +123,7 @@ get_group_return  multiparty_messaging_api_impl::get_group(const get_group_args&
    return final_result;
 }
 
-get_group_name_return  multiparty_messaging_api_impl::get_group_name(const get_group_name_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, get_group_name)
 {
    get_group_name_return final_result;
    const auto& group_idx = _db->get_index< group_index >().indices().get< by_current_name >();
@@ -144,7 +135,7 @@ get_group_name_return  multiparty_messaging_api_impl::get_group_name(const get_g
    return final_result;
 }
 
-list_my_groups_return  multiparty_messaging_api_impl::list_my_groups(const list_my_groups_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, list_my_groups)
 {
    list_my_groups_return ret;
    FC_ASSERT(args.count<1000);
@@ -157,7 +148,7 @@ list_my_groups_return  multiparty_messaging_api_impl::list_my_groups(const list_
    return ret;
 }
 
-list_messages_return  multiparty_messaging_api_impl::list_messages(const list_messages_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, list_messages)
 {
    list_messages_return ret;
    FC_ASSERT(args.count<1000);
@@ -170,7 +161,8 @@ list_messages_return  multiparty_messaging_api_impl::list_messages(const list_me
    return ret;
 }
 
-create_group_return  multiparty_messaging_api_impl::create_group(const create_group_args& args) const
+
+DEFINE_API_IMPL( multiparty_messaging_api_impl, create_group)
 {
    create_group_return ret;
    auto admin = get_account(args.admin);
@@ -204,7 +196,7 @@ create_group_return  multiparty_messaging_api_impl::create_group(const create_gr
    return ret;
 }
 
-add_group_participants_return  multiparty_messaging_api_impl::add_group_participants(const add_group_participants_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, add_group_participants)
 {
    add_group_participants_return ret;
    const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
@@ -256,7 +248,7 @@ add_group_participants_return  multiparty_messaging_api_impl::add_group_particip
    return ret;
 }
 
-delete_group_participants_return  multiparty_messaging_api_impl::delete_group_participants(const delete_group_participants_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, delete_group_participants)
 {
    delete_group_participants_return ret;
    const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
@@ -304,7 +296,7 @@ delete_group_participants_return  multiparty_messaging_api_impl::delete_group_pa
 }
 
 
-update_group_return  multiparty_messaging_api_impl::update_group(const update_group_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, update_group)
 {
    update_group_return ret;
    const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
@@ -333,7 +325,7 @@ update_group_return  multiparty_messaging_api_impl::update_group(const update_gr
    return ret;
 }
 
-disband_group_return  multiparty_messaging_api_impl::disband_group(const disband_group_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, disband_group)
 {
    disband_group_return ret;
    const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );
@@ -355,7 +347,7 @@ disband_group_return  multiparty_messaging_api_impl::disband_group(const disband
    return ret;
 }
 
-send_group_message_return  multiparty_messaging_api_impl::send_group_message(const send_group_message_args& args) const
+DEFINE_API_IMPL( multiparty_messaging_api_impl, send_group_message)
 {
    send_group_message_return ret;
    const group_object* g_ob = _db->find< group_object, by_current_name >( args.group_name );

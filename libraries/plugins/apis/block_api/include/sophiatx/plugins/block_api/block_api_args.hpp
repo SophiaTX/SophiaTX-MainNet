@@ -32,6 +32,11 @@ struct get_block_return
    optional< api_signed_block_object > block;
 };
 
+typedef json_rpc::void_type get_average_block_size_args;
+
+typedef uint32_t get_average_block_size_return;
+
+
 } } } // sophiatx::block_api
 
 FC_REFLECT( sophiatx::plugins::block_api::get_block_header_args,
