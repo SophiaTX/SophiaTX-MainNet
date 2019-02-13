@@ -5,6 +5,7 @@
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/logger/stub.hpp>
+#include <websocketpp/extensions/permessage_deflate/enabled.hpp>
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
@@ -61,6 +62,12 @@ namespace fc { namespace http {
               transport_type;
 
           static const long timeout_open_handshake = 0;
+
+         /// permessage_compress extension
+         struct permessage_deflate_config {};
+
+         typedef websocketpp::extensions::permessage_deflate::enabled
+               <permessage_deflate_config> permessage_deflate_type;
       };
       struct asio_tls_with_stub_log : public websocketpp::config::asio_tls {
 
@@ -221,7 +228,7 @@ namespace fc { namespace http {
 
                        fc::async([current_con, request_body, con] {
                           std::string response = current_con->on_http(request_body);
-                          con->set_body( response );
+                          con->set_body( std::move( response ) );
                           con->set_status( websocketpp::http::status_code::ok );
                           con->send_http_response();
                           current_con->closed();
@@ -344,7 +351,7 @@ namespace fc { namespace http {
                           wdump(("server")(con->get_request_body()));
                           auto response = current_con->on_http( con->get_request_body() );
 
-                          con->set_body( response );
+                          con->set_body( std::move( response ) );
                           con->set_status( websocketpp::http::status_code::ok );
                        } catch ( const fc::exception& e )
                        {
