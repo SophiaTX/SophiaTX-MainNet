@@ -327,12 +327,8 @@ namespace fc { namespace ecc {
 //      return 1 == ECDSA_verify( 0, (unsigned char*)&digest, sizeof(digest), (unsigned char*)&sig, sizeof(sig), my->_key );
 //    }
 
-    public_key::public_key( const compact_signature& c, const fc::sha256& digest, canonical_signature_type canon_type )
+    public_key::public_key( const compact_signature& c, const fc::sha256& digest)
     {
-        int nV = c.data[0];
-        if (nV<27 || nV>=35)
-            FC_THROW_EXCEPTION( exception, "unable to reconstruct public key from signature" );
-
         ECDSA_SIG *sig = ECDSA_SIG_new();
         BIGNUM *r = BN_new();
         BIGNUM *s = BN_new();
@@ -341,8 +337,6 @@ namespace fc { namespace ecc {
         BN_bin2bn(&c.data[33],32, s);
 
         ECDSA_SIG_set0( sig, r, s);
-
-        FC_ASSERT( is_canonical( c, canon_type ), "signature is not canonical" );
 
         my->_key = EC_KEY_new_by_curve_name(NID_secp256k1);
 
