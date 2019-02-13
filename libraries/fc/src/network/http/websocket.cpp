@@ -228,7 +228,7 @@ namespace fc { namespace http {
 
                        fc::async([current_con, request_body, con] {
                           std::string response = current_con->on_http(request_body);
-                          con->set_body( response );
+                          con->set_body( std::move( response ) );
                           con->set_status( websocketpp::http::status_code::ok );
                           con->send_http_response();
                           current_con->closed();
@@ -351,7 +351,7 @@ namespace fc { namespace http {
                           wdump(("server")(con->get_request_body()));
                           auto response = current_con->on_http( con->get_request_body() );
 
-                          con->set_body( response );
+                          con->set_body( std::move( response ) );
                           con->set_status( websocketpp::http::status_code::ok );
                        } catch ( const fc::exception& e )
                        {
