@@ -46,7 +46,8 @@ will build out of the box without further effort:
         make \
         pkg-config \
         python3 \
-        python3-jinja2
+        python3-jinja2 \
+        zlib1g-dev
         
     # Boost packages (also required)
     sudo apt-get install -y \
