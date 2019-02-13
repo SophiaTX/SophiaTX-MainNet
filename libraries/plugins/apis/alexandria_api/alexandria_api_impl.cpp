@@ -966,9 +966,18 @@ DEFINE_API_IMPL(alexandria_api_impl, send_and_sign_transaction)
 DEFINE_API_IMPL(alexandria_api_impl, verify_signature)
 {
    verify_signature_return result;
-   result.signature_valid = (args.pub_key == fc::ecc::public_key::recover_key(args.signature, args.digest,
-                                                                 _db->has_hardfork(SOPHIATX_HARDFORK_1_1) ? fc::ecc::bip_0062 : fc::ecc::fc_canonical)) ? true : false;
-   return result;
+   try {
+      result.signature_valid = (args.pub_key == fc::ecc::public_key::recover_key(args.signature, args.digest,
+                                                                                 _db->has_hardfork(
+                                                                                       SOPHIATX_HARDFORK_1_1)
+                                                                                 ? fc::ecc::bip_0062
+                                                                                 : fc::ecc::fc_canonical)) ? true
+                                                                                                           : false;
+      return result;
+   }catch(...){
+      result.signature_valid = false;
+      return result;
+   }
 }
 
 DEFINE_API_IMPL(alexandria_api_impl, generate_key_pair)
@@ -1412,11 +1421,10 @@ DEFINE_API_IMPL(alexandria_api_impl, get_version)
 DEFINE_API_IMPL(alexandria_api_impl, get_dynamic_global_properties)
 {
    checkApiEnabled(_database_api);
-   checkApiEnabled(_witness_api);
+   checkApiEnabled(_block_api);
 
    extended_dynamic_global_properties props = _database_api->get_dynamic_global_properties( {} );
-   auto reserve_ratio = _witness_api->get_reserve_ratio( {} );
-   props.average_block_size = reserve_ratio.average_block_size;
+   props.average_block_size = _block_api->get_average_block_size( {} );
 
 
    get_dynamic_global_properties_return result;

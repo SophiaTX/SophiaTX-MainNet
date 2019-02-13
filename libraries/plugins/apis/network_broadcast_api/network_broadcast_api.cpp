@@ -15,7 +15,8 @@ namespace detail
       public:
          network_broadcast_api_impl(network_broadcast_api_plugin& plugin) :
             _p2p( plugin.app()->get_plugin< sophiatx::plugins::p2p::p2p_plugin >() ),
-            _chain( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >() )
+            _chain( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >()),
+            _last_checked_block_time(fc::time_point_sec())
          {
             _on_applied_block_connection = _chain.db()->applied_block.connect(
                0, [&]( const signed_block& b ){ on_applied_block( b ); } );
@@ -38,6 +39,7 @@ namespace detail
          boost::signals2::connection                           _on_applied_block_connection;
 
          boost::mutex                                          _mtx;
+         mutable std::atomic<fc::time_point_sec>               _last_checked_block_time;
    };
 
    DEFINE_API_IMPL( network_broadcast_api_impl, broadcast_transaction )
@@ -118,15 +120,18 @@ namespace detail
 
    bool network_broadcast_api_impl::check_max_block_age( int32_t max_block_age ) const
    {
+      if( fc::time_point::now() - _last_checked_block_time <= fc::seconds(max_block_age) )
+         return true;
       if( max_block_age < 0 )
          return false;
 
-      return _chain.db()->with_read_lock( [&]()
+      return _chain.db()->with_read_lock( [&]() -> bool
       {
          fc::time_point_sec now = fc::time_point::now();
          const auto& dgpo = _chain.db()->get_dynamic_global_properties();
+         _last_checked_block_time = dgpo.time;
 
-         return ( dgpo.time < now - fc::seconds( max_block_age ) );
+         return ( (fc::time_point_sec)_last_checked_block_time < now - fc::seconds( max_block_age ) );
       });
    }
 
