@@ -7,7 +7,6 @@
 #include <boost/optional.hpp>
 #include <chrono>
 #include <mutex>
-#include <thread>
 
 namespace fc {
 
@@ -118,8 +117,6 @@ public:
    typename std::enable_if<std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
       std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
       checkLock(lock);
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(300));
 
       auto resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
