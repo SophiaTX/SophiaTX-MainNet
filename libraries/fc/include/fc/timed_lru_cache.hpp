@@ -1,17 +1,54 @@
-#ifndef LRU_RESOURCE_POOL_HPP
-#define LRU_RESOURCE_POOL_HPP
+#ifndef TIMED_LRU_CACHE_HPP
+#define TIMED_LRU_CACHE_HPP
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/optional.hpp>
 #include <chrono>
+#include <mutex>
+#include <thread>
 
 namespace fc {
 
+/**
+ * @brief custom TimedLruCache exception type
+ */
+class TimedLruCacheError : public std::runtime_error {
+public:
+   enum class Type {
+      TIMEOUT,
+      OTHER
+   };
+
+   explicit TimedLruCacheError(Type type, const std::string& msg = "") :
+         std::runtime_error(getMessage(type, msg)),
+         type_(type)
+   {}
+
+   const Type type() const { return type_; }
+   virtual ~TimedLruCacheError() throw() {}
+
+private:
+   Type type_;
+
+   /**
+    * @brief get exception what() message for given resource type
+    * @param type
+    * @return exception what() message
+    */
+   static std::string getMessage(const Type type, const std::string& msg) {
+      switch (type) {
+         case Type::TIMEOUT: return "TimedLruCache Error: TIMEOUT";
+         case Type::OTHER:   return "TimedLruCache Error: OTHER, msg: " + msg;
+         default:            return "TimedLruCache Error: UNKNOWN";
+      }
+   }
+};
+
 
 /**
- * @brief Non-thread-safe Least-recently-used resource pool. It stores maximum <max_resources_> resources of type "ValueType", which are mapped to the keys of type "KeyType".
+ * @brief Thread-safe timed Least-recently-used resource cache. It stores maximum <max_resources_> resources of type "ValueType", which are mapped to the keys of type "KeyType".
  *        In case max. num of resources is reached, the least used one is deleted and replaced with the one, which is needed at the moment. If ResourceCreator(lambda
  *        function) is provided, it is used for automatic resource creations, otherwise provided parameter in emplace method are forwarded to the ValueType constructor
  *
@@ -20,49 +57,75 @@ namespace fc {
  * @tparam ResourceCreator
  */
 template<typename KeyType, typename ValueType, typename ResourceCreator = void*>
-class LruResourcePool {
+class TimedLruCache {
 public:
    /**
     * @brief Ctor
     *
-    * @param max_resources_count max number of resources in pool. In case there is need to create new resource, least used one is automacially deleted.
+    * @param max_resources_count max number of resources in cache. In case there is need to create new resource, least used one is automacially deleted.
+    * @param timeout maximum time that is waited until resource is emplaced/get. This waiting time might be too long in case too many concurrent threads
+    *                          are trying to emplaced/get resources so they block each other. In such case, TimedLruCache::Error with interal type(TIMEOUT) is thrown
     * @param resource_creator lambda that creates resource of type "ValueType"
     */
    template<typename T = ResourceCreator, typename = typename std::enable_if<!std::is_same<void*, T>::value>::type>
-   LruResourcePool(uint32_t max_resources_count, const ResourceCreator& resource_creator) :
+   TimedLruCache(uint32_t max_resources_count, const std::chrono::milliseconds& timeout, const ResourceCreator& resource_creator) :
       resource_creator_(resource_creator),
+      mutex_(),
+      timeout_(timeout),
       max_resources_(max_resources_count),
       resources_(),
       resources_by_key_(resources_.template get<by_key>()),
       resources_by_last_access_(resources_.template get<by_last_access>())
    {}
 
+   /**
+    * @brief Ctor
+    *
+    * @param max_resources_count max number of resources in cache. In case there is need to create new resource, least used one is automacially deleted.
+    * @param timeout maximum time that is waited until resource is emplaced/get. This waiting time might be too long in case too many concurrent threads
+    *                          are trying to emplaced/get resources so they block each other. In such case, TimedLruCache::Error with interal type(TIMEOUT) is thrown
+    */
    template<typename T = ResourceCreator, typename = typename std::enable_if<std::is_same<void*, T>::value>::type>
-   LruResourcePool(uint32_t max_resources_count) :
+   TimedLruCache(uint32_t max_resources_count, const std::chrono::milliseconds& timeout) :
          resource_creator_(nullptr),
+         mutex_(),
+         timeout_(timeout),
          max_resources_(max_resources_count),
          resources_(),
          resources_by_key_(resources_.template get<by_key>()),
          resources_by_last_access_(resources_.template get<by_last_access>())
    {}
 
+   // Disables default/copy/move ctors
+   TimedLruCache()                                 = delete;
+   TimedLruCache(const TimedLruCache &)            = delete;
+   TimedLruCache &operator=(const TimedLruCache &) = delete;
+   TimedLruCache(TimedLruCache &&)                 = delete;
+   TimedLruCache &operator=(TimedLruCache &&)      = delete;
 
    /**
-    * @brief Creates new resource mapped to the key(only if it does not exist in the pool already). For creation is
+    * @brief Creates new resource mapped to the key(only if it does not exist in the cache already). For creation is
     *        used forwarding to the ValueType constructor
     *
     * @tparam ArgsType
     * @param key that resource is mapped to
     * @param args arguments forwarded to the resource_creator_
+    * @throws TimedLruCacheError in case of failure
+    *
     * @return ValueType& - reference to the resource of mapped to the key
     */
    template <typename T = ResourceCreator, typename... ArgsType>
    typename std::enable_if<std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
       auto resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          // Adjusts last_access of the found resource
          if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
-            throw std::runtime_error("Unable to modify last access time of resource");
+            throw TimedLruCacheError(TimedLruCacheError::Type::OTHER, "Unable to modify last access time of resource");
          }
 
          return resource->getValue();
@@ -72,10 +135,10 @@ public:
          popLru();
       }
 
-      // Creates new database handle inside pool
+      // Creates new resource inside cache
       auto emplace_result = resources_by_key_.emplace(key, std::forward<ArgsType>(args)...);
       if (emplace_result.second == false) {
-         throw std::runtime_error("Unable to create resource");
+         throw TimedLruCacheError(TimedLruCacheError::Type::OTHER, "Unable to create resource");
       }
 
       return emplace_result.first->getValue();
@@ -83,21 +146,26 @@ public:
 
 
    /**
-    * @brief Creates new resource mapped to the key(only if it does not exist in the pool already). For creation is
+    * @brief Creates new resource mapped to the key(only if it does not exist in the cache already). For creation is
     *        used lambda function resource_creator_
     *
     * @tparam ArgsType
     * @param key that resource is mapped to
     * @param args arguments forwarded to the resource_creator_
+    * @throws TimedLruCacheError in case of failure
+    *
     * @return ValueType& - reference to the resource of mapped to the key
     */
    template <typename T = ResourceCreator, typename... ArgsType>
    typename std::enable_if<!std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
+
       auto resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          // Adjusts last_access of the found resource
          if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
-            throw std::runtime_error("Unable to modify last access time of resource");
+            throw TimedLruCacheError(TimedLruCacheError::Type::OTHER, "Unable to modify last access time of resource");
          }
 
          return resource->getValue();
@@ -107,10 +175,10 @@ public:
          popLru();
       }
 
-      // Creates new database handle inside pool
+      // Creates new resource inside cache
       auto emplace_result = resources_by_key_.emplace(key, resource_creator_(std::forward<ArgsType>(args)...));
       if (emplace_result.second == false) {
-         throw std::runtime_error("Unable to create resource");
+         throw TimedLruCacheError(TimedLruCacheError::Type::OTHER, "Unable to create resource");
       }
 
       return emplace_result.first->getValue();
@@ -122,6 +190,8 @@ public:
     *        it returnes optional with reference to the resource
     *
     * @param key
+    * @throws TimedLruCacheError in case of failure
+    *
     * @return boost::optional<ValueType&>
     */
    boost::optional<ValueType&> get(const KeyType& key) {
@@ -132,49 +202,47 @@ public:
          return ret;
       }
 
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
+
       // Adjusts last_access of the found resource
       if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
-         throw std::runtime_error("Unable to modify last access time of resource");
+         throw TimedLruCacheError(TimedLruCacheError::Type::OTHER, "Unable to modify last access time of resource");
       }
-      
 
       ret = resource->getValue();
       return ret;
    }
 
    /**
-    * @return actual number of resources in the pool
+    * @return actual number of resources in the cache
     */
    const uint32_t size() const {
       return resources_.size();
    }
 
    /**
-    * @return max size of resources in the pool
+    * @return max size of resources in the cache
     */
    const uint32_t getMaxSize() {
       return max_resources_;
    }
 
    /**
-    * @brief Changes maximum pool size
-    * @param max_resources_count max number of resources in pool
+    * @brief Changes maximum cache size
+    * @param max_resources_count max number of resources in cache
+    *
+    * @throws TimedLruCacheError in case of failure
     */
    void setMaxSize(uint32_t max_resources_count) {
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
+
       if(resources_.size() > max_resources_count)
       {
-         throw std::runtime_error("Can not resize pool, because actual size of pool is bigger then new maximum size!");
+         throw TimedLruCacheError(TimedLruCacheError::Type::OTHER, "Can not resize cache, because actual size of cache is bigger then new maximum size!");
       }
       max_resources_ = max_resources_count;
-   }
-
-   /**
-    * @brief Pops the least recent used used resource
-    */
-   void popLru() {
-      if (resources_by_last_access_.empty() == false) {
-         resources_by_last_access_.erase(resources_by_last_access_.begin());
-      }
    }
 
    /**
@@ -183,6 +251,9 @@ public:
     * @param key
     */
    void erase(const KeyType& key) {
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
+
       auto resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          resources_by_key_.erase(resource);
@@ -228,6 +299,29 @@ private:
    // Lambda that automatically creates new resource of type ValueType
    ResourceCreator resource_creator_;
 
+   // Synchronization attributes
+   std::timed_mutex                 mutex_;
+   std::chrono::milliseconds        timeout_;
+
+   /**
+    * @throws TimedLruCacheError in case provided unique_lock has not an associated mutex or has not acquired ownership of it
+    */
+   void checkLock(const std::unique_lock<std::timed_mutex>& lock) {
+      if (!lock) {
+         throw TimedLruCacheError(TimedLruCacheError::Type::TIMEOUT);
+      }
+   }
+
+   /**
+    * @brief Pops the least recent used used resource
+    */
+   void popLru() {
+      // Do not lock internal mutex as it is already locked by methods that call this method
+      if (resources_by_last_access_.empty() == false) {
+         resources_by_last_access_.erase(resources_by_last_access_.begin());
+      }
+   }
+
 
    /**
     * @brief Defines boost multiindex container that stores resource objects
@@ -254,4 +348,4 @@ private:
 };
 
 }
-#endif //LRU_RESOURCE_POOL_HPP
+#endif //TIMED_LRU_CACHE_HPP
