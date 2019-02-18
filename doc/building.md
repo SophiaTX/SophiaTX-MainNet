@@ -100,6 +100,18 @@ Here is how to build and install Boost 1.67 into your user's home directory
     cd boost_1_67_0
     ./bootstrap.sh "--prefix=$BOOST_ROOT"
     ./b2 -j$(nproc) install
+    
+## Building SQLite 3.25.3
+
+SophiaTX requires SQLite 3.25.3.
+Here is how to build and install SQLite 3.25.3 into your user's home directory
+
+    export SQLITE_ROOT=$HOME/opt/sqlite_3_25_3
+    wget https://www.sqlite.org/2018/sqlite-autoconf-3250300.tar.gz
+    tar -xvzf sqlite-autoconf-3250300.tar.gz
+    cd sqlite-autoconf-3250300
+    CFLAGS="-fPIC -ldl -DSQLITE_ENABLE_COLUMN_METADATA" ./configure --prefix=$SQLITE_ROOT
+    make install
 
 ## Building on macOS X
 
