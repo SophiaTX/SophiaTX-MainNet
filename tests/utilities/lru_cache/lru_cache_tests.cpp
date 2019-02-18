@@ -1,19 +1,19 @@
 #include <boost/test/unit_test.hpp>
 #include <fc/exception/exception.hpp>
-#include <fc/timed_lru_cache.hpp>
+#include <fc/lru_cache.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <iostream>
 
-BOOST_AUTO_TEST_SUITE( timed_lru_cache_tests )
+BOOST_AUTO_TEST_SUITE( lru_cache_tests )
 
-BOOST_AUTO_TEST_CASE( timed_lru_cache_tests )
+BOOST_AUTO_TEST_CASE( lru_cache_tests )
 {
    try
    {
-      BOOST_TEST_MESSAGE( "Testing: timed_lru_cache" );
+      BOOST_TEST_MESSAGE( "Testing: lru_cache" );
       constexpr uint32_t max_pool_size = 3;
 
-      fc::TimedLruCache<std::string, std::string> resourcePool(max_pool_size, std::chrono::milliseconds(100));
+      fc::LruCache<std::string, std::string> resourcePool(max_pool_size, std::chrono::milliseconds(100));
       resourcePool.emplace("key1", "value1");
       resourcePool.emplace("key2", "value2");
       resourcePool.emplace("key3", "value3");

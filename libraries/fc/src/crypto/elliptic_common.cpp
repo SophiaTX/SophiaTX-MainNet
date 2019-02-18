@@ -19,7 +19,7 @@
 #define BTC_EXT_PUB_MAGIC   (0x0488B21E)
 #define BTC_EXT_PRIV_MAGIC  (0x0488ADE4)
 
-boost::optional<fc::TimedLruCache<fc::ecc::compact_signature, fc::ecc::public_key>> fc::ecc::public_key::kPubKeyCache = {};
+boost::optional<fc::LruCache<fc::ecc::compact_signature, fc::ecc::public_key>> fc::ecc::public_key::kPubKeyCache = {};
 
 namespace fc { namespace ecc {
 
@@ -223,7 +223,7 @@ namespace fc { namespace ecc {
          try {
             return kPubKeyCache->emplace(c, c, digest);
          }
-         catch(const fc::TimedLruCacheError& e) {
+         catch(const fc::LruCacheError& e) {
             elog(e.what());
          }
       }
