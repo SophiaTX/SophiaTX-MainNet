@@ -6,7 +6,7 @@
 #include <fc/fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/io/raw_fwd.hpp>
-#include <fc/lru_resource_pool.hpp>
+#include <fc/lru_cache.hpp>
 
 namespace fc {
 
@@ -55,7 +55,7 @@ namespace fc {
            public_key( const public_key_data& v );
            public_key( const public_key_point_data& v );
 
-           static void init_cache(uint32_t cache_size);
+           static void init_cache(uint32_t cache_size, const std::chrono::milliseconds& timeout);
 
            static public_key recover_key( const compact_signature& c, const fc::sha256& digest, canonical_signature_type canon_type = fc_canonical );
 
@@ -90,12 +90,12 @@ namespace fc {
            static bool is_canonical( const compact_signature& c, canonical_signature_type canon_type );
 
         private:
-          friend class fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key>;
+          friend class fc::LruCache<fc::ecc::compact_signature, fc::ecc::public_key>;
           public_key( const compact_signature& c, const fc::sha256& digest);
           friend class private_key;
           static public_key from_key_data( const public_key_data& v );
           fc::fwd<detail::public_key_impl,33> my;
-          static boost::optional<fc::LruResourcePool<fc::ecc::compact_signature, fc::ecc::public_key>> kPubKeyCache;
+          static boost::optional<fc::LruCache<fc::ecc::compact_signature, fc::ecc::public_key>> kPubKeyCache;
     };
 
     /**
