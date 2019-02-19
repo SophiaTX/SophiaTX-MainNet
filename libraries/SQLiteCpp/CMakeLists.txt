@@ -103,7 +103,7 @@ if(SOPHIA_STATIC_BUILD)
 endif(SOPHIA_STATIC_BUILD)
 
 # Fing sqlite library
-find_package (SQLite3 3.25.3 REQUIRED)
+find_package (SQLite3 3.22.1 REQUIRED)
 if (SQLite3_FOUND)
     message (STATUS "Found SQLite version: ${SQLite3_VERSION}")
 endif (SQLite3_FOUND)
