@@ -11,9 +11,6 @@ while getopts "h:u:s:r" opt; do
     s)
       sourceUrl="$OPTARG"
       ;;
-    r)
-      replayBlockchain=true
-      ;;
     *)
   esac
 done
@@ -30,12 +27,7 @@ then
   sourceUrl="https://jenkins.sophiatx.com/job/SophiaTX-develop/lastSuccessfulBuild/artifact/*zip*/archive.zip"
 fi
 
-if [[ -z $replayBlockchain ]]
-then
-  replayBlockchain=false
-fi
-
-ansible-playbook ansible/playbooks/deploy-node.yml --extra-vars "host=$host user=$user sourceUrl=$sourceUrl replayBlockchain=$replayBlockchain" -i $host,
+ansible-playbook ansible/playbooks/deploy-node.yml --extra-vars "host=$host user=$user sourceUrl=$sourceUrl" -i $host,
 
 if [ $? -ne 0 ]; then
   echo "ERROR while updating node on \"${host}\". Error code: $?"

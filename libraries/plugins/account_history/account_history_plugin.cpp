@@ -10,7 +10,6 @@
 #include <sophiatx/utilities/plugin_utilities.hpp>
 
 #include <fc/io/json.hpp>
-#include <fc/smart_ref_impl.hpp>
 
 #include <boost/algorithm/string.hpp>
 

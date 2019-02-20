@@ -114,10 +114,5 @@
     ignore_errors: yes # ignore error when there are no running sessions
 
 
-  - name: Starting sophia demon with --replay-blockchain flag
-    command: screen -dmS sophia bash -c 'ulimit -c unlimited; {{ source_dir }}sophiatxd --data-dir {{ data_dir }} --config {{ configs_dir }}{{ config_file_name }} --replay-blockchain; exec $SHELL'
-    when: replayBlockchain == "true"
-
   - name: Starting sophia demon
     command: screen -dmS sophia bash -c 'ulimit -c unlimited; {{ source_dir }}sophiatxd --data-dir {{ data_dir }} --config {{ configs_dir }}{{ config_file_name }}; exec $SHELL'
-    when: replayBlockchain == "false"
