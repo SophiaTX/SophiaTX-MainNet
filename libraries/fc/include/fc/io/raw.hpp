@@ -5,7 +5,6 @@
 #include <fc/io/varint.hpp>
 #include <fc/optional.hpp>
 #include <fc/fwd.hpp>
-#include <fc/smart_ref_fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/time.hpp>
 #include <fc/filesystem.hpp>
@@ -32,6 +31,7 @@ namespace fc {
        fc::raw::pack( s, std::string(e.what()) );
        fc::raw::pack( s, e.get_log() );
     }
+
     template<typename Stream>
     inline void unpack( Stream& s, fc::exception& e, uint32_t depth )
     {
@@ -228,15 +228,6 @@ namespace fc {
        FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
        depth++;
        fc::raw::unpack( *v, depth );
-    }
-    template<typename Stream, typename T>
-    void pack( Stream& s, const fc::smart_ref<T>& v ) { fc::raw::pack( s, *v ); }
-
-    template<typename Stream, typename T>
-    void unpack( Stream& s, fc::smart_ref<T>& v, uint32_t depth ) { 
-       FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
-       depth++;
-       fc::raw::unpack( s, *v, depth ); 
     }
 
     // optional
