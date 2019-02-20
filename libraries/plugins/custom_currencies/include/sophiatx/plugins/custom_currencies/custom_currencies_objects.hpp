@@ -2,7 +2,7 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <boost/multi_index/composite_key.hpp>
 
-namespace sophiatx { namespace plugins { namespace multiparty_messaging {
+namespace sophiatx { namespace plugins { namespace custom_currencies {
 
 using namespace std;
 using namespace sophiatx::chain;
@@ -17,8 +17,8 @@ using namespace sophiatx::chain;
 // various template automagic depends on them being known at compile
 // time.
 //
-#ifndef SOPHIATX_MULTIPARTY_MESSAGING_SPACE_ID
-#define SOPHIATX_MULTIPARTY_MESSAGING_SPACE_ID 121
+#ifndef SOPHIATX_CUSTOM_CURRENCIES_SPACE_ID
+#define SOPHIATX_CUSTOM_CURRENCIES_SPACE_ID 122
 #endif
 
 typedef vector<char> encrypted_key;
@@ -65,8 +65,8 @@ struct group_meta{
 
 enum mpm_object_types
 {
-   group_object_type = ( SOPHIATX_MULTIPARTY_MESSAGING_SPACE_ID << 8 ),
-   message_object_type = ( SOPHIATX_MULTIPARTY_MESSAGING_SPACE_ID << 8 )+1
+   group_object_type = ( SOPHIATX_CUSTOM_CURRENCIES_SPACE_ID << 8 ),
+   message_object_type = ( SOPHIATX_CUSTOM_CURRENCIES_SPACE_ID << 8 )+1
 };
 
 class group_object : public object< group_object_type, group_object >
@@ -150,14 +150,14 @@ typedef multi_index_container<
 > group_index;
 
 
-} } } // sophiatx::plugins::multiparty_messaging
+} } } // sophiatx::plugins::custom_currencies
 
 
-FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_op, (version)(type)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_meta, (sender)(recipient)(iv)(data))
-FC_REFLECT( sophiatx::plugins::multiparty_messaging::group_object, (id)(group_name)(current_group_name)(description)(members)(admin)(group_key)(current_seq) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )
-FC_REFLECT( sophiatx::plugins::multiparty_messaging::message_wrapper, (type)(message_data)(operation_data) )
+FC_REFLECT( sophiatx::plugins::custom_currencies::group_op, (version)(type)(new_group_name)(description)(user_list)(senders_pubkey)(new_key) )
+FC_REFLECT( sophiatx::plugins::custom_currencies::group_meta, (sender)(recipient)(iv)(data))
+FC_REFLECT( sophiatx::plugins::custom_currencies::group_object, (id)(group_name)(current_group_name)(description)(members)(admin)(group_key)(current_seq) )
+FC_REFLECT( sophiatx::plugins::custom_currencies::message_object, (id)(group_name)(sender)(recipients)(data)(system_message)(sequence) )
+FC_REFLECT( sophiatx::plugins::custom_currencies::message_wrapper, (type)(message_data)(operation_data) )
 
-CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging::message_object, sophiatx::plugins::multiparty_messaging::message_index )
-CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::multiparty_messaging::group_object, sophiatx::plugins::multiparty_messaging::group_index )
+CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::custom_currencies::message_object, sophiatx::plugins::custom_currencies::message_index )
+CHAINBASE_SET_INDEX_TYPE( sophiatx::plugins::custom_currencies::group_object, sophiatx::plugins::custom_currencies::group_index )
