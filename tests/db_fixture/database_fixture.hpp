@@ -3,7 +3,6 @@
 #include <appbase/application.hpp>
 #include <sophiatx/chain/database/database.hpp>
 #include <fc/io/json.hpp>
-#include <fc/smart_ref_impl.hpp>
 
 #include <sophiatx/plugins/debug_node/debug_node_plugin.hpp>
 
