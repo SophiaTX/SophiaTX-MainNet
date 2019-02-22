@@ -17,6 +17,7 @@
 #include <sophiatx/chain/operation_notification.hpp>
 #include <sophiatx/chain/witness_schedule.hpp>
 #include <sophiatx/chain/application_object.hpp>
+#include <sophiatx/chain/account_bandwidth_object.hpp>
 
 #include <sophiatx/chain/util/uint256.hpp>
 
@@ -1326,6 +1327,7 @@ void database::initialize_indexes()
    add_core_index< application_buying_index                >(shared_from_this());
    add_core_index< custom_content_index                    >(shared_from_this());
    add_core_index< account_fee_sponsor_index               >(shared_from_this());
+   add_core_index< account_bandwidth_index                 >(shared_from_this());
    _plugin_index_signal();
 }
 
@@ -1981,6 +1983,7 @@ void database::_apply_transaction(const signed_transaction& trx)
 
    notify_on_pre_apply_transaction( trx );
 
+
    //Finally process the operations
    _current_op_in_trx = 0;
    for( const auto& op : trx.operations )
@@ -2003,6 +2006,80 @@ void database::apply_operation(const operation& op)
    process_operation_fee(op);
    _evaluator_registry.get_evaluator( op ).apply( op );
    notify_post_apply_operation( note );
+}
+
+void database::process_tx_bandwidth(const signed_transaction& trx) {
+   account_bandwidth_object trx_bandwidth_data;
+
+   trx_bandwidth_data.total_bandwidth = fc::raw::pack_size(trx.operations);
+   trx_bandwidth_data.total_tx_count = trx.operations.size();
+   trx_bandwidth_data.act_fee_free_bandwidth = 0;
+   trx_bandwidth_data.act_fee_free_tx_count = 0;
+
+   bool fee_free_op_present = false;
+   for (const operation& op : trx.operations) {
+      if (is_fee_free_operation(op) == true) {
+         trx_bandwidth_data.act_fee_free_bandwidth += fc::raw::pack_size(op);
+         trx_bandwidth_data.act_fee_free_tx_count++;
+         fee_free_op_present = true;
+      }
+   }
+
+   // If there were some fee-free operations, add also transaction meta info into consumed fee-free bandwidth
+   if (fee_free_op_present == true) {
+      trx_bandwidth_data.act_fee_free_bandwidth += fc::raw::pack_size(trx) - tmp_bandwidth_obj.total_bandwidth;
+   }
+
+
+   flat_set< account_name_type > required; vector<authority> other;
+   trx.get_required_authorities( required, required, other );
+
+   // Updates all involved accounts bandwidth
+   for( const auto& auth : required )
+   {
+      const auto& account = this->get_account( auth );
+      update_account_bandwidth( account.name, trx_bandwidth_data);
+   }
+}
+
+void database::update_account_bandwidth(const account_name_type& account, const account_bandwidth_object& trx_bandwidth_data) {
+   // Adjusts account bandwidth statistics
+   const account_bandwidth_object* acc_bandwidth = this->find<account_bandwidth_object, by_account>(account);
+   uint32_t act_head_block = this->head_block_num();
+
+   if (acc_bandwidth == nullptr) {
+      acc_bandwidth = &this->create<account_bandwidth_object>( [&](account_bandwidth_object& abo) {
+         abo.account = account;
+         abo.total_bandwidth = trx_bandwidth_data.total_bandwidth;
+         abo.total_tx_count = trx_bandwidth_data.total_tx_count;
+         abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
+         abo.act_fee_free_tx_count = trx_bandwidth_data.act_fee_free_tx_count;
+         abo.last_block_num_reset = act_head_block;
+      });
+   }
+   else {
+      if (act_head_block - acc_bandwidth->last_block_num_reset > 10/*TODO: time-frame-blocks from config*/) {
+         this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
+            abo.total_bandwidth += trx_bandwidth_data.total_bandwidth;
+            abo.total_tx_count += trx_bandwidth_data.total_tx_count;
+            abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
+            abo.act_fee_free_tx_count = trx_bandwidth_data.act_fee_free_tx_count;
+            abo.last_block_num_reset = act_head_block;
+         });
+      }
+      else {
+         this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
+            abo.total_bandwidth += trx_bandwidth_data.total_bandwidth;
+            abo.total_tx_count += trx_bandwidth_data.total_tx_count;
+            abo.act_fee_free_bandwidth += trx_bandwidth_data.act_fee_free_bandwidth;
+            abo.act_fee_free_tx_count += trx_bandwidth_data.act_fee_free_tx_count;
+         });
+      }
+   }
+
+   // Validates max fee-free allowed bandwidth/ops count
+   SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_bandwidth <= 10/*TODO: time-frame from config*/, tx_exceeded_bandwidth, "Fee free bandwidth exceeded");
+   SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_tx_count <= 1/*TODO: time-frame from config*/, tx_exceeded_bandwidth, "Fee free ops count exceeded");
 }
 
 const witness_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const

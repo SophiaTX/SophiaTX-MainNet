@@ -73,9 +73,9 @@ namespace sophiatx { namespace protocol {
 
    void operation_validate( const operation& op );*/
 
-   bool is_market_operation( const operation& op );
-
    bool is_virtual_operation( const operation& op );
+
+   bool is_fee_free_operation( const operation& op );
 
 } } // sophiatx::protocol
 

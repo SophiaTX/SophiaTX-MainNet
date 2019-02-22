@@ -306,6 +306,21 @@ private:
 
    void apply_operation(const operation &op);
 
+   /**
+    * @brief Process transaction in terms of bandwidth and updates corresponding accounts
+    *
+    * @param trx
+    */
+   void process_tx_bandwidth(const signed_transaction& trx);
+
+   /**
+    * @brief Updates account bandwidth according to provided tsansaction data
+    *
+    * @param account
+    * @param trx
+    */
+   void update_account_bandwidth(const account_name_type& account, const account_bandwidth_object& trx_bandwidth_data);
+
    ///Steps involved in applying a new block
    ///@{
 
