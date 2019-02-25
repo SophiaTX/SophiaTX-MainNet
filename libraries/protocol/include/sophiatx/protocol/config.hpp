@@ -128,6 +128,13 @@
 #define SOPHIATX_MINER_PAY_PERCENT               (SOPHIATX_1_PERCENT) // 1%
 #define SOPHIATX_MAX_RATION_DECAY_RATE           (1000000)
 
+// bandwidth and total tx num counters are reset to zero every SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
+#define SOPHIATX_LIMIT_BANDWIDTH_BLOCKS          1    // [count]
+// max allowed fee-free transactions bandwidth [Bytes] per account during SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
+#define SOPHIATX_MAX_ALLOWED_BANDWIDTH           2000  // [Bytes]
+// max allowed fee-free operations count per account during SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
+#define SOPHIATX_MAX_ALLOWED_OPS_COUNT           10    // [count]
+
 #define SOPHIATX_BANDWIDTH_AVERAGE_WINDOW_SECONDS (60*60*24*7) ///< 1 week
 #define SOPHIATX_BANDWIDTH_PRECISION             (uint64_t(1000000)) ///< 1 million
 
