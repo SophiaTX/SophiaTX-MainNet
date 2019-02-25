@@ -1971,6 +1971,12 @@ void database::_apply_transaction(const signed_transaction& trx)
       SOPHIATX_ASSERT( now <= trx.expiration, transaction_expiration_exception, "", ("now",now)("trx.exp",trx.expiration) );
    }
 
+#ifdef SOPHIATX_HARDFORK_1_2  // TODO: change to hasHardfork
+   // Process transaction in terms of bandwidth and updates according account's bandwidth statistics.
+   // Throws tx_exceeded_bandwidth exception in case max allowed bandwidth validation fails
+   process_tx_bandwidth(trx);
+#endif
+
    //Insert transaction into unique transactions database.
    if( !(skip & skip_transaction_dupe_check) )
    {
@@ -2027,7 +2033,7 @@ void database::process_tx_bandwidth(const signed_transaction& trx) {
 
    // If there were some fee-free operations, add also transaction meta info into consumed fee-free bandwidth
    if (fee_free_op_present == true) {
-      trx_bandwidth_data.act_fee_free_bandwidth += fc::raw::pack_size(trx) - tmp_bandwidth_obj.total_bandwidth;
+      trx_bandwidth_data.act_fee_free_bandwidth += fc::raw::pack_size(trx) - trx_bandwidth_data.total_bandwidth;
    }
 
 
@@ -2058,7 +2064,7 @@ void database::update_account_bandwidth(const account_name_type& account, const 
       });
    }
    else {
-      if (act_head_block - acc_bandwidth->last_block_num_reset > 10/*TODO: time-frame-blocks from config*/) {
+      if (act_head_block - acc_bandwidth->last_block_num_reset > SOPHIATX_LIMIT_BANDWIDTH_BLOCKS/*TODO: read from config for private nets*/) {
          this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
             abo.total_bandwidth += trx_bandwidth_data.total_bandwidth;
             abo.total_tx_count += trx_bandwidth_data.total_tx_count;
@@ -2078,8 +2084,21 @@ void database::update_account_bandwidth(const account_name_type& account, const 
    }
 
    // Validates max fee-free allowed bandwidth/ops count
-   SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_bandwidth <= 10/*TODO: time-frame from config*/, tx_exceeded_bandwidth, "Fee free bandwidth exceeded");
-   SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_tx_count <= 1/*TODO: time-frame from config*/, tx_exceeded_bandwidth, "Fee free ops count exceeded");
+   SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_bandwidth <= SOPHIATX_MAX_ALLOWED_BANDWIDTH/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
+         "Fee-free operations max. allowed bandwidth exceeded."
+         "Wait for the next counter reset, which happens after: ",
+         ("block_num", acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
+         ("act_bandwidth",acc_bandwidth->act_fee_free_bandwidth)
+         ("max_bandwidth",SOPHIATX_MAX_ALLOWED_BANDWIDTH)
+         );
+
+   SOPHIATX_ASSERT( acc_bandwidth->act_fee_free_tx_count <= SOPHIATX_MAX_ALLOWED_OPS_COUNT/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
+        "Fee-free operations max. allowed count exceeded."
+        "Wait for the next counter reset, which happens after: ",
+        ("block_num", acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
+        ("act_ops_count",acc_bandwidth->act_fee_free_tx_count)
+        ("max_ops_count",SOPHIATX_MAX_ALLOWED_OPS_COUNT)
+        );
 }
 
 const witness_object& database::validate_block_header( uint32_t skip, const signed_block& next_block )const

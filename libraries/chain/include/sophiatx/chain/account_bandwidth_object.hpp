@@ -33,11 +33,11 @@ public:
     */
    uint64_t          total_tx_count;
    /**
-    * Actual(during last time frame <1,n> blocks - defined in config) fee free transactions bandwidth [Bytes]
+    * Actual(during last time frame <head_block, SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free transactions bandwidth [Bytes]
     */
    uint64_t          act_fee_free_bandwidth;
    /**
-    * Actual(during last time frame <1,n> blocks - defined in config) fee free transactions count
+    * Actual(during last time frame <head_block, SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free transactions count
     */
    uint64_t          act_fee_free_tx_count;
    /**

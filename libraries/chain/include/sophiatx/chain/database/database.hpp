@@ -308,13 +308,17 @@ private:
 
    /**
     * @brief Process transaction in terms of bandwidth and updates corresponding accounts
+    * @note see update_account_bandwidth for possible scenarios when exception is thrown through SOPHIATX_ASSERT
     *
     * @param trx
     */
    void process_tx_bandwidth(const signed_transaction& trx);
 
    /**
-    * @brief Updates account bandwidth according to provided tsansaction data
+    * @brief Updates account bandwidth according to provided transaction data
+    * @throws tx_exceeded_bandwidth if at least one of the following conditions is met:
+    *           1. max allowed fee-free operations bandwidth for provided account was exceeded
+    *           2. max allowed fee-free operations count for provided account was exceeded
     *
     * @param account
     * @param trx
