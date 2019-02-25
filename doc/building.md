@@ -47,7 +47,8 @@ will build out of the box without further effort:
         pkg-config \
         python3 \
         python3-jinja2 \
-        zlib1g-dev
+        zlib1g-dev \
+        libsqlite3-dev
         
     # Boost packages (also required)
     sudo apt-get install -y \
@@ -129,7 +130,8 @@ Install Homebrew by following the instructions here: http://brew.sh/
         boost \
         libtool \
         openssl \
-        python3
+        python3 \
+        sqlite3
         
     pip3 install --user jinja2
     
