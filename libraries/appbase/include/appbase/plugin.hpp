@@ -44,8 +44,8 @@ public:
    virtual void initialize(const variables_map& options) = 0;
    virtual void startup() = 0;
    virtual void shutdown() = 0;
-   void set_app(application& my_app) { _app = &my_app; }
-   application* app() { return _app; }
+   virtual void set_app(application& my_app) { _app = &my_app; }
+   virtual application* app() { return _app; }
 
 protected:
    using plugin_processor = std::function<void(abstract_plugin&)>;
@@ -147,7 +147,7 @@ class plugin_factory : public abstract_plugin_factory
 {
 public:
    virtual ~plugin_factory(){}
-   virtual std::shared_ptr<abstract_plugin> new_plugin( ) const final {
+   virtual std::shared_ptr<abstract_plugin> new_plugin( ) const {
       std::shared_ptr<abstract_plugin> new_plg = std::make_shared<Plugin>();
       return new_plg;
    }

@@ -65,7 +65,13 @@ public:
       }
    }
 
-   application& new_application( const string& id);
+   application& new_application( const string& id );
+
+   application& new_application( const string& id, application app );
+
+   application& get_application( const string& id ){
+      return apps.at(id);
+   }
 
    template<typename Plugin>
    std::shared_ptr< abstract_plugin > new_plugin(){
