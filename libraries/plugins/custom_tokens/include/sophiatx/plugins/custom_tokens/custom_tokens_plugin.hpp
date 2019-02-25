@@ -5,35 +5,35 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/json_rpc_plugin.hpp>
 
-#define SOPHIATX_CC_PLUGIN_NAME "custom_currencies"
+#define SOPHIATX_CT_PLUGIN_NAME "custom_tokens"
 
 namespace sophiatx {
 namespace plugins {
-namespace custom_currencies {
+namespace custom_tokens {
 
-namespace detail { class custom_currencies_plugin_impl; }
+namespace detail { class custom_tokens_plugin_impl; }
 
 using namespace appbase;
 
 namespace detail {
-class custom_currencies_api_impl;
+class custom_tokens_api_impl;
 
-class custom_currencies_plugin_impl;
+class custom_tokens_plugin_impl;
 }
 
 /**
  *  This plugin is designed to track a range of operations by account so that one node
  *  doesn't need to hold the full operation history in memory.
  */
-class custom_currencies_plugin : public plugin<custom_currencies_plugin> {
-   friend class detail::custom_currencies_api_impl;
+class custom_tokens_plugin : public plugin<custom_tokens_plugin> {
+   friend class detail::custom_tokens_api_impl;
 
-   friend class detail::custom_currencies_plugin_impl;
+   friend class detail::custom_tokens_plugin_impl;
 
 public:
-   custom_currencies_plugin();
+   custom_tokens_plugin();
 
-   ~custom_currencies_plugin() {};
+   ~custom_tokens_plugin() {};
 
    APPBASE_PLUGIN_REQUIRES(
          (sophiatx::plugins::chain::chain_plugin)
@@ -41,7 +41,7 @@ public:
    )
 
    static const std::string &name() {
-      static std::string name = SOPHIATX_CC_PLUGIN_NAME;
+      static std::string name = SOPHIATX_CT_PLUGIN_NAME;
       return name;
    }
 
@@ -56,12 +56,12 @@ public:
    virtual void plugin_shutdown() override;
 
    uint64_t app_id;
-   std::shared_ptr<class custom_currencies_api> api;
+   std::shared_ptr<class custom_tokens_api> api;
 private:
-   std::shared_ptr<detail::custom_currencies_plugin_impl> _my;
+   std::shared_ptr<detail::custom_tokens_plugin_impl> _my;
 };
 
 }
 }
-} //sophiatx::plugins::custom_currencies
+} //sophiatx::plugins::custom_tokens
 

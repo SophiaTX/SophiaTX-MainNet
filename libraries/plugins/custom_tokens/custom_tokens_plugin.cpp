@@ -1,6 +1,6 @@
-#include <sophiatx/plugins/custom_currencies/custom_currencies_plugin.hpp>
-#include <sophiatx/plugins/custom_currencies/custom_currencies_objects.hpp>
-#include <sophiatx/plugins/custom_currencies/custom_currencies_api.hpp>
+#include <sophiatx/plugins/custom_tokens/custom_tokens_plugin.hpp>
+#include <sophiatx/plugins/custom_tokens/custom_tokens_objects.hpp>
+#include <sophiatx/plugins/custom_tokens/custom_tokens_api.hpp>
 
 #include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/index.hpp>
@@ -10,21 +10,21 @@
 #include <fc/crypto/aes.hpp>
 #include <fc/io/raw.hpp>
 
-namespace sophiatx { namespace plugins { namespace custom_currencies {
+namespace sophiatx { namespace plugins { namespace custom_tokens {
 
 namespace detail {
 
-class custom_currencies_plugin_impl : public custom_operation_interpreter
+class custom_tokens_plugin_impl : public custom_operation_interpreter
 {
 public:
-   custom_currencies_plugin_impl( custom_currencies_plugin& _plugin ) :
+   custom_tokens_plugin_impl( custom_tokens_plugin& _plugin ) :
          _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ),
          app_id(_plugin.app_id) { }
 
-   virtual ~custom_currencies_plugin_impl(){}
+   virtual ~custom_tokens_plugin_impl(){}
    std::shared_ptr<database_interface>  _db;
-   custom_currencies_plugin&  _self;
+   custom_tokens_plugin&  _self;
 
    uint64_t                      app_id;
 
@@ -54,12 +54,12 @@ message_wrapper decode_message( const vector<char>& message, const fc::sha512& k
    return ret;
 }
 
-const group_object* custom_currencies_plugin_impl::find_group(account_name_type name) const
+const group_object* custom_tokens_plugin_impl::find_group(account_name_type name) const
 {
    return _db->find< group_object, by_current_name >( name );
 }
 
-template<typename T> void custom_currencies_plugin_impl::save_message(const group_object& go, const account_name_type sender, bool system_message, const T& data)const
+template<typename T> void custom_tokens_plugin_impl::save_message(const group_object& go, const account_name_type sender, bool system_message, const T& data)const
 {
    _db->create<message_object>([&](message_object& mo){
         mo.group_name = go.group_name;
@@ -74,7 +74,7 @@ template<typename T> void custom_currencies_plugin_impl::save_message(const grou
    });
 }
 
-fc::sha256 custom_currencies_plugin_impl::extract_key( const std::map<public_key_type, encrypted_key>& new_key_map, const fc::sha256& group_key, const fc::sha256& iv, const public_key_type& sender_key) const
+fc::sha256 custom_tokens_plugin_impl::extract_key( const std::map<public_key_type, encrypted_key>& new_key_map, const fc::sha256& group_key, const fc::sha256& iv, const public_key_type& sender_key) const
 {
    //first look for shared secret key
    for( const auto& pk: _self._private_keys ){
@@ -109,7 +109,7 @@ fc::sha256 custom_currencies_plugin_impl::extract_key( const std::map<public_key
    return fc::sha256();
 }
 
-void custom_currencies_plugin_impl::apply( const protocol::custom_json_operation& op )
+void custom_tokens_plugin_impl::apply( const protocol::custom_json_operation& op )
 {
    group_meta message_meta = fc::json::from_string(&op.json[ 0 ]).as<group_meta>();
 
@@ -203,9 +203,9 @@ void custom_currencies_plugin_impl::apply( const protocol::custom_json_operation
 
 } // detail
 
-custom_currencies_plugin::custom_currencies_plugin() {}
+custom_tokens_plugin::custom_tokens_plugin() {}
 
-void custom_currencies_plugin::set_program_options( options_description& cli, options_description& cfg )
+void custom_tokens_plugin::set_program_options( options_description& cli, options_description& cfg )
 {
    cfg.add_options()
          ("mpm-app-id", boost::program_options::value< uint64_t >()->default_value( 2 ), "App id used by the multiparty messaging" )
@@ -214,7 +214,7 @@ void custom_currencies_plugin::set_program_options( options_description& cli, op
    ;
 }
 
-void custom_currencies_plugin::plugin_initialize( const boost::program_options::variables_map& options )
+void custom_tokens_plugin::plugin_initialize( const boost::program_options::variables_map& options )
 {
    if( options.count( "mpm-app-id" ) ){
       app_id = options[ "mpm-app-id" ].as< uint64_t >();
@@ -223,8 +223,8 @@ void custom_currencies_plugin::plugin_initialize( const boost::program_options::
       return;
    }
 
-   _my = std::make_shared< detail::custom_currencies_plugin_impl >( *this );
-   api = std::make_shared< custom_currencies_api >(*this);
+   _my = std::make_shared< detail::custom_tokens_plugin_impl >( *this );
+   api = std::make_shared< custom_tokens_api >(*this);
 
    if( options.count("mpm-account") ) {
       const std::vector<std::string>& accounts = options["mpm-account"].as<std::vector<std::string>>();
@@ -247,20 +247,20 @@ void custom_currencies_plugin::plugin_initialize( const boost::program_options::
 
    try
    {
-      ilog( "Initializing custom_currencies_plugin_impl plugin" );
+      ilog( "Initializing custom_tokens_plugin_impl plugin" );
       auto& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
-      db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::custom_currencies_plugin_impl>(_my));
+      db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::custom_tokens_plugin_impl>(_my));
       add_plugin_index< group_index >(db);
       add_plugin_index< message_index >(db);
    }
    FC_CAPTURE_AND_RETHROW()
 }
 
-void custom_currencies_plugin::plugin_startup() {
+void custom_tokens_plugin::plugin_startup() {
    api->api_startup();
 }
 
-void custom_currencies_plugin::plugin_shutdown() {}
+void custom_tokens_plugin::plugin_shutdown() {}
 
-} } } // sophiatx::plugins::custom_currencies
+} } } // sophiatx::plugins::custom_tokens
