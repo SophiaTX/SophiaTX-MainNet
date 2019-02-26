@@ -2023,17 +2023,23 @@ void database::process_tx_bandwidth(const signed_transaction& trx) {
    trx_bandwidth_data.act_fee_free_ops_count = 0;
 
    bool fee_free_op_present = false;
+   bool paid_op_present     = false;
    for (const operation& op : trx.operations) {
       if (is_fee_free_operation(op) == true) {
+         // Count standalone fee-free operations bandwidth
          trx_bandwidth_data.act_fee_free_bandwidth += fc::raw::pack_size(op);
          trx_bandwidth_data.act_fee_free_ops_count++;
          fee_free_op_present = true;
       }
+      else {
+         paid_op_present = true;
+      }
    }
 
-   // If there were some fee-free operations, add also transaction meta info into consumed fee-free bandwidth
-   if (fee_free_op_present == true) {
-      trx_bandwidth_data.act_fee_free_bandwidth += trx_bandwidth_data.total_bandwidth - fc::raw::pack_size(trx.operations);
+   // If there are only fee-free operations, count as consumed fee-free bandwidth also transaction meta info,
+   // if there are also paid operations, count as consumed fee-free bandwidth ONLY standalone operations(see above)
+   if (paid_op_present == false && fee_free_op_present == true) {
+      trx_bandwidth_data.act_fee_free_bandwidth = trx_bandwidth_data.total_bandwidth;
    }
 
 

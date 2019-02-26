@@ -8,6 +8,14 @@ namespace sophiatx { namespace chain {
 
 using namespace sophiatx::chain;
 
+
+/**
+ * @brief account_bandwidth_object object is used for fee-free operations bandwidth/count limitation. There are 2 scenarios when transaction is rejected:
+ *          1. max allowed fee-free operations bandwidth for provided account was exceeded -> act_fee_free_bandwidth > SOPHIATX_MAX_ALLOWED_BANDWIDTH, or
+  *         2. max allowed fee-free operations count for provided account was exceeded     -> act_fee_free_bandwidth > SOPHIATX_MAX_ALLOWED_OPS_COUNT
+  *
+  *       Both "act_fee_free_bandwidth" and "act_fee_free_bandwidth" are reset to 0 every SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
+ */
 class account_bandwidth_object : public object< account_bandwidth_object_type, account_bandwidth_object >
 {
 public:
@@ -25,7 +33,7 @@ public:
     */
    account_name_type account;
    /**
-    * Total (lifetime) transactions bandwidth [Bytes]
+    * Total (lifetime) operations + transaction meta info bandwidth [Bytes]
     */
    uint64_t          total_bandwidth;
    /**
@@ -33,7 +41,8 @@ public:
     */
    uint64_t          total_ops_count;
    /**
-    * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free transactions bandwidth [Bytes]
+    * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free operations bandwidth [Bytes].
+    * In case there are only fee-free operations present in the transactions, also transaction meta info is counted into bandwidth, otherwise only fee-free operations
     */
    uint64_t          act_fee_free_bandwidth;
    /**
