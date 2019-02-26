@@ -145,13 +145,13 @@ typedef multi_index_container<
       custom_token_operation_object,
       indexed_by<
             ordered_unique<tag<by_id>, member<custom_token_operation_object, custom_token_transfer_id_type, &custom_token_operation_object::id> >,
-            ordered_non_unique<tag<by_account>, composite_key<custom_token_account_object,
-                  member<custom_token_account_object, account_name_type, &custom_token_account_object::account_name>,
-                  member<custom_token_account_object, uint64_t, &custom_token_account_object::account_sequence> >,
+            ordered_non_unique<tag<by_account>, composite_key<custom_token_operation_object,
+                  member<custom_token_operation_object, account_name_type, &custom_token_operation_object::account>,
+                  member<custom_token_operation_object, uint64_t, &custom_token_operation_object::account_sequence> >,
                   composite_key_compare<std::less<account_name_type>, std::greater<uint64_t> > >,
-            ordered_non_unique<tag<by_token_symbol>, composite_key<custom_token_account_object,
-                  member<custom_token_account_object, asset_symbol_type, &custom_token_account_object::token_symbol>,
-                  member<custom_token_account_object, uint64_t, &custom_token_account_object::token_sequence> >,
+            ordered_non_unique<tag<by_token_symbol>, composite_key<custom_token_operation_object,
+                  member<custom_token_operation_object, asset_symbol_type, &custom_token_operation_object::token_symbol>,
+                  member<custom_token_operation_object, uint64_t, &custom_token_operation_object::token_sequence> >,
                   composite_key_compare<std::less<asset_symbol_type>, std::greater<uint64_t> > >
       >,
       allocator<custom_token_operation_object>
@@ -163,9 +163,9 @@ typedef multi_index_container<
             ordered_unique<tag<by_id>, member<custom_token_error_object, custom_token_error_object_id_type, &custom_token_error_object::id> >,
             ordered_unique<tag<by_tx_id>, member<custom_token_error_object, transaction_id_type, &custom_token_error_object::trx_id> >,
             ordered_non_unique<tag<by_time>, member<custom_token_error_object, std::chrono::system_clock::time_point, &custom_token_error_object::time> >,
-            ordered_non_unique<tag<by_token_symbol>, composite_key<custom_token_account_object,
-                  member<custom_token_account_object, asset_symbol_type, &custom_token_account_object::token_symbol>,
-                  member<custom_token_account_object, uint64_t, &custom_token_account_object::token_sequence> >,
+            ordered_non_unique<tag<by_token_symbol>, composite_key<custom_token_error_object,
+                  member<custom_token_error_object, asset_symbol_type, &custom_token_error_object::token_symbol>,
+                  member<custom_token_error_object, uint64_t, &custom_token_error_object::token_sequence> >,
                   composite_key_compare<std::less<asset_symbol_type>, std::greater<uint64_t> > >
       >,
       allocator<custom_token_error_object>

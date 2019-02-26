@@ -4,263 +4,209 @@
 
 #include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/index.hpp>
-#include <sophiatx/chain/custom_operation_interpreter.hpp>
 #include <sophiatx/chain/operation_notification.hpp>
 #include <sophiatx/utilities/key_conversion.hpp>
-#include <fc/crypto/aes.hpp>
 #include <fc/io/raw.hpp>
 
-namespace sophiatx { namespace plugins { namespace custom_tokens {
+namespace sophiatx {
+namespace plugins {
+namespace custom_tokens {
 
 namespace detail {
 
-class custom_tokens_plugin_impl : public custom_operation_interpreter
-{
+class custom_tokens_plugin_impl {
 public:
-   custom_tokens_plugin_impl( custom_tokens_plugin& _plugin ) :
-         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
-         _self( _plugin ),
-         app_id(_plugin.app_id) { }
+   custom_tokens_plugin_impl(custom_tokens_plugin &_plugin) :
+         db_(_plugin.app()->get_plugin<sophiatx::plugins::chain::chain_plugin>().db()),
+         self_(_plugin),
+         app_id_(_plugin.app_id_) {}
 
-   virtual ~custom_tokens_plugin_impl(){}
-   std::shared_ptr<database_interface>  _db;
-   custom_tokens_plugin&  _self;
+   virtual ~custom_tokens_plugin_impl() {}
 
-   uint64_t                      app_id;
+   void post_operation(const operation_notification &op_obj);
 
-   virtual void apply( const protocol::custom_json_operation& op ) ;
-   virtual void apply( const protocol::custom_binary_operation & op ) { };
+   const std::string
+   save_token_error(const transaction_id_type &tx_id, const std::string &error, asset_symbol_type token_symbol = 0);
 
-private:
-   template<typename T> void save_message(const group_object& go, const account_name_type sender, bool system_message, const T& data)const;
-   fc::sha256 extract_key( const std::map<public_key_type, encrypted_key>& new_key_map, const fc::sha256& group_key, const fc::sha256& iv, const public_key_type& sender_key) const;
-   const group_object* find_group(account_name_type name) const;
+   std::shared_ptr<database_interface> db_;
+   custom_tokens_plugin &self_;
+
+   uint64_t app_id_;
+   bool prune_ = true;
+   boost::signals2::connection post_apply_connection;
 };
 
-message_wrapper decode_message( const vector<char>& message, const fc::sha256& iv, const fc::sha256& key )
-{
-   vector<char> raw_msg = fc::aes_decrypt(key, iv, message);
-   message_wrapper ret;
-   fc::raw::unpack_from_vector( raw_msg, ret, 0 );
-   return ret;
-}
+struct post_operation_visitor {
+   custom_tokens_plugin_impl &plugin_;
+   const operation_notification &note_;
 
+   post_operation_visitor(custom_tokens_plugin_impl &plugin, const operation_notification &note) : plugin_(plugin),
+                                                                                                   note_(note) {}
 
-message_wrapper decode_message( const vector<char>& message, const fc::sha512& key )
-{
-   vector<char> raw_msg = fc::aes_decrypt(key, message);
-   message_wrapper ret;
-   fc::raw::unpack_from_vector( raw_msg, ret, 0 );
-   return ret;
-}
+   typedef void result_type;
 
-const group_object* custom_tokens_plugin_impl::find_group(account_name_type name) const
-{
-   return _db->find< group_object, by_current_name >( name );
-}
+   template<typename T>
+   void operator()(const T &) const {}
 
-template<typename T> void custom_tokens_plugin_impl::save_message(const group_object& go, const account_name_type sender, bool system_message, const T& data)const
-{
-   _db->create<message_object>([&](message_object& mo){
-        mo.group_name = go.group_name;
-        mo.sequence = go.current_seq;
-        mo.sender = sender;
-        mo.recipients = go.members;
-        mo.system_message = system_message;
-        std::copy( data.begin(), data.end(), std::back_inserter(mo.data));
-   });
-   _db->modify(go, [&]( group_object& go){
-        go.current_seq++;
-   });
-}
+   void operator()(const custom_json_operation &op) const {
+      if( op.app_id == plugin_.app_id_ ) {
+         account_name_type from = op.sender;
+         FC_ASSERT(op.json.size(), "${s}",
+                   ("s", plugin_.save_token_error(note_.trx_id, "Empty action for custom token!")));
+         variant tmp = fc::json::from_string(&op.json[ 0 ]);
 
-fc::sha256 custom_tokens_plugin_impl::extract_key( const std::map<public_key_type, encrypted_key>& new_key_map, const fc::sha256& group_key, const fc::sha256& iv, const public_key_type& sender_key) const
-{
-   //first look for shared secret key
-   for( const auto& pk: _self._private_keys ){
-      const auto &nkm_itr =  new_key_map.find(pk.first);
-      if(  nkm_itr != new_key_map.end() ){
-         fc::sha512 sc = pk.second.get_shared_secret(sender_key);
-         vector<char> key_data = fc::aes_decrypt( sc, nkm_itr->second );
-         fc::sha256 key( key_data.data(), key_data.size());
-         return key;
-      }
-      //in case we are the sender, there won't be our key in the map... Let's try this:
-      if( pk.first == sender_key) {
-         auto nkm_itr = new_key_map.begin();
-         while( nkm_itr!= new_key_map.end() && nkm_itr->first == public_key_type())
-            nkm_itr++;
-         if( nkm_itr== new_key_map.end() )
-            continue;
-         fc::sha512 sc = pk.second.get_shared_secret(nkm_itr->first);
-         vector<char> key_data = fc::aes_decrypt(sc, nkm_itr->second);
-         fc::sha256 key(key_data.data(), key_data.size());
-         return key;
-      }
-   }
-
-   const auto &nkm_itr =  new_key_map.find(public_key_type());
-   if(  nkm_itr != new_key_map.end() ){
-      vector<char> key_data = fc::aes_decrypt( group_key, iv, nkm_itr->second );
-      fc::sha256 key ( key_data.data(), key_data.size());
-      return key;
-   }
-
-   return fc::sha256();
-}
-
-void custom_tokens_plugin_impl::apply( const protocol::custom_json_operation& op )
-{
-   group_meta message_meta = fc::json::from_string(&op.json[ 0 ]).as<group_meta>();
-
-   if( message_meta.iv ) //message sent to the group
-   {
-      //check to which address this message came, and by whom
-      for(account_name_type r: op.recipients){
-         const group_object* g_ob = find_group(r);
-         if( !g_ob ) continue;
-
-         message_wrapper message_content = decode_message( message_meta.data, *message_meta.iv, g_ob->group_key);
-         if( message_content.type == message_wrapper::message_type::group_operation ){
-            //process_group_operation( *message_content.operation_data);
-            FC_ASSERT(message_content.operation_data, "Message has incorrect format");
-            group_op g_op = *message_content.operation_data;
-            FC_ASSERT(g_op.version == 1 && op.sender == g_ob->admin, "Wrong version or wrong admin");
-            fc::sha256 new_key = extract_key( g_op.new_key, g_ob->group_key, *message_meta.iv, g_op.senders_pubkey );
-
-            if(g_op.type == "disband"){ //current_name changed to "" and perticipant list emptied
-               _db->modify(*g_ob, [&](group_object& go) {
-                    go.members.clear();
-                    go.current_group_name = "";
-                    go.group_key = fc::sha256();
-               });
-            }else if( g_op.type == "update" ){
-               _db->modify(*g_ob, [&](group_object& go) {
-                    //TODO - save the delta in user lists so we can store it in save_message
-                    go.members.clear();
-                    std::copy( g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
-                    if(g_op.new_group_name)      go.current_group_name = *g_op.new_group_name;
-                    if(new_key != fc::sha256() ) go.group_key = new_key;
-                    if(g_op.description.size())  from_string( go.description, g_op.description);
-               });
-            } else {
-               FC_THROW("Unknown group operation type");
-            }
-            save_message<string>( *g_ob, op.sender, true, fc::json::to_string<group_op>(*message_content.operation_data));
-
-         }else if( message_content.type == message_wrapper::message_type::message ){
-            save_message<vector<char>>( *g_ob, op.sender, false, *message_content.message_data);
-         } else {
-            FC_ASSERT(true, "incorrect message_type");
-         }
-      }
-      return;
-   }
-
-   if (message_meta.sender && message_meta.recipient) //message sent to the recipient
-   {
-      vector<account_name_type> involved_accounts;
-      std::copy(op.recipients.begin(), op.recipients.end(), std::back_inserter(involved_accounts));
-      involved_accounts.push_back(op.sender);
-      for( account_name_type r: involved_accounts ){
-         if( _self._accounts.find(r) != _self._accounts.end()) {
-            auto pk_r = _self._private_keys.find(*message_meta.recipient);
-            auto pk_s = _self._private_keys.find(*message_meta.sender);
-            fc::sha512 shared_secret;
-            if( pk_r != _self._private_keys.end())
-               shared_secret = pk_r->second.get_shared_secret(*message_meta.sender);
-            else if( pk_s != _self._private_keys.end())
-               shared_secret = pk_s->second.get_shared_secret(*message_meta.recipient);
-            else
-               return;
-
-            message_wrapper message_content = decode_message(message_meta.data, shared_secret);
-            FC_ASSERT(message_content.type == message_wrapper::message_type::group_operation &&
-                      message_content.operation_data);
-            group_op g_op = *message_content.operation_data;
-            FC_ASSERT(g_op.version == 1 && g_op.type == "add");
-            //check that this group is new to us
-            FC_ASSERT(g_op.new_group_name);
-            if( find_group(*g_op.new_group_name)) return;
-
-            fc::sha256 new_key = extract_key(g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender);
-            FC_ASSERT(new_key != fc::sha256());
-            const auto &g_ob = _db->create<group_object>([ & ](group_object &go) {
-                 go.group_name = *g_op.new_group_name;
-                 go.current_group_name = go.group_name;
-                 go.members.clear();
-                 std::copy(g_op.user_list->begin(), g_op.user_list->end(), std::back_inserter(go.members));
-                 go.admin = op.sender;
-                 go.group_key = new_key;
-                 from_string(go.description, g_op.description);
+         if( tmp[ "action" ].as<string>() == std::string("create_token")) {
+            plugin_.db_->create<custom_token_object>([ & ](custom_token_object &to) {
+                 to.owner_name = from;
+                 to.token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
+                 to.total_supply = tmp[ "total_supply" ].as<uint64_t>();
+                 if( tmp[ "max_supply" ].is_uint64())
+                    to.max_supply = tmp[ "max_supply" ].as<uint64_t>();
             });
-            save_message<string>(g_ob, op.sender, true, fc::json::to_string<group_op>(*message_content.operation_data));
+         } else if( tmp[ "action" ].as<string>() == std::string("pause_token")) {
+            auto token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
+            auto token = plugin_.db_->find<custom_token_object, by_token_symbol>(token_symbol);
+            FC_ASSERT(token, "${s}", ("s", plugin_.save_token_error(note_.trx_id, "No such a token!")));
+            if( token->owner_name == from ) {
+               plugin_.db_->modify(*token, [ & ](custom_token_object &to) {
+                    to.paused ^= true;
+               });
+            }
+         } else if( tmp[ "action" ].as<string>() == std::string("transfer_token")) {
+//            auto amount = tmp[ "amount" ].as<asset>();
+            //TODo check balance change account balance
+         } else if( tmp[ "action" ].as<string>() == std::string("burn_token")) {
+//            auto amount = tmp[ "amount" ].as<asset>();
+            //TODO check balance change account balance
+         } else if( tmp[ "action" ].as<string>() == std::string("issue_token")) {
+            auto token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
+            auto additional_amount = tmp[ "additional_amount" ].as<uint64_t>();
+            auto token = plugin_.db_->find<custom_token_object, by_token_symbol>(token_symbol);
+            FC_ASSERT(token, "${s}", ("s", plugin_.save_token_error(note_.trx_id, "No such a token!")));
+            if( token->owner_name == from && token->max_supply > token->total_supply + additional_amount ) {
+               plugin_.db_->modify(*token, [ & ](custom_token_object &to) {
+                    to.total_supply += additional_amount;
+               });
+               //TODO change_account_balance()
+            }
+         } else {
+            FC_ASSERT(false, "${s}", ("s", plugin_.save_token_error(note_.trx_id, "Unknown action for custom token!")));
          }
       }
    }
+
+};
+
+void custom_tokens_plugin_impl::post_operation(const operation_notification &note) {
+   note.op.visit(post_operation_visitor(*this, note));
 }
 
+//uint64_t custom_tokens_plugin_impl::get_account_balance(const account_name_type &name, asset_symbol_type token_symbol) {
+//   return db_->find<custom_token_account_object, by_token_and_account>(boost::make_tuple(name, token_symbol));
+//}
+//
+//void custom_tokens_plugin_impl::change_account_balance(const account_name_type &name, asset_symbol_type token_symbol) {
+//   return db_->find<custom_token_account_object, by_token_and_account>(boost::make_tuple(name, token_symbol));
+//}
+
+//void custom_tokens_plugin_impl::save_token_operation(const account_name_type &account, bool system_message,
+//                                                     const T &data) const {
+//   db_->create<custom_token_operation_object>([ & ](custom_token_operation_object &cto) {
+//        mo.group_name = go.group_name;
+//        mo.sequence = go.current_seq;
+//        mo.sender = sender;
+//        mo.recipients = go.members;
+//        mo.system_message = system_message;
+//        std::copy(data.begin(), data.end(), std::back_inserter(mo.data));
+//   });
+//   _db->modify(go, [ & ](group_object &go) {
+//        go.current_seq++;
+//   });
+//}
+
+const std::string custom_tokens_plugin_impl::save_token_error(const transaction_id_type &tx_id,
+                                                              const std::string &error,
+                                                              asset_symbol_type token_symbol) {
+   db_->create<custom_token_error_object>([ & ](custom_token_error_object &cto) {
+        cto.token_symbol = token_symbol;
+        cto.trx_id = tx_id;
+        from_string(cto.error, error);
+   });
+
+   if( prune_ ) {
+      // Clean up errors older then 30 days
+      auto now = std::chrono::system_clock::now();
+      const auto &seq_idx = db_->get_index<token_error_index, by_time>();
+      auto seq_itr = seq_idx.lower_bound(now);
+      vector<const custom_token_error_object *> to_remove;
+
+
+      if( seq_itr == seq_idx.begin())
+         return error;
+
+      --seq_itr;
+
+      while( now - seq_itr->time > std::chrono::hours(24 * 30)) {
+         to_remove.push_back(&(*seq_itr));
+         --seq_itr;
+      }
+
+      for( const auto *seq_ptr : to_remove ) {
+         db_->remove(*seq_ptr);
+      }
+   }
+   return error;
+}
 
 } // detail
 
 custom_tokens_plugin::custom_tokens_plugin() {}
 
-void custom_tokens_plugin::set_program_options( options_description& cli, options_description& cfg )
-{
+void custom_tokens_plugin::set_program_options(options_description &cli, options_description &cfg) {
    cfg.add_options()
-         ("mpm-app-id", boost::program_options::value< uint64_t >()->default_value( 2 ), "App id used by the multiparty messaging" )
-         ("mpm-account", boost::program_options::value<vector<string>>()->composing()->multitoken(), "Accounts tracked by the plugin. If not specified, tries to listen to all messages within the given app ID")
-         ("mpm-private-key", bpo::value<vector<string>>()->composing()->multitoken(), "WIF MEMO PRIVATE KEY to be used by one or more tracked accounts" )
-   ;
+         ("custom-token-app-id", boost::program_options::value<uint64_t>()->default_value(2),
+          "App id used by the custom token plugin")
+         ("custom-token-error-pruning", boost::program_options::value<bool>()->default_value(true),
+          "Enable/Disable cleaning (more then 30 days) old custom token errors");
 }
 
-void custom_tokens_plugin::plugin_initialize( const boost::program_options::variables_map& options )
-{
-   if( options.count( "mpm-app-id" ) ){
-      app_id = options[ "mpm-app-id" ].as< uint64_t >();
-   }else{
+void custom_tokens_plugin::plugin_initialize(const boost::program_options::variables_map &options) {
+   if( options.count("custom-token-app-id")) {
+      app_id_ = options[ "custom-token-app-id" ].as<uint64_t>();
+   } else {
       ilog("App ID not given, multiparty messaging is disabled");
       return;
    }
 
-   _my = std::make_shared< detail::custom_tokens_plugin_impl >( *this );
-   api = std::make_shared< custom_tokens_api >(*this);
+   my_ = std::make_shared<detail::custom_tokens_plugin_impl>(*this);
+   api_ = std::make_shared<custom_tokens_api>(*this);
 
-   if( options.count("mpm-account") ) {
-      const std::vector<std::string>& accounts = options["mpm-account"].as<std::vector<std::string>>();
-      for( const std::string& an:accounts ){
-         account_name_type account(an);
-         _accounts.insert(account);
-      }
+   if( options.count("custom-token-error-pruning")) {
+      my_->prune_ = options[ "custom-token-error-pruning" ].as<bool>();
    }
 
-   if( options.count("mpm-private-key") )
-   {
-      const std::vector<std::string> keys = options["mpm-private-key"].as<std::vector<std::string>>();
-      for (const std::string& wif_key : keys )
-      {
-         fc::optional<fc::ecc::private_key> private_key = sophiatx::utilities::wif_to_key(wif_key);
-         FC_ASSERT( private_key.valid(), "unable to parse private key" );
-         _private_keys[private_key->get_public_key()] = *private_key;
-      }
-   }
+   try {
+      ilog("Initializing custom_tokens_plugin_impl plugin");
+      auto &db = app()->get_plugin<sophiatx::plugins::chain::chain_plugin>().db();
 
-   try
-   {
-      ilog( "Initializing custom_tokens_plugin_impl plugin" );
-      auto& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      my_->post_apply_connection = db->post_apply_operation.connect(0, [ & ](const operation_notification &o) {
+           my_->post_operation(o);
+      });
 
-      db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::custom_tokens_plugin_impl>(_my));
-      add_plugin_index< group_index >(db);
-      add_plugin_index< message_index >(db);
+      add_plugin_index<token_index>(db);
+      add_plugin_index<token_accounts_index>(db);
+      add_plugin_index<token_operation_index>(db);
+      add_plugin_index<token_error_index>(db);
    }
    FC_CAPTURE_AND_RETHROW()
 }
 
-void custom_tokens_plugin::plugin_startup() {
-   api->api_startup();
+void custom_tokens_plugin::plugin_startup() {}
+
+void custom_tokens_plugin::plugin_shutdown() {
+   chain::util::disconnect_signal(my_->post_apply_connection);
 }
 
-void custom_tokens_plugin::plugin_shutdown() {}
-
-} } } // sophiatx::plugins::custom_tokens
+}
+}
+} // sophiatx::plugins::custom_tokens

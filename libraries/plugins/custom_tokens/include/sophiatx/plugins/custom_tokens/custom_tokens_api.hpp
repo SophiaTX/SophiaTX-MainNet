@@ -11,7 +11,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 
 namespace sophiatx {
 namespace plugins {
@@ -42,7 +41,9 @@ struct get_token_args {
    string token_symbol;
 };
 
-typedef optional<api_custom_token> get_token_return;
+struct get_token_return {
+   optional<api_custom_token> token;
+};
 
 class api_custom_token_account {
 public:
@@ -57,40 +58,40 @@ public:
 
 struct list_token_assets_args {
    string search_type; //"by_token", "by_account"
-   string search_field;
+   string search_field; //token name, account
    uint64_t start;
    uint32_t count;
 };
 
-typedef vector<api_custom_token_account> list_token_assets_return;
+struct list_token_assets_return {
+   std::map<uint64_t, api_custom_token_account> token_assets;
+};
 
-
-struct api_custom_token_operation_object
-{
+struct api_custom_token_operation_object {
    api_custom_token_operation_object() {}
-   api_custom_token_operation_object( const sophiatx::chain::operation_object& op_obj ) :
-         trx_id( op_obj.trx_id ),
-         block( op_obj.block ),
-         timestamp( op_obj.timestamp )
-   {
-      op = fc::raw::unpack_from_buffer< sophiatx::protocol::operation >( op_obj.serialized_op, 0 );
+
+   api_custom_token_operation_object(const sophiatx::chain::operation_object &op_obj) :
+         trx_id(op_obj.trx_id),
+         block(op_obj.block),
+         timestamp(op_obj.timestamp) {
+      op = fc::raw::unpack_from_buffer<sophiatx::protocol::operation>(op_obj.serialized_op, 0);
    }
 
    sophiatx::protocol::transaction_id_type trx_id;
-   uint32_t                               block = 0;
-   fc::time_point_sec                     timestamp;
-   sophiatx::protocol::operation          op;
+   uint32_t block = 0;
+   fc::time_point_sec timestamp;
+   sophiatx::protocol::operation op;
 };
 
 struct list_token_operations_args {
    string search_type; //"by_token", "by_account", "by_tx_id"
-   string start;
+   string search_field; //token name, account, tx_id
+   uint64_t start;
    uint32_t count;
 };
 
-struct list_token_operations_return
-{
-   std::map< uint64_t, api_custom_token_operation_object > history;
+struct list_token_operations_return {
+   std::map<uint64_t, api_custom_token_operation_object> history;
 };
 
 class api_custom_token_error {
@@ -98,27 +99,30 @@ public:
    api_custom_token_error() {}
 
    api_custom_token_error(const custom_token_error_object &cto) : trx_id(cto.trx_id),
+                                                                  token_symbol(cto.token_symbol.to_string()),
                                                                   error(to_string(cto.error)) {}
 
    transaction_id_type trx_id;
+   string token_symbol;
    string error;
 };
 
 struct list_token_errors_args {
    string search_type; //"by_index" (start = -1 -> latest), "by_tx_id"
-   string start;
+   string search_field; //token symbol, tx_id
+   uint64_t start;
    uint32_t count;
 };
 
-typedef vector<api_custom_token_error> list_token_errors_return;
+struct list_token_errors_return {
+   std::map<uint64_t, api_custom_token_error> errors;
+};
 
 class custom_tokens_api {
 public:
    custom_tokens_api(custom_tokens_plugin &plugin);
 
    ~custom_tokens_api();
-
-   void api_startup();
 
    DECLARE_API((get_token)(list_token_assets)(list_token_operations)(list_token_errors))
 
@@ -135,19 +139,28 @@ FC_REFLECT(sophiatx::plugins::custom_tokens::api_custom_token,
            (token_symbol)(owner_name)(total_supply)(max_supply)(burned)(paused))
 FC_REFLECT(sophiatx::plugins::custom_tokens::get_token_args,
            (token_symbol))
+FC_REFLECT(sophiatx::plugins::custom_tokens::get_token_return, (token))
+
 
 FC_REFLECT(sophiatx::plugins::custom_tokens::api_custom_token_account,
            (account_name)(amount))
 FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_assets_args,
            (search_type)(search_field)(start)(count))
+FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_assets_return,
+           (token_assets))
+
 
 FC_REFLECT(sophiatx::plugins::custom_tokens::api_custom_token_operation_object,
            (trx_id)(block)(timestamp)(op))
 FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_operations_args,
-           (search_type)(start)(count))
+           (search_type)(search_field)(start)(count))
+FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_operations_return,
+           (history))
+
 
 FC_REFLECT(sophiatx::plugins::custom_tokens::api_custom_token_error,
-           (trx_id)(error))
+           (trx_id)(token_symbol)(error))
 FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_errors_args,
-           (search_type)(start)(count))
-
+           (search_type)(search_field)(start)(count))
+FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_errors_return,
+           (errors))

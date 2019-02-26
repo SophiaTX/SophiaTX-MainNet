@@ -11,13 +11,10 @@ namespace sophiatx {
 namespace plugins {
 namespace custom_tokens {
 
-namespace detail { class custom_tokens_plugin_impl; }
-
 using namespace appbase;
 
 namespace detail {
 class custom_tokens_api_impl;
-
 class custom_tokens_plugin_impl;
 }
 
@@ -27,13 +24,12 @@ class custom_tokens_plugin_impl;
  */
 class custom_tokens_plugin : public plugin<custom_tokens_plugin> {
    friend class detail::custom_tokens_api_impl;
-
    friend class detail::custom_tokens_plugin_impl;
 
 public:
    custom_tokens_plugin();
 
-   ~custom_tokens_plugin() {};
+   ~custom_tokens_plugin() {}
 
    APPBASE_PLUGIN_REQUIRES(
          (sophiatx::plugins::chain::chain_plugin)
@@ -55,10 +51,10 @@ public:
 
    virtual void plugin_shutdown() override;
 
-   uint64_t app_id;
-   std::shared_ptr<class custom_tokens_api> api;
+   uint64_t app_id_;
+   std::shared_ptr<class custom_tokens_api> api_;
 private:
-   std::shared_ptr<detail::custom_tokens_plugin_impl> _my;
+   std::shared_ptr<detail::custom_tokens_plugin_impl> my_;
 };
 
 }

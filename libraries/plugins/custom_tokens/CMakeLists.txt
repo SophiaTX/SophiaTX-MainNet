@@ -5,8 +5,7 @@ add_library(custom_tokens_plugin
             custom_tokens_api.cpp
            )
 
-target_link_libraries(custom_tokens_plugin
-        alexandria_api_plugin chain_plugin sophiatx_chain sophiatx_protocol sophiatx_utilities json_rpc_plugin)
+target_link_libraries(custom_tokens_plugin chain_plugin sophiatx_chain sophiatx_protocol sophiatx_utilities json_rpc_plugin)
 
 target_include_directories(custom_tokens_plugin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
