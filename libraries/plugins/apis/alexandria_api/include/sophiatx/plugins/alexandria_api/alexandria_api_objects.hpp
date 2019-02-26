@@ -4,6 +4,7 @@
 #include <sophiatx/plugins/block_api/block_api_objects.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_objects.hpp>
 #include <sophiatx/plugins/database_api/database_api_objects.hpp>
+#include <sophiatx/chain/account_bandwidth_object.hpp>
 #include <sophiatx/plugins/custom_api/custom_api.hpp>  //TODO: separate custom_api_objects
 
 #include <sophiatx/chain/sophiatx_object_types.hpp>
@@ -258,6 +259,16 @@ struct extended_account : public api_account_object
    map< uint64_t, api_operation_object >   other_history;
    set< string >                           witness_votes;
    /// posts recommened for this user
+};
+
+struct account_bandwidth : public chain::account_bandwidth_object {
+   account_bandwidth(){}
+   account_bandwidth(const chain::account_bandwidth_object& abo ) :
+         chain::account_bandwidth_object( abo )
+   {}
+
+   // Block number when bandwidth counters are going to be reset
+   uint64_t next_reset_block_num = 0;
 };
 
 
@@ -526,6 +537,9 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_account_object,
 
 FC_REFLECT_DERIVED( sophiatx::plugins::alexandria_api::extended_account, (sophiatx::plugins::alexandria_api::api_account_object),
                     (vesting_balance)(transfer_history)(other_history)(witness_votes) )
+
+FC_REFLECT_DERIVED( sophiatx::plugins::alexandria_api::account_bandwidth, (sophiatx::chain::account_bandwidth_object),
+                    (next_reset_block_num) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)

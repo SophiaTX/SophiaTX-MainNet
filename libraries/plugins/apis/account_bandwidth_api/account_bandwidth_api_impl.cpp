@@ -12,8 +12,9 @@ DEFINE_API_IMPL(account_bandwidth_api_impl, get_account_bandwidth) {
    get_account_bandwidth_return result;
 
    auto band = _db->find<chain::account_bandwidth_object, chain::by_account>(args.account);
-   if (band != nullptr)
+   if (band != nullptr) {
       result.bandwidth = *band;
+   }
 
    return result;
 }
