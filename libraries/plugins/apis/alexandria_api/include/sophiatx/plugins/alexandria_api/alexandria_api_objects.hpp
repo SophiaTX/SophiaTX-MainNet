@@ -268,7 +268,7 @@ struct account_bandwidth : public chain::account_bandwidth_object {
    {}
 
    // Block number when bandwidth counters are going to be reset
-   uint64_t next_reset_block_num = 0;
+   uint64_t next_block_num_reset = 0;
 };
 
 
@@ -539,7 +539,7 @@ FC_REFLECT_DERIVED( sophiatx::plugins::alexandria_api::extended_account, (sophia
                     (vesting_balance)(transfer_history)(other_history)(witness_votes) )
 
 FC_REFLECT_DERIVED( sophiatx::plugins::alexandria_api::account_bandwidth, (sophiatx::chain::account_bandwidth_object),
-                    (next_reset_block_num) )
+                    (next_block_num_reset) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
