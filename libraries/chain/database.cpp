@@ -2087,7 +2087,7 @@ void database::update_account_bandwidth(const account_name_type& account, const 
       // Validates max fee-free allowed bandwidth/ops count
       SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_bandwidth <=
                       SOPHIATX_MAX_ALLOWED_BANDWIDTH/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
-                      "Fee-free operations max. allowed bandwidth exceeded."
+                      "Fee-free operations max. allowed bandwidth [Bytes] exceeded."
                       "Wait for the next counter reset, which happens after block# " + std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
                       ("next_reset_block_num", acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
                       ("act_bandwidth", acc_bandwidth->act_fee_free_bandwidth)
@@ -2097,7 +2097,7 @@ void database::update_account_bandwidth(const account_name_type& account, const 
       SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_ops_count <=
                       SOPHIATX_MAX_ALLOWED_OPS_COUNT/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
                       "Fee-free operations max. allowed count exceeded."
-                      "Wait for the next counter reset, which happens after: " + std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
+                      "Wait for the next counter reset, which happens after block# " + std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
                       ("next_reset_block_num", acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
                       ("act_ops_count", acc_bandwidth->act_fee_free_ops_count)
                       ("max_allowed_ops_count", SOPHIATX_MAX_ALLOWED_OPS_COUNT)
