@@ -2,6 +2,7 @@
 
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <boost/multi_index/composite_key.hpp>
+#include <sophiatx/chain/buffer_type.hpp>
 
 namespace sophiatx {
 namespace plugins {
@@ -70,7 +71,7 @@ class custom_token_operation_object
       : public object<custom_token_operation_object_type, custom_token_operation_object> {
 public:
    template<typename Constructor, typename Allocator>
-   custom_token_operation_object(Constructor &&c, allocator<Allocator> a) {
+   custom_token_operation_object(Constructor &&c, allocator<Allocator> a) : serialized_op(a.get_segment_manager()) {
       c(*this);
    }
 
@@ -78,7 +79,10 @@ public:
 
    account_name_type account;
    asset_symbol_type token_symbol;
-   operation_id_type op;
+   uint32_t block = 0;
+   buffer_type serialized_op;
+   transaction_id_type trx_id;
+   fc::time_point_sec timestamp;
 
    uint64_t token_sequence = 0;
    uint64_t account_sequence = 0;
@@ -180,7 +184,7 @@ FC_REFLECT(sophiatx::plugins::custom_tokens::custom_token_object,
 FC_REFLECT(sophiatx::plugins::custom_tokens::custom_token_account_object,
            (id)(account_name)(token_symbol)(amount)(token_sequence)(account_sequence))
 FC_REFLECT(sophiatx::plugins::custom_tokens::custom_token_operation_object,
-           (id)(account)(token_symbol)(op)(token_sequence)(account_sequence))
+           (id)(account)(token_symbol)(serialized_op)(block)(trx_id)(timestamp)(token_sequence)(account_sequence))
 FC_REFLECT(sophiatx::plugins::custom_tokens::custom_token_error_object,
            (id)(trx_id)(time)(token_symbol)(error)(token_sequence))
 

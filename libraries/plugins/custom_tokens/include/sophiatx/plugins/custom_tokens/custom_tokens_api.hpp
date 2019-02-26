@@ -7,8 +7,6 @@
 #include <sophiatx/protocol/operations.hpp>
 #include <sophiatx/protocol/types.hpp>
 
-#include <sophiatx/chain/history_object.hpp>
-
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
 
@@ -70,7 +68,7 @@ struct list_token_assets_return {
 struct api_custom_token_operation_object {
    api_custom_token_operation_object() {}
 
-   api_custom_token_operation_object(const sophiatx::chain::operation_object &op_obj) :
+   api_custom_token_operation_object(const custom_token_operation_object &op_obj) :
          trx_id(op_obj.trx_id),
          block(op_obj.block),
          timestamp(op_obj.timestamp) {

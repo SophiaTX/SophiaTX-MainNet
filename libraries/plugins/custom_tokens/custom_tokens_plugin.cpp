@@ -28,6 +28,15 @@ public:
    const std::string
    save_token_error(const transaction_id_type &tx_id, const std::string &error, asset_symbol_type token_symbol = 0);
 
+   void add_account_tokens(const account_name_type &name, asset_symbol_type token_symbol, uint64_t amount);
+
+   void remove_account_tokens(const account_name_type &name, asset_symbol_type token_symbol, uint64_t amount,
+                              const transaction_id_type &tx_id);
+
+   void save_token_operation(const account_name_type &account, asset_symbol_type token_symbol, const operation_notification &note);
+
+   void check_if_paused(asset_symbol_type token_symbol, const transaction_id_type &tx_id);
+
    std::shared_ptr<database_interface> db_;
    custom_tokens_plugin &self_;
 
@@ -56,73 +65,150 @@ struct post_operation_visitor {
          variant tmp = fc::json::from_string(&op.json[ 0 ]);
 
          if( tmp[ "action" ].as<string>() == std::string("create_token")) {
+            auto token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
+            auto token = plugin_.db_->find<custom_token_object, by_token_symbol>(token_symbol);
+            FC_ASSERT(!token, "${s}",
+                      ("s", plugin_.save_token_error(note_.trx_id, "Token already exist!", token_symbol)));
             plugin_.db_->create<custom_token_object>([ & ](custom_token_object &to) {
                  to.owner_name = from;
-                 to.token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
+                 to.token_symbol = token_symbol;
                  to.total_supply = tmp[ "total_supply" ].as<uint64_t>();
                  if( tmp[ "max_supply" ].is_uint64())
                     to.max_supply = tmp[ "max_supply" ].as<uint64_t>();
             });
+            plugin_.save_token_operation(from, token_symbol, note_);
          } else if( tmp[ "action" ].as<string>() == std::string("pause_token")) {
             auto token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
             auto token = plugin_.db_->find<custom_token_object, by_token_symbol>(token_symbol);
-            FC_ASSERT(token, "${s}", ("s", plugin_.save_token_error(note_.trx_id, "No such a token!")));
+
             if( token->owner_name == from ) {
                plugin_.db_->modify(*token, [ & ](custom_token_object &to) {
                     to.paused ^= true;
                });
             }
+            plugin_.save_token_operation(from, token_symbol, note_);
          } else if( tmp[ "action" ].as<string>() == std::string("transfer_token")) {
-//            auto amount = tmp[ "amount" ].as<asset>();
-            //TODo check balance change account balance
+            auto amount = tmp[ "amount" ].as<asset>();
+            plugin_.check_if_paused(amount.symbol, note_.trx_id);
+            FC_ASSERT(op.recipients.size(), "${s}",
+                      ("s", plugin_.save_token_error(note_.trx_id, "There is no recipient for tokens!", amount.symbol)));
+            plugin_.remove_account_tokens(*op.recipients.begin(), amount.symbol, amount.amount.value, note_.trx_id);
+            plugin_.add_account_tokens(from, amount.symbol, amount.amount.value);
+            plugin_.save_token_operation(from, amount.symbol, note_);
+            plugin_.save_token_operation(*op.recipients.begin(), amount.symbol, note_);
          } else if( tmp[ "action" ].as<string>() == std::string("burn_token")) {
-//            auto amount = tmp[ "amount" ].as<asset>();
-            //TODO check balance change account balance
+            auto amount = tmp[ "amount" ].as<asset>();
+            plugin_.check_if_paused(amount.symbol, note_.trx_id);
+            plugin_.remove_account_tokens(*op.recipients.begin(), amount.symbol, amount.amount.value, note_.trx_id);
+            plugin_.save_token_operation(from, amount.symbol, note_);
          } else if( tmp[ "action" ].as<string>() == std::string("issue_token")) {
             auto token_symbol = asset_symbol_type::from_string(tmp[ "token_symbol" ].as<string>());
+            plugin_.check_if_paused(token_symbol, note_.trx_id);
             auto additional_amount = tmp[ "additional_amount" ].as<uint64_t>();
             auto token = plugin_.db_->find<custom_token_object, by_token_symbol>(token_symbol);
             FC_ASSERT(token, "${s}", ("s", plugin_.save_token_error(note_.trx_id, "No such a token!")));
-            if( token->owner_name == from && token->max_supply > token->total_supply + additional_amount ) {
+            if( token->owner_name == from &&
+                token->max_supply > token->total_supply + additional_amount ) {
                plugin_.db_->modify(*token, [ & ](custom_token_object &to) {
                     to.total_supply += additional_amount;
                });
-               //TODO change_account_balance()
+               plugin_.add_account_tokens(from, token_symbol, additional_amount);
+               plugin_.save_token_operation(from, token_symbol, note_);
             }
          } else {
             FC_ASSERT(false, "${s}", ("s", plugin_.save_token_error(note_.trx_id, "Unknown action for custom token!")));
          }
       }
    }
-
 };
 
 void custom_tokens_plugin_impl::post_operation(const operation_notification &note) {
    note.op.visit(post_operation_visitor(*this, note));
 }
 
-//uint64_t custom_tokens_plugin_impl::get_account_balance(const account_name_type &name, asset_symbol_type token_symbol) {
-//   return db_->find<custom_token_account_object, by_token_and_account>(boost::make_tuple(name, token_symbol));
-//}
-//
-//void custom_tokens_plugin_impl::change_account_balance(const account_name_type &name, asset_symbol_type token_symbol) {
-//   return db_->find<custom_token_account_object, by_token_and_account>(boost::make_tuple(name, token_symbol));
-//}
+void custom_tokens_plugin_impl::check_if_paused(asset_symbol_type token_symbol, const transaction_id_type &tx_id) {
+   auto token = db_->find<custom_token_object, by_token_symbol>(token_symbol);
+   FC_ASSERT(token, "${s}", ("s", save_token_error(tx_id, "No such a token!", token_symbol)));
+   FC_ASSERT(!token->paused, "${s}", ("s", save_token_error(tx_id, "Can to do any action with token, because it is paused!", token_symbol)));
+}
+void custom_tokens_plugin_impl::add_account_tokens(const account_name_type &name, asset_symbol_type token_symbol,
+                                                   uint64_t amount) {
+   auto account = db_->find<custom_token_account_object, by_token_and_account>(boost::make_tuple(token_symbol, name));
+   if( account ) {
+      db_->modify(*account, [ & ](custom_token_account_object &to) {
+           to.amount += amount;
+      });
+   } else {
+      uint64_t token_sequence = 1;
+      uint64_t account_sequence = 1;
+      {
+         const auto &idx = db_->get_index<token_accounts_index>().indices().get<by_token_symbol>();
+         auto itr = idx.lower_bound(boost::make_tuple(token_symbol, uint64_t(-1)));
+         if( itr != idx.end() && itr->token_symbol == token_symbol )
+            token_sequence = itr->token_sequence + 1;
+      }
 
-//void custom_tokens_plugin_impl::save_token_operation(const account_name_type &account, bool system_message,
-//                                                     const T &data) const {
-//   db_->create<custom_token_operation_object>([ & ](custom_token_operation_object &cto) {
-//        mo.group_name = go.group_name;
-//        mo.sequence = go.current_seq;
-//        mo.sender = sender;
-//        mo.recipients = go.members;
-//        mo.system_message = system_message;
-//        std::copy(data.begin(), data.end(), std::back_inserter(mo.data));
-//   });
-//   _db->modify(go, [ & ](group_object &go) {
-//        go.current_seq++;
-//   });
-//}
+      {
+         const auto &idx = db_->get_index<token_accounts_index>().indices().get<by_account>();
+         auto itr = idx.lower_bound(boost::make_tuple(name, uint64_t(-1)));
+         if( itr != idx.end() && itr->account_name == name )
+            account_sequence = itr->account_sequence + 1;
+      }
+
+      db_->create<custom_token_account_object>([ & ](custom_token_account_object &to) {
+           to.account_name = name;
+           to.token_symbol = token_symbol;
+           to.amount = amount;
+           to.account_sequence = account_sequence;
+           to.token_sequence = token_sequence;
+      });
+   }
+
+}
+
+void custom_tokens_plugin_impl::remove_account_tokens(const account_name_type &name, asset_symbol_type token_symbol,
+                                                      uint64_t amount, const transaction_id_type &tx_id) {
+   auto account = db_->find<custom_token_account_object, by_token_and_account>(boost::make_tuple(token_symbol, name));
+   FC_ASSERT(account, "${s}",
+             ("s", save_token_error(tx_id, "Account does not hold any of specified tokens!", token_symbol)));
+   FC_ASSERT(account->amount >= amount, "${s}",
+             ("s", save_token_error(tx_id, "Account does not hold enought tokens!", token_symbol)));
+   db_->modify(*account, [ & ](custom_token_account_object &to) {
+        to.amount -= amount;
+   });
+}
+
+void custom_tokens_plugin_impl::save_token_operation(const account_name_type &account, asset_symbol_type token_symbol, const operation_notification &note) {
+   uint64_t token_sequence = 1;
+   uint64_t account_sequence = 1;
+   {
+      const auto &idx = db_->get_index<token_operation_index>().indices().get<by_token_symbol>();
+      auto itr = idx.lower_bound(boost::make_tuple(token_symbol, uint64_t(-1)));
+      if( itr != idx.end() && itr->token_symbol == token_symbol )
+         token_sequence = itr->token_sequence + 1;
+   }
+
+   {
+      const auto &idx = db_->get_index<token_operation_index>().indices().get<by_account>();
+      auto itr = idx.lower_bound(boost::make_tuple(account, uint64_t(-1)));
+      if( itr != idx.end() && itr->account == account )
+         account_sequence = itr->account_sequence + 1;
+   }
+
+   db_->create<custom_token_operation_object>([ & ](custom_token_operation_object &to) {
+        to.account = account;
+        to.token_symbol = token_symbol;
+        to.trx_id = note.trx_id;
+        to.block = note.block;
+        to.timestamp = db_->head_block_time();
+        to.account_sequence = account_sequence;
+        to.token_sequence = token_sequence;
+        auto size = fc::raw::pack_size( note.op );
+        to.serialized_op.resize( size );
+        fc::datastream< char* > ds( to.serialized_op.data(), size );
+        fc::raw::pack( ds, note.op );
+   });
+}
 
 const std::string custom_tokens_plugin_impl::save_token_error(const transaction_id_type &tx_id,
                                                               const std::string &error,

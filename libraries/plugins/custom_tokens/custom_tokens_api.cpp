@@ -73,7 +73,7 @@ DEFINE_API_IMPL( custom_tokens_api_impl, list_token_operations)
       auto end = token_idx.lower_bound( boost::make_tuple( account, int64_t(itr->account_sequence) + args.count  ) );
       while( itr != end  && result.history.size() < args.count) {
          --itr;
-         result.history[itr->account_sequence] = _db->get(itr->op);
+         result.history[itr->account_sequence] = *itr;
       }
       return result;
    }
@@ -84,7 +84,7 @@ DEFINE_API_IMPL( custom_tokens_api_impl, list_token_operations)
       auto end = token_idx.lower_bound( boost::make_tuple( symbol, int64_t(itr->token_sequence) + args.count  ) );
       while( itr != end  && result.history.size() < args.count) {
          --itr;
-         result.history[itr->token_sequence] = _db->get(itr->op);
+         result.history[itr->token_sequence] = *itr;
       }
       return result;
 
