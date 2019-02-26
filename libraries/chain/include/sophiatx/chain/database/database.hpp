@@ -323,7 +323,7 @@ private:
     * @param account
     * @param trx
     */
-   void update_account_bandwidth(const account_name_type& account, const account_bandwidth_object& trx_bandwidth_data);
+   void update_account_bandwidth(const account_name_type& account, const account_bandwidth_object& trx_bandwidth_data, bool fee_free_op_present);
 
    ///Steps involved in applying a new block
    ///@{

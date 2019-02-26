@@ -29,17 +29,17 @@ public:
     */
    uint64_t          total_bandwidth;
    /**
-    * Total (lifetime) transactions count
+    * Total (lifetime) operations count
     */
-   uint64_t          total_tx_count;
+   uint64_t          total_ops_count;
    /**
-    * Actual(during last time frame <head_block, SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free transactions bandwidth [Bytes]
+    * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free transactions bandwidth [Bytes]
     */
    uint64_t          act_fee_free_bandwidth;
    /**
-    * Actual(during last time frame <head_block, SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free transactions count
+    * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free operations count
     */
-   uint64_t          act_fee_free_tx_count;
+   uint64_t          act_fee_free_ops_count;
    /**
     * last block_num since which act_fee_free_bandwidth and act_fee_free_tx_count are counted.
     * As soon as actual head_block_num - last_block_num_reset >= time_frame(from config), act_fee_free_bandwidth and act_fee_free_tx_count are
@@ -66,10 +66,9 @@ using account_bandwidth_index = multi_index_container <
 } }  // sophiatx::chain
 
 FC_REFLECT( sophiatx::chain::account_bandwidth_object,
-            (id)(account)(total_bandwidth)(total_tx_count)(total_bandwidth)(act_fee_free_bandwidth)(act_fee_free_tx_count)(last_block_num_reset) )
+            (id)(account)(total_bandwidth)(total_ops_count)(total_bandwidth)(act_fee_free_bandwidth)(act_fee_free_ops_count)(last_block_num_reset) )
 
 CHAINBASE_SET_INDEX_TYPE( sophiatx::chain::account_bandwidth_object, sophiatx::chain::account_bandwidth_index )
-
 
 
 #endif // ACCOUNT_BANDWIDTH_OBJECT_HPP
