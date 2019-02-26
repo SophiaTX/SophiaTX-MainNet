@@ -129,11 +129,11 @@
 #define SOPHIATX_MAX_RATION_DECAY_RATE           (1000000)
 
 // bandwidth and total tx num counters are reset to zero every SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
-#define SOPHIATX_LIMIT_BANDWIDTH_BLOCKS          20    // [count]
+#define SOPHIATX_LIMIT_BANDWIDTH_BLOCKS          51      // one round (153 seconds)
 // max allowed fee-free transactions bandwidth [Bytes] per account during SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
-#define SOPHIATX_MAX_ALLOWED_BANDWIDTH           500  // [Bytes]
+#define SOPHIATX_MAX_ALLOWED_BANDWIDTH           51000   // [Bytes]
 // max allowed fee-free operations count per account during SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
-#define SOPHIATX_MAX_ALLOWED_OPS_COUNT           10    // [count]
+#define SOPHIATX_MAX_ALLOWED_OPS_COUNT           102     // [count]
 
 #define SOPHIATX_CREATE_ACCOUNT_DELEGATION_RATIO    5
 #define SOPHIATX_CREATE_ACCOUNT_DELEGATION_TIME     fc::days(30)
