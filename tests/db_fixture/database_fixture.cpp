@@ -9,7 +9,6 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
-#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 
 
@@ -703,7 +702,6 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::json_rpc::json_rpc_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::block_api::block_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::database_api::database_api_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::alexandria_api::alexandria_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
    appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "witness_api", "alexandria_api"}, false);

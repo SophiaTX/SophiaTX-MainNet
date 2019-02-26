@@ -9,8 +9,6 @@
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/application_object.hpp>
 
-#include <sophiatx/plugins/witness/witness_objects.hpp>
-
 #include <fc/macros.hpp>
 #include <fc/crypto/digest.hpp>
 
