@@ -1,13 +1,14 @@
 file(GLOB HEADERS "include/sophiatx/plugins/custom_tokens/*.hpp")
 
-add_library(custom_tokens_plugin
+add_library(custom_tokens_plugin SHARED
             custom_tokens_plugin.cpp
             custom_tokens_api.cpp
+            custom_tokens_plugin_export.cpp
            )
 
 target_link_libraries(custom_tokens_plugin chain_plugin sophiatx_chain sophiatx_protocol sophiatx_utilities json_rpc_plugin)
 
-target_include_directories(custom_tokens_plugin PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(custom_tokens_plugin PUBLIC "include")
 
 if (CLANG_TIDY_EXE)
     set_target_properties(
