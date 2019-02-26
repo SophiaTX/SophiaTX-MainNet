@@ -79,6 +79,7 @@ public:
    }
 
    std::shared_ptr< abstract_plugin > new_plugin(string name){
+      assert(plugin_factories.count(name));
       const auto& pf = plugin_factories.at(name);
       auto new_plugin = pf->new_plugin();
       return new_plugin;

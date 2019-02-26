@@ -439,6 +439,7 @@ void json_rpc_plugin_impl::process_params(string method, const fc::variant_objec
          response.error = json_rpc_error( JSON_RPC_SERVER_ERROR, "Unknown error - parsing rpc message failed" );
       }
 
+      ddump((response));
       return response;
    }
 
