@@ -25,7 +25,20 @@ public:
       c( *this );
    }
 
-   account_bandwidth_object() {}
+   account_bandwidth_object()                                           = default;
+   account_bandwidth_object(const account_bandwidth_object&)            = default;
+   account_bandwidth_object& operator=(const account_bandwidth_object&) = default;
+   account_bandwidth_object(account_bandwidth_object&&)                 = default;
+   account_bandwidth_object& operator=(account_bandwidth_object&&)      = default;
+   ~account_bandwidth_object()                                          = default;
+
+   account_bandwidth_object& operator+=(const account_bandwidth_object& other) {
+      total_bandwidth += other.total_bandwidth;
+      total_ops_count += other.total_ops_count;
+      act_fee_free_bandwidth += other.act_fee_free_bandwidth;
+      act_fee_free_ops_count += other.act_fee_free_ops_count;
+      return *this;
+   }
 
    id_type           id;
    /**

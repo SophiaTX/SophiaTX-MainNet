@@ -2019,8 +2019,6 @@ void database::process_tx_bandwidth(const signed_transaction& trx) {
 
    trx_bandwidth_data.total_bandwidth = fc::raw::pack_size(trx);
    trx_bandwidth_data.total_ops_count = trx.operations.size();
-   trx_bandwidth_data.act_fee_free_bandwidth = 0;
-   trx_bandwidth_data.act_fee_free_ops_count = 0;
 
    bool fee_free_op_present = false;
    bool paid_op_present     = false;
@@ -2061,30 +2059,23 @@ void database::update_account_bandwidth(const account_name_type& account, const 
 
    if (acc_bandwidth == nullptr) {
       acc_bandwidth = &this->create<account_bandwidth_object>( [&](account_bandwidth_object& abo) {
-         abo.account = account;
-         abo.total_bandwidth = trx_bandwidth_data.total_bandwidth;
-         abo.total_ops_count = trx_bandwidth_data.total_ops_count;
-         abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
-         abo.act_fee_free_ops_count = trx_bandwidth_data.act_fee_free_ops_count;
+         abo = trx_bandwidth_data;
          abo.last_block_num_reset = act_head_block;
       });
    }
    else {
       if (act_head_block - acc_bandwidth->last_block_num_reset > SOPHIATX_LIMIT_BANDWIDTH_BLOCKS/*TODO: read from config for private nets*/) {
          this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
-            abo.total_bandwidth += trx_bandwidth_data.total_bandwidth;
-            abo.total_ops_count += trx_bandwidth_data.total_ops_count;
+            abo.total_bandwidth        += trx_bandwidth_data.total_bandwidth;
+            abo.total_ops_count        += trx_bandwidth_data.total_ops_count;
             abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
             abo.act_fee_free_ops_count = trx_bandwidth_data.act_fee_free_ops_count;
-            abo.last_block_num_reset = act_head_block;
+            abo.last_block_num_reset   = act_head_block;
          });
       }
       else {
          this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
-            abo.total_bandwidth += trx_bandwidth_data.total_bandwidth;
-            abo.total_ops_count += trx_bandwidth_data.total_ops_count;
-            abo.act_fee_free_bandwidth += trx_bandwidth_data.act_fee_free_bandwidth;
-            abo.act_fee_free_ops_count += trx_bandwidth_data.act_fee_free_ops_count;
+            abo += trx_bandwidth_data;
          });
       }
    }
