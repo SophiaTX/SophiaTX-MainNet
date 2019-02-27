@@ -186,11 +186,11 @@ void custom_tokens_plugin_impl::check_if_paused(asset_symbol_type token_symbol, 
 
 void custom_tokens_plugin_impl::add_account_tokens(const account_name_type &name, asset_symbol_type token_symbol,
                                                    uint64_t amount) {
-   auto account = db_->find<custom_token_account_object, by_token_and_account>(
+   auto balance = db_->find<custom_token_account_object, by_token_and_account>(
          boost::make_tuple(token_symbol, name));
-   if( account ) {
+   if( balance ) {
 
-      db_->modify(*account, [ & ](custom_token_account_object &to) {
+      db_->modify(*balance, [ & ](custom_token_account_object &to) {
            to.amount += amount;
       });
 
@@ -225,12 +225,12 @@ void custom_tokens_plugin_impl::add_account_tokens(const account_name_type &name
 
 void custom_tokens_plugin_impl::remove_account_tokens(const account_name_type &name, asset_symbol_type token_symbol,
                                                       uint64_t amount, const transaction_id_type &tx_id) {
-   auto account = db_->find<custom_token_account_object, by_token_and_account>(
+   auto balance = db_->find<custom_token_account_object, by_token_and_account>(
          boost::make_tuple(token_symbol, name));
-   FC_ASSERT(account, "${s}", ("s", save_token_error(tx_id, "Account does not hold any of specified tokens!", token_symbol)));
-   FC_ASSERT(account->amount >= amount, "${s}",
+   FC_ASSERT(balance, "${s}", ("s", save_token_error(tx_id, "Account does not hold any of specified tokens!", token_symbol)));
+   FC_ASSERT(balance->amount >= amount, "${s}",
              ("s", save_token_error(tx_id, "Account does not hold enought tokens!", token_symbol)));
-   db_->modify(*account, [ & ](custom_token_account_object &to) {
+   db_->modify(*balance, [ & ](custom_token_account_object &to) {
         to.amount -= amount;
    });
 }
@@ -329,7 +329,7 @@ void custom_tokens_plugin::plugin_initialize(const boost::program_options::varia
    if( options.count("custom-token-app-id")) {
       app_id_ = options[ "custom-token-app-id" ].as<uint64_t>();
    } else {
-      ilog("App ID not given, multiparty messaging is disabled");
+      ilog("App ID not given, custom tokens plugin is disabled");
       return;
    }
 
