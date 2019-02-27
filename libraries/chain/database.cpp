@@ -2059,7 +2059,11 @@ void database::update_account_bandwidth(const account_name_type& account, const 
 
    if (acc_bandwidth == nullptr) {
       acc_bandwidth = &this->create<account_bandwidth_object>( [&](account_bandwidth_object& abo) {
-         abo = trx_bandwidth_data;
+         //abo = trx_bandwidth_data;
+         abo.total_bandwidth = trx_bandwidth_data.total_bandwidth;
+         abo.total_ops_count = trx_bandwidth_data.total_ops_count;
+         abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
+         abo.act_fee_free_ops_count = trx_bandwidth_data.act_fee_free_ops_count;
          abo.last_block_num_reset = act_head_block;
       });
    }
