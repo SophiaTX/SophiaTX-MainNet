@@ -12,14 +12,15 @@
 #include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 #include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
+#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
+#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
 
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
-#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
+
 
 #include "database_fixture.hpp"
 

@@ -67,8 +67,6 @@ public:
 
    application& new_application( const string& id );
 
-   application& new_application( const string& id, application app );
-
    application& get_application( const string& id ){
       return apps.at(id);
    }

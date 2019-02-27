@@ -540,14 +540,6 @@ application& application_factory::new_application( const string& id){
    return apps.at(id);
 }
 
-
-application& application_factory::new_application( const string& id, application app){
-   if(apps.count(id))
-      apps.erase(id);
-   apps.emplace(id, id);
-   return apps.at(id);
-}
-
 variables_map application_factory::read_app_config(const std::string& name)
 {
    bfs::path config_file_path = write_default_config(app_options, global_args[ "config" ].as<bfs::path>(),

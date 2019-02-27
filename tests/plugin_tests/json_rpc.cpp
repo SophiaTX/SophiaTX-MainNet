@@ -218,7 +218,7 @@ BOOST_AUTO_TEST_CASE( misc_validation )
       make_request( request, JSON_RPC_ERROR_DURING_CALL );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": [\"fake_network\",\"fake_api\",\"fake_method\", {} ], \"id\": 1}";
-      make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
+      make_request( request, JSON_RPC_ERROR_DURING_CALL );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": {}, \"id\": 1}";
       make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
@@ -241,7 +241,13 @@ BOOST_AUTO_TEST_CASE( positive_validation )
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"get_dynamic_global_properties\"], \"id\":1}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"get_dynamic_global_properties\", {}], \"id\":3}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"get_dynamic_global_properties\", {}], \"id\":2}";
+      make_positive_request( request );
+
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"test\", \"database_api\", \"get_dynamic_global_properties\"], \"id\":3}";
+      make_positive_request( request );
+
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"test\", \"database_api\", \"get_dynamic_global_properties\", {}], \"id\":3}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"database_api.get_dynamic_global_properties\",\"id\":4}";

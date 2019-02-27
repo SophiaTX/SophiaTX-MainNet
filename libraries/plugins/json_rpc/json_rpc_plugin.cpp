@@ -231,7 +231,7 @@ namespace detail
       return &(method_itr->second);
    }
 
-void json_rpc_plugin_impl::process_params(string method, const fc::variant_object &request, std::string &api_name,
+   void json_rpc_plugin_impl::process_params(string method, const fc::variant_object &request, std::string &api_name,
                                           string &method_name, fc::variant &func_args, string &network_name) {
       network_name = _default_network;
       if( method == "call" )
@@ -244,12 +244,36 @@ void json_rpc_plugin_impl::process_params(string method, const fc::variant_objec
          if( request[ "params" ].is_array() )
             v = request[ "params" ].as< std::vector< fc::variant > >();
 
-         FC_ASSERT( v.size() == 2 || v.size() == 3, "params should be {\"api\", \"method\", \"args\"" );
+         FC_ASSERT( v.size() == 2 || v.size() == 3 || v.size() == 4, "params should be {\"api\", \"method\", \"args\" } or {\"network\", \"api\", \"method\", \"args\" }" );
 
-         api_name = v[0].as_string();
-         method_name = v[1].as_string();
-         func_args = ( v.size() == 3 ) ? v[2] : fc::json::from_string( "{}" );
-
+         if( v.size() == 2 ) {
+            api_name = v[ 0 ].as_string();
+            method_name = v[ 1 ].as_string();
+            func_args = fc::json::from_string("{}");
+         } else if ( v.size() == 4 ) {
+            network_name = v[0].as_string();
+            api_name = v[1].as_string();
+            method_name = v[2].as_string();
+            func_args = v[3];
+         } else if ( v.size() == 3  && v[2].is_string() ){
+            try{
+               find_api_method(v[0].as_string(), v[1].as_string(), v[2].as_string());
+               //if no exception is thrown, the method v[0].v[1].v[2] is registered
+               network_name = v[0].as_string();
+               api_name = v[1].as_string();
+               method_name = v[2].as_string();
+               func_args = fc::json::from_string( "{}" );
+            }catch(fc::assert_exception& e){
+               //if exception is thrown, the method v[0].v[1].v[2] has not been registered; let's assume the format is  {"api", "method", "args" }
+               api_name = v[0].as_string();
+               method_name = v[1].as_string();
+               func_args = v[2];
+            }
+         } else {
+            api_name = v[0].as_string();
+            method_name = v[1].as_string();
+            func_args = v[2];
+         }
       }
       else
       {
@@ -298,7 +322,7 @@ void json_rpc_plugin_impl::process_params(string method, const fc::variant_objec
    fc::optional<fc::variant>
    json_rpc_plugin_impl::call_api_method(const string& network_name, const string &api_name, const string &method_name, const fc::variant &func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock) {
       if( _registered_apis.find(api_name) == _registered_apis.end() && remote::remote_db::initialized()) {
-         return fc::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
+         return fc::optional<fc::variant>(remote::remote_db::remote_call(network_name, api_name, method_name, func_args));
       } else {
          api_method *call = find_api_method(network_name, api_name, method_name);
          return (*call)(func_args, notify_callback, lock);
