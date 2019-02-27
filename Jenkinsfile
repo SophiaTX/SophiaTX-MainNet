@@ -182,7 +182,7 @@ def run_archive() {
             }
           }
       sh "tar -czf ${LIB_ARCHIVE_NAME} libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java" //create tar file
-      sh "tar -czf ${PLUGIN_ARCHIVE_NAME} *_plugin.so" //create tar file
+      sh "tar -czf ${PLUGIN_ARCHIVE_NAME} *_plugin.*" //create tar file
       archiveArtifacts '*.gz'
     }
   dir('bin') {
