@@ -54,14 +54,14 @@ public:
    asset amount;
 };
 
-struct list_token_assets_args {
+struct list_token_balances_args {
    string search_type; //"by_token", "by_account"
    string search_field; //token name, account
    uint64_t start;
    uint32_t count;
 };
 
-struct list_token_assets_return {
+struct list_token_balances_return {
    std::map<uint64_t, api_custom_token_account> token_assets;
 };
 
@@ -122,7 +122,7 @@ public:
 
    ~custom_tokens_api();
 
-   DECLARE_API((get_token)(list_token_assets)(list_token_operations)(list_token_errors))
+   DECLARE_API((get_token)(list_token_balances)(list_token_operations)(list_token_errors))
 
 private:
    std::unique_ptr<detail::custom_tokens_api_impl> my;
@@ -142,9 +142,9 @@ FC_REFLECT(sophiatx::plugins::custom_tokens::get_token_return, (token))
 
 FC_REFLECT(sophiatx::plugins::custom_tokens::api_custom_token_account,
            (account_name)(amount))
-FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_assets_args,
+FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_balances_args,
            (search_type)(search_field)(start)(count))
-FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_assets_return,
+FC_REFLECT(sophiatx::plugins::custom_tokens::list_token_balances_return,
            (token_assets))
 
 

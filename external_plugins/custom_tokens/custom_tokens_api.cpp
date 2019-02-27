@@ -13,7 +13,7 @@ class custom_tokens_api_impl
          _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ), _plugin(plugin),
          _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >()) {}
 
-   DECLARE_API_IMPL((get_token)(list_token_assets)(list_token_operations)(list_token_errors))
+   DECLARE_API_IMPL((get_token)(list_token_balances)(list_token_operations)(list_token_errors))
 
    std::shared_ptr<database_interface> _db;
    custom_tokens_plugin& _plugin;
@@ -31,9 +31,9 @@ DEFINE_API_IMPL( custom_tokens_api_impl, get_token)
    return result;
 }
 
-DEFINE_API_IMPL( custom_tokens_api_impl, list_token_assets)
+DEFINE_API_IMPL( custom_tokens_api_impl, list_token_balances)
 {
-   list_token_assets_return result;
+   list_token_balances_return result;
    FC_ASSERT(args.count < SOPHIATX_API_SINGLE_QUERY_LIMIT);
    if(args.search_type == "by_account") {
       account_name_type account = args.search_field;
@@ -131,6 +131,6 @@ custom_tokens_api::custom_tokens_api(custom_tokens_plugin& plugin): my( new deta
 
 custom_tokens_api::~custom_tokens_api() {}
 
-DEFINE_READ_APIS( custom_tokens_api, (get_token) (list_token_assets) (list_token_operations) (list_token_errors))
+DEFINE_READ_APIS( custom_tokens_api, (get_token) (list_token_balances) (list_token_operations) (list_token_errors))
 
 } } } // sophiatx::plugins::custom_tokens
