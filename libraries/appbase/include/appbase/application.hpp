@@ -212,7 +212,7 @@ public:
    bfs::path data_dir()const;
 
    const bpo::variables_map& get_args() const;
-   string id;
+   const string id;
 
    boost::asio::io_service& get_io_service() { return *io_serv; }
 

@@ -196,6 +196,7 @@ namespace detail
       FC_UNUSED( lock )
       FC_UNUSED( notify_callback )
       string network_name = args ? *args : _default_network;
+      FC_ASSERT(_methods.count(network_name), "Unknown network");
       return _methods[network_name];
    }
 
@@ -232,7 +233,7 @@ namespace detail
 
 void json_rpc_plugin_impl::process_params(string method, const fc::variant_object &request, std::string &api_name,
                                           string &method_name, fc::variant &func_args, string &network_name) {
-      network_name = "";
+      network_name = _default_network;
       if( method == "call" )
       {
          // calling specific network is not supported on this old API format
@@ -330,9 +331,6 @@ void json_rpc_plugin_impl::process_params(string method, const fc::variant_objec
                   {
                      response.error = json_rpc_error( JSON_RPC_PARSE_PARAMS_ERROR, e.to_string(), fc::variant( *(e.dynamic_copy_exception()) ) );
                   }
-
-                  if( !network_name.size() )
-                     network_name = _default_network;
 
                   try
                   {
