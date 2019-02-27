@@ -9,7 +9,6 @@ endif()
 
 project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
-add_compile_options("-Wall" "-Werror")
 
 set( BLOCKCHAIN_NAME "SophiaTX" )
 set( CMAKE_CXX_STANDARD 14 )
@@ -168,6 +167,13 @@ else(JNI_FOUND)
     MESSAGE(STATUS "Skipping libalexandriaJNI build, JNI not found")
 endif(JNI_FOUND AND (NOT ABAP_INTERFACE))
 
+find_package (SQLite3 3.22.1)
+if (SQLite3_FOUND)
+    message (STATUS "Found SQLite version: ${SQLite3_VERSION}")
+else(SQLite3_FOUND)
+    MESSAGE(STATUS "Skipping SQLite build")
+endif (SQLite3_FOUND)
+
 if( WIN32 )
 
    message( STATUS "Configuring SophiaTX on WIN32")
@@ -218,6 +224,7 @@ if( WIN32 )
    endif( MSVC )
 
 else( WIN32 ) # Apple AND Linux
+    add_compile_options("-Wall" "-Werror")
 
     if( APPLE )
         # Apple Specific Options Here

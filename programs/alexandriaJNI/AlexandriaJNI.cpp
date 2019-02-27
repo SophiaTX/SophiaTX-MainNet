@@ -226,7 +226,7 @@ JNIEXPORT jbyteArray JNICALL Java_AlexandriaJNI_signDigest(JNIEnv *env, jclass, 
     try {
        fc::sha256 dig(digest.data(), digest.size());
        fc::ecc::private_key key = fc::variant(private_key).as<fc::ecc::private_key>();
-       auto sig = key.sign_compact(dig);
+       auto sig = key.sign_compact(dig, fc::ecc::bip_0062);
 
        jbyteArray ret = env->NewByteArray(static_cast<jsize>(sig.size()));
 
@@ -330,7 +330,7 @@ JNIEXPORT jboolean JNICALL Java_AlexandriaJNI_verifySignature(JNIEnv *env, jclas
        auto bin_key = fc::raw::unpack_from_vector<public_key_type::binary_key>(pub_key, 0);
        public_key_type public_key(bin_key.data);
 
-       if(public_key == fc::ecc::public_key::recover_key(signature, dig)) {
+       if(public_key == fc::ecc::public_key::recover_key(signature, dig, fc::ecc::bip_0062)) {
           return static_cast<jboolean>(true);
        }
    } catch (const fc::exception& e) {
