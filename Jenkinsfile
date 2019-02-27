@@ -47,6 +47,7 @@ pipeline {
               environment { 
                 LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
                 ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+                PLUGIN_ARCHIVE_NAME = "plugins_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
               }
               steps {
                 run_archive()
@@ -98,6 +99,7 @@ pipeline {
               environment { 
                 LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
                 ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+                PLUGIN_ARCHIVE_NAME = "plugins_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
               }
               steps {
                 run_archive()
@@ -173,13 +175,14 @@ def run_archive() {
         echo "${LIB_ARCHIVE_NAME}"
         if( !params.build_as_debug ) {
           try {
-              sh 'strip -s libalexandria.so libalexandriaJNI.so' //strip symbols
+              sh 'strip -s libalexandria.so libalexandriaJNI.so *_plugin.so' //strip symbols
               } catch(Exception e) {
                 echo "Skipping strip on macOS"
               }
             }
           }
       sh "tar -czf ${LIB_ARCHIVE_NAME} libalexandria.so libalexandriaJNI.so alexandria.hpp AlexandriaJNI.java" //create tar file
+      sh "tar -czf ${PLUGIN_ARCHIVE_NAME} *_plugin.so" //create tar file
       archiveArtifacts '*.gz'
     }
   dir('bin') {
