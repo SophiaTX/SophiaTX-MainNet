@@ -35,26 +35,26 @@ public:
    /**
     * Total (lifetime) operations + transaction meta info bandwidth [Bytes]
     */
-   uint64_t          total_bandwidth;
+   uint64_t          total_bandwidth = 0;
    /**
     * Total (lifetime) operations count
     */
-   uint64_t          total_ops_count;
+   uint64_t          total_ops_count = 0;
    /**
     * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free operations bandwidth [Bytes].
     * In case there are only fee-free operations present in the transactions, also transaction meta info is counted into bandwidth, otherwise only fee-free operations
     */
-   uint64_t          act_fee_free_bandwidth;
+   uint64_t          act_fee_free_bandwidth = 0;
    /**
     * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free operations count
     */
-   uint64_t          act_fee_free_ops_count;
+   uint64_t          act_fee_free_ops_count = 0;
    /**
     * last block_num since which act_fee_free_bandwidth and act_fee_free_tx_count are counted.
     * As soon as actual head_block_num - last_block_num_reset >= time_frame(from config), act_fee_free_bandwidth and act_fee_free_tx_count are
     * reset to 0
     */
-   uint32_t          last_block_num_reset;
+   uint32_t          last_block_num_reset = 0;
 };
 
 typedef oid< account_bandwidth_object > account_bandwidth_id_type;
