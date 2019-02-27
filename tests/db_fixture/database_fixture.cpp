@@ -704,7 +704,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::database_api::database_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::alexandria_api::alexandria_api_plugin>();
    appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
-   appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "witness_api", "alexandria_api"}, false);
+   appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "alexandria_api"}, false);
 
    auto appconfig = appbase::app_factory().read_app_config("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
 
@@ -714,7 +714,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    db_plugin = static_cast<sophiatx::plugins::debug_node::debug_node_plugin*>(_db_plugin.get());
    auto _rpc_plugin = app->get_register_plugin<sophiatx::plugins::json_rpc::json_rpc_plugin>() ;
    rpc_plugin = static_cast<sophiatx::plugins::json_rpc::json_rpc_plugin*>(_rpc_plugin.get());
-   app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "witness_api", "alexandria_api"});
+   app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "alexandria_api"});
 
    app->get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
 
