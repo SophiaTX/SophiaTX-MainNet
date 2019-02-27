@@ -21,15 +21,15 @@ using namespace sophiatx::chain;
 // various template automagic depends on them being known at compile
 // time.
 //
-#ifndef SOPHIATX_custom_tokens_SPACE_ID
-#define SOPHIATX_custom_tokens_SPACE_ID 122
+#ifndef SOPHIATX_CUSTOM_TOKENS_SPACE_ID
+#define SOPHIATX_CUSTOM_TOKENS_SPACE_ID 122
 #endif
 
 enum token_object_types {
-   custom_token_object_type = (SOPHIATX_custom_tokens_SPACE_ID << 8),
-   custom_token_account_object_type = (SOPHIATX_custom_tokens_SPACE_ID << 8) + 1,
-   custom_token_operation_object_type = (SOPHIATX_custom_tokens_SPACE_ID << 8) + 2,
-   custom_token_error_object_type = (SOPHIATX_custom_tokens_SPACE_ID << 8) + 3
+   custom_token_object_type = (SOPHIATX_CUSTOM_TOKENS_SPACE_ID << 8),
+   custom_token_account_object_type = (SOPHIATX_CUSTOM_TOKENS_SPACE_ID << 8) + 1,
+   custom_token_operation_object_type = (SOPHIATX_CUSTOM_TOKENS_SPACE_ID << 8) + 2,
+   custom_token_error_object_type = (SOPHIATX_CUSTOM_TOKENS_SPACE_ID << 8) + 3
 };
 
 class custom_token_object : public object<custom_token_object_type, custom_token_object> {
@@ -140,7 +140,8 @@ typedef multi_index_container<
                   composite_key_compare<std::less<asset_symbol_type>, std::greater<uint64_t> > >,
             ordered_unique<tag<by_token_and_account>, composite_key<custom_token_account_object,
                   member<custom_token_account_object, asset_symbol_type, &custom_token_account_object::token_symbol>,
-                  member<custom_token_account_object, account_name_type, &custom_token_account_object::account_name> > >
+                  member<custom_token_account_object, account_name_type, &custom_token_account_object::account_name> >,
+                  composite_key_compare< std::less< asset_symbol_type >, std::less< account_name_type > > >
       >,
       allocator<custom_token_account_object>
 > token_accounts_index;
