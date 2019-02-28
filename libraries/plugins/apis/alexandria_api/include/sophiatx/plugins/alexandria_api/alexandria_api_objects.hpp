@@ -262,7 +262,7 @@ struct extended_account : public api_account_object
 };
 
 struct account_bandwidth : public chain::account_bandwidth_object {
-   account_bandwidth(){}
+   account_bandwidth() = default;
    account_bandwidth(const chain::account_bandwidth_object& abo ) :
          chain::account_bandwidth_object( abo )
    {}
