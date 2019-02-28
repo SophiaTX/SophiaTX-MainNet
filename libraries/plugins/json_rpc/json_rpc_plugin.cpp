@@ -134,7 +134,7 @@ namespace detail
          ~json_rpc_plugin_impl();
 
          void add_api_method( const string& network_name, const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
-
+         void remove_network_apis(const string& network_name, const string& api_name);
 
          api_method* find_api_method( const string& network_name, const std::string& api, const std::string& method );
          void process_params(string method, const fc::variant_object &request, std::string &api_name,
@@ -183,6 +183,17 @@ namespace detail
       std::stringstream canonical_name;
       canonical_name << api_name << '.' << method_name;
       _methods[network_name].push_back( canonical_name.str() );
+   }
+
+   void json_rpc_plugin_impl::remove_network_apis(const string& network_name, const string& api_name)
+   {
+      if( _registered_apis.count(network_name) ){
+         _registered_apis[network_name].erase(api_name);
+         if( _registered_apis[network_name].size() == 0 ) {
+            _registered_apis.erase(network_name);
+            _methods.erase(network_name);
+         }
+      }
    }
 
 
@@ -505,11 +516,19 @@ void json_rpc_plugin::plugin_startup()
       std::sort( i.second.begin(), i.second.end() );
 }
 
-void json_rpc_plugin::plugin_shutdown() {}
+void json_rpc_plugin::plugin_shutdown()
+{
+
+}
 
 void json_rpc_plugin::add_api_method( const string& network_name, const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
 {
    my->add_api_method( network_name, api_name, method_name, api, sig );
+}
+
+void json_rpc_plugin::remove_network_apis(const string& network_name, const string& api_name)
+{
+   my->remove_network_apis(network_name, api_name);
 }
 
 string json_rpc_plugin::call( const string& message, bool& is_error)
@@ -635,6 +654,17 @@ fc::optional< fc::variant > json_rpc_plugin::call_api_method(const string& netwo
 
 void json_rpc_plugin::set_default_network(const string& network_name){
    my->set_default_network(network_name);
+}
+
+
+namespace detail{
+void deregister_api( const std::string& api, application* app )
+{
+   auto& json_plugin = app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
+   std::string network = app->id;
+   elog("deregistering api ${n}.${a}", ("n", network)("a", api));
+   json_plugin.remove_network_apis(network, api);
+}
 }
 } } } // sophiatx::plugins::json_rpc
 

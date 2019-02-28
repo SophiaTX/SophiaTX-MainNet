@@ -67,6 +67,8 @@ public:
 
    application& new_application( const string& id );
 
+   void stop_application( const string& id );
+
    application& get_application( const string& id ){
       return apps.at(id);
    }

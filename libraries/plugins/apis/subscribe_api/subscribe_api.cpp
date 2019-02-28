@@ -129,7 +129,9 @@ void subscribe_api::api_startup(){
 
 }
 
-subscribe_api::~subscribe_api() {}
+subscribe_api::~subscribe_api() {
+   JSON_RPC_DEREGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME, my->_app );
+}
 
 DEFINE_READ_APIS( subscribe_api,
      (custom_object_subscription)

@@ -533,11 +533,20 @@ void application_factory::quit(){
       app.second.quit();
 }
 
-application& application_factory::new_application( const string& id){
-   if(apps.count(id))
-      apps.erase(id);
+application& application_factory::new_application( const string& id)
+{
+   stop_application(id);
    apps.emplace(id, id);
    return apps.at(id);
+}
+
+void application_factory::stop_application(const std::string &id)
+{
+   if(!apps.count(id))
+      return;
+   apps.at(id).shutdown();
+   apps.at(id).quit();
+   apps.erase(id);
 }
 
 variables_map application_factory::read_app_config(const std::string& name)

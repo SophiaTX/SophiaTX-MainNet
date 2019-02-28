@@ -44,6 +44,10 @@
    for_each_api( vtor );                                                                        \
 }
 
+#define JSON_RPC_DEREGISTER_API( API_NAME, APP ) \
+{ \
+   sophiatx::plugins::json_rpc::detail::deregister_api( API_NAME, APP ); \
+}
 
 #define JSON_RPC_PARSE_ERROR        (-32700)
 #define JSON_RPC_INVALID_REQUEST    (-32600)
@@ -112,6 +116,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
 
       fc::optional< fc::variant > call_api_method(const string& network_name, const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const;
       void add_api_method( const string& network_name, const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
+      void remove_network_apis(const string& network_name, const string& api_name);
 
       string call( const string& body, bool& is_error);
       string call( const string& message, std::function<void(const string& )> callback);
@@ -143,7 +148,9 @@ namespace detail {
             : _api_name( api_name ),
               _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() ),
               _network_name( app->id )
-         {}
+         {
+            elog("registering api ${n}.${a}", ("n", _network_name)("a", _api_name));
+         }
 
          template< typename Plugin, typename Method, typename Args, typename Ret >
          void operator()(
@@ -167,6 +174,8 @@ namespace detail {
          std::string _network_name;
 
    };
+
+   void deregister_api( const std::string& api, application* app );
 
 }
 

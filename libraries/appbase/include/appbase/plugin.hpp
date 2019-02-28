@@ -44,8 +44,8 @@ public:
    virtual void initialize(const variables_map& options) = 0;
    virtual void startup() = 0;
    virtual void shutdown() = 0;
-   virtual void set_app(application& my_app) { _app = &my_app; }
-   virtual application* app() { return _app; }
+   virtual void set_app(application& my_app) = 0;
+   virtual application* app() = 0;
 
 protected:
    using plugin_processor = std::function<void(abstract_plugin&)>;
@@ -72,7 +72,6 @@ protected:
    void notify_app_initialize();
    void notify_app_startup();
 private:
-   application* _app;
 };
 
 template< typename Impl >
@@ -123,6 +122,8 @@ public:
       }
    }
 
+   virtual void set_app(application& my_app) override final{ if(!_app) _app = &my_app; }
+   virtual application* app() override final { return _app; }
 
 protected:
    plugin() = default;
@@ -130,6 +131,7 @@ protected:
 
 private:
    state _state = abstract_plugin::registered;
+   application* _app = nullptr;
 };
 
 class abstract_plugin_factory
