@@ -2023,7 +2023,7 @@ void database::process_operations(const signed_transaction& trx) {
    }
 
    // If there is fee-free operation present, update bandwidth stats
-   if (fee_free_ops_count > 0) {
+   if (fee_free_ops_count) {
       flat_set< account_name_type > required; vector<authority> other;
       trx.get_required_authorities( required, required, other );
 

@@ -8,6 +8,7 @@
 
 #include <sophiatx/utilities/key_conversion.hpp>
 #include <sophiatx/utilities/plugin_utilities.hpp>
+#include <sophiatx/protocol/exceptions.hpp>
 
 #include <fc/io/json.hpp>
 #include <fc/macros.hpp>
@@ -16,7 +17,6 @@
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include <sophiatx/protocol/exceptions.hpp>
 
 #include <iostream>
 
