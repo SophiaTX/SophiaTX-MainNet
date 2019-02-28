@@ -4,6 +4,7 @@
 #include <sophiatx/plugins/block_api/block_api_args.hpp>
 #include <sophiatx/plugins/database_api/database_api_args.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_args.hpp>
+#include <sophiatx/plugins/account_bandwidth_api/account_bandwidth_api_args.hpp>
 
 #include <sophiatx/protocol/types.hpp>
 
@@ -95,7 +96,7 @@ struct get_account_bandwidth_args {
    account_name_type account;
 };
 struct get_account_bandwidth_return {
-   optional<account_bandwidth> bandwidth;
+   optional<account_bandwidth_api::account_bandwidth> bandwidth;
 };
 
 /**

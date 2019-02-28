@@ -2,7 +2,7 @@
 #define SOPHIATX_ACCOUNT_BANDWIDTH_API_ARGS_HPP
 
 #include <sophiatx/protocol/types.hpp>
-#include <sophiatx/chain/account_bandwidth_object.hpp>
+#include <sophiatx/plugins/account_bandwidth_api/account_bandwidth_api_objects.hpp>
 
 namespace sophiatx { namespace plugins { namespace account_bandwidth_api {
 
@@ -13,7 +13,7 @@ struct get_account_bandwidth_args
 
 struct get_account_bandwidth_return
 {
-   optional<chain::account_bandwidth_object> bandwidth;
+   optional<account_bandwidth> bandwidth;
 };
 
 } } } // sophiatx::plugins::account_bandwidth_api

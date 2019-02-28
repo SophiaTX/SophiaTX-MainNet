@@ -11,19 +11,10 @@ account_bandwidth_api_impl::account_bandwidth_api_impl(account_bandwidth_api_plu
 DEFINE_API_IMPL(account_bandwidth_api_impl, get_account_bandwidth) {
    get_account_bandwidth_return result;
 
-
-   const auto& idx  = _db->get_index< chain::account_bandwidth_index >().indices().get< chain::by_account >();
-   const auto& itr = idx.find(args.account);
-
-   if (itr != idx.end()) {
-      result.bandwidth = *itr;
+   auto band = _db->find<chain::account_bandwidth_object, chain::by_account>(args.account);
+   if (band != nullptr) {
+      result.bandwidth = *band;
    }
-
-
-//   auto band = _db->find<chain::account_bandwidth_object, chain::by_account>(args.account);
-//   if (band != nullptr) {
-//      result.bandwidth = *band;
-//   }
 
    return result;
 }

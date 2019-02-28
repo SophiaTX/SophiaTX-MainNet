@@ -1971,12 +1971,6 @@ void database::_apply_transaction(const signed_transaction& trx)
       SOPHIATX_ASSERT( now <= trx.expiration, transaction_expiration_exception, "", ("now",now)("trx.exp",trx.expiration) );
    }
 
-   if (has_hardfork(SOPHIATX_HARDFORK_1_2) == true) {
-      // Process transaction in terms of bandwidth and updates according account's bandwidth statistics.
-      // Throws tx_exceeded_bandwidth exception in case max allowed bandwidth validation fails
-      process_tx_bandwidth(trx);
-   }
-
    //Insert transaction into unique transactions database.
    if( !(skip & skip_transaction_dupe_check) )
    {
@@ -1991,13 +1985,7 @@ void database::_apply_transaction(const signed_transaction& trx)
 
 
    //Finally process the operations
-   _current_op_in_trx = 0;
-   for( const auto& op : trx.operations )
-   { try {
-      apply_operation(op);
-      ++_current_op_in_trx;
-     } FC_CAPTURE_AND_RETHROW( (op) );
-   }
+   process_operations(trx);
    _current_trx_id = transaction_id_type();
 
 } FC_CAPTURE_AND_RETHROW( (trx) ) }
@@ -2014,91 +2002,80 @@ void database::apply_operation(const operation& op)
    notify_post_apply_operation( note );
 }
 
-void database::process_tx_bandwidth(const signed_transaction& trx) {
-   account_bandwidth_object trx_bandwidth_data;
+void database::process_operations(const signed_transaction& trx) {
+   uint64_t fee_free_ops_bandwidth = 0;
+   uint64_t fee_free_ops_count = 0;
 
-   trx_bandwidth_data.total_bandwidth = fc::raw::pack_size(trx);
-   trx_bandwidth_data.total_ops_count = trx.operations.size();
+   _current_op_in_trx = 0;
 
-   bool fee_free_op_present = false;
-   bool paid_op_present     = false;
-   for (const operation& op : trx.operations) {
-      if (is_fee_free_operation(op) == true) {
-         // Count standalone fee-free operations bandwidth
-         trx_bandwidth_data.act_fee_free_bandwidth += fc::raw::pack_size(op);
-         trx_bandwidth_data.act_fee_free_ops_count++;
-         fee_free_op_present = true;
-      }
-      else {
-         paid_op_present = true;
-      }
+   for( const auto& op : trx.operations ) {
+      try {
+         apply_operation(op);
+
+         if (has_hardfork(SOPHIATX_HARDFORK_1_2) == true && is_fee_free_operation(op) == true) {
+            // Count standalone fee-free operations bandwidth
+            fee_free_ops_bandwidth += fc::raw::pack_size(op);
+            fee_free_ops_count++;
+         }
+
+         ++_current_op_in_trx;
+      } FC_CAPTURE_AND_RETHROW( (op) );
    }
 
-   // If there are only fee-free operations, count as consumed fee-free bandwidth also transaction meta info,
-   // if there are also paid operations, count as consumed fee-free bandwidth ONLY standalone operations(see above)
-   if (paid_op_present == false && fee_free_op_present == true) {
-      trx_bandwidth_data.act_fee_free_bandwidth = trx_bandwidth_data.total_bandwidth;
-   }
+   // If there is fee-free operation present, update bandwidth stats
+   if (fee_free_ops_count > 0) {
+      flat_set< account_name_type > required; vector<authority> other;
+      trx.get_required_authorities( required, required, other );
 
-
-   flat_set< account_name_type > required; vector<authority> other;
-   trx.get_required_authorities( required, required, other );
-
-   // Updates all involved accounts bandwidth
-   for( const auto& auth : required )
-   {
-      const auto& account = this->get_account( auth );
-      update_account_bandwidth( account.name, trx_bandwidth_data, fee_free_op_present);
+      // Process transaction in terms of bandwidth and updates according account's bandwidth statistics.
+      // Throws tx_exceeded_bandwidth exception in case max allowed bandwidth validation fails
+      update_accounts_bandwidth(required, fee_free_ops_bandwidth, fee_free_ops_count);
    }
 }
 
-void database::update_account_bandwidth(const account_name_type& account, const account_bandwidth_object& trx_bandwidth_data, bool fee_free_op_present) {
-   // Adjusts account bandwidth statistics
-   const account_bandwidth_object* acc_bandwidth = this->find<account_bandwidth_object, by_account>(account);
+void database::update_accounts_bandwidth(const flat_set< account_name_type >& accounts, const uint64_t fee_free_ops_bandwidth, const uint64_t fee_free_ops_count) {
    uint32_t act_head_block = this->head_block_num();
 
-   if (acc_bandwidth == nullptr) {
-      acc_bandwidth = &this->create<account_bandwidth_object>( [&](account_bandwidth_object& abo) {
-         //abo = trx_bandwidth_data;
-         abo.total_bandwidth = trx_bandwidth_data.total_bandwidth;
-         abo.total_ops_count = trx_bandwidth_data.total_ops_count;
-         abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
-         abo.act_fee_free_ops_count = trx_bandwidth_data.act_fee_free_ops_count;
-         abo.last_block_num_reset = act_head_block;
-      });
-   }
-   else {
-      if (act_head_block - acc_bandwidth->last_block_num_reset > SOPHIATX_LIMIT_BANDWIDTH_BLOCKS/*TODO: read from config for private nets*/) {
-         this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
-            abo.total_bandwidth        += trx_bandwidth_data.total_bandwidth;
-            abo.total_ops_count        += trx_bandwidth_data.total_ops_count;
-            abo.act_fee_free_bandwidth = trx_bandwidth_data.act_fee_free_bandwidth;
-            abo.act_fee_free_ops_count = trx_bandwidth_data.act_fee_free_ops_count;
-            abo.last_block_num_reset   = act_head_block;
-         });
-      }
-      else {
-         this->modify(*acc_bandwidth, [&] (account_bandwidth_object& abo) {
-            abo += trx_bandwidth_data;
-         });
-      }
-   }
+   // Updates all involved accounts bandwidth
+   for (const account_name_type &account : accounts) {
+      const account_bandwidth_object *acc_bandwidth = this->find<account_bandwidth_object, by_account>(account);
 
-   if (fee_free_op_present == true) {
+      if (acc_bandwidth == nullptr) {
+         acc_bandwidth = &this->create<account_bandwidth_object>([&](account_bandwidth_object &abo) {
+            abo.account = account;
+            abo.act_fee_free_bandwidth = fee_free_ops_bandwidth;
+            abo.act_fee_free_ops_count = fee_free_ops_count;
+            abo.last_block_num_reset = act_head_block;
+         });
+      } else {
+         if (act_head_block - acc_bandwidth->last_block_num_reset > SOPHIATX_LIMIT_BANDWIDTH_BLOCKS/*TODO: read from config for private nets*/) {
+            this->modify(*acc_bandwidth, [&](account_bandwidth_object &abo) {
+               abo.act_fee_free_bandwidth = fee_free_ops_bandwidth;
+               abo.act_fee_free_ops_count = fee_free_ops_count;
+               abo.last_block_num_reset = act_head_block;
+            });
+         } else {
+            this->modify(*acc_bandwidth, [&](account_bandwidth_object &abo) {
+               abo.act_fee_free_bandwidth += fee_free_ops_bandwidth;
+               abo.act_fee_free_ops_count += fee_free_ops_count;
+            });
+         }
+      }
+
       // Validates max fee-free allowed bandwidth/ops count
-      SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_bandwidth <=
-                      SOPHIATX_MAX_ALLOWED_BANDWIDTH/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
+      SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_bandwidth <= SOPHIATX_MAX_ALLOWED_BANDWIDTH/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
                       "Fee-free operations max. allowed bandwidth [Bytes] exceeded."
-                      "Wait for the next counter reset, which happens after block# " + std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
+                      "Wait for the next counter reset, which happens after block# " +
+                      std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
                       ("next_block_num_reset", acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
                       ("act_bandwidth", acc_bandwidth->act_fee_free_bandwidth)
                       ("max_allowed_bandwidth", SOPHIATX_MAX_ALLOWED_BANDWIDTH)
       );
 
-      SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_ops_count <=
-                      SOPHIATX_MAX_ALLOWED_OPS_COUNT/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
+      SOPHIATX_ASSERT(acc_bandwidth->act_fee_free_ops_count <= SOPHIATX_MAX_ALLOWED_OPS_COUNT/*TODO: read from config for private nets*/, tx_exceeded_bandwidth,
                       "Fee-free operations max. allowed count exceeded."
-                      "Wait for the next counter reset, which happens after block# " + std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
+                      "Wait for the next counter reset, which happens after block# " +
+                      std::to_string(acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS),
                       ("next_block_num_reset", acc_bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
                       ("act_ops_count", acc_bandwidth->act_fee_free_ops_count)
                       ("max_allowed_ops_count", SOPHIATX_MAX_ALLOWED_OPS_COUNT)

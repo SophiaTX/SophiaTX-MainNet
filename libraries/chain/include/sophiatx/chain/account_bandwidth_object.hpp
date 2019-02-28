@@ -25,42 +25,19 @@ public:
       c( *this );
    }
 
-   account_bandwidth_object()                                           = default;
-   account_bandwidth_object(const account_bandwidth_object&)            = default;
-   account_bandwidth_object(account_bandwidth_object&&)                 = default;
-   account_bandwidth_object& operator=(account_bandwidth_object&&)      = default;
-   ~account_bandwidth_object()                                          = default;
-
-   account_bandwidth_object& operator=(const account_bandwidth_object& other) = default;
-//   {
-//      total_bandwidth = other.total_bandwidth;
-//      total_ops_count = other.total_ops_count;
-//      act_fee_free_bandwidth = other.act_fee_free_bandwidth;
-//      act_fee_free_ops_count = other.act_fee_free_ops_count;
-//      return *this;
-//   };
-
-   account_bandwidth_object& operator+=(const account_bandwidth_object& other) {
-      total_bandwidth += other.total_bandwidth;
-      total_ops_count += other.total_ops_count;
-      act_fee_free_bandwidth += other.act_fee_free_bandwidth;
-      act_fee_free_ops_count += other.act_fee_free_ops_count;
-      return *this;
-   }
-
    id_type           id;
    /**
     * account
     */
    account_name_type account;
-   /**
-    * Total (lifetime) operations + transaction meta info bandwidth [Bytes]
-    */
-   uint64_t          total_bandwidth = 0;
-   /**
-    * Total (lifetime) operations count
-    */
-   uint64_t          total_ops_count = 0;
+//   /**
+//    * Total (lifetime) operations + transaction meta info bandwidth [Bytes]
+//    */
+//   uint64_t          total_bandwidth = 0;
+//   /**
+//    * Total (lifetime) operations count
+//    */
+//   uint64_t          total_ops_count = 0;
    /**
     * Actual(during last time frame <last_block_num_reset, last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS> blocks) fee free operations bandwidth [Bytes].
     * In case there are only fee-free operations present in the transactions, also transaction meta info is counted into bandwidth, otherwise only fee-free operations
@@ -96,7 +73,7 @@ using account_bandwidth_index = multi_index_container <
 } }  // sophiatx::chain
 
 FC_REFLECT( sophiatx::chain::account_bandwidth_object,
-            (id)(account)(total_bandwidth)(total_ops_count)(total_bandwidth)(act_fee_free_bandwidth)(act_fee_free_ops_count)(last_block_num_reset) )
+            (id)(account)(act_fee_free_bandwidth)(act_fee_free_ops_count)(last_block_num_reset) )
 
 CHAINBASE_SET_INDEX_TYPE( sophiatx::chain::account_bandwidth_object, sophiatx::chain::account_bandwidth_index )
 

@@ -307,23 +307,23 @@ private:
    void apply_operation(const operation &op);
 
    /**
-    * @brief Process transaction in terms of bandwidth and updates corresponding accounts
-    * @note see update_account_bandwidth for possible scenarios when exception is thrown through SOPHIATX_ASSERT
+    * @brief Process transaction operations
     *
     * @param trx
     */
-   void process_tx_bandwidth(const signed_transaction& trx);
+   void process_operations(const signed_transaction& trx);
 
    /**
-    * @brief Updates account bandwidth according to provided transaction data
+    * @brief Updates accounts bandwidth
     * @throws tx_exceeded_bandwidth if at least one of the following conditions is met:
     *           1. max allowed fee-free operations bandwidth for provided account was exceeded
     *           2. max allowed fee-free operations count for provided account was exceeded
     *
-    * @param account
-    * @param trx
+    * @param accounts
+    * @param fee_free_ops_bandwidth
+    * @param fee_free_ops_count
     */
-   void update_account_bandwidth(const account_name_type& account, const account_bandwidth_object& trx_bandwidth_data, bool fee_free_op_present);
+   void update_accounts_bandwidth(const flat_set< account_name_type >& accounts, const uint64_t fee_free_ops_bandwidth, const uint64_t fee_free_ops_count);
 
    ///Steps involved in applying a new block
    ///@{

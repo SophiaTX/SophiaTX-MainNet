@@ -261,17 +261,6 @@ struct extended_account : public api_account_object
    /// posts recommened for this user
 };
 
-struct account_bandwidth : public chain::account_bandwidth_object {
-   account_bandwidth() = default;
-   account_bandwidth(const chain::account_bandwidth_object& abo ) :
-         chain::account_bandwidth_object( abo )
-   {}
-
-   // Block number when bandwidth counters are going to be reset
-   uint64_t next_block_num_reset = 0;
-};
-
-
 struct extended_dynamic_global_properties
 {
    extended_dynamic_global_properties() {}
@@ -537,9 +526,6 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::api_account_object,
 
 FC_REFLECT_DERIVED( sophiatx::plugins::alexandria_api::extended_account, (sophiatx::plugins::alexandria_api::api_account_object),
                     (vesting_balance)(transfer_history)(other_history)(witness_votes) )
-
-FC_REFLECT_DERIVED( sophiatx::plugins::alexandria_api::account_bandwidth, (sophiatx::chain::account_bandwidth_object),
-                    (next_block_num_reset) )
 
 FC_REFLECT( sophiatx::plugins::alexandria_api::extended_dynamic_global_properties,
             (head_block_number)(head_block_id)(time)
