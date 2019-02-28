@@ -384,7 +384,10 @@ multiparty_messaging_api::multiparty_messaging_api(multiparty_messaging_plugin& 
 
 }
 
-multiparty_messaging_api::~multiparty_messaging_api() {}
+multiparty_messaging_api::~multiparty_messaging_api()
+{
+   JSON_RPC_DEREGISTER_API( SOPHIATX_MPM_PLUGIN_NAME, my->_app );
+}
 
 void multiparty_messaging_api::api_startup() {
 }

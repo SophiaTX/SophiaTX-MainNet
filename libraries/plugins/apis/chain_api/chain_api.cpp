@@ -7,15 +7,16 @@ namespace detail {
 
 class chain_api_impl
 {
-   public:
-      chain_api_impl(chain_api_plugin& plugin) : _chain( plugin.app()->get_plugin<chain_plugin>() ) {}
+public:
+   chain_api_impl(chain_api_plugin& plugin) : _app(plugin.app()), _chain( plugin.app()->get_plugin<chain_plugin>() ) {}
 
       DECLARE_API_IMPL(
          (push_block)
          (push_transaction) )
 
-   private:
-      chain_plugin& _chain;
+   appbase::application* _app;
+private:
+   chain_plugin& _chain;
 };
 
 DEFINE_API_IMPL( chain_api_impl, push_block )
@@ -79,7 +80,10 @@ chain_api::chain_api(chain_api_plugin& plugin): my( new detail::chain_api_impl(p
    JSON_RPC_REGISTER_API( SOPHIATX_CHAIN_API_PLUGIN_NAME, plugin.app() );
 }
 
-chain_api::~chain_api() {}
+chain_api::~chain_api()
+{
+   JSON_RPC_DEREGISTER_API( SOPHIATX_CHAIN_API_PLUGIN_NAME, my->_app );
+}
 
 DEFINE_LOCKLESS_APIS( chain_api,
    (push_block)

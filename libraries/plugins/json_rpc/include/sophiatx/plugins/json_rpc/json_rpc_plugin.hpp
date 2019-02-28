@@ -149,7 +149,7 @@ namespace detail {
               _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() ),
               _network_name( app->id )
          {
-            elog("registering api ${n}.${a}", ("n", _network_name)("a", _api_name));
+            ilog("registering api ${n}.${a}", ("n", _network_name)("a", _api_name));
          }
 
          template< typename Plugin, typename Method, typename Args, typename Ret >

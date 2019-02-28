@@ -140,6 +140,7 @@ public:
    )
 
    std::shared_ptr<chain::database_interface> _db;
+   appbase::application*                                             _app;
 
 private:
    std::shared_ptr< database_api::database_api >                     _database_api;

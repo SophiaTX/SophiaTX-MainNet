@@ -25,7 +25,10 @@ alexandria_api::alexandria_api(alexandria_api_plugin& plugin)
    JSON_RPC_REGISTER_API( SOPHIATX_ALEXANDRIA_API_PLUGIN_NAME, _plugin.app() );
 }
 
-alexandria_api::~alexandria_api() {}
+alexandria_api::~alexandria_api()
+{
+	JSON_RPC_DEREGISTER_API( SOPHIATX_ALEXANDRIA_API_PLUGIN_NAME, my->_app );
+}
 
 
 void alexandria_api::init() {
