@@ -47,7 +47,7 @@ public:
    custom_tokens_plugin &self_;
 
    uint64_t app_id_;
-   bool prune_ = true;
+   uint32_t cleanup_day_ = 30;
    boost::signals2::connection post_apply_connection;
 };
 
@@ -71,6 +71,9 @@ struct post_operation_visitor {
                    ("s", plugin_.save_token_error(note_.trx_id, "Empty action for custom token!")));
 
          variant tmp = fc::json::from_string(&op.json[ 0 ]);
+
+         FC_ASSERT(tmp.get_object().contains("token_symbol"), "${s}",
+                   ("s", plugin_.save_token_error(note_.trx_id, "Action field in json is missing!")));
 
          if( tmp[ "action" ].as<string>() == std::string("create_token")) {
 
@@ -227,7 +230,8 @@ void custom_tokens_plugin_impl::remove_account_tokens(const account_name_type &n
                                                       uint64_t amount, const transaction_id_type &tx_id) {
    auto balance = db_->find<custom_token_account_object, by_token_and_account>(
          boost::make_tuple(token_symbol, name));
-   FC_ASSERT(balance, "${s}", ("s", save_token_error(tx_id, "Account does not hold any of specified tokens!", token_symbol)));
+   FC_ASSERT(balance, "${s}",
+             ("s", save_token_error(tx_id, "Account does not hold any of specified tokens!", token_symbol)));
    FC_ASSERT(balance->amount >= amount, "${s}",
              ("s", save_token_error(tx_id, "Account does not hold enought tokens!", token_symbol)));
    db_->modify(*balance, [ & ](custom_token_account_object &to) {
@@ -288,7 +292,7 @@ const std::string custom_tokens_plugin_impl::save_token_error(const transaction_
         from_string(cto.error, error);
    });
 
-   if( prune_ ) {
+   if( cleanup_day_ ) {
       // Clean up errors older then 30 days
       auto now = std::chrono::system_clock::now();
       const auto &seq_idx = db_->get_index<token_error_index, by_time>();
@@ -301,7 +305,7 @@ const std::string custom_tokens_plugin_impl::save_token_error(const transaction_
 
       --seq_itr;
 
-      while( now - seq_itr->time > std::chrono::hours(24 * 30)) {
+      while( now - seq_itr->time > std::chrono::hours(24 * cleanup_day_)) {
          to_remove.push_back(&(*seq_itr));
          --seq_itr;
       }
@@ -321,8 +325,8 @@ void custom_tokens_plugin::set_program_options(options_description &cli, options
    cfg.add_options()
          ("custom-token-app-id", boost::program_options::value<uint64_t>()->default_value(2),
           "App id used by the custom token plugin")
-         ("custom-token-error-pruning", boost::program_options::value<bool>()->default_value(true),
-          "Enable/Disable cleaning (more then 30 days) old custom token errors");
+         ("custom-token-error-cleanup-days", boost::program_options::value<uint32_t>()->default_value(30),
+          "Defines after how many days custom token errors will be discarded (0 means never)");
 }
 
 void custom_tokens_plugin::plugin_initialize(const boost::program_options::variables_map &options) {
@@ -337,7 +341,7 @@ void custom_tokens_plugin::plugin_initialize(const boost::program_options::varia
    api_ = std::make_shared<custom_tokens_api>(*this);
 
    if( options.count("custom-token-error-pruning")) {
-      my_->prune_ = options[ "custom-token-error-pruning" ].as<bool>();
+      my_->cleanup_day_ = options[ "custom-token-error-pruning" ].as<uint32_t>();
    }
 
    try {
