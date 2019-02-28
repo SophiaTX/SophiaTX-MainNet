@@ -14,7 +14,7 @@ using namespace sophiatx::chain;
 // SPACE_ID's in a build script).
 //
 // Assignment of SPACE_ID's cannot be done at run-time because
-// various multiparty_messaging automagic depends on them being known at compile
+// various template automagic depends on them being known at compile
 // time.
 //
 #ifndef SOPHIATX_MULTIPARTY_MESSAGING_SPACE_ID

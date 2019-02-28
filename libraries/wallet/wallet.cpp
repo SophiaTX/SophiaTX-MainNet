@@ -29,7 +29,6 @@
 #include <fc/crypto/aes.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
-#include <fc/smart_ref_impl.hpp>
 
 #define BRAIN_KEY_WORD_COUNT 16
 

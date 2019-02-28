@@ -11,9 +11,7 @@
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 
-
 #include <fc/crypto/digest.hpp>
-#include <fc/smart_ref_impl.hpp>
 
 #include <iostream>
 #include <iomanip>

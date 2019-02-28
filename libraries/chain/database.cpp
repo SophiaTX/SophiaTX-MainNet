@@ -21,7 +21,6 @@
 
 #include <sophiatx/chain/util/uint256.hpp>
 
-#include <fc/smart_ref_impl.hpp>
 #include <fc/uint128.hpp>
 
 #include <fc/container/deque.hpp>
