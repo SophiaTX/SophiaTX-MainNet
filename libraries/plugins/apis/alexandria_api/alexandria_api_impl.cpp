@@ -559,7 +559,11 @@ DEFINE_API_IMPL(alexandria_api_impl, get_account_bandwidth) {
    optional<chain::account_bandwidth_object> bandwidth = _account_bandwidth_api->get_account_bandwidth( { args.account } ).bandwidth;
    if (bandwidth.valid() == true) {
       result.bandwidth = account_bandwidth(*bandwidth);
-      result.bandwidth->next_block_num_reset = bandwidth->last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;
+
+      uint64_t last_block_num_reset = 0;
+      last_block_num_reset = bandwidth->last_block_num_reset;
+
+      result.bandwidth->next_block_num_reset = last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;
    }
 
    return result;
