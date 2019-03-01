@@ -113,7 +113,7 @@ extern "C" {
      * @param private_key - Private key A
      * @param public_key  - Public key B
      * @param shared_secret - sha512 shared secret in hex
-     * @return
+     * @return - true if is successful
      */
     ALEXANDRIA_EXPORT bool get_shared_secret(const char *private_key, const char* public_key, char *shared_secret);
 }
