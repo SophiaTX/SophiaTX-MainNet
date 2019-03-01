@@ -483,8 +483,6 @@ map<string, application& > application_factory::initialize( int argc, char** arg
       bpo::store(bpo::parse_config_file< char >( config_file_path.make_preferred().string().c_str(),
                                                  global_options, true ), global_args );
 
-
-
       if(start_apps) {
          if( global_args.count("startup-apps") > 0 ) {
             auto chains = global_args.at("startup-apps").as<std::vector<string>>();
@@ -493,6 +491,7 @@ map<string, application& > application_factory::initialize( int argc, char** arg
                boost::split(names, arg, boost::is_any_of(" \t,"));
                for( const std::string &name : names ) {
                   variables_map app_args = read_app_config(name);
+                  app_args.insert(global_args.begin(), global_args.end());
                   auto& new_app = new_application(name);
                   new_app.initialize(app_args, autostart_plugins);
                   ret.emplace(name, new_app);
@@ -534,11 +533,20 @@ void application_factory::quit(){
       app.second.quit();
 }
 
-application& application_factory::new_application( const string& id){
-   if(apps.count(id))
-      apps.erase(id);
+application& application_factory::new_application( const string& id)
+{
+   stop_application(id);
    apps.emplace(id, id);
    return apps.at(id);
+}
+
+void application_factory::stop_application(const std::string &id)
+{
+   if(!apps.count(id))
+      return;
+   apps.at(id).shutdown();
+   apps.at(id).quit();
+   apps.erase(id);
 }
 
 variables_map application_factory::read_app_config(const std::string& name)

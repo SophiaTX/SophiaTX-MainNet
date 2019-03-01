@@ -8,13 +8,14 @@ namespace detail {
 class witness_api_impl
 {
    public:
-      witness_api_impl(witness_api_plugin & plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+      witness_api_impl(witness_api_plugin & plugin) : _app(plugin.app()), _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       DECLARE_API_IMPL(
          (get_account_bandwidth)
          (get_reserve_ratio)
       )
 
+      appbase::application* _app;   
       std::shared_ptr<database_interface> _db;
 };
 
@@ -41,7 +42,10 @@ witness_api::witness_api(witness_api_plugin & plugin): my( new detail::witness_a
    JSON_RPC_REGISTER_API( SOPHIATX_WITNESS_API_PLUGIN_NAME, plugin.app() );
 }
 
-witness_api::~witness_api() {}
+witness_api::~witness_api() 
+{
+   JSON_RPC_DEREGISTER_API( SOPHIATX_WITNESS_API_PLUGIN_NAME, my->_app );
+}
 
 DEFINE_READ_APIS( witness_api,
    (get_account_bandwidth)

@@ -65,7 +65,13 @@ public:
       }
    }
 
-   application& new_application( const string& id);
+   application& new_application( const string& id );
+
+   void stop_application( const string& id );
+
+   application& get_application( const string& id ){
+      return apps.at(id);
+   }
 
    template<typename Plugin>
    std::shared_ptr< abstract_plugin > new_plugin(){
@@ -73,6 +79,7 @@ public:
    }
 
    std::shared_ptr< abstract_plugin > new_plugin(string name){
+      assert(plugin_factories.count(name));
       const auto& pf = plugin_factories.at(name);
       auto new_plugin = pf->new_plugin();
       return new_plugin;
@@ -205,7 +212,7 @@ public:
    bfs::path data_dir()const;
 
    const bpo::variables_map& get_args() const;
-   string id;
+   const string id;
 
    boost::asio::io_service& get_io_service() { return *io_serv; }
 
