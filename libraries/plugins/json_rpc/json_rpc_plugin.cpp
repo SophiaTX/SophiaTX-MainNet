@@ -661,10 +661,10 @@ namespace detail{
 void deregister_api( const std::string& api, application* app )
 {
    try {
-      auto &json_plugin = app->get_plugin<sophiatx::plugins::json_rpc::json_rpc_plugin>();
+      auto &json_plugin = sophiatx::plugins::json_rpc::json_rpc_plugin::get_plugin();
       std::string network = app->id;
       ilog("deregistering api ${n}.${a}", ("n", network)("a", api));
-      json_plugin.remove_network_apis(network, api);
+      json_plugin->remove_network_apis(network, api);
    }catch( ...) {}
 }
 }

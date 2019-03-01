@@ -146,7 +146,7 @@ namespace detail {
       public:
          register_api_method_visitor( const std::string& api_name, application* app )
             : _api_name( api_name ),
-              _json_rpc_plugin( app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >() ),
+              _json_rpc_plugin( sophiatx::plugins::json_rpc::json_rpc_plugin::get_plugin() ),
               _network_name( app->id )
          {
             ilog("registering api ${n}.${a}", ("n", _network_name)("a", _api_name));
@@ -160,7 +160,7 @@ namespace detail {
             Args* args,
             Ret* ret )
          {
-            _json_rpc_plugin.add_api_method( _network_name, _api_name, method_name,
+            _json_rpc_plugin->add_api_method( _network_name, _api_name, method_name,
                [&plugin,method]( const fc::variant& args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true ) -> fc::variant
                {
                   return fc::variant( (plugin.*method)( args.as< Args >(), notify_callback, lock ) );
@@ -170,7 +170,7 @@ namespace detail {
 
       private:
          std::string _api_name;
-         sophiatx::plugins::json_rpc::json_rpc_plugin& _json_rpc_plugin;
+         std::shared_ptr<json_rpc_plugin> _json_rpc_plugin;
          std::string _network_name;
 
    };
