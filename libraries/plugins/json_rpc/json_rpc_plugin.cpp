@@ -660,10 +660,12 @@ void json_rpc_plugin::set_default_network(const string& network_name){
 namespace detail{
 void deregister_api( const std::string& api, application* app )
 {
-   auto& json_plugin = app->get_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
-   std::string network = app->id;
-   ilog("deregistering api ${n}.${a}", ("n", network)("a", api));
-   json_plugin.remove_network_apis(network, api);
+   try {
+      auto &json_plugin = app->get_plugin<sophiatx::plugins::json_rpc::json_rpc_plugin>();
+      std::string network = app->id;
+      ilog("deregistering api ${n}.${a}", ("n", network)("a", api));
+      json_plugin.remove_network_apis(network, api);
+   }catch( ...) {}
 }
 }
 } } } // sophiatx::plugins::json_rpc
