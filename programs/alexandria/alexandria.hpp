@@ -107,6 +107,15 @@ extern "C" {
      * @return - true if is successful
      */
     ALEXANDRIA_EXPORT bool base64_encode(const char *input, char *output);
+
+    /**
+     *
+     * @param private_key - Private key A
+     * @param public_key  - Public key B
+     * @param shared_secret - sha512 shared secret in hez
+     * @return
+     */
+    ALEXANDRIA_EXPORT bool get_shared_secret(const char *private_key, const char* public_key, char *shared_secret);
 }
 
 #endif //SOPHIATX_ALEXANDRIA_HPP
