@@ -248,6 +248,28 @@ bool decrypt_memo(const char *memo, const char *private_key, const char* public_
    return false;
 }
 
+bool get_shared_secret(const char *private_key, const char* public_key, char *shared_secret) {
+   if(public_key && private_key) {
+      try {
+            fc::sha512 shared_sec;
+            auto priv_key = sophiatx::utilities::wif_to_key(string(private_key));
+            if(priv_key) {
+               fc::variant v = fc::json::from_string( string(public_key), fc::json::relaxed_parser );
+               public_key_type pub_key;
+               fc::from_variant( v, pub_key );
+
+               shared_sec = priv_key->get_shared_secret(pub_key);
+               strcpy(shared_secret, shared_sec.str().c_str());
+
+               return true;
+         }
+      } catch (const fc::exception& e) {
+         return false;
+      }
+   }
+   return false;
+}
+
 bool base64_decode(const char *input, char *output) {
    try {
       auto out = fc::base64_decode(string(input));
