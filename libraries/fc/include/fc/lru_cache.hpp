@@ -7,6 +7,7 @@
 #include <boost/optional.hpp>
 #include <chrono>
 #include <mutex>
+#include <iostream>
 
 namespace fc {
 
@@ -58,20 +59,30 @@ private:
 template<typename KeyType, typename ValueType, typename ResourceCreator = void*>
 class LruCache {
 public:
+   static const std::chrono::milliseconds default_timeout;
+   static const std::chrono::milliseconds default_update_interval;
+
    /**
     * @brief Ctor
     *
     * @param max_resources_count max number of resources in cache. In case there is need to create new resource, least used one is automacially deleted.
     * @param timeout maximum time that is waited until resource is emplaced/get. This waiting time might be too long in case too many concurrent threads
-    *                are trying to emplaced/get resources so they block each other. In such case, LruCache::Error with interal type(TIMEOUT) is thrown
+    *           are trying to emplaced/get resources so they block each other. In such case, LruCache::Error with interal type(TIMEOUT) is thrown
+    * @param update_interval min. interval [ms], after which is access_time updated when trying to obtain resource.
+    *           If now() - resource.last_access_time < update_interval, resource.last_access_time is not updated. It should save a lot of useless locks
+    *           that might happen if we get one resource multiple times in short period
     *
     * @param resource_creator lambda that creates resource of type "ValueType"
     */
    template<typename T = ResourceCreator, typename = typename std::enable_if<!std::is_same<void*, T>::value>::type>
-   LruCache(uint32_t max_resources_count, const std::chrono::milliseconds& timeout, const ResourceCreator& resource_creator) :
+   LruCache(uint32_t max_resources_count,
+            const ResourceCreator& resource_creator,
+            const std::chrono::milliseconds& timeout = default_timeout,
+            const std::chrono::milliseconds& update_interval = default_update_interval) :
       resource_creator_(resource_creator),
       mutex_(),
       timeout_(timeout),
+      update_access_interval_(update_interval),
       max_resources_(max_resources_count),
       resources_(),
       resources_by_key_(resources_.template get<by_key>()),
@@ -83,13 +94,19 @@ public:
     *
     * @param max_resources_count max number of resources in cache. In case there is need to create new resource, least used one is automacially deleted.
     * @param timeout maximum time that is waited until resource is emplaced/get. This waiting time might be too long in case too many concurrent threads
-    *                are trying to emplaced/get resources so they block each other. In such case, LruCache::Error with interal type(TIMEOUT) is thrown
+    *           are trying to emplaced/get resources so they block each other. In such case, LruCache::Error with interal type(TIMEOUT) is thrown
+    * @param update_interval min. interval [ms], after which is access_time updated when trying to obtain resource.
+    *           If now() - resource.last_access_time < update_interval, resource.last_access_time is not updated. It should save a lot of useless locks
+    *           that might happen if we get one resource multiple times in short period
     */
    template<typename T = ResourceCreator, typename = typename std::enable_if<std::is_same<void*, T>::value>::type>
-   LruCache(uint32_t max_resources_count, const std::chrono::milliseconds& timeout) :
+   LruCache(uint32_t max_resources_count,
+            const std::chrono::milliseconds& timeout = default_timeout,
+            const std::chrono::milliseconds& update_interval = default_update_interval) :
          resource_creator_(nullptr),
          mutex_(),
          timeout_(timeout),
+         update_access_interval_(update_interval),
          max_resources_(max_resources_count),
          resources_(),
          resources_by_key_(resources_.template get<by_key>()),
@@ -97,7 +114,7 @@ public:
    {}
 
    // Disables default/copy/move ctors
-   LruCache()                                 = delete;
+   LruCache()                            = delete;
    LruCache(const LruCache &)            = delete;
    LruCache &operator=(const LruCache &) = delete;
    LruCache(LruCache &&)                 = delete;
@@ -116,18 +133,16 @@ public:
     */
    template <typename T = ResourceCreator, typename... ArgsType>
    typename std::enable_if<std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
-      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
-      checkLock(lock);
-
-      auto resource = resources_by_key_.find(key);
+      typename resources_by_key_index::iterator resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          // Adjusts last_access of the found resource
-         if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
-            throw LruCacheError(LruCacheError::Type::OTHER, "Unable to modify last access time of resource");
-         }
+         updateAccessTime(resource);
 
          return resource->getValue();
       }
+
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
 
       if (resources_by_key_.size() >= max_resources_) {
          popLru();
@@ -156,18 +171,16 @@ public:
     */
    template <typename T = ResourceCreator, typename... ArgsType>
    typename std::enable_if<!std::is_same<T, void*>::value, ValueType&>::type emplace(const KeyType& key, ArgsType&&... args) {
-      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
-      checkLock(lock);
-
-      auto resource = resources_by_key_.find(key);
+      typename resources_by_key_index::iterator resource = resources_by_key_.find(key);
       if (resource != resources_by_key_.end()) {
          // Adjusts last_access of the found resource
-         if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
-            throw LruCacheError(LruCacheError::Type::OTHER, "Unable to modify last access time of resource");
-         }
+         updateAccessTime(resource);
 
          return resource->getValue();
       }
+
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
 
       if (resources_by_key_.size() >= max_resources_) {
          popLru();
@@ -200,13 +213,8 @@ public:
          return ret;
       }
 
-      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
-      checkLock(lock);
-
       // Adjusts last_access of the found resource
-      if (resources_by_key_.modify(resource, [](Resource& resource) { resource.updateAccessTime(); }) == false) {
-         throw LruCacheError(LruCacheError::Type::OTHER, "Unable to modify last access time of resource");
-      }
+      updateAccessTime(resource);
 
       ret = resource->getValue();
       return ret;
@@ -233,13 +241,12 @@ public:
     * @throws LruCacheError in case of failure
     */
    void setMaxSize(uint32_t max_resources_count) {
-      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
-      checkLock(lock);
-
-      if(resources_.size() > max_resources_count)
-      {
+      if(resources_.size() > max_resources_count) {
          throw LruCacheError(LruCacheError::Type::OTHER, "Can not resize cache, because actual size of cache is bigger then new maximum size!");
       }
+
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
       max_resources_ = max_resources_count;
    }
 
@@ -249,13 +256,15 @@ public:
     * @param key
     */
    void erase(const KeyType& key) {
+      auto resource = resources_by_key_.find(key);
+      if (resource == resources_by_key_.end()) {
+         return;
+      }
+
       std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
       checkLock(lock);
 
-      auto resource = resources_by_key_.find(key);
-      if (resource != resources_by_key_.end()) {
-         resources_by_key_.erase(resource);
-      }
+      resources_by_key_.erase(resource);
    }
 
 private:
@@ -266,13 +275,13 @@ private:
        */
       KeyType                                key_;
       mutable ValueType                      value_;
-      std::chrono::system_clock::time_point  last_access_;
+      std::chrono::steady_clock::time_point  last_access_;
 
       template <typename... ArgsType>
       Resource(const KeyType& key, ArgsType&&... args) :
             key_(key),
             value_(std::forward<ArgsType>(args)...),
-            last_access_(std::chrono::system_clock::now())
+            last_access_(std::chrono::steady_clock::now())
       {}
 
       ~Resource() = default;
@@ -284,7 +293,7 @@ private:
       Resource(Resource &&)                 = delete;
       Resource &operator=(Resource &&)      = delete;
 
-      void updateAccessTime() { last_access_ = std::chrono::system_clock::now(); }
+      void updateAccessTime() { last_access_ = std::chrono::steady_clock::now(); }
 
       /*
        * getValue() always returns ValueType& and not const ValueType&. This value can be changed. Only values that are multiindex container
@@ -294,12 +303,23 @@ private:
       ValueType& getValue() const   { return value_; }
    };
 
-   // Lambda that automatically creates new resource of type ValueType
-   ResourceCreator resource_creator_;
+   /**
+    * @brief Defines boost multiindex container that stores resource objects
+    */
+   struct by_key;
+   struct by_last_access;
 
-   // Synchronization attributes
-   std::timed_mutex                 mutex_;
-   std::chrono::milliseconds        timeout_;
+   using resources_index =
+   boost::multi_index::multi_index_container<
+         Resource,
+         boost::multi_index::indexed_by<
+               boost::multi_index::ordered_unique<boost::multi_index::tag<by_key>, boost::multi_index::member<Resource, KeyType, &Resource::key_> >,
+               boost::multi_index::ordered_non_unique<boost::multi_index::tag<by_last_access>, boost::multi_index::member<Resource, std::chrono::steady_clock::time_point, &Resource::last_access_> >
+         >
+   >;
+   using resources_by_key_index           = typename resources_index::template index<by_key>::type;
+   using resources_by_last_access_index   = typename resources_index::template index<by_last_access>::type;
+
 
    /**
     * @throws LruCacheError in case provided unique_lock has not an associated mutex or has not acquired ownership of it
@@ -307,6 +327,20 @@ private:
    void checkLock(const std::unique_lock<std::timed_mutex>& lock) {
       if (!lock) {
          throw LruCacheError(LruCacheError::Type::TIMEOUT);
+      }
+   }
+
+   void updateAccessTime(const typename resources_by_key_index::iterator& it) {
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - it->last_access_);
+      if (duration < update_access_interval_) {
+         return;
+      }
+
+      std::unique_lock<std::timed_mutex> lock(mutex_, timeout_);
+      checkLock(lock);
+
+      if (resources_by_key_.modify(it, [](Resource &resource) { resource.updateAccessTime(); }) == false) {
+         throw LruCacheError(LruCacheError::Type::OTHER, "Unable to modify last access time of resource");
       }
    }
 
@@ -321,22 +355,13 @@ private:
    }
 
 
-   /**
-    * @brief Defines boost multiindex container that stores resource objects
-    */
-   struct by_key;
-   struct by_last_access;
+   // Lambda that automatically creates new resource of type ValueType
+   ResourceCreator                  resource_creator_;
 
-   using resources_index =
-   boost::multi_index::multi_index_container<
-         Resource,
-         boost::multi_index::indexed_by<
-               boost::multi_index::ordered_unique<boost::multi_index::tag<by_key>, boost::multi_index::member<Resource, KeyType, &Resource::key_> >,
-               boost::multi_index::ordered_non_unique<boost::multi_index::tag<by_last_access>, boost::multi_index::member<Resource, std::chrono::system_clock::time_point, &Resource::last_access_> >
-         >
-   >;
-   using resources_by_key_index           = typename resources_index::template index<by_key>::type;
-   using resources_by_last_access_index   = typename resources_index::template index<by_last_access>::type;
+   // Synchronization attributes
+   std::timed_mutex                 mutex_;
+   std::chrono::milliseconds        timeout_;
+   const std::chrono::milliseconds  update_access_interval_;
 
    // maximum number of resources
    uint32_t                         max_resources_;
@@ -344,6 +369,12 @@ private:
    resources_by_key_index&          resources_by_key_;
    resources_by_last_access_index&  resources_by_last_access_;
 };
+
+template<typename KeyType, typename ValueType, typename ResourceCreator>
+constexpr std::chrono::milliseconds LruCache<KeyType, ValueType, ResourceCreator>::default_timeout = std::chrono::milliseconds(1000);
+
+template<typename KeyType, typename ValueType, typename ResourceCreator>
+constexpr std::chrono::milliseconds LruCache<KeyType, ValueType, ResourceCreator>::default_update_interval = std::chrono::milliseconds(500);
 
 }
 #endif //TIMED_LRU_CACHE_HPP
