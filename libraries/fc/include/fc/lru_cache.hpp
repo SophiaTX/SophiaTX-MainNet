@@ -329,6 +329,10 @@ private:
       }
    }
 
+   /**
+    * @brief Updates resource.last_access_ in case: now() - resource.last_access_ >= update_interval,
+    *        otherwise it keeps original resource.last_access_ value.
+    */
    void updateAccessTime(const typename resources_by_key_index::iterator& it) {
       auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - it->last_access_);
       if (duration < update_access_interval_) {
