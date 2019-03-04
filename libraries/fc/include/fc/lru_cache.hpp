@@ -1,5 +1,5 @@
-#ifndef TIMED_LRU_CACHE_HPP
-#define TIMED_LRU_CACHE_HPP
+#ifndef LRU_CACHE_HPP
+#define LRU_CACHE_HPP
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -7,7 +7,6 @@
 #include <boost/optional.hpp>
 #include <chrono>
 #include <mutex>
-#include <iostream>
 
 namespace fc {
 
@@ -377,4 +376,4 @@ template<typename KeyType, typename ValueType, typename ResourceCreator>
 constexpr std::chrono::milliseconds LruCache<KeyType, ValueType, ResourceCreator>::default_update_interval = std::chrono::milliseconds(500);
 
 }
-#endif //TIMED_LRU_CACHE_HPP
+#endif //LRU_CACHE_HPP
