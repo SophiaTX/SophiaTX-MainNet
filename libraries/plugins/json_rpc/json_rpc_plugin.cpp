@@ -39,7 +39,7 @@ namespace detail
       fc::variant                      id;
    };
 
-   typedef void_type             get_methods_args;
+   typedef fc::optional<string>  get_methods_args;
    typedef vector< string >      get_methods_return;
 
    struct get_signature_args
@@ -133,13 +133,13 @@ namespace detail
          json_rpc_plugin_impl(json_rpc_plugin& plugin);
          ~json_rpc_plugin_impl();
 
-         void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
+         void add_api_method( const string& network_name, const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
+         void remove_network_apis(const string& network_name, const string& api_name);
 
-
-         api_method* find_api_method( const std::string& api, const std::string& method );
-         void process_params( string method, const fc::variant_object& request, std::string& api_name,
-               string& method_name ,fc::variant& func_args);
-         fc::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true);
+         api_method* find_api_method( const string& network_name, const std::string& api, const std::string& method );
+         void process_params(string method, const fc::variant_object &request, std::string &api_name,
+                                      string &method_name, fc::variant &func_args, string &network_name);
+         fc::optional< fc::variant > call_api_method(const string& network_name, const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true);
          void rpc_id( const fc::variant_object& request, json_rpc_response& response );
          void rpc_jsonrpc( const fc::variant_object& request, json_rpc_response& response, std::function<void(string)> callback );
          json_rpc_response rpc( const fc::variant& message, std::function<void(string)> callback );
@@ -158,28 +158,42 @@ namespace detail
                _logger->log(request, response);
          }
 
+         void set_default_network(const string& network_name){_default_network = network_name;};
+
          DECLARE_API(
             (get_methods)
             (get_signature) )
 
-         map< string, api_description >                     _registered_apis;
-         vector< string >                                   _methods;
+         map<string, map< string, api_description >>        _registered_apis;
+         map<string, vector< string >>                      _methods;
          map< string, map< string, api_method_signature > > _method_sigs;
          std::unique_ptr< json_rpc_logger >                 _logger;
          json_rpc_plugin&                                   _plugin;
+         string                                             _default_network = "mainnet";
    };
 
    json_rpc_plugin_impl::json_rpc_plugin_impl(json_rpc_plugin& plugin):_plugin(plugin) {}
    json_rpc_plugin_impl::~json_rpc_plugin_impl() {}
 
-   void json_rpc_plugin_impl::add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+   void json_rpc_plugin_impl::add_api_method( const string& network_name, const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
    {
-      _registered_apis[ api_name ][ method_name ] = api;
+      _registered_apis[network_name][ api_name ][ method_name ] = api;
       _method_sigs[ api_name ][ method_name ] = sig;
 
       std::stringstream canonical_name;
       canonical_name << api_name << '.' << method_name;
-      _methods.push_back( canonical_name.str() );
+      _methods[network_name].push_back( canonical_name.str() );
+   }
+
+   void json_rpc_plugin_impl::remove_network_apis(const string& network_name, const string& api_name)
+   {
+      if( _registered_apis.count(network_name) ){
+         _registered_apis[network_name].erase(api_name);
+         if( _registered_apis[network_name].size() == 0 ) {
+            _registered_apis.erase(network_name);
+            _methods.erase(network_name);
+         }
+      }
    }
 
 
@@ -192,7 +206,9 @@ namespace detail
    {
       FC_UNUSED( lock )
       FC_UNUSED( notify_callback )
-      return _methods;
+      string network_name = args ? *args : _default_network;
+      FC_ASSERT(_methods.count(network_name), "Unknown network");
+      return _methods[network_name];
    }
 
    get_signature_return json_rpc_plugin_impl::get_signature( const get_signature_args& args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock )
@@ -212,10 +228,13 @@ namespace detail
       return method_itr->second;
    }
 
-   api_method* json_rpc_plugin_impl::find_api_method( const std::string& api, const std::string& method )
+   api_method* json_rpc_plugin_impl::find_api_method( const string& network_name, const std::string& api, const std::string& method )
    {
-      auto api_itr = _registered_apis.find( api );
-      FC_ASSERT( api_itr != _registered_apis.end(), "Could not find API ${api}", ("api", api) );
+      auto net_itr = _registered_apis.find( network_name );
+      FC_ASSERT( net_itr != _registered_apis.end(), "Could not find network ${net}", ("net", network_name) );
+
+      auto api_itr = net_itr->second.find( api );
+      FC_ASSERT( api_itr != net_itr->second.end(), "Could not find API ${api}", ("api", api) );
 
       auto method_itr = api_itr->second.find( method );
       FC_ASSERT( method_itr != api_itr->second.end(), "Could not find method ${method}", ("method", method) );
@@ -223,10 +242,12 @@ namespace detail
       return &(method_itr->second);
    }
 
-void json_rpc_plugin_impl::process_params( string method, const fc::variant_object& request, std::string& api_name,
-                     string& method_name ,fc::variant& func_args ) {
+   void json_rpc_plugin_impl::process_params(string method, const fc::variant_object &request, std::string &api_name,
+                                          string &method_name, fc::variant &func_args, string &network_name) {
+      network_name = _default_network;
       if( method == "call" )
       {
+         // calling specific network is not supported on this old API format
          FC_ASSERT( request.contains( "params" ) );
 
          std::vector< fc::variant > v;
@@ -234,23 +255,57 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
          if( request[ "params" ].is_array() )
             v = request[ "params" ].as< std::vector< fc::variant > >();
 
-         FC_ASSERT( v.size() == 2 || v.size() == 3, "params should be {\"api\", \"method\", \"args\"" );
+         FC_ASSERT( v.size() == 2 || v.size() == 3 || v.size() == 4, "params should be {\"api\", \"method\", \"args\" } or {\"network\", \"api\", \"method\", \"args\" }" );
 
-         api_name = v[0].as_string();
-         method_name = v[1].as_string();
-         func_args = ( v.size() == 3 ) ? v[2] : fc::json::from_string( "{}" );
-
+         if( v.size() == 2 ) {
+            api_name = v[ 0 ].as_string();
+            method_name = v[ 1 ].as_string();
+            func_args = fc::json::from_string("{}");
+         } else if ( v.size() == 4 ) {
+            network_name = v[0].as_string();
+            api_name = v[1].as_string();
+            method_name = v[2].as_string();
+            func_args = v[3];
+         } else if ( v.size() == 3  && v[2].is_string() ){
+            try{
+               find_api_method(v[0].as_string(), v[1].as_string(), v[2].as_string());
+               //if no exception is thrown, the method v[0].v[1].v[2] is registered
+               network_name = v[0].as_string();
+               api_name = v[1].as_string();
+               method_name = v[2].as_string();
+               func_args = fc::json::from_string( "{}" );
+            }catch(fc::assert_exception& e){
+               //if exception is thrown, the method v[0].v[1].v[2] has not been registered; let's assume the format is  {"api", "method", "args" }
+               api_name = v[0].as_string();
+               method_name = v[1].as_string();
+               func_args = v[2];
+            }
+         } else {
+            api_name = v[0].as_string();
+            method_name = v[1].as_string();
+            func_args = v[2];
+         }
       }
       else
       {
          vector< std::string > v;
          boost::split( v, method, boost::is_any_of( "." ) );
 
-         FC_ASSERT( v.size() == 2, "method specification invalid. Should be api.method" );
+         FC_ASSERT( v.size() == 2 || v.size() == 3, "method specification invalid. Should be api.method or network.api.method" );
 
-         api_name = v[0];
-         method_name = v[1];
-         func_args = request.contains( "params" ) ? request[ "params" ] : fc::json::from_string( "{}" );
+         if( v.size() == 2 ) {
+            api_name = v[ 0 ];
+            method_name = v[ 1 ];
+            func_args = request.contains("params") ? request[ "params" ] : fc::json::from_string("{}");
+            if( func_args.is_object() && func_args.get_object().contains("network_id") )
+               network_name = func_args.get_object()["network_id"].as<std::string>();
+         }else{
+            network_name = v[ 0 ];
+            api_name = v[ 1 ];
+            method_name = v[ 2 ];
+            func_args = request.contains("params") ? request[ "params" ] : fc::json::from_string("{}");
+         }
+
 
       }
    }
@@ -276,11 +331,11 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
    }
 
    fc::optional<fc::variant>
-   json_rpc_plugin_impl::call_api_method(const string &api_name, const string &method_name, const fc::variant &func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock) {
+   json_rpc_plugin_impl::call_api_method(const string& network_name, const string &api_name, const string &method_name, const fc::variant &func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock) {
       if( _registered_apis.find(api_name) == _registered_apis.end() && remote::remote_db::initialized()) {
-         return fc::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
+         return fc::optional<fc::variant>(remote::remote_db::remote_call(network_name, api_name, method_name, func_args));
       } else {
-         api_method *call = find_api_method(api_name, method_name);
+         api_method *call = find_api_method(network_name, api_name, method_name);
          return (*call)(func_args, notify_callback, lock);
       }
    }
@@ -289,6 +344,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
    {
       string api_name;
       string method_name;
+      string network_name;
 
       if( request.contains( "jsonrpc" ) && request[ "jsonrpc" ].is_string() && request[ "jsonrpc" ].as_string() == "2.0" )
       {
@@ -302,10 +358,9 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
                if( ( method == "call" && request.contains( "params" ) ) || method != "call" )
                {
                   fc::variant func_args;
-
                   try
                   {
-                     process_params( method, request, api_name, method_name, func_args );
+                     process_params(method, request, api_name, method_name, func_args, network_name);
                   }
                   catch( fc::assert_exception& e )
                   {
@@ -329,7 +384,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
                                 throw e;
                              }
                         };
-                        response.result = call_api_method(api_name, method_name, func_args, notify);
+                        response.result = call_api_method(network_name, api_name, method_name, func_args, notify);
                      }
                   }
                   catch( chainbase::lock_exception& e )
@@ -417,6 +472,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
          response.error = json_rpc_error( JSON_RPC_SERVER_ERROR, "Unknown error - parsing rpc message failed" );
       }
 
+      ddump((response));
       return response;
    }
 
@@ -430,9 +486,9 @@ using detail::json_rpc_logger;
 json_rpc_plugin::json_rpc_plugin() : my( new detail::json_rpc_plugin_impl( *this ) ), _next_id(0) {}
 json_rpc_plugin::~json_rpc_plugin() {}
 
-void json_rpc_plugin::set_program_options( options_description& , options_description& cfg)
+void json_rpc_plugin::set_program_options( options_description& cli, options_description& cfg)
 {
-   cfg.add_options()
+   cli.add_options()
       ("log-json-rpc", bpo::value< string >(), "json-rpc log directory name.")
       ;
 }
@@ -456,14 +512,23 @@ void json_rpc_plugin::plugin_initialize( const variables_map& options )
 
 void json_rpc_plugin::plugin_startup()
 {
-   std::sort( my->_methods.begin(), my->_methods.end() );
+   for( auto& i: my->_methods )
+      std::sort( i.second.begin(), i.second.end() );
 }
 
-void json_rpc_plugin::plugin_shutdown() {}
-
-void json_rpc_plugin::add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+void json_rpc_plugin::plugin_shutdown()
 {
-   my->add_api_method( api_name, method_name, api, sig );
+
+}
+
+void json_rpc_plugin::add_api_method( const string& network_name, const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig )
+{
+   my->add_api_method( network_name, api_name, method_name, api, sig );
+}
+
+void json_rpc_plugin::remove_network_apis(const string& network_name, const string& api_name)
+{
+   my->remove_network_apis(network_name, api_name);
 }
 
 string json_rpc_plugin::call( const string& message, bool& is_error)
@@ -583,11 +648,26 @@ uint64_t json_rpc_plugin::generate_subscription_id(){
    return _next_id++;
 };
 
-fc::optional< fc::variant > json_rpc_plugin::call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const {
-   return my->call_api_method( api_name, method_name, func_args, notify_callback, false);
+fc::optional< fc::variant > json_rpc_plugin::call_api_method(const string& network_name, const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const {
+   return my->call_api_method( network_name, api_name, method_name, func_args, notify_callback, false);
+}
+
+void json_rpc_plugin::set_default_network(const string& network_name){
+   my->set_default_network(network_name);
 }
 
 
+namespace detail{
+void deregister_api( const std::string& api, application* app )
+{
+   try {
+      auto &json_plugin = sophiatx::plugins::json_rpc::json_rpc_plugin::get_plugin();
+      std::string network = app->id;
+      ilog("deregistering api ${n}.${a}", ("n", network)("a", api));
+      json_plugin->remove_network_apis(network, api);
+   }catch( ...) {}
+}
+}
 } } } // sophiatx::plugins::json_rpc
 
 FC_REFLECT( sophiatx::plugins::json_rpc::detail::json_rpc_error, (code)(message)(data) )
