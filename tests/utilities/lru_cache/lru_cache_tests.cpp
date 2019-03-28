@@ -13,7 +13,8 @@ BOOST_AUTO_TEST_CASE( lru_cache_tests )
       BOOST_TEST_MESSAGE( "Testing: lru_cache" );
       constexpr uint32_t max_pool_size = 3;
 
-      fc::LruCache<std::string, std::string> resourcePool(max_pool_size, std::chrono::milliseconds(100));
+      using Cache = fc::LruCache<std::string, std::string>;
+      Cache resourcePool(max_pool_size, Cache::default_timeout, std::chrono::milliseconds(0));
       resourcePool.emplace("key1", "value1");
       resourcePool.emplace("key2", "value2");
       resourcePool.emplace("key3", "value3");
@@ -27,17 +28,14 @@ BOOST_AUTO_TEST_CASE( lru_cache_tests )
       BOOST_TEST_MESSAGE( "--- Test if the least used resource was deleted" );
       BOOST_CHECK( !resourcePool.get("key1") );
 
-
       BOOST_TEST_MESSAGE( "--- Test trying to get non-existing resource" );
       BOOST_CHECK( !resourcePool.get("key5") );
-
 
       BOOST_TEST_MESSAGE( "--- Test automatic creation of non-existing resource with getAut method" );
       BOOST_CHECK_EQUAL( resourcePool.emplace("key6", "value6"), "value6" );
 
       // There are now resources mapped to key key3, key4, key6 that are ordered(according to the last access_time): key3, key4, key6
       resourcePool.get("key3"); // use resource key3 -> updates last access_time
-
       // Now there should be present resources in order: key4, key6, key3
       std::string& createdResource = resourcePool.emplace("key7", "value7");  // create new resource for key7
       BOOST_TEST_MESSAGE( "--- Test if newly created resource original value" );
