@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE( db_resource_cache_tests )
 
       constexpr uint32_t max_pool_size = 1;
       auto DbCreator = [data_dir = data_dir.generic_string()](const std::string& db_name) { return std::make_shared<SQLite::Database>(data_dir + db_name, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE); };
-      fc::LruCache<std::string, std::shared_ptr<SQLite::Database>, decltype(DbCreator)> resourcePool(max_pool_size, std::chrono::milliseconds(100), DbCreator);
+      fc::LruCache<std::string, std::shared_ptr<SQLite::Database>, decltype(DbCreator)> resourcePool(max_pool_size, DbCreator);
 
       std::shared_ptr<SQLite::Database> acc1_db = resourcePool.emplace("acc1", "acc1.db");
       auto& acc2_db                             = resourcePool.emplace("acc2", "acc2.db");
