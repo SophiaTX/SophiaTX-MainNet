@@ -1,256 +1,236 @@
 {
    "initial_public_key" : "SPH8MYLsv8yDKnrysHHDvXGqypG4piPx29xBapt9RXZyMGaYWESe5",
-   "initial_balace" : 345000000000000,
+   "initial_balace" : 304000000000000,
    "initial_accounts" : [
       {
-         "name":"ejossev",
-         "key": "SPH8D8De3AFYZyc3vDfZSQogqSUAc7pbzqgYUuw5x6JBXNDp5d4i5",
-         "balance": 100000000000
+         "name":"user1",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"matej",
-         "key": "SPH8M7RdvhK7gBvwGq2BcGqWFgiscvKWZT6irGnN43cd1mzoAfXKc",
-         "balance": 100000000000
+         "name":"user2",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"pato",
-         "key": "SPH6usa8PYnA2gdDKSLiWPqDjKN4JjtRPBCazv3u3ky6Fw15BdexZ",
-         "balance": 100000000000
+         "name":"user3",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"peto",
-         "key": "SPH6Yx7Dn5xQyCUzK23JyhpLaWr3mwJv6dagB9c3A6LjPhXFdJHuq",
-         "balance": 100000000000
+         "name":"user4",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"sanjiv",
-         "key": "SPH7GvbxZTntaqCnNSsuai1Dguejh23RKJHmu2uuR869BLbM3yWPK",
-         "balance": 100000000000
+         "name":"user5",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"honza",
-         "key": "SPH7qyB1qvNvB1bnGRvemRJZHSFX5XKtEBjPVSSeJYQshruQgWB2k",
-         "balance": 100000000000
+         "name":"user6",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"matus",
-         "key": "SPH8CCSuKrntXmjZQvzarisey1yxG94Dspoa9VQVn1b2aFummfVig",
-         "balance": 100000000000
+         "name":"user7",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"mrajnic",
-         "key": "SPH5ue1zKq2qkpnGdfk57qa4GF7eGdWFq68cgYrarRAeXF89CagE3",
-         "balance": 100000000000
+         "name":"user8",
+         "key": "SPH7YS9Y9bRzmGaFaSvS8DGofcGvHvUEPzfFysBDTaBmjjtdpsk4k",
+         "balance": 1000000000000
       },
       {
-         "name":"rpetricek",
-         "key": "SPH5ieVFuVbYGkhVjNaBM8k5Hr3ZZrb4gajAwjCCByTMUAko9EU27",
-         "balance": 100000000000
+         "name":"user9",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"divchyna",
-         "key": "SPH75pjCETArRw6Kf5xzyirqMK7bsudU4BDSmBY734wkuZogMC5Xe",
-         "balance": 100000000000
+         "name":"user10",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"beauty",
-         "key": "SPH7GUsu1WVGm79FgaXLWMD7okzLoCFbSrjpV6EBW4MDfrhiae2bT",
-         "balance": 100000000000
+         "name":"user11",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"watcher",
-         "key": "SPH6pa5iuGwKPD5V7qfcUAiHLTmE9FjYRy8Zx2Uv9JNCw2twicXBX",
-         "balance": 100000000000
+         "name":"user12",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"achilles",
-         "key": "SPH6kP3fCwYBrwUqC1YZn4LNg7pd7XjfWpHTWFXddmYDWkvJctkh7",
-         "balance": 100000000000
+         "name":"user13",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"wizard",
-         "key": "SPH66kjiJB7Rv6AdMdEwapRrrp17jKNu3xwNgERwZtB6VfNVhkwqd",
-         "balance": 100000000000
+         "name":"user14",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"rambo",
-         "key": "SPH5pLccZ8iyCX4Piq1t99jGzap37ZuQtaj44kce5yHjpWRcUgAyv",
-         "balance": 100000000000
+         "name":"user15",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"visionaire",
-         "key": "SPH6YX385PYVpvZNi4XWpsUUXgobCm67mZGzNkKXznmBzmDAztFw6",
-         "balance": 100000000000
+         "name":"user16",
+         "key": "SPH7pskugmLRMLfexgi1D1Ua8ZRQb6mbdXQ7PWJzvg66UBwqgGrmu",
+         "balance": 1000000000000
       },
       {
-         "name":"martyn",
-         "key": "SPH8DaynogzuT4jYkGqVB7pcxC5xU8Pj7qJ6RGnqLQCTiLGYA5ZSz",
-         "balance": 100000000000
+         "name":"user17",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"dominika",
-         "key": "SPH5uLdGyZafLWybGDpVdgAunoLexkHig8co22WFYaWQSd7xgo88L",
-         "balance": 100000000000
+         "name":"user18",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"martin",
-         "key": "SPH5BSFddY7LwMimgHaWtgrqnD5Qawi5vFrpRMjgYDapMwpHoVaU5",
-         "balance": 100000000000
+         "name":"user19",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"daren",
-         "key": "SPH4yGJQNNkxJc6CLooAyv5gHiia8GzUbEKWt8AKFjG9Y2AYBuRYo",
-         "balance": 100000000000
+         "name":"user20",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"roman",
-         "key": "SPH4vBbwwHEAjCwPGcJa2zao6LEs66B9KpQukr6cVN34guNaxaULg",
-         "balance": 100000000000
+         "name":"user21",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"vlado",
-         "key": "SPH83BeHrXE8DCNJN7hNrjTBamMm2TkzHSs4cHdnWZqQnsHCpwNxX",
-         "balance": 100000000000
+         "name":"user22",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"jk",
-         "key": "SPH6kTXnxe6MFx2TpG9vB6LN3zJLnmoo8yx9ATjtceN1oXfbw5cKt",
-         "balance": 100000000000
+         "name":"user23",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
-         "name":"jano",
-         "key": "SPH5eaXXDJnYRsSersnHyrZmiJt4tbyq9mmsq49AZdxDDgjBGJogH",
-         "balance": 100000000000
-      },
-      {
-         "name":"pmatavovsky",
-         "key": "SPH59YXvANWaPseZS8EkFBVzu8ceV2uVmL8YS7QrFPwnh3UYA8FQB",
-         "balance": 100000000000
-      },
-      {
-         "name":"usercreator",
-         "key": "SPH55k6JhyZ7pBKWsHKv4J7CkE3eNHnLJFauJjzr8uusUSARZRyUj",
-         "balance": 100000000000
-      },
-      {
-         "name":"company0",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "name":"user24",
+         "key": "SPH8CCm3u56SkddjnkUe1nbHGRaNifbkpNFaUF7VeGpLV9NKM2XTZ",
+         "balance": 1000000000000
       },
       {
          "name":"company1",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company2",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company3",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company4",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company5",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company6",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company7",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company8",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
          "name":"company9",
-         "key": "SPH7H1AzyVmrppiFaD2fd1Zn7RhZi9xoo8B1SFTXTbJsbApG4KzC9",
-         "balance": 100000000000
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
-         "name":"arktree1",
-         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
-         "balance": 100000000000
+         "name":"company10",
+         "key": "SPH6HoKrn4p4N9GaRjz7Sufw4zH8UA2H1SvomiXEr5AaAkaSpzkju",
+         "balance": 1000000000000
       },
       {
-         "name":"arktree2",
-         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
-         "balance": 100000000000
+         "name":"company11",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"arktree3",
-         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
-         "balance": 100000000000
+         "name":"company12",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"arktree4",
-         "key": "SPH6Xpy6dbsQZ7gDsfBKXxqagHtMESs6mo5XEWDriF6wNP5edaaj8",
-         "balance": 100000000000
+         "name":"company13",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"bizcode1",
-         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
-         "balance": 100000000000
+         "name":"company14",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"bizcode2",
-         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
-         "balance": 100000000000
+         "name":"company15",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"bizcode3",
-         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
-         "balance": 100000000000
+         "name":"company16",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"bizcode4",
-         "key": "SPH79vZPqEHPuHTudF7qZRNr5VcCTVDPGhduVu53SA9wyiGFf5eQT",
-         "balance": 100000000000
+         "name":"company17",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"unitedenergy1",
-         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
-         "balance": 100000000000
+         "name":"company18",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"unitedenergy2",
-         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
-         "balance": 100000000000
+         "name":"company19",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"unitedenergy3",
-         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
-         "balance": 100000000000
+         "name":"company20",
+         "key": "SPH7SxtMB9kdup4eokLwmp7tkwPhvAjUpZKytL95nsnMkTAN5ABef",
+         "balance": 1000000000000
       },
       {
-         "name":"unitedenergy4",
-         "key": "SPH5BXP9cAMuNogCApfNenRSjLsLUHTWN4m4vJSBXTw22EsBNExc7",
-         "balance": 100000000000
+         "name":"matus",
+         "key": "SPH6iqhze7YbSpDWiosNhoLtvRWyUESRvxd2harXZjyjrvQ9qmHX4",
+         "balance": 1000000000000
       },
       {
-         "name":"kuan",
-         "key": "SPH6RmpQ9BVvniR9WnAubRzJ1mv8YuczMUHXwz9qbXoyLRnmbYaKL",
-         "balance": 100000000000
-      },
-      {
-         "name":"waifei",
-         "key": "SPH8k1nMRRLhuLzS17xM6pzZWW1Msbz42wCgxBqMtVY8f1ZsFqBVo",
-         "balance": 100000000000
+         "name": "jakub",
+         "key": "SPH7Z9mAvic53VbTntAWTz5VBQT3nuhdjUETGoYzuVEtkFPTiridb",
+         "balance": 1000000000000
       }
    ],
    "genesis_time" : "2018-07-17T11:00:00",
