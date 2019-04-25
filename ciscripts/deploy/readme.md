@@ -23,7 +23,7 @@ Created file structure on server:
 
 ./deploy-node.sh -h host -u user [-s sourceUrl] [-r]
 
-####Arguments description:
+#### Arguments description:
 
 -h host         : host(server), where node binaries should be deployed into
   
