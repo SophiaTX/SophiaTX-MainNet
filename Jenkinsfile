@@ -17,128 +17,41 @@ pipeline {
     GENESIS_FILE = "genesis.json"
     BUILD_TYPE = "Release"
   }
-  agent {
-    label "linux"
-  }
+  agent any
   stages {
-    stage('Creating parallel jobs ...') {  
-      parallel {
-        stage('Linux') {
-          agent {
-            label "linux"
-          }
-          stages {
-            stage('Git Checkout') {
-              steps {
-                checkout scm
-              }
-            }
-            stage('Build') {
-              steps {
-                start_build()
-              }
-            }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
-            stage('Archive') {
-              environment { 
-                LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
-                ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-                PLUGIN_ARCHIVE_NAME = "plugins_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-              }
-              steps {
-                run_archive()
-              }
-            }
-            stage('Create RPM') {
-              when {
-                branch 'develop'
-              }
-              steps {
-                create_rpm()
-              }
-            }
-            stage('Clean WS') {
-              steps {
-                cleanWs()
-              }
-            }
-          }
-        }
-        stage('macOS') {    
-          agent {
-            label "mac"
-          }
-          when {
-            anyOf {
-              branch 'develop'
-              branch "*/develop"
-              branch "PR-*"
-            }
-          }
-          stages {
-            stage('Git Checkout') {
-              steps {
-                checkout scm
-              }
-            }
-            stage('Build') {
-              steps {
-                start_build()
-              }
-            }
-            stage('Tests') {
-              steps {
-                tests()
-              }
-            }
-            stage('Archive') {
-              environment { 
-                LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
-                ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-                PLUGIN_ARCHIVE_NAME = "plugins_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
-              }
-              steps {
-                run_archive()
-              }
-            }
-            stage('Clean WS') {
-              steps {
-                cleanWs()
-              }
-            }
-          }
-        }
+    stage('Git Checkout') {
+      steps {
+        checkout scm
       }
     }
-  }
-  post {
-    success {
-      send_positive_slack_notification()
+    stage('Build') {
+      steps {
+        start_build()
+      }
     }
-    failure {
-      slackSend (color: '#ff0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.NODE_NAME}) (${env.BUILD_URL})")
+    stage('Tests') {
+      steps {
+        tests()
+      }
+    }
+    stage('Archive') {
+      environment {
+        LIB_ARCHIVE_NAME = "libalexandria_" + "${env.NODE_NAME}" + ".tar.gz"
+        ARCHIVE_NAME = "sophiatx_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+        PLUGIN_ARCHIVE_NAME = "plugins_" + "${env.NODE_NAME}" +"_#" + "${env.BUILD_NUMBER}" + ".tar.gz"
+      }
+      steps {
+        run_archive()
+      }
+    }
+    stage('Clean WS') {
+      steps {
+        cleanWs()
+      }
     }
   }
 }
 ////////////////////////////////////////
-
-def send_positive_slack_notification() {
-  if( "${env.BRANCH_NAME}" == 'develop' ) {
-   slackSend (color: 'good', message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
- }
-}
-
-def get_label_name() {
-  if( "${env.BRANCH_NAME}" == 'develop' ) {
-    return 'suse'
-  } else {
-    return 'linux'
-  }
-}
 
 def start_build() {
   script {
@@ -177,7 +90,7 @@ def run_archive() {
           try {
               sh 'strip -s libalexandria.so libalexandriaJNI.so *_plugin.so' //strip symbols
               } catch(Exception e) {
-                echo "Skipping strip on macOS"
+                echo "Skipping strip"
               }
             }
           }
@@ -193,7 +106,7 @@ def run_archive() {
         try {
             sh 'strip -s *' //strip symbols
             } catch(Exception e) {
-              echo "Skipping strip on macOS"
+              echo "Skipping strip"
             }
           }
 
@@ -211,16 +124,3 @@ def run_archive() {
    }
  }
 
-def create_rpm() {
-  sh 'rm -rf /home/$USER/RPMBUILD/RPMS/*.rpm'
-  dir('install') {
-    dir('bin') {
-      sh 'mv *.gz sophiatx.tar.gz' //rename tar file
-      sh 'cp sophiatx.tar.gz /home/$USER/RPMBUILD/SOURCES' //copy file for rpm creation
-    }
-  }
-  sh 'cp ciscripts/sophiatx.spec /home/$USER/RPMBUILD/SPECS'
-  sh 'rpmbuild -ba /home/$USER/RPMBUILD/SPECS/sophiatx.spec'
-  sh 'cp /home/$USER/RPMBUILD/RPMS/x86_64/*.rpm ${WORKSPACE}'
-  archiveArtifacts '*.rpm'
-}
