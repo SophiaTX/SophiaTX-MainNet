@@ -22,7 +22,6 @@ target_link_libraries(
    witness_api_plugin
    custom_api_plugin
    subscribe_api_plugin
-   multiparty_messaging_plugin
 )
 
 target_include_directories( alexandria_api_plugin
