@@ -291,7 +291,7 @@ namespace detail {
       switch(result)
       {
          case block_production_condition::produced:
-            ilog("Generated block #${n} with timestamp ${t} at time ${c}", (capture));
+            ilog("Generated block #${n} with timestamp ${t} and transactions count ${tc} by ${w} at time ${c}", (capture));
             break;
          case block_production_condition::not_synced:
             elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");
@@ -395,7 +395,7 @@ namespace detail {
          private_key_itr->second,
          _production_skip_flags
          );
-      capture("n", block.block_num())("t", block.timestamp)("c", now);
+      capture("n", block.block_num())("t", block.timestamp)("c", now)("w", scheduled_witness)("tc", block.transactions.size());
 
       _p2p_plugin.broadcast_block( block );
       return block_production_condition::produced;
