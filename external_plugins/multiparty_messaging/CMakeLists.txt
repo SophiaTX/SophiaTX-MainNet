@@ -8,7 +8,7 @@ add_library( multiparty_messaging_plugin SHARED
 
 target_link_libraries( multiparty_messaging_plugin alexandria_api_plugin chain_plugin sophiatx_chain sophiatx_protocol sophiatx_utilities json_rpc_plugin )
 target_include_directories( multiparty_messaging_plugin
-                            PUBLIC "include" )
+                            PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 if( CLANG_TIDY_EXE )
    set_target_properties(
