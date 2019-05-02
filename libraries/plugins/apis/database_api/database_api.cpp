@@ -70,7 +70,7 @@ class database_api_impl
       }
 
 
-      appbase::application* _app;
+
       std::shared_ptr<database> _db;
 };
 
@@ -86,13 +86,10 @@ database_api::database_api(database_api_plugin& plugin)
    JSON_RPC_REGISTER_API( SOPHIATX_DATABASE_API_PLUGIN_NAME, plugin.app() );
 }
 
-database_api::~database_api()
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_DATABASE_API_PLUGIN_NAME, my->_app );
-}
+database_api::~database_api() {}
 
 database_api_impl::database_api_impl( database_api_plugin& plugin )
-   : _app(plugin.app()), _db( std::static_pointer_cast<database>( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ) {}
+   : _db( std::static_pointer_cast<database>( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ) {}
 
 database_api_impl::~database_api_impl() {}
 
