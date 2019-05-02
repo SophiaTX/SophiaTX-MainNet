@@ -13,10 +13,10 @@ public:
    /**
     * @brief Constructor
     *
-    * @param appName     name of application that syslog message belongs to. Can be used for filtering
+    * @param app_name     name of application that syslog message belongs to. Can be used for filtering
     *                    application specific messages from /var/log/syslog and redirecting it to the custom file
-    * @param minLogLevel minimum level of message that is displayeD in syslog. Possible values range: <LOG_DEBUG, LOG_EMERG>
-    * @param msgPrefix   custom prefix that is desplayed before actual message
+    * @param min_log_level minimum level of message that is displayeD in syslog. Possible values range: <LOG_DEBUG, LOG_EMERG>
+    * @param msg_prefix   custom prefix that is desplayed before actual message
     * @param facility    facility codes
     *                        LOG_KERN	(0<<3)	// kernel messages
     *                   	    LOG_USER	(1<<3)	// random user-level messages
@@ -47,9 +47,9 @@ public:
     *                        LOG_NOWAIT	0x10	// don't wait for console forks: DEPRECATED
     *                        LOG_PERROR	0x20	// log to stderr as well
     */
-   SysLogger(const std::string &appName,
-             int minLogLevel = LOG_INFO,
-             const std::experimental::optional<std::string> &msgPrefix = {},
+   SysLogger(const std::string &app_name,
+             int min_log_level = LOG_INFO,
+             const std::experimental::optional<std::string> &msg_prefix = {},
              int facility = LOG_LOCAL0,
              int options = LOG_NDELAY | LOG_PID | LOG_PERROR);
 
@@ -66,7 +66,7 @@ public:
     */
    template<typename... Args>
    void debug(Args &&... args) {
-      loggToSyslog(LOG_DEBUG, std::forward<Args>(args)...);
+      logToSyslog(LOG_DEBUG, std::forward<Args>(args)...);
    }
 
    /**
@@ -77,7 +77,7 @@ public:
     */
    template<typename... Args>
    void info(Args &&... args) {
-      loggToSyslog(LOG_INFO, std::forward<Args>(args)...);
+      logToSyslog(LOG_INFO, std::forward<Args>(args)...);
    }
 
    /**
@@ -89,7 +89,7 @@ public:
     */
    template<typename... Args>
    void notice(Args &&... args) {
-      loggToSyslog(LOG_NOTICE, std::forward<Args>(args)...);
+      logToSyslog(LOG_NOTICE, std::forward<Args>(args)...);
    }
 
    /**
@@ -100,7 +100,7 @@ public:
     */
    template<typename... Args>
    void warning(Args &&... args) {
-      loggToSyslog(LOG_WARNING, std::forward<Args>(args)...);
+      logToSyslog(LOG_WARNING, std::forward<Args>(args)...);
    }
 
    /**
@@ -111,7 +111,7 @@ public:
     */
    template<typename... Args>
    void error(Args &&... args) {
-      loggToSyslog(LOG_ERR, std::forward<Args>(args)...);
+      logToSyslog(LOG_ERR, std::forward<Args>(args)...);
    }
 
    /**
@@ -122,7 +122,7 @@ public:
     */
    template<typename... Args>
    void critical(Args &&... args) {
-      loggToSyslog(LOG_CRIT, std::forward<Args>(args)...);
+      logToSyslog(LOG_CRIT, std::forward<Args>(args)...);
    }
 
    /**
@@ -134,7 +134,7 @@ public:
     */
    template<typename... Args>
    void alert(Args &&... args) {
-      loggToSyslog(LOG_ALERT, std::forward<Args>(args)...);
+      logToSyslog(LOG_ALERT, std::forward<Args>(args)...);
    }
 
    /**
@@ -146,7 +146,7 @@ public:
     */
    template<typename... Args>
    void emergency(Args &&... args) {
-      loggToSyslog(LOG_EMERG, std::forward<Args>(args)...);
+      logToSyslog(LOG_EMERG, std::forward<Args>(args)...);
    }
 
 
@@ -168,18 +168,18 @@ private:
     * @param args
     */
    template<typename... Args>
-   void loggToSyslog(int logLevel, Args &&... args) {
+   void logToSyslog(int logLevel, Args &&... args) {
       // Extracts only 3 bottom bits that are the priority (0-7) - DEBUG, ERROR, etc...
       int logPriorityLevel = logLevel & LOG_PRIMASK;
-      if (logPriorityLevel > minLogLevel_) {
+      if (logPriorityLevel > min_log_level_) {
          return;
       }
 
       std::string message;
 
       // If prefix specified, adds it to the beginning of message
-      if (msgPrefix_ && msgPrefix_->empty() == false) {
-         message = argsToString(msgPrefix_.value(), std::forward<Args>(args)...);
+      if (msg_prefix_ && msg_prefix_->empty() == false) {
+         message = argsToString(msg_prefix_.value(), std::forward<Args>(args)...);
       } else {
          message = argsToString(std::forward<Args>(args)...);
       }
@@ -205,9 +205,9 @@ private:
 
 
 private:
-   std::string appName_;
-   int minLogLevel_;
-   std::experimental::optional<std::string> msgPrefix_;
+   std::string app_name_;
+   int min_log_level_;
+   std::experimental::optional<std::string> msg_prefix_;
 };
 
 }}
