@@ -19,7 +19,6 @@ class block_api_impl
          (get_average_block_size)
       )
 
-   appbase::application* _app;
    std::shared_ptr<chain::database_interface> _db;
 };
 
@@ -35,13 +34,10 @@ block_api::block_api(block_api_plugin& plugin)
    JSON_RPC_REGISTER_API( SOPHIATX_BLOCK_API_PLUGIN_NAME, plugin.app() );
 }
 
-block_api::~block_api()
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_BLOCK_API_PLUGIN_NAME, my->_app );
-}
+block_api::~block_api() {}
 
 block_api_impl::block_api_impl(block_api_plugin& plugin)
-   : _app(plugin.app()), _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+   : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
 block_api_impl::~block_api_impl() {}
 

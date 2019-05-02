@@ -23,11 +23,6 @@ namespace fc { namespace rpc {
             string method_name,
             bool args_as_object,
             variants args = variants() ) override;
-         variant send_call(
-            string network_name,
-            string api_name,
-            string method_name,
-            variant arg = variant_object() );
          virtual variant send_callback(
             uint64_t callback_id,
             variants args = variants() ) override;
