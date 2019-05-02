@@ -44,8 +44,8 @@ public:
    virtual void initialize(const variables_map& options) = 0;
    virtual void startup() = 0;
    virtual void shutdown() = 0;
-   virtual void set_app(application& my_app) = 0;
-   virtual application* app() = 0;
+   void set_app(application& my_app) { _app = &my_app; }
+   application* app() { return _app; }
 
 protected:
    using plugin_processor = std::function<void(abstract_plugin&)>;
@@ -72,6 +72,7 @@ protected:
    void notify_app_initialize();
    void notify_app_startup();
 private:
+   application* _app;
 };
 
 template< typename Impl >
@@ -122,8 +123,6 @@ public:
       }
    }
 
-   virtual void set_app(application& my_app) override final{ if(!_app) _app = &my_app; }
-   virtual application* app() override final { return _app; }
 
 protected:
    plugin() = default;
@@ -131,7 +130,6 @@ protected:
 
 private:
    state _state = abstract_plugin::registered;
-   application* _app = nullptr;
 };
 
 class abstract_plugin_factory
@@ -149,7 +147,7 @@ class plugin_factory : public abstract_plugin_factory
 {
 public:
    virtual ~plugin_factory(){}
-   virtual std::shared_ptr<abstract_plugin> new_plugin( ) const {
+   virtual std::shared_ptr<abstract_plugin> new_plugin( ) const final {
       std::shared_ptr<abstract_plugin> new_plg = std::make_shared<Plugin>();
       return new_plg;
    }

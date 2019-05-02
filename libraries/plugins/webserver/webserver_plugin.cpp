@@ -470,9 +470,9 @@ void webserver_plugin_impl::handle_ws_message( websocket_server_type::connection
 webserver_plugin::webserver_plugin() {}
 webserver_plugin::~webserver_plugin() {}
 
-void webserver_plugin::set_program_options( options_description& cli, options_description& cfg )
+void webserver_plugin::set_program_options( options_description&, options_description& cfg )
 {
-   cli.add_options()
+   cfg.add_options()
       ("webserver-ws-endpoint", bpo::value< string >(), "Local websocket endpoint for webserver requests.")
       ("webserver-http-endpoint", bpo::value< string >(), "Local http endpoint for webserver requests.")
       ("webserver-https-endpoint", bpo::value< string >(), "Local https endpoint for webserver requests.")
