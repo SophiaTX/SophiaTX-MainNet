@@ -7,12 +7,8 @@ namespace sophiatx { namespace plugins { namespace track_and_trace_plugin {
 #pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
 #endif
 
-extern "C" BOOST_SYMBOL_EXPORT std::shared_ptr<abstract_plugin> plugin_factory() {
+extern "C" BOOST_SYMBOL_EXPORT std::shared_ptr<abstract_plugin> get_plugin() {
    return std::make_shared<track_and_trace_plugin>();
-}
-
-extern "C" BOOST_SYMBOL_EXPORT void options_setter(options_description& cli, options_description& cfg) {
-   track_and_trace_plugin::set_program_options(cli, cfg);
 }
 
 #ifdef __clang__

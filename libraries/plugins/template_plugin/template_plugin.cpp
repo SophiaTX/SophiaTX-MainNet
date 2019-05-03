@@ -14,7 +14,7 @@ class template_plugin_impl
 {
    public:
      template_plugin_impl( template_plugin& _plugin ) :
-         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ) {}
 
       void pre_operation( const operation_notification& op_obj );
@@ -93,11 +93,11 @@ void template_plugin::set_program_options( options_description& cli, options_des
 void template_plugin::plugin_initialize( const boost::program_options::variables_map& options )
 {
    my = std::make_unique< detail::template_plugin_impl >( *this );
-   api = std::make_shared< template_api >(*this);
+   api = std::make_shared< template_api >();
    try
    {
       ilog( "Initializing template_plugin_impl plugin" );
-      auto& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       my->pre_apply_connection = db->pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
       my->post_apply_connection = db->post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );

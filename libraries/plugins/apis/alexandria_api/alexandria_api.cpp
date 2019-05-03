@@ -18,56 +18,55 @@
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
-alexandria_api::alexandria_api(alexandria_api_plugin& plugin)
-      : my( new alexandria_api_impl(plugin) ), _plugin(plugin)
+alexandria_api::alexandria_api()
+      : my( new alexandria_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_ALEXANDRIA_API_PLUGIN_NAME, _plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_ALEXANDRIA_API_PLUGIN_NAME );
 }
 
 alexandria_api::~alexandria_api() {}
 
 
 void alexandria_api::init() {
-   auto database = _plugin.app()->find_plugin< database_api::database_api_plugin >();
+   auto database = appbase::app().find_plugin< database_api::database_api_plugin >();
    if( database != nullptr ) {
       my->set_database_api(database->api);
    }
 
-   auto block = _plugin.app()->find_plugin< block_api::block_api_plugin >();
+   auto block = appbase::app().find_plugin< block_api::block_api_plugin >();
    if( block != nullptr ) {
       my->set_block_api(block->api);
    }
 
-   auto account_by_key = _plugin.app()->find_plugin< account_by_key::account_by_key_api_plugin >();
+   auto account_by_key = appbase::app().find_plugin< account_by_key::account_by_key_api_plugin >();
    if( account_by_key != nullptr ) {
       my->set_account_by_key_api(account_by_key->api);
    }
 
-   auto account_history = _plugin.app()->find_plugin< account_history::account_history_api_plugin >();
+   auto account_history = appbase::app().find_plugin< account_history::account_history_api_plugin >();
    if( account_history != nullptr ) {
       my->set_account_history_api(account_history->api);
    }
 
-   auto network_broadcast = _plugin.app()->find_plugin< network_broadcast_api::network_broadcast_api_plugin >();
+   auto network_broadcast = appbase::app().find_plugin< network_broadcast_api::network_broadcast_api_plugin >();
    if( network_broadcast != nullptr ) {
       my->set_network_broadcast_api(network_broadcast->api);
    }
 
-   auto witness = _plugin.app()->find_plugin< witness::witness_api_plugin >();
+   auto witness = appbase::app().find_plugin< witness::witness_api_plugin >();
    if( witness != nullptr ) {
       my->set_witness_api(witness->api);
    }
 
-   auto custom = _plugin.app()->find_plugin< custom::custom_api_plugin>();
+   auto custom = appbase::app().find_plugin< custom::custom_api_plugin>();
    if( custom != nullptr ) {
       my->set_custom_api(custom->api);
    }
 
-   auto subscribe = _plugin.app()->find_plugin< subscribe::subscribe_api_plugin>();
+   auto subscribe = appbase::app().find_plugin< subscribe::subscribe_api_plugin>();
    if ( subscribe != nullptr) {
       my->set_subscribe_api(subscribe->api);
    }
-
 }
 
 DEFINE_LOCKLESS_APIS(alexandria_api,

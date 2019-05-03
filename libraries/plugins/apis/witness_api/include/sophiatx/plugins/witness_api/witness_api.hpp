@@ -30,12 +30,11 @@ struct get_account_bandwidth_return
 
 typedef json_rpc::void_type get_reserve_ratio_args;
 typedef reserve_ratio_object get_reserve_ratio_return;
-class witness_api_plugin;
 
 class witness_api
 {
    public:
-      witness_api(witness_api_plugin& plugin);
+      witness_api();
       ~witness_api();
 
       DECLARE_API(

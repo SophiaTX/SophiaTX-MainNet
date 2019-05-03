@@ -26,12 +26,11 @@ struct custom_object_subscription_args{
 
 
 typedef uint64_t custom_object_subscription_return;
-class subscribe_api_plugin;
 
 class subscribe_api
 {
 public:
-   subscribe_api(subscribe_api_plugin& plugin);
+   subscribe_api();
    ~subscribe_api();
    void api_startup();
 

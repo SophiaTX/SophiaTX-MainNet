@@ -13,9 +13,9 @@ namespace detail
    class network_broadcast_api_impl
    {
       public:
-         network_broadcast_api_impl(network_broadcast_api_plugin& plugin) :
-            _p2p( plugin.app()->get_plugin< sophiatx::plugins::p2p::p2p_plugin >() ),
-            _chain( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >()),
+         network_broadcast_api_impl() :
+            _p2p( appbase::app().get_plugin< sophiatx::plugins::p2p::p2p_plugin >() ),
+            _chain( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >() ),
             _last_checked_block_time(fc::time_point_sec())
          {
             _on_applied_block_connection = _chain.db()->applied_block.connect(
@@ -180,9 +180,9 @@ namespace detail
 
 } // detail
 
-network_broadcast_api::network_broadcast_api(network_broadcast_api_plugin& plugin) : my( new detail::network_broadcast_api_impl(plugin) )
+network_broadcast_api::network_broadcast_api() : my( new detail::network_broadcast_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_NETWORK_BROADCAST_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_NETWORK_BROADCAST_API_PLUGIN_NAME );
 }
 
 network_broadcast_api::~network_broadcast_api() {}

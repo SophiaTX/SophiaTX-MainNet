@@ -533,10 +533,10 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
 
 void webserver_plugin::plugin_startup()
 {
-   my->api = app() -> find_plugin< plugins::json_rpc::json_rpc_plugin >();
+   my->api = appbase::app().find_plugin< plugins::json_rpc::json_rpc_plugin >();
    FC_ASSERT( my->api != nullptr, "Could not find API Register Plugin" );
 
-   plugins::chain::chain_plugin* chain = app() -> find_plugin< plugins::chain::chain_plugin >();
+   plugins::chain::chain_plugin* chain = appbase::app().find_plugin< plugins::chain::chain_plugin >();
    if( chain != nullptr && chain->get_state() != appbase::abstract_plugin::started )
    {
       ilog( "Waiting for chain plugin to start" );

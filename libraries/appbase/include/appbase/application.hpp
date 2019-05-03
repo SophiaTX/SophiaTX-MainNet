@@ -7,234 +7,231 @@
 
 #include <iostream>
 
-#define APPBASE_VERSION_STRING ("appbase 1.1")
+#define APPBASE_VERSION_STRING ("appbase 1.0")
 
 namespace appbase {
 
-namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
-
-class application;
-
-/**
- * @brief Simple data holder for plugin program options
- */
-class plugin_program_options {
-public:
-   plugin_program_options(const options_description& cli_options, const options_description& cfg_options) :
-         _cli_options(cli_options),
-         _cfg_options(cfg_options)
-   {}
-
-   const options_description& get_cli_options() const { return _cli_options; }
-   const options_description& get_cfg_options() const { return _cfg_options; }
-
-private:
-   // command line options
-   options_description     _cli_options;
-   // configuration file options
-   options_description     _cfg_options;
-};
+   namespace bpo = boost::program_options;
+   namespace bfs = boost::filesystem;
 
 
-class application_factory
-{
-public:
-   static application_factory &get_app_factory() {
-      static application_factory instance;
-      return instance;
-   }
+   /**
+    * @brief Simple data holder for plugin program options
+    */
+   class plugin_program_options {
+   public:
+      plugin_program_options(const options_description& cli_options, const options_description& cfg_options) :
+            _cli_options(cli_options),
+            _cfg_options(cfg_options)
+      {}
 
-   application_factory(application_factory const &) = delete;
-   void operator=(application_factory const &) = delete;
+      const options_description& get_cli_options() const { return _cli_options; }
+      const options_description& get_cfg_options() const { return _cfg_options; }
 
-   template<typename P> void register_plugin_factory(){
-      if( plugin_factories.find(P::name()) != plugin_factories.end() )
-         return;
-      std::shared_ptr<plugin_factory<P>> new_plugin_factory = std::make_shared<plugin_factory<P>>();
-      plugin_factories[P::name()] = new_plugin_factory;
-      const plugin_program_options& plugin_options = get_plugin_program_options(new_plugin_factory);
-      const options_description& plugin_cfg_options = plugin_options.get_cfg_options();
-      if (plugin_cfg_options.options().size()) {
-         app_options.add(plugin_cfg_options);
-      }
-
-      const options_description& plugin_cli_options = plugin_options.get_cli_options();
-      if (plugin_cli_options.options().size()) {
-         global_options.add(plugin_cli_options);
-      }
-   }
-
-   application& new_application( const string& id);
-
-   template<typename Plugin>
-   std::shared_ptr< abstract_plugin > new_plugin(){
-      return new_plugin(Plugin::name());
-   }
-
-   std::shared_ptr< abstract_plugin > new_plugin(string name){
-      const auto& pf = plugin_factories.at(name);
-      auto new_plugin = pf->new_plugin();
-      return new_plugin;
-   }
-
-   void add_program_options( const bpo::options_description& cli );
-   variables_map read_app_config(const string& name);
-
-   map<string, application&> initialize( int argc, char** argv, const vector< string >& autostart_plugins, bool start_apps = true );
-   void set_version_string( const string& version ) { version_info = version; }
-
-   options_description    app_options;
-   options_description    global_options;
-   bfs::path              data_dir;
-   bfs::path              plugins_dir;
-   variables_map          global_args;
-
-   void startup();
-   void exec();
-   void shutdown();
-   void quit();
-
-private:
-   void set_program_options();
-   std::map<string, std::shared_ptr<abstract_plugin_factory>> plugin_factories;
-   vector<string>                               autostart_plugins;
-   std::map<string, application>                apps;
-   string                                       version_info;
-
-   application_factory():global_options("Application Options") {
-      set_program_options();
+   private:
+      // command line options
+      options_description     _cli_options;
+      // configuration file options
+      options_description     _cfg_options;
    };
 
 
-   plugin_program_options get_plugin_program_options(const std::shared_ptr<abstract_plugin_factory>&  plugin_factory);
-};
-
-application_factory& app_factory();
-
-
-class application
-{
-public:
-   ~application();
-   application(const string& _id);
-   application() = delete;
-   application(const application &) = delete;
-
-   /**
-    * @brief Looks for the --plugin commandline / config option and calls initialize on those plugins
-    *
-    * @tparam Plugin List of plugins to initalize even if not mentioned by configuration. For plugins started by
-    * configuration settings or dependency resolution, this template has no effect.
-    * @return true if the application and plugins were initialized, false or exception on error
-    */
-   bool initialize( const variables_map& app_settings, const vector<string>& autostart_plugins );
-
-   void startup();
-   void shutdown();
-
-   /**
-    *  Wait until quit(), SIGINT or SIGTERM and then shutdown
-    */
-   void exec();
-   void quit();
-
-   void register_plugin( const std::shared_ptr<abstract_plugin>& plugin ){
-      auto existing = find_plugin( plugin->get_name() );
-      if(existing)
-         return;
-
-      plugin->set_app(*this);
-      plugins[plugin->get_name()] = plugin;
-      plugin->register_dependencies();
-   }
-
-   /**
-    * @brief Loads external plugins specified in config
-    *
-    * @return
-    */
-   bool load_external_plugins();
-
-   /**
-    * @brief Registers external plugin into the list of all app plugins
-    *
-    * @param plugin
-    */
-   void register_external_plugin(const std::shared_ptr<abstract_plugin>& plugin);
-
-   /**
-    * @brief Loads external plugin config
-    *
-    * @param plugin
-    */
-   void load_external_plugin_config(const std::function<void(options_description&,options_description&)> options_setter, const std::string& cfg_plugin_name);
-
-   template< typename Plugin >
-   Plugin* find_plugin()const
+   class application
    {
-      Plugin* plugin = dynamic_cast< Plugin* >( find_plugin( Plugin::name() ) );
-      return plugin;
-   }
+      public:
+         ~application();
 
-   template< typename Plugin >
-   Plugin& get_plugin()const
+         /**
+          * @brief Looks for the --plugin commandline / config option and calls initialize on those plugins
+          *
+          * @tparam Plugin List of plugins to initalize even if not mentioned by configuration. For plugins started by
+          * configuration settings or dependency resolution, this template has no effect.
+          * @return true if the application and plugins were initialized, false or exception on error
+          */
+         template< typename... Plugin >
+         bool initialize( int argc, char** argv )
+         {
+            return initialize_impl( argc, argv, { find_plugin( Plugin::name() )... } );
+         }
+
+         void startup();
+         void shutdown();
+
+         /**
+          *  Wait until quit(), SIGINT or SIGTERM and then shutdown
+          */
+         void exec();
+         void quit();
+
+         static application& instance( bool reset = false );
+
+         template< typename Plugin >
+         auto& register_plugin()
+         {
+            auto existing = find_plugin( Plugin::name() );
+            if( existing )
+               return *dynamic_cast< Plugin* >( existing );
+
+            auto plug = std::make_shared< Plugin >();
+            plugins[Plugin::name()] = plug;
+            plug->register_dependencies();
+            return *plug;
+         }
+
+         /**
+          * @brief Loads external plugins specified in config
+          *
+          * @return
+          */
+         bool load_external_plugins();
+
+         /**
+          * @brief Registers external plugin into the list of all app plugins
+          *
+          * @param plugin
+          */
+         void register_external_plugin(const std::shared_ptr<abstract_plugin>& plugin);
+
+         /**
+          * @brief Loads external plugin config
+          *
+          * @param plugin
+          */
+         void load_external_plugin_config(const std::shared_ptr<abstract_plugin>& plugin, const std::string& cfg_plugin_name);
+
+         template< typename Plugin >
+         Plugin* find_plugin()const
+         {
+            Plugin* plugin = dynamic_cast< Plugin* >( find_plugin( Plugin::name() ) );
+
+            // Do not return plugins that are registered but not at least initialized.
+            if( plugin != nullptr && plugin->get_state() == abstract_plugin::registered )
+            {
+               return nullptr;
+            }
+
+            return plugin;
+         }
+
+         template< typename Plugin >
+         Plugin& get_plugin()const
+         {
+            auto ptr = find_plugin< Plugin >();
+            if( ptr == nullptr )
+               BOOST_THROW_EXCEPTION( std::runtime_error( "unable to find plugin: " + Plugin::name() ) );
+            return *ptr;
+         }
+
+         bfs::path data_dir()const;
+
+         void add_program_options( const bpo::options_description& cli, const bpo::options_description& cfg );
+         const bpo::variables_map& get_args() const;
+
+         void set_version_string( const string& version ) { version_info = version; }
+
+         boost::asio::io_service& get_io_service() { return *io_serv; }
+
+      protected:
+         template< typename Impl >
+         friend class plugin;
+
+         bool initialize_impl( int argc, char** argv, vector< abstract_plugin* > autostart_plugins );
+
+         abstract_plugin* find_plugin( const string& name )const;
+         abstract_plugin& get_plugin( const string& name )const;
+
+         /** these notifications get called from the plugin when their state changes so that
+          * the application can call shutdown in the reverse order.
+          */
+         ///@{
+         void plugin_initialized( abstract_plugin& plug ) { initialized_plugins.push_back( &plug ); }
+         void plugin_started( abstract_plugin& plug ) { running_plugins.push_back( &plug ); }
+         ///@}
+
+      private:
+         application(); ///< private because application is a singlton that should be accessed via instance()
+         map< string, std::shared_ptr< abstract_plugin > >  plugins; ///< all registered plugins
+         vector< abstract_plugin* >                         initialized_plugins; ///< stored in the order they were started running
+         vector< abstract_plugin* >                         running_plugins; ///< stored in the order they were started running
+         std::shared_ptr< boost::asio::io_service >         io_serv;
+         std::string                                        version_info;
+
+         void set_program_options();
+
+         plugin_program_options get_plugin_program_options(const std::shared_ptr< abstract_plugin >& plugin);
+
+         /**
+          * @brief Writes options_desc data into cfg_file file
+          *
+          * @param options_desc
+          * @param cfg_file
+          * @return created config file absolute path
+          */
+         bfs::path write_default_config( const options_description& options_desc, const bfs::path& cfg_file );
+
+         std::unique_ptr< class application_impl > my;
+
+   };
+
+   application& app();
+   application& reset();
+
+   template< typename Impl >
+   class plugin : public abstract_plugin
    {
-      auto ptr = find_plugin< Plugin >();
-      if( ptr == nullptr )
-         BOOST_THROW_EXCEPTION( std::runtime_error( "unable to find plugin: " + Plugin::name() ) );
-      return *ptr;
-   }
+      public:
+         virtual ~plugin() {}
 
-   std::shared_ptr<abstract_plugin> get_register_plugin( std::string name ){
-      if( plugins.count(name) )
-         return plugins[name];
-      auto new_plugin = app_factory().new_plugin(name);
-      register_plugin( new_plugin );
-      return new_plugin;
-   }
+         virtual state get_state() const override { return _state; }
+         virtual const std::string& get_name()const override final { return Impl::name(); }
 
-   template <typename Plugin> std::shared_ptr<abstract_plugin> get_register_plugin(){
-      return get_register_plugin( Plugin::name() );
-   }
+         virtual void register_dependencies() override
+         {
+            this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){} );
+         }
 
-   void reset(){
-      plugins.clear();
-   }
+         virtual void initialize(const variables_map& options) override final
+         {
+            if( _state == registered )
+            {
+               _state = initialized;
+               this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){ plug.initialize( options ); } );
+               this->plugin_initialize( options );
+               // std::cout << "Initializing plugin " << Impl::name() << std::endl;
+               app().plugin_initialized( *this );
+            }
+            if (_state != initialized)
+               BOOST_THROW_EXCEPTION( std::runtime_error("Initial state was not registered, so final state cannot be initialized.") );
+         }
 
-   bfs::path data_dir()const;
+         virtual void startup() override final
+         {
+            if( _state == initialized )
+            {
+               _state = started;
+               this->plugin_for_each_dependency( [&]( abstract_plugin& plug ){ plug.startup(); } );
+               this->plugin_startup();
+               app().plugin_started( *this );
+            }
+            if (_state != started )
+               BOOST_THROW_EXCEPTION( std::runtime_error("Initial state was not initialized, so final state cannot be started.") );
+         }
 
-   const bpo::variables_map& get_args() const;
-   string id;
+         virtual void shutdown() override final
+         {
+            if( _state == started )
+            {
+               _state = stopped;
+               //ilog( "shutting down plugin ${name}", ("name",name()) );
+               this->plugin_shutdown();
+            }
+         }
 
-   boost::asio::io_service& get_io_service() { return *io_serv; }
+      protected:
+         plugin() = default;
 
-protected:
-   template< typename Impl >friend class plugin;
-   friend class abstract_plugin;
-
-   abstract_plugin* find_plugin( const string& name )const;
-   abstract_plugin& get_plugin( const string& name )const;
-
-   /** these notifications get called from the plugin when their state changes so that
-    * the application can call shutdown in the reverse order.
-    */
-   ///@{
-   void plugin_initialized( abstract_plugin& plug ) { initialized_plugins.push_back( &plug ); }
-   void plugin_started( abstract_plugin& plug ) { running_plugins.push_back( &plug ); }
-   ///@}
-
-private:
-
-   map< string, std::shared_ptr< abstract_plugin > >  plugins; ///< all registered plugins
-   vector< abstract_plugin* >                         initialized_plugins; ///< stored in the order they were started running
-   vector< abstract_plugin* >                         running_plugins; ///< stored in the order they were started running
-   std::shared_ptr< boost::asio::io_service >         io_serv;
-
-   std::unique_ptr< class application_impl > my;
-
-};
-
-
+      private:
+         state _state = abstract_plugin::registered;
+   };
 
 }

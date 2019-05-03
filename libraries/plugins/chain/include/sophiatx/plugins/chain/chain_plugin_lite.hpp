@@ -17,7 +17,7 @@ public:
 
    virtual ~chain_plugin_lite();
 
-   static void set_program_options(options_description &cli, options_description &cfg);
+   void set_program_options(options_description &cli, options_description &cfg) override;
 
    void plugin_initialize(const variables_map &options) override;
 

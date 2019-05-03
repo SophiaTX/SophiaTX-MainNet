@@ -18,8 +18,8 @@ public:
    p2p_plugin();
    virtual ~p2p_plugin();
 
-   static void set_program_options(bpo::options_description &,
-                            bpo::options_description &config_file_options);
+   void set_program_options(bpo::options_description &,
+                            bpo::options_description &config_file_options) override;
 
    static const std::string& name() { static std::string name = SOPHIATX_P2P_PLUGIN_NAME; return name; }
 

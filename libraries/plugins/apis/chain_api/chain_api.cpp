@@ -8,7 +8,7 @@ namespace detail {
 class chain_api_impl
 {
    public:
-      chain_api_impl(chain_api_plugin& plugin) : _chain( plugin.app()->get_plugin<chain_plugin>() ) {}
+      chain_api_impl() : _chain( appbase::app().get_plugin<chain_plugin>() ) {}
 
       DECLARE_API_IMPL(
          (push_block)
@@ -74,9 +74,9 @@ DEFINE_API_IMPL( chain_api_impl, push_transaction )
 
 } // detail
 
-chain_api::chain_api(chain_api_plugin& plugin): my( new detail::chain_api_impl(plugin) )
+chain_api::chain_api(): my( new detail::chain_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_CHAIN_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_CHAIN_API_PLUGIN_NAME );
 }
 
 chain_api::~chain_api() {}

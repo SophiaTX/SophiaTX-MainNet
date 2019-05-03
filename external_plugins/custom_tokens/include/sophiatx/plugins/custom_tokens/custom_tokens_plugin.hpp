@@ -41,7 +41,7 @@ public:
       return name;
    }
 
-   static void set_program_options(
+    virtual void set_program_options(
          options_description &cli,
          options_description &cfg);
 

@@ -26,12 +26,10 @@ struct example_call_return
    uint64_t mul;
 };
 
-class template_plugin;
-
 class template_api
 {
    public:
-      template_api(template_plugin& plugin);
+      template_api();
       ~template_api();
 
       DECLARE_API( (example_call) )
