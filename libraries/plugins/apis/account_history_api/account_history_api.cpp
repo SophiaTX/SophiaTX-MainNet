@@ -12,7 +12,7 @@ namespace detail {
 class account_history_api_impl
 {
    public:
-      account_history_api_impl(account_history_api_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+      account_history_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       DECLARE_API_IMPL(
          (get_ops_in_block)
@@ -108,9 +108,9 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
 
 } // detail
 
-account_history_api::account_history_api(account_history_api_plugin& plugin): my( new detail::account_history_api_impl(plugin) )
+account_history_api::account_history_api(): my( new detail::account_history_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME );
 }
 
 account_history_api::~account_history_api() {}

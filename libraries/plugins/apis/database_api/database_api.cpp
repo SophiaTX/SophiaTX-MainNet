@@ -14,7 +14,7 @@ namespace sophiatx { namespace plugins { namespace database_api {
 class database_api_impl
 {
    public:
-      database_api_impl(database_api_plugin& plugin);
+      database_api_impl();
       ~database_api_impl();
 
       DECLARE_API_IMPL
@@ -80,16 +80,16 @@ class database_api_impl
 //                                                                  //
 //////////////////////////////////////////////////////////////////////
 
-database_api::database_api(database_api_plugin& plugin)
-   : my( new database_api_impl(plugin) )
+database_api::database_api()
+   : my( new database_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_DATABASE_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_DATABASE_API_PLUGIN_NAME );
 }
 
 database_api::~database_api() {}
 
-database_api_impl::database_api_impl( database_api_plugin& plugin )
-   : _db( std::static_pointer_cast<database>( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ) {}
+database_api_impl::database_api_impl()
+   : _db( std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) ) {}
 
 database_api_impl::~database_api_impl() {}
 

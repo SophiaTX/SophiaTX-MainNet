@@ -9,7 +9,7 @@ namespace detail {
 class custom_api_impl
 {
 public:
-   custom_api_impl(custom_api_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
+   custom_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
    }
 
    DECLARE_API_IMPL(
@@ -177,9 +177,9 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
 
 } // detail
 
-custom_api::custom_api(custom_api_plugin& plugin): my( new detail::custom_api_impl(plugin) )
+custom_api::custom_api(): my( new detail::custom_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_CUSTOM_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_CUSTOM_API_PLUGIN_NAME );
 }
 
 custom_api::~custom_api() {}

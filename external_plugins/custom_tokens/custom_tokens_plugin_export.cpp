@@ -11,10 +11,6 @@ extern "C" BOOST_SYMBOL_EXPORT std::shared_ptr<abstract_plugin> plugin_factory()
    return std::make_shared<custom_tokens_plugin>();
 }
 
-extern "C" BOOST_SYMBOL_EXPORT void options_setter(options_description& cli, options_description& cfg) {
-   custom_tokens_plugin::set_program_options(cli, cfg);
-}
-
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif

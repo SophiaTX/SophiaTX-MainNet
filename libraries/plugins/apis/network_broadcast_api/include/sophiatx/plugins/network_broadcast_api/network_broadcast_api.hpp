@@ -54,13 +54,11 @@ typedef void_type broadcast_block_return;
 typedef std::function< void( const broadcast_transaction_synchronous_return& ) > confirmation_callback;
 
 namespace detail{ class network_broadcast_api_impl; }
-class network_broadcast_api_plugin;
-
 
 class network_broadcast_api
 {
    public:
-      network_broadcast_api(network_broadcast_api_plugin& plugin);
+      network_broadcast_api();
       ~network_broadcast_api();
 
       DECLARE_API(

@@ -22,15 +22,15 @@ namespace detail {
 class debug_node_plugin_impl
 {
    public:
-      debug_node_plugin_impl( debug_node_plugin& _plugin);
-      virtual ~debug_node_plugin_impl( );
+      debug_node_plugin_impl();
+      virtual ~debug_node_plugin_impl();
 
       std::shared_ptr<chain::database>       _db;
       boost::signals2::connection               applied_block_connection;
 };
 
-debug_node_plugin_impl::debug_node_plugin_impl(debug_node_plugin& _plugin) :
-   _db( std::static_pointer_cast<chain::database>(_plugin.app()->get_plugin< chain::chain_plugin >().db()) ) {}
+debug_node_plugin_impl::debug_node_plugin_impl() :
+   _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< chain::chain_plugin >().db()) ) {}
 debug_node_plugin_impl::~debug_node_plugin_impl() {}
 
 }
@@ -51,7 +51,7 @@ void debug_node_plugin::set_program_options(
 
 void debug_node_plugin::plugin_initialize( const variables_map& options )
 {
-   my = std::make_shared< detail::debug_node_plugin_impl >(*this);
+   my = std::make_shared< detail::debug_node_plugin_impl >();
 
    if( options.count( "debug-node-edit-script" ) > 0 )
    {

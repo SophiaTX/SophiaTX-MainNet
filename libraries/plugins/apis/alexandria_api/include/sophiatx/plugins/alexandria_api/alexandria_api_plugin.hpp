@@ -23,9 +23,9 @@ class alexandria_api_plugin : public plugin< alexandria_api_plugin >
 
       static const std::string& name() { static std::string name = SOPHIATX_ALEXANDRIA_API_PLUGIN_NAME; return name; }
 
-      static void set_program_options(
+      virtual void set_program_options(
          options_description& cli,
-         options_description& cfg ) ;
+         options_description& cfg ) override;
       void plugin_initialize( const variables_map& options ) override;
       void plugin_startup() override;
       void plugin_shutdown() override;

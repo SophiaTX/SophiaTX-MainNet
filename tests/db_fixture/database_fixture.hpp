@@ -192,13 +192,12 @@ struct database_fixture {
    uint32_t default_skip = 0 | database_interface::skip_undo_history_check | database_interface::skip_authority_check;
    fc::ecc::canonical_signature_type default_sig_canon = fc::ecc::fc_canonical;
 
-   sophiatx::plugins::debug_node::debug_node_plugin* db_plugin;
-   appbase::application* app;
+   plugins::debug_node::debug_node_plugin* db_plugin;
 
    optional<fc::temp_directory> data_dir;
 
    database_fixture() {}
-   virtual ~database_fixture() {  }
+   virtual ~database_fixture() { appbase::reset(); }
 
    static fc::ecc::private_key generate_private_key( string seed = "init_key" );
    static asset_symbol_type name_to_asset_symbol( const std::string& name, uint8_t decimal_places );

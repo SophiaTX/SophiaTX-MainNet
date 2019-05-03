@@ -25,7 +25,7 @@ void chain_plugin_lite::set_program_options(options_description &cli, options_de
    cfg.add_options()
          ("server-rpc-endpoint", bpo::value<string>()->default_value("ws://127.0.0.1:9191"),
           "Server websocket RPC endpoint")
-         ("app-id", bpo::value<uint64_t>()->default_value(1),
+         ("app-id", bpo::value<long long>()->default_value(1),
           "App id used by the hybrid DB")
          ("shared-file-dir", bpo::value<bfs::path>()->default_value("blockchain"),
           "the location of the chain shared memory files (absolute path or relative to application data dir)")
@@ -33,7 +33,8 @@ void chain_plugin_lite::set_program_options(options_description &cli, options_de
          ("shared-file-full-threshold", bpo::value<uint16_t>()->default_value(0),
           "A 2 precision percentage (0-10000) that defines the threshold for when to autoscale the shared memory file. Setting this to 0 disables autoscaling. Recommended value for consensus node is 9500 (95%). Full node is 9900 (99%)")
          ("shared-file-scale-rate", bpo::value<uint16_t>()->default_value(0),
-          "A 2 precision percentage (0-10000) that defines how quickly to scale the shared memory file. When autoscaling occurs the file's size will be increased by this percent. Setting this to 0 disables autoscaling. Recommended value is between 1000-2000 (10-20%)")
+          "A 2 precision percentage (0-10000) that defines how quickly to scale the shared memory file. When autoscaling occurs the file's size will be increased by this percent. Setting this to 0 disables autoscaling. Recommended value is between 1000-2000 (10-20%)");
+   cli.add_options()
          ("resync-blockchain", bpo::bool_switch()->default_value(false), "clear chain database and block log");
 }
 
@@ -42,7 +43,7 @@ void chain_plugin_lite::plugin_initialize(const variables_map &options) {
    if( options.count("shared-file-dir")) {
       auto sfd = options.at("shared-file-dir").as<bfs::path>();
       if( sfd.is_relative())
-         shared_memory_dir = app()->data_dir() / sfd;
+         shared_memory_dir = app().data_dir() / sfd;
       else
          shared_memory_dir = sfd;
    }
@@ -65,7 +66,7 @@ void chain_plugin_lite::plugin_startup() {
    ilog("Starting chain with shared_file_size: ${n} bytes", ("n", shared_memory_size));
 
    if( shared_memory_dir.generic_string().empty())
-      shared_memory_dir = app()->data_dir() / "blockchain";
+      shared_memory_dir = app().data_dir() / "blockchain";
 
    if( resync ) {
       wlog("resync requested: deleting block log and shared memory");

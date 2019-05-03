@@ -34,8 +34,6 @@ target_link_libraries( sophiatx_plugins appbase fc
 
    account_history_plugin
 
-   json_rpc_plugin
-
    chain_plugin
 
    debug_node_plugin

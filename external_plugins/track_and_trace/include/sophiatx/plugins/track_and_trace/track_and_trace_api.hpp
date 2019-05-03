@@ -80,12 +80,10 @@ struct get_tracked_object_history_return
    vector<tracked_object_history_item> history_items;
 };
 
-class track_and_trace_plugin;
-
 class track_and_trace_api
 {
    public:
-      track_and_trace_api(track_and_trace_plugin& plugin);
+      track_and_trace_api();
       ~track_and_trace_api();
 
       DECLARE_API( (get_current_holder) (get_holdings) (get_tracked_object_history) (get_transfer_requests) (get_item_details))

@@ -8,12 +8,11 @@
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
 class alexandria_api_impl;
-class alexandria_api_plugin;
 
 class alexandria_api
 {
    public:
-      alexandria_api(alexandria_api_plugin& plugin);
+      alexandria_api();
       ~alexandria_api();
 
       void init();
@@ -569,7 +568,6 @@ class alexandria_api
 
    private:
       std::unique_ptr< alexandria_api_impl > my;
-      alexandria_api_plugin& _plugin;
 };
 
 } } } //sophiatx::plugins::alexandria_api

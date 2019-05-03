@@ -9,12 +9,11 @@
 namespace sophiatx { namespace plugins { namespace block_api {
 
 class block_api_impl;
-class block_api_plugin;
 
 class block_api
 {
    public:
-      block_api(block_api_plugin& plugin);
+      block_api();
       ~block_api();
 
       DECLARE_API(

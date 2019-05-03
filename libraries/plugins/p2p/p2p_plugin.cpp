@@ -20,6 +20,8 @@ using std::vector;
 
 namespace sophiatx { namespace plugins { namespace p2p {
 
+using appbase::app;
+
 using graphene::net::item_hash_t;
 using graphene::net::item_id;
 using graphene::net::message;
@@ -487,14 +489,16 @@ void p2p_plugin::set_program_options( bpo::options_description& cli, bpo::option
       ("p2p-max-connections", bpo::value<uint32_t>(), "Maxmimum number of incoming connections on P2P endpoint.")
       ("p2p-seed-node", bpo::value<vector<string>>()->composing(), "The IP address and port of a remote peer to sync with.")
       ("p2p-parameters", bpo::value<string>(), ("P2P network parameters. (Default: " + fc::json::to_string(graphene::net::node_configuration()) + " )").c_str() )
+      ;
+   cli.add_options()
       ("force-validate", bpo::bool_switch()->default_value(false), "Force validation of all transactions. Deprecated in favor of p2p-force-validate" )
       ("p2p-force-validate", bpo::bool_switch()->default_value(false), "Force validation of all transactions." )
-       ;
+      ;
 }
 
 void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 {
-   my = std::make_unique< detail::p2p_plugin_impl >( app() -> get_plugin< plugins::chain::chain_plugin >() );
+   my = std::make_unique< detail::p2p_plugin_impl >( appbase::app().get_plugin< plugins::chain::chain_plugin >() );
 
    if( options.count( "p2p-endpoint" ) )
       my->endpoint = fc::ip::endpoint::from_string( options.at( "p2p-endpoint" ).as< string >() );
@@ -556,7 +560,7 @@ void p2p_plugin::plugin_startup()
    my->p2p_thread.async( [this]
    {
       my->node.reset(new graphene::net::node(my->user_agent));
-      my->node->load_configuration(app() -> data_dir() / "p2p");
+      my->node->load_configuration(app().data_dir() / "p2p");
       my->node->set_node_delegate( &(*my) );
 
       if( my->endpoint )

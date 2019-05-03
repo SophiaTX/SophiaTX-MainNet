@@ -18,20 +18,20 @@ LIST(APPEND BOOST_COMPONENTS thread
 FIND_PACKAGE(Boost 1.58 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 set( Boost_USE_STATIC_LIBS ON CACHE STRING "ON or OFF" )
 
-#[[if( APPLE )
+if( APPLE )
   # Apple Specific Options Here
   message( STATUS "Configuring AppBase on OS X" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -stdlib=libc++ -Wall -Wno-conversion -Wno-deprecated-declarations" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -stdlib=libc++ -Wall -Wno-conversion -Wno-deprecated-declarations" )
 else( APPLE )
   # Linux Specific Options Here
   message( STATUS "Configuring AppBase on Linux" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wall -pthread" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++14 -Wall -pthread" )
   set( rt_library rt )
   set( pthread_library pthread)
   if ( SOPHIATX_STATIC_BUILD )
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
   endif ( SOPHIATX_STATIC_BUILD )
-endif( APPLE )]]
+endif( APPLE )
 
 
 if(ENABLE_COVERAGE_TESTING)
@@ -40,11 +40,9 @@ endif()
 
 add_library( appbase
              application.cpp
-             plugin.cpp
            )
 
-target_link_libraries( appbase fc ${Boost_LIBRARIES})
-set_property(TARGET appbase PROPERTY CXX_STANDARD 17)
+target_link_libraries( appbase ${Boost_LIBRARIES})
 
 target_include_directories( appbase
                             PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" ${Boost_INCLUDE_DIR})

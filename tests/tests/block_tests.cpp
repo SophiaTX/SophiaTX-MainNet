@@ -747,19 +747,18 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
          if( arg == "--show-test-names" )
             std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
       }
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      init_account_pub_key = init_account_priv_key.get_public_key();
 
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
-      appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node"}, false);
-      auto appconfig = appbase::app_factory().read_app_config("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
-      app = &appbase::app_factory().new_application("1a058d1a89aff240ab203abe8a429d1a1699c339032a87e70e01022842a98324");
-      auto _db_plugin = app->get_register_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
-      db_plugin = static_cast<sophiatx::plugins::debug_node::debug_node_plugin*>(_db_plugin.get());
-      app->initialize(appconfig, {"chain", "account_history", "debug_node"});
+      appbase::app().initialize<
+         sophiatx::plugins::chain::chain_plugin_full,
+         sophiatx::plugins::account_history::account_history_plugin,
+         sophiatx::plugins::debug_node::debug_node_plugin
+      >( argc, argv );
 
-
-      db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
 

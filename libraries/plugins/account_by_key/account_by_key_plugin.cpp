@@ -14,7 +14,7 @@ class account_by_key_plugin_impl
 {
    public:
       account_by_key_plugin_impl( account_by_key_plugin& _plugin ) :
-         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ) {}
 
       void pre_operation( const operation_notification& op_obj );
@@ -209,7 +209,7 @@ void account_by_key_plugin::plugin_initialize( const boost::program_options::var
    try
    {
       ilog( "Initializing account_by_key plugin" );
-      std::shared_ptr<database_interface>& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      std::shared_ptr<database_interface>& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       my->pre_apply_connection = db->pre_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->pre_operation( o ); } );
       my->post_apply_connection = db->post_apply_operation.connect( 0, [&]( const operation_notification& o ){ my->post_operation( o ); } );

@@ -41,10 +41,10 @@ public:
 
    static const std::string& name() { static std::string name = SOPHIATX_WITNESS_PLUGIN_NAME; return name; }
 
-   static void set_program_options(
+   virtual void set_program_options(
       boost::program_options::options_description &command_line_options,
       boost::program_options::options_description &config_file_options
-      );
+      ) override;
 
    virtual void plugin_initialize(const boost::program_options::variables_map& options) override;
    virtual void plugin_startup() override;

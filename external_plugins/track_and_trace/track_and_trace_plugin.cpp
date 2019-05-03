@@ -25,7 +25,7 @@ class track_and_trace_plugin_impl
 {
    public:
      track_and_trace_plugin_impl( track_and_trace_plugin& _plugin ) :
-         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ),
          app_id(_plugin.app_id) {
         interpreter = std::make_shared<tat_interpreter>(_db);
@@ -117,12 +117,12 @@ void track_and_trace_plugin::plugin_initialize( const boost::program_options::va
       return;
    }
    my = std::make_unique< detail::track_and_trace_plugin_impl >( *this );
-   api = std::make_shared< track_and_trace_api >( *this );
+   api = std::make_shared< track_and_trace_api >();
 
    try
    {
       ilog( "Initializing track_and_trace_plugin_impl plugin" );
-      auto& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::tat_interpreter>(my->interpreter));
       add_plugin_index< posession_index >(db);
