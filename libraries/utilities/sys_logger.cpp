@@ -4,7 +4,7 @@ namespace sophiatx { namespace utilities {
 
 SysLogger::SysLogger(const std::string &app_name,
                      int min_log_level,
-                     const std::optional <std::string> &msg_prefix,
+                     const std::experimental::optional <std::string> &msg_prefix,
                      int facility,
                      int options) :
       app_name_(app_name),
@@ -31,7 +31,7 @@ int SysLogger::getMinLogLevel() const {
    return min_log_level_;
 }
 
-const std::optional <std::string> &SysLogger::getMsgPrefix() const {
+const std::experimental::optional <std::string> &SysLogger::getMsgPrefix() const {
    return msg_prefix_;
 }
 

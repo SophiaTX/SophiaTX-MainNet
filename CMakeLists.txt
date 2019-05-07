@@ -10,7 +10,7 @@ project( SophiaTX )
 cmake_minimum_required( VERSION 3.2 )
 
 set( BLOCKCHAIN_NAME "SophiaTX" )
-set( CMAKE_CXX_STANDARD 17 )
+set( CMAKE_CXX_STANDARD 14 )
 
 set( GUI_CLIENT_EXECUTABLE_NAME SophiaTX )
 set( CUSTOM_URL_SCHEME "gcs" )

@@ -4,7 +4,7 @@
 #include <sys/syslog.h>
 #include <string>
 #include <sstream>
-#include <optional>
+#include <experimental/optional>
 
 namespace sophiatx { namespace utilities {
 
@@ -49,7 +49,7 @@ public:
     */
    SysLogger(const std::string &app_name,
              int min_log_level = LOG_INFO,
-             const std::optional<std::string> &msg_prefix = {},
+             const std::experimental::optional<std::string> &msg_prefix = {},
              int facility = LOG_LOCAL0,
              int options = LOG_NDELAY | LOG_PID | LOG_PERROR);
 
@@ -153,7 +153,7 @@ public:
    /**
     * Getters
     */
-   const std::optional<std::string> &getMsgPrefix() const;
+   const std::experimental::optional<std::string> &getMsgPrefix() const;
 
    const std::string &getAppName() const;
 
@@ -207,7 +207,7 @@ private:
 private:
    std::string app_name_;
    int min_log_level_;
-   std::optional<std::string> msg_prefix_;
+   std::experimental::optional<std::string> msg_prefix_;
 };
 
 }}
