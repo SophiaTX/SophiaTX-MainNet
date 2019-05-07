@@ -12,6 +12,8 @@
 #include <sophiatx/plugins/p2p/p2p_plugin.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
+#include <sophiatx/chain/database/database.hpp>
+
 #include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/interprocess/signals.hpp>
@@ -53,12 +55,25 @@ void info()
       std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
       std::cerr << "------------------------------------------------------\n";
 #else
-      std::cerr << "------------------------------------------------------\n\n";
-      std::cerr << "            STARTING SOPHIATX NETWORK\n\n";
-      std::cerr << "------------------------------------------------------\n";
-      std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
-      std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
-      std::cerr << "------------------------------------------------------\n";
+      const auto& genesis = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin_full >().get_genesis();
+      if(genesis.is_private_net) {
+          std::cerr << "------------------------------------------------------\n\n";
+          std::cerr << "            STARTING SOPHIATX PRIVATE NETWORK\n\n";
+          std::cerr << "------------------------------------------------------\n";
+          std::cerr << "initminer public key: " << std::string(genesis.initial_public_key) << "\n";
+          std::cerr << "chain id: " << genesis.initial_chain_id << "\n";
+          std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
+          std::cerr << "------------------------------------------------------\n";
+
+      } else {
+          std::cerr << "------------------------------------------------------\n\n";
+          std::cerr << "            STARTING SOPHIATX NETWORK\n\n";
+          std::cerr << "------------------------------------------------------\n";
+          std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
+          std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
+          std::cerr << "------------------------------------------------------\n";
+      }
+
 #endif
 }
 
