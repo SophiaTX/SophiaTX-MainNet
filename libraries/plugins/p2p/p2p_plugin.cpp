@@ -4,7 +4,7 @@
 #include <graphene/net/exceptions.hpp>
 
 #include <sophiatx/chain/database/database_exceptions.hpp>
-#include <sophiatx/chain/database/database.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/network/resolve.hpp>
@@ -518,7 +518,7 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
    }
 #if !defined (IS_TEST_NET)
    else {
-       if(!std::static_pointer_cast<chain::database>(my->chain.db())->is_private_net()) {
+       if(!appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin_full>().get_genesis().is_private_net) {
            for(int i=1; i<=6; i++){
                string seednode = string("seednode")+std::to_string(i)+string(".sophiatx.com:60000");
                seeds.push_back(seednode);
