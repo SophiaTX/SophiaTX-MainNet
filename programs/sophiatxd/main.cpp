@@ -64,7 +64,7 @@ void info()
     }
     std::cerr << "------------------------------------------------------\n";
     std::cerr << "initminer public key: " << std::string(genesis.initial_public_key) << "\n";
-    std::cerr << "chain id: " << genesis.initial_chain_id << "\n";
+    std::cerr << "chain id: " << std::string( genesis.initial_chain_id) << "\n";
     std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
     std::cerr << "------------------------------------------------------\n";
 
