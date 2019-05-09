@@ -1,0 +1,13 @@
+/var/log/sophiatx/cli_wallet.log {
+        daily
+        missingok
+        notifempty
+        rotate 60
+        compress
+        create 664 syslog adm
+        sharedscripts
+        postrotate
+                service rsyslog restart > /dev/null
+                service telegraf restart > /dev/null
+        endscript
+}

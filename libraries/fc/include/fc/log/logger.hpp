@@ -1,137 +1,98 @@
 #pragma once
-#include <fc/string.hpp>
-#include <fc/time.hpp>
-#include <fc/shared_ptr.hpp>
+
+#include <memory>
 #include <fc/log/log_message.hpp>
+#include <sophiatx/utilities/sys_logger.hpp>
 
 namespace fc
 {
 
-   class appender;
+/**
+ * @brief Singleton global application syslogger implementation. For custom Syslogger, use directly sophiatx::utilities::SysLogger
+ */
+class Logger {
+public:
+   // Delete all constructors
+   Logger()                         = delete;
+   Logger(const Logger&)            = delete;
+   Logger& operator=(const Logger&) = delete;
+   Logger(Logger&)                  = delete;
+   Logger& operator=(Logger&&)      = delete;
+   ~Logger()                        = default;
 
    /**
+    * @brief Initializes logger
     *
-    *
-    @code
-      void my_class::func()
-      {
-         fc_dlog( my_class_logger, "Format four: ${arg}  five: ${five}", ("arg",4)("five",5) );
-      }
-    @endcode
+    * @param app_name name of the application. Based on this parameter, separate logs are created from syslog, see configs in etc/syslog.d
+    * @param log_level possible values:
+    *           "debug"     - LOG_EMERG	0	   // system is unusable
+    *           "emergency" - LOG_ALERT	1	   // action must be taken immediately
+    *           "critical"  - LOG_CRIT	   2	   // critical conditions
+    *           "error"     - LOG_ERR		3	   // error conditions
+    *           "warning"   - LOG_WARNING	4	   // warning conditions
+    *           "notice"    - LOG_NOTICE	5	   // normal but significant condition
+    *           "info"      - LOG_INFO	   6	   // informational
+    *           "debug"     - LOG_DEBUG	7	   // debug-level messages
     */
-   class logger
-   {
-      public:
-         static logger get( const fc::string& name = "default");
+   static void init(const std::string& app_name, const std::string& log_level_str);
 
-         logger();
-         logger( const string& name, const logger& parent = nullptr );
-         logger( std::nullptr_t );
-         logger( const logger& c );
-         logger( logger&& c );
-         ~logger();
-         logger& operator=(const logger&);
-         logger& operator=(logger&&);
-         friend bool operator==( const logger&, nullptr_t );
-         friend bool operator!=( const logger&, nullptr_t );
+   /**
+    * @brief Returns true if logger was initialized, otherwise false
+    */
+   static bool isInitialized();
 
-         logger&    set_log_level( log_level e );
-         log_level  get_log_level()const;
-         logger&    set_parent( const logger& l );
-         logger     get_parent()const;
+   /**
+    * @brief Returns pointer to logger
+    */
+   static const std::unique_ptr<sophiatx::utilities::SysLogger>& get_instance();
+private:
+   static std::unique_ptr<sophiatx::utilities::SysLogger> logger_;
 
-         void  set_name( const fc::string& n );
-         const fc::string& name()const;
+}; // class Logger
 
-         void add_appender( const fc::shared_ptr<appender>& a );
-         std::vector<fc::shared_ptr<appender> > get_appenders()const;
-         void remove_appender( const fc::shared_ptr<appender>& a );
 
-         bool is_enabled( log_level e )const;
-         void log( log_message m );
 
-      private:
-         class impl;
-         fc::shared_ptr<impl> my;
-   };
 
 } // namespace fc
 
-#ifndef DEFAULT_LOGGER
-#define DEFAULT_LOGGER
+#define STR(x) #x
+#define STRINGIFY(x) STR(x)
+#define LOCATION "[" __FILE__ ":" STRINGIFY(__LINE__) "] --"
+
+//Usage: ilog( "Format four: ${arg}  five: ${five}", ("arg",4)("five",5) );
+#define dlog( FORMAT, ... ) fc::Logger::get_instance()->debug( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define ilog( FORMAT, ... ) fc::Logger::get_instance()->info( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define nlog( FORMAT, ... ) fc::Logger::get_instance()->notice( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define wlog( FORMAT, ... ) fc::Logger::get_instance()->warning( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define elog( FORMAT, ... ) fc::Logger::get_instance()->error( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define clog( FORMAT, ... ) fc::Logger::get_instance()->critical( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define alog( FORMAT, ... ) fc::Logger::get_instance()->alert( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define emlog( FORMAT, ... ) fc::Logger::get_instance()->emergency( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+
+
+
+// this disables all normal logging statements -- not something you'd normally want to do,
+// but it's useful if you're benchmarking something and suspect logging is causing
+// a slowdown.
+#ifdef FC_DISABLE_LOGGING
+   # undef dlog
+   # define dlog(...)
+   # undef ilog
+   # define ilog(...)
+   # undef nlog
+   # define nlog(...)
+   # undef wlog
+   # define wlog(...)
+   # undef elog
+   # define elog(...)
+   # undef clog
+   # define clog(...)
+   # undef alog
+   # define alog(...)
+   # undef emlog
+   # define emlog(...)
 #endif
 
-// suppress warning "conditional expression is constant" in the while(0) for visual c++
-// http://cnicholson.net/2009/03/stupid-c-tricks-dowhile0-and-c4127/
-#define FC_MULTILINE_MACRO_BEGIN do {
-#ifdef _MSC_VER
-# define FC_MULTILINE_MACRO_END \
-    __pragma(warning(push)) \
-    __pragma(warning(disable:4127)) \
-    } while (0) \
-    __pragma(warning(pop))
-#else
-# define FC_MULTILINE_MACRO_END  } while (0)
-#endif
-
-#define fc_dlog( LOGGER, FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (LOGGER).is_enabled( fc::log_level::debug ) ) \
-      (LOGGER).log( FC_LOG_MESSAGE( debug, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-#define fc_ilog( LOGGER, FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (LOGGER).is_enabled( fc::log_level::info ) ) \
-      (LOGGER).log( FC_LOG_MESSAGE( info, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-#define fc_wlog( LOGGER, FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (LOGGER).is_enabled( fc::log_level::warn ) ) \
-      (LOGGER).log( FC_LOG_MESSAGE( warn, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-#define fc_elog( LOGGER, FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (LOGGER).is_enabled( fc::log_level::error ) ) \
-      (LOGGER).log( FC_LOG_MESSAGE( error, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-#define dlog( FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (fc::logger::get(DEFAULT_LOGGER)).is_enabled( fc::log_level::debug ) ) \
-      (fc::logger::get(DEFAULT_LOGGER)).log( FC_LOG_MESSAGE( debug, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-/**
- * Sends the log message to a special 'user' log stream designed for messages that
- * the end user may like to see.
- */
-#define ulog( FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (fc::logger::get("user")).is_enabled( fc::log_level::debug ) ) \
-      (fc::logger::get("user")).log( FC_LOG_MESSAGE( debug, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-
-#define ilog( FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (fc::logger::get(DEFAULT_LOGGER)).is_enabled( fc::log_level::info ) ) \
-      (fc::logger::get(DEFAULT_LOGGER)).log( FC_LOG_MESSAGE( info, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-#define wlog( FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (fc::logger::get(DEFAULT_LOGGER)).is_enabled( fc::log_level::warn ) ) \
-      (fc::logger::get(DEFAULT_LOGGER)).log( FC_LOG_MESSAGE( warn, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
-
-#define elog( FORMAT, ... ) \
-  FC_MULTILINE_MACRO_BEGIN \
-   if( (fc::logger::get(DEFAULT_LOGGER)).is_enabled( fc::log_level::error ) ) \
-      (fc::logger::get(DEFAULT_LOGGER)).log( FC_LOG_MESSAGE( error, FORMAT, __VA_ARGS__ ) ); \
-  FC_MULTILINE_MACRO_END
 
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
@@ -163,19 +124,3 @@ namespace fc
     wlog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
 #define edump( SEQ ) \
     elog( FC_FORMAT(SEQ), FC_FORMAT_ARG_PARAMS(SEQ) )
-
-// this disables all normal logging statements -- not something you'd normally want to do,
-// but it's useful if you're benchmarking something and suspect logging is causing
-// a slowdown.
-#ifdef FC_DISABLE_LOGGING
-# undef ulog
-# define ulog(...) FC_MULTILINE_MACRO_BEGIN FC_MULTILINE_MACRO_END
-# undef elog
-# define elog(...) FC_MULTILINE_MACRO_BEGIN FC_MULTILINE_MACRO_END
-# undef wlog
-# define wlog(...) FC_MULTILINE_MACRO_BEGIN FC_MULTILINE_MACRO_END
-# undef ilog
-# define ilog(...) FC_MULTILINE_MACRO_BEGIN FC_MULTILINE_MACRO_END
-# undef dlog
-# define dlog(...) FC_MULTILINE_MACRO_BEGIN FC_MULTILINE_MACRO_END
-#endif

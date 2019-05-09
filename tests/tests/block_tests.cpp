@@ -750,7 +750,10 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      appbase::app().load_config(argc, argv);
       init_account_pub_key = init_account_priv_key.get_public_key();
+
+      fc::Logger::init("sophiatx","error");
 
       appbase::app().initialize<
          sophiatx::plugins::chain::chain_plugin_full,

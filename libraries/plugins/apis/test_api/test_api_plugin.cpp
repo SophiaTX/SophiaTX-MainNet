@@ -1,7 +1,5 @@
 #include <sophiatx/plugins/test_api/test_api_plugin.hpp>
 
-#include <fc/log/logger_config.hpp>
-
 namespace sophiatx { namespace plugins { namespace test_api {
 
 test_api_plugin::test_api_plugin() {}

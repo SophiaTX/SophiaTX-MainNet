@@ -30,10 +30,6 @@
 
 #include <boost/scope_exit.hpp>
 
-#ifdef DEFAULT_LOGGER
-# undef DEFAULT_LOGGER
-#endif
-#define DEFAULT_LOGGER "p2p"
 
 #ifndef NDEBUG
 # define VERIFY_CORRECT_THREAD() assert(_thread->is_current())

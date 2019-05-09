@@ -15,7 +15,6 @@ set(sources
    string_escape.cpp
    tempdir.cpp
    words.cpp
-   logging_config.cpp
    sys_logger.cpp
    ${HEADERS})
 

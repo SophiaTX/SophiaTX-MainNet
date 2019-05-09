@@ -91,6 +91,7 @@ class plugin_b : public appbase::plugin<plugin_b>
 int main( int argc, char** argv ) {
    try {
       appbase::app().register_plugin<plugin_b>();
+      appbase::app().load_config(argc, argv);
       if( !appbase::app().initialize( argc, argv ) )
          return -1;
       appbase::app().startup();

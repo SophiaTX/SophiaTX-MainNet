@@ -69,7 +69,7 @@ namespace fc { namespace ssh {
       if( remote_dir.filename() == fc::path(".") ) 
          remote_dir /= local_dir.filename();
 
-      fc_dlog( my->logr, "scp -r ${local} ${remote}", ("local",local_dir)("remote",remote_dir) );
+      dlog( "scp -r ${local} ${remote}", ("local",local_dir)("remote",remote_dir) );
       create_directories( remote_dir );
 
       directory_iterator ditr(local_dir);
@@ -85,7 +85,7 @@ namespace fc { namespace ssh {
           } else if( fc::is_regular_file(*ditr) ) {
              scp_send( *ditr, remote_dir / (*ditr).filename() );
           } else {
-             fc_wlog( my->logr, "Skipping '${path}", ("path",fc::canonical(*ditr)) );
+             wlog( "Skipping '${path}", ("path",fc::canonical(*ditr)) );
           }
           ++ditr;
       }
@@ -93,7 +93,7 @@ namespace fc { namespace ssh {
 
   void client::scp_send( const fc::path& local_path, const fc::path& remote_path, 
                         std::function<bool(uint64_t,uint64_t)> progress ) {
-    fc_wlog( my->logr, "scp ${local} ${remote}", ("local",local_path)("remote",remote_path ) );
+    wlog( "scp ${local} ${remote}", ("local",local_path)("remote",remote_path ) );
     if( !fc::exists(local_path) ) {
       FC_THROW( "Source file '${file}' does not exist", ("file",local_path) ) ;
     }
@@ -142,7 +142,7 @@ namespace fc { namespace ssh {
             bytes_written_this_iteration += r;
             total_bytes_written += r;
             pos   += r;
-	    // fc_wlog( my->logr, "wrote ${bytes} bytes", ("bytes",r) );
+	    // wlog( "wrote ${bytes} bytes", ("bytes",r) );
         }
       }
       my->call_ssh2_function(boost::bind(libssh2_channel_send_eof, chan));
@@ -385,13 +385,13 @@ namespace fc { namespace ssh {
         std::stringstream ss; ss << eps[i];
         try {
           boost::system::error_code ec;
-          fc_ilog( logr, "Attempting to connect to ${endpoint}", ("endpoint",ss.str().c_str()) );
+          ilog( "Attempting to connect to ${endpoint}", ("endpoint",ss.str().c_str()) );
           fc::asio::tcp::connect( *sock, eps[i] );
           endpt = eps[i];
           resolved = true;
           break;
         } catch ( fc::exception& er ) {
-          fc_elog( logr, "Failed to connect to ${endpoint}\n${error_reprot}",
+          elog( "Failed to connect to ${endpoint}\n${error_reprot}",
                     ("endpoint",ss.str().c_str())("error_report", er.to_detail_string()) );
           sock->close();
         }
@@ -437,7 +437,7 @@ namespace fc { namespace ssh {
   void detail::client_impl::handle_trace( LIBSSH2_SESSION* session, void* context, const char* data, size_t length ) {
     client_impl* my = (client_impl*)context;
     fc::string str(data,length);
-    fc_wlog( my->logr, "${message}", ("message",str) );
+    wlog( "${message}", ("message",str) );
   }
 
   void detail::client_impl::close() {
@@ -446,7 +446,7 @@ namespace fc { namespace ssh {
         try {
 	  call_ssh2_function(boost::bind(libssh2_sftp_shutdown, sftp));
         }catch(...){
-	  fc_wlog( logr, "caught closing sftp session" );
+	  wlog( "caught closing sftp session" );
         }
         sftp = 0;
       }
@@ -461,27 +461,27 @@ namespace fc { namespace ssh {
         call_ssh2_function(boost::bind(libssh2_session_disconnect_ex, session, SSH_DISCONNECT_BY_APPLICATION, "exit cleanly", ""));
         call_ssh2_function(boost::bind(libssh2_session_free, session), false);
       } catch ( ... ){
-        fc_wlog( logr, "caught freeing session" );
+        wlog( "caught freeing session" );
       }
       session = 0;
       try {
         if( sock )
           sock->close();
       } catch ( ... ){
-        fc_wlog( logr, "caught error closing socket" );
+        wlog( "caught error closing socket" );
       }
       sock.reset(0);
       try {
         if( read_prom )
           read_prom->wait();
       } catch ( ... ){
-        fc_wlog( logr, "caught error waiting on read" );
+        wlog( "caught error waiting on read" );
       }
       try {
         if( write_prom )
           write_prom->wait();
       } catch ( ... ){
-        fc_wlog( logr, "caught error waiting on write" );
+        wlog( "caught error waiting on write" );
       }
     }
   }
@@ -530,7 +530,7 @@ namespace fc { namespace ssh {
       else if( s == "keyboard-interactive" )
         keybd = true;
       else
-        fc_dlog( logr, "Unknown/unsupported authentication type '${auth_type}'", ("auth_type",s.c_str()));
+        dlog( "Unknown/unsupported authentication type '${auth_type}'", ("auth_type",s.c_str()));
     });
 
     if( pubkey && try_pub_key() ) 
@@ -562,23 +562,23 @@ namespace fc { namespace ssh {
 					  privkey.c_str(),
 					  passphrase.c_str())))
         return true; // successful authentication from file
-      fc_elog( logr, "failed to authenticate with private key from file '${privkey_filename}'", ("privkey_filename",privkey));
+      elog( "failed to authenticate with private key from file '${privkey_filename}'", ("privkey_filename",privkey));
     } else
-      fc_ilog( logr, "no private key file set, skiping pubkey authorization from file");
+      ilog( "no private key file set, skiping pubkey authorization from file");
 
     agent = libssh2_agent_init(session);
     if (!agent) {
-      fc_wlog( logr, "failed to initialize ssh-agent support");
+      wlog( "failed to initialize ssh-agent support");
       return false;
     }
 
     if (call_ssh2_function(boost::bind(libssh2_agent_connect, agent))) {
-      fc_elog( logr, "failed to connect to ssh-agent");
+      elog( "failed to connect to ssh-agent");
       return false;
     }
 
     if (call_ssh2_function(boost::bind(libssh2_agent_list_identities, agent))) {
-      fc_elog( logr, "failed requesting identities from ssh-agent");
+      elog( "failed requesting identities from ssh-agent");
       return false;
     }
 
@@ -589,14 +589,14 @@ namespace fc { namespace ssh {
       if (ec == 1)
         break; // done iterating over keys
       if (ec < 0) {
-        fc_elog( logr, "failed obtaining identity from ssh-agent");
+        elog( "failed obtaining identity from ssh-agent");
         return false;
       }
 
       if (call_ssh2_function(boost::bind(libssh2_agent_userauth, agent, uname.c_str(), identity)))
-        fc_ilog( logr, "unable to authenticate with public key '${key_comment}'", ("key_comment",identity->comment));
+        ilog( "unable to authenticate with public key '${key_comment}'", ("key_comment",identity->comment));
       else {
-        fc_ilog( logr, "authenticated with public key '${key_comment}'", ("key_comment",identity->comment));
+        ilog( "authenticated with public key '${key_comment}'", ("key_comment",identity->comment));
         return true;
       }
       prev_identity = identity;

@@ -210,6 +210,8 @@ private:
    std::experimental::optional<std::string> msg_prefix_;
 };
 
+
+
 }}
 
 #endif //SOPHIATX_SYSLOGGER_HPP

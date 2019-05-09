@@ -21,9 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 #include <boost/test/unit_test.hpp>
-
 #include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/protocol/protocol.hpp>
 
