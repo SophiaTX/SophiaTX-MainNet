@@ -12,6 +12,8 @@
 #include <sophiatx/plugins/p2p/p2p_plugin.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
 
+#include <sophiatx/chain/database/database.hpp>
+
 #include <fc/exception/exception.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/interprocess/signals.hpp>
@@ -35,9 +37,9 @@ using std::vector;
 string& version_string()
 {
    static string v_str =
-      "sophiatx_blockchain_version: " + fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) + "\n" +
-      "sophiatx_git_revision:       " + fc::string( sophiatx::utilities::git_revision_sha ) + "\n" +
-      "fc_git_revision:          " + fc::string( fc::git_revision_sha ) + "\n";
+      "sophiatx_blockchain_version: " + std::string( SOPHIATX_BLOCKCHAIN_VERSION ) + "\n" +
+      "sophiatx_git_revision:       " + std::string( sophiatx::utilities::git_revision_sha ) + "\n" +
+      "fc_git_revision:          " + std::string( fc::git_revision_sha ) + "\n";
    return v_str;
 }
 
@@ -53,12 +55,19 @@ void info()
       std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
       std::cerr << "------------------------------------------------------\n";
 #else
-      std::cerr << "------------------------------------------------------\n\n";
+    const auto& genesis = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin_full >().get_genesis();
+    std::cerr << "------------------------------------------------------\n\n";
+    if(genesis.is_private_net) {
+      std::cerr << "        STARTING SOPHIATX PRIVATE NETWORK\n\n";
+    } else {
       std::cerr << "            STARTING SOPHIATX NETWORK\n\n";
-      std::cerr << "------------------------------------------------------\n";
-      std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
-      std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
-      std::cerr << "------------------------------------------------------\n";
+    }
+    std::cerr << "------------------------------------------------------\n";
+    std::cerr << "initminer public key: " << std::string(genesis.initial_public_key) << "\n";
+    std::cerr << "chain id: " << std::string( genesis.initial_chain_id) << "\n";
+    std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
+    std::cerr << "------------------------------------------------------\n";
+
 #endif
 }
 
