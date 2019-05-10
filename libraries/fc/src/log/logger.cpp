@@ -2,7 +2,7 @@
 #include <fc/exception/exception.hpp>
 
 namespace fc {
-std::unique_ptr<sophiatx::utilities::SysLogger> Logger::logger_ = nullptr;
+std::unique_ptr<fc::SysLogger> Logger::logger_ = nullptr;
 
 
 void Logger::init(const std::string& app_name, const std::string& log_level_str) {
@@ -27,12 +27,12 @@ void Logger::init(const std::string& app_name, const std::string& log_level_str)
       FC_THROW("Invalid value for log-level: " + log_level_str);
    }
 
-   logger_ = std::make_unique<sophiatx::utilities::SysLogger>(app_name, log_level);
+   logger_ = std::make_unique<fc::SysLogger>(app_name, log_level);
 }
 
-const std::unique_ptr<sophiatx::utilities::SysLogger>& Logger::get_instance() {
+const std::unique_ptr<fc::SysLogger>& Logger::getInstance() {
    if (logger_ == nullptr) {
-      throw std::runtime_error("fc::Logger::init(...) should be called before fc::Logger::get_instance()");
+      throw std::runtime_error("fc::Logger::init(...) should be called before fc::Logger::getInstance()");
    }
 
    return logger_;

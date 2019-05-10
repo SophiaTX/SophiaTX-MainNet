@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <fc/log/log_message.hpp>
-#include <sophiatx/utilities/sys_logger.hpp>
+#include <fc/log/sys_logger.hpp>
 
 namespace fc
 {
@@ -44,9 +44,9 @@ public:
    /**
     * @brief Returns pointer to logger
     */
-   static const std::unique_ptr<sophiatx::utilities::SysLogger>& get_instance();
+   static const std::unique_ptr<fc::SysLogger>& getInstance();
 private:
-   static std::unique_ptr<sophiatx::utilities::SysLogger> logger_;
+   static std::unique_ptr<fc::SysLogger> logger_;
 
 }; // class Logger
 
@@ -60,14 +60,14 @@ private:
 #define LOCATION "[" __FILE__ ":" STRINGIFY(__LINE__) "] --"
 
 //Usage: ilog( "Format four: ${arg}  five: ${five}", ("arg",4)("five",5) );
-#define dlog( FORMAT, ... ) fc::Logger::get_instance()->debug( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define ilog( FORMAT, ... ) fc::Logger::get_instance()->info( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define nlog( FORMAT, ... ) fc::Logger::get_instance()->notice( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define wlog( FORMAT, ... ) fc::Logger::get_instance()->warning( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define elog( FORMAT, ... ) fc::Logger::get_instance()->error( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define clog( FORMAT, ... ) fc::Logger::get_instance()->critical( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define alog( FORMAT, ... ) fc::Logger::get_instance()->alert( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
-#define emlog( FORMAT, ... ) fc::Logger::get_instance()->emergency( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define dlog( FORMAT, ... ) fc::Logger::getInstance()->debug( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define ilog( FORMAT, ... ) fc::Logger::getInstance()->info( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define nlog( FORMAT, ... ) fc::Logger::getInstance()->notice( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define wlog( FORMAT, ... ) fc::Logger::getInstance()->warning( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define elog( FORMAT, ... ) fc::Logger::getInstance()->error( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define clog( FORMAT, ... ) fc::Logger::getInstance()->critical( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define alog( FORMAT, ... ) fc::Logger::getInstance()->alert( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
+#define emlog( FORMAT, ... ) fc::Logger::getInstance()->emergency( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
 
 
 

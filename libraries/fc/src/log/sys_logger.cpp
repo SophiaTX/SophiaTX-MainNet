@@ -1,6 +1,6 @@
-#include <sophiatx/utilities/sys_logger.hpp>
+#include <fc/log/sys_logger.hpp>
 
-namespace sophiatx { namespace utilities {
+namespace fc {
 
 SysLogger::SysLogger(const std::string &app_name,
                      int min_log_level,
@@ -35,4 +35,4 @@ const std::experimental::optional <std::string> &SysLogger::getMsgPrefix() const
    return msg_prefix_;
 }
 
-}}
+}

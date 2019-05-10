@@ -6,7 +6,7 @@
 #include <sstream>
 #include <experimental/optional>
 
-namespace sophiatx { namespace utilities {
+namespace fc {
 
 class SysLogger {
 public:
@@ -212,6 +212,6 @@ private:
 
 
 
-}}
+}
 
 #endif //SOPHIATX_SYSLOGGER_HPP
