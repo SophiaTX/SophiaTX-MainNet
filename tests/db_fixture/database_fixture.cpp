@@ -114,7 +114,7 @@ clean_database_fixture::~clean_database_fixture()
 { try {
    // If we're unwinding due to an exception, don't do any more checks.
    // This way, boost test's last checkpoint tells us approximately where the error was.
-   if( !std::uncaught_exception() )
+   if( !std::uncaught_exceptions() )
    {
       BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
    }
@@ -262,7 +262,7 @@ private_database_fixture::~private_database_fixture()
    try {
       // If we're unwinding due to an exception, don't do any more checks.
       // This way, boost test's last checkpoint tells us approximately where the error was.
-      if( !std::uncaught_exception() )
+      if( !std::uncaught_exceptions() )
       {
          BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
       }
@@ -321,7 +321,7 @@ live_database_fixture::~live_database_fixture()
    {
       // If we're unwinding due to an exception, don't do any more checks.
       // This way, boost test's last checkpoint tells us approximately where the error was.
-      if( !std::uncaught_exception() )
+      if( !std::uncaught_exceptions() )
       {
          BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
       }
@@ -776,7 +776,7 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
 { try {
    // If we're unwinding due to an exception, don't do any more checks.
    // This way, boost test's last checkpoint tells us approximately where the error was.
-   if( !std::uncaught_exception() )
+   if( !std::uncaught_exceptions() )
    {
       BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
    }
