@@ -65,6 +65,20 @@ class sha1
     uint32_t _hash[5]; 
 };
 
+namespace raw {
+
+template<typename T>
+inline void pack( T& ds, const sha1& ep) {
+    ds << ep;
+}
+
+template<typename T>
+inline void unpack( T& ds, sha1& ep) {
+    ds >> ep;
+}
+
+}
+
   class variant;
   void to_variant( const sha1& bi, variant& v );
   void from_variant( const variant& v, sha1& bi );
