@@ -71,11 +71,11 @@ def tests() {
     if( !params.build_as_testnet ) {
       sh './tests/chain_test'
       sh './tests/plugin_test'
-//      sh './tests/smart_contracts/smart_contracts_tests'
+      //sh './tests/smart_contracts/smart_contracts_tests'
       sh './tests/utilities/utilities_tests'
       sh './libraries/fc/vendor/secp256k1-zkp/src/project_secp256k1-build/tests'
       sh './libraries/fc/tests/all_tests'
-//      sh './libraries/SQLiteCpp/SQLiteCpp_tests'
+      //sh './libraries/SQLiteCpp/SQLiteCpp_tests'
     }
   }
 }
@@ -112,11 +112,13 @@ def run_archive() {
 
           if( params.build_as_testnet ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
-           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
+           sh "cp -r ${WORKSPACE}/etc ."
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini etc/" //create tar file
            } else {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
-           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini" //create tar file
+           sh "cp -r ${WORKSPACE}/etc ."
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini etc/" //create tar file
          }
        }
        archiveArtifacts '*.gz'

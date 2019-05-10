@@ -290,7 +290,7 @@ namespace detail {
       switch(result)
       {
          case block_production_condition::produced:
-            ilog("Generated block #${n} with timestamp ${t} and transactions count ${tc} by ${w} at time ${c}", (capture));
+            nlog("Generated block #${n} with timestamp ${t} and transactions count ${tc} by ${w} at time ${c}", (capture));
             break;
          case block_production_condition::not_synced:
             elog("Not producing block because production is disabled until we receive a recent block (see: --enable-stale-production)");

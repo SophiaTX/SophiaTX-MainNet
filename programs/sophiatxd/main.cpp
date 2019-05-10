@@ -4,7 +4,6 @@
 #include <sophiatx/protocol/types.hpp>
 #include <sophiatx/protocol/version.hpp>
 
-#include <sophiatx/utilities/logging_config.hpp>
 #include <sophiatx/utilities/key_conversion.hpp>
 #include <sophiatx/utilities/git_revision.hpp>
 
@@ -75,19 +74,17 @@ int main( int argc, char** argv )
 {
    try
    {
-      // Setup logging config
-      bpo::options_description options;
-      fc::ecc::public_key::init_cache(static_cast<uint32_t>(SOPHIATX_MAX_BLOCK_SIZE / SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT), std::chrono::milliseconds(2000));
-
-      sophiatx::utilities::set_logging_program_options( options );
-      options.add_options()
-         ("backtrace", bpo::value< string >()->default_value( "yes" ), "Whether to print backtrace on SIGSEGV" );
-
-      appbase::app().add_program_options( bpo::options_description(), options );
-
       appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       sophiatx::plugins::register_plugins();
 
+      // Reads main application config file
+      appbase::app().load_config(argc, argv);
+      auto& args = appbase::app().get_args();
+
+      // Initializes logger
+      fc::Logger::init("sophiatx"/* Do not change this parameter as syslog config depends on it !!! */, args.at("log-level").as< std::string >());
+
+      fc::ecc::public_key::init_cache(static_cast<uint32_t>(SOPHIATX_MAX_BLOCK_SIZE / SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT), std::chrono::milliseconds(2000));
       appbase::app().set_version_string( version_string() );
 
       bool initialized = appbase::app().initialize<
@@ -98,21 +95,10 @@ int main( int argc, char** argv )
 
       info();
 
-      if( !initialized )
+      if( !initialized ) {
          return 0;
-
-      auto& args = appbase::app().get_args();
-
-      try
-      {
-         fc::optional< fc::logging_config > logging_config = sophiatx::utilities::load_logging_config( args, appbase::app().data_dir() );
-         if( logging_config )
-            fc::configure_logging( *logging_config );
       }
-      catch( const fc::exception& )
-      {
-         wlog( "Error parsing logging config" );
-      }
+
 
       if( args.at( "backtrace" ).as< string >() == "yes" )
       {
@@ -122,7 +108,7 @@ int main( int argc, char** argv )
 
       appbase::app().startup();
       appbase::app().exec();
-      std::cout << "exited cleanly\n";
+      ilog("exited cleanly");
 
       return 0;
    }

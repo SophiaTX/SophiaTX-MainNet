@@ -42,6 +42,13 @@ namespace appbase {
          ~application();
 
          /**
+          * @brief Loads main application config
+          *
+          * @return true if successfull, otherwise false
+          */
+         bool load_config( int argc, char** argv );
+
+         /**
           * @brief Looks for the --plugin commandline / config option and calls initialize on those plugins
           *
           * @tparam Plugin List of plugins to initalize even if not mentioned by configuration. For plugins started by

@@ -34,9 +34,6 @@ namespace fc { namespace rpc  {
 
          void set_on_disconnected_callback(std::function<void(fc::exception_ptr)> callback);
 
-         logger get_logger()const;
-         void   set_logger( const logger& l );
-
          /**
           * @name server interface
           *

@@ -1,15 +1,14 @@
 #include <iostream>
 #include <fc/interprocess/file_mutex.hpp>
 #include <fc/filesystem.hpp>
-#include <fc/log/logger.hpp>
 #include <fc/thread/thread.hpp>
 
 int main( int argc, char** argv ) {
-   if( argc < 2 ) return 0;
-   fc::file_mutex m( argv[1] );
-   auto mptr = &m;
+  if( argc < 2 ) return 0;
+  fc::file_mutex m( argv[1] );
+  auto mptr = &m;
 
-   fc::thread in("in");
+  fc::thread in("in");
 
   std::string cmd;
   std::cout << ">>> ";
@@ -18,7 +17,7 @@ int main( int argc, char** argv ) {
   while( !std::cin.eof() && cmd != "q" ) {
     ++i;
     fc::async( [i, cmd,mptr]() {
-       ilog( "start ${c} ${i}", ("c",cmd)("i",i) );
+       std::cout << "start " << cmd << " " << i << std::endl;
        if( cmd == "L" ) {
           mptr->lock();
        } else if( cmd == "l" ) {
@@ -28,12 +27,12 @@ int main( int argc, char** argv ) {
        } else if( cmd == "u" ) {
           mptr->unlock_shared();
        }
-       ilog( "end ${c} ${i}", ("c",cmd)("i",i) );
+       std::cout << "end " << cmd << " " << i << std::endl;
     } );
     fc::usleep( fc::microseconds( 1000 ) );
     cmd = in.async( [&]() {
        std::string tmp;
-       wdump((m.readers()));
+       std::cout << m.readers() << std::endl;
        std::cin >> tmp;
        return tmp;
     } );
