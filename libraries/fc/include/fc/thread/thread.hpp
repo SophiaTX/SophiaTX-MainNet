@@ -3,7 +3,6 @@
 #define FC_CONTEXT_STACK_SIZE (2048*1024)
 
 #include <fc/thread/task.hpp>
-#include <fc/vector.hpp>
 #include <fc/string.hpp>
 
 namespace fc {

@@ -6,7 +6,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 
 namespace sophiatx { namespace plugins { namespace track_and_trace_plugin {
 
@@ -32,7 +31,7 @@ struct get_holdings_args
 
 struct get_holdings_return
 {
-   vector<tracked_object_name_type> serials;
+   std::vector<tracked_object_name_type> serials;
 };
 
 struct get_transfer_requests_args
@@ -42,7 +41,7 @@ struct get_transfer_requests_args
 
 struct get_transfer_requests_return
 {
-   vector<tracked_object_name_type> serials;
+   std::vector<tracked_object_name_type> serials;
 };
 
 struct get_item_details_args
@@ -77,7 +76,7 @@ struct tracked_object_history_item{
 
 struct get_tracked_object_history_return
 {
-   vector<tracked_object_history_item> history_items;
+   std::vector<tracked_object_history_item> history_items;
 };
 
 class track_and_trace_api

@@ -1,5 +1,4 @@
 #include <fc/thread/thread.hpp>
-#include <fc/vector.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/log/logger.hpp>
 #include "thread_d.hpp"

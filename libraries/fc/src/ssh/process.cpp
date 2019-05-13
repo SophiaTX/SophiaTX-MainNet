@@ -9,7 +9,6 @@
 #include <fc/ssh/client.hpp>
 #include <fc/ssh/process.hpp>
 #include <fc/io/sstream.hpp>
-#include <fc/vector.hpp>
 #include <fc/thread/unique_lock.hpp>
 
 #include "client_impl.hpp"

@@ -1,7 +1,7 @@
 #pragma once
-#include <fc/vector.hpp>
 #include <fc/string.hpp>
 #include <memory>
+#include <vector>
 
 namespace fc { 
   namespace ip { class endpoint; }

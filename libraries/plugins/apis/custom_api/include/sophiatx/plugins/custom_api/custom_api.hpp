@@ -7,7 +7,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 #include <fc/crypto/base58.hpp>
 
 #define CUSTOM_API_SINGLE_QUERY_LIMIT 10000
@@ -37,7 +36,7 @@ struct received_object
 
    uint64_t          id;
    string            sender;
-   vector<string>    recipients;
+   std::vector<string>    recipients;
    uint64_t          app_id;
    string            data;
    bool              binary;
