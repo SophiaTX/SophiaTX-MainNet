@@ -4,6 +4,7 @@
 #include <graphene/net/exceptions.hpp>
 
 #include <sophiatx/chain/database/database_exceptions.hpp>
+#include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 
 #include <fc/network/ip.hpp>
 #include <fc/network/resolve.hpp>
@@ -19,6 +20,8 @@ using std::string;
 using std::vector;
 
 namespace sophiatx { namespace plugins { namespace p2p {
+
+using appbase::app;
 
 using graphene::net::item_hash_t;
 using graphene::net::item_id;
@@ -139,14 +142,12 @@ bool p2p_plugin_impl::handle_block( const graphene::net::block_message& blk_msg,
          head_block_num = chain.db()->head_block_num();
       });
       if (sync_mode)
-         fc_ilog(fc::logger::get("sync"),
-               "chain pushing sync block #${block_num} ${block_hash}, head is ${head}",
+         dlog("chain pushing sync block #${block_num} ${block_hash}, head is ${head}",
                ("block_num", blk_msg.block.block_num())
                ("block_hash", blk_msg.block_id)
                ("head", head_block_num));
       else
-         fc_ilog(fc::logger::get("sync"),
-               "chain pushing block #${block_num} ${block_hash}, head is ${head}",
+         dlog("chain pushing block #${block_num} ${block_hash}, head is ${head}",
                ("block_num", blk_msg.block.block_num())
                ("block_hash", blk_msg.block_id)
                ("head", head_block_num));
@@ -162,7 +163,7 @@ bool p2p_plugin_impl::handle_block( const graphene::net::block_message& blk_msg,
          {
             fc::microseconds latency = fc::time_point::now() - blk_msg.block.timestamp;
             // NOTE: Do not change this message format !!! Monitoring tool depends on " --latency: ${l} ms --block gen time: {gt}".
-            ilog( "Got ${t} transactions on block ${b} by ${w} --latency: ${l} ms --block gen time: ${gt}",
+            nlog( "Got ${t} transactions on block ${b} by ${w} --latency: ${l} ms --block gen time: ${gt}",
                ("t", blk_msg.block.transactions.size())
                ("b", blk_msg.block.block_num())
                ("w", blk_msg.block.witness)
@@ -173,18 +174,14 @@ bool p2p_plugin_impl::handle_block( const graphene::net::block_message& blk_msg,
          return result;
       } catch ( const chain::unlinkable_block_exception& e ) {
          // translate to a graphene::net exception
-         fc_elog(fc::logger::get("sync"),
-               "Error when pushing block, current head block is ${head}:\n${e}",
+         elog("Error when pushing block, current head block is ${head}:\n${e}",
                ("e", e.to_detail_string())
                ("head", head_block_num));
-         elog("Error when pushing block:\n${e}", ("e", e.to_detail_string()));
          FC_THROW_EXCEPTION(graphene::net::unlinkable_block_exception, "Error when pushing block:\n${e}", ("e", e.to_detail_string()));
       } catch( const fc::exception& e ) {
-         fc_elog(fc::logger::get("sync"),
-               "Error when pushing block, current head block is ${head}:\n${e}",
+         elog("Error when pushing block, current head block is ${head}:\n${e}",
                ("e", e.to_detail_string())
                ("head", head_block_num));
-         elog("Error when pushing block:\n${e}", ("e", e.to_detail_string()));
          throw;
       }
    }
@@ -487,14 +484,16 @@ void p2p_plugin::set_program_options( bpo::options_description& cli, bpo::option
       ("p2p-max-connections", bpo::value<uint32_t>(), "Maxmimum number of incoming connections on P2P endpoint.")
       ("p2p-seed-node", bpo::value<vector<string>>()->composing(), "The IP address and port of a remote peer to sync with.")
       ("p2p-parameters", bpo::value<string>(), ("P2P network parameters. (Default: " + fc::json::to_string(graphene::net::node_configuration()) + " )").c_str() )
+      ;
+   cli.add_options()
       ("force-validate", bpo::bool_switch()->default_value(false), "Force validation of all transactions. Deprecated in favor of p2p-force-validate" )
       ("p2p-force-validate", bpo::bool_switch()->default_value(false), "Force validation of all transactions." )
-       ;
+      ;
 }
 
 void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& options)
 {
-   my = std::make_unique< detail::p2p_plugin_impl >( app() -> get_plugin< plugins::chain::chain_plugin >() );
+   my = std::make_unique< detail::p2p_plugin_impl >( appbase::app().get_plugin< plugins::chain::chain_plugin >() );
 
    if( options.count( "p2p-endpoint" ) )
       my->endpoint = fc::ip::endpoint::from_string( options.at( "p2p-endpoint" ).as< string >() );
@@ -513,10 +512,12 @@ void p2p_plugin::plugin_initialize(const boost::program_options::variables_map& 
    }
 #if !defined (IS_TEST_NET)
    else {
-      for(int i=1; i<=6; i++){
-         string seednode = string("seednode")+std::to_string(i)+string(".sophiatx.com:60000");
-         seeds.push_back(seednode);
-      }
+       if(!appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin_full>().get_genesis().is_private_net) {
+           for(int i=1; i<=6; i++){
+               string seednode = string("seednode")+std::to_string(i)+string(".sophiatx.com:60000");
+               seeds.push_back(seednode);
+           }
+       }
    }
 #endif //!defined (IS_TEST_NET)
 
@@ -556,7 +557,7 @@ void p2p_plugin::plugin_startup()
    my->p2p_thread.async( [this]
    {
       my->node.reset(new graphene::net::node(my->user_agent));
-      my->node->load_configuration(app() -> data_dir() / "p2p");
+      my->node->load_configuration(app().data_dir() / "p2p");
       my->node->set_node_delegate( &(*my) );
 
       if( my->endpoint )
@@ -615,13 +616,13 @@ void p2p_plugin::plugin_shutdown() {
 
 void p2p_plugin::broadcast_block( const sophiatx::protocol::signed_block& block )
 {
-   ulog("Broadcasting block #${n}", ("n", block.block_num()));
+   dlog("Broadcasting block #${n}", ("n", block.block_num()));
    my->node->broadcast( graphene::net::block_message( block ) );
 }
 
 void p2p_plugin::broadcast_transaction( const sophiatx::protocol::signed_transaction& tx )
 {
-   ulog("Broadcasting tx #${n}", ("id", tx.id()));
+   dlog("Broadcasting tx #${n}", ("id", tx.id()));
    my->node->broadcast( graphene::net::trx_message( tx ) );
 }
 

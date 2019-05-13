@@ -70,11 +70,11 @@ struct debug_get_json_schema_return
    std::string schema;
 };
 
-class debug_node_api_plugin;
+
 class debug_node_api
 {
    public:
-      debug_node_api( debug_node_api_plugin& plugin);
+      debug_node_api();
       ~debug_node_api();
 
       DECLARE_API(

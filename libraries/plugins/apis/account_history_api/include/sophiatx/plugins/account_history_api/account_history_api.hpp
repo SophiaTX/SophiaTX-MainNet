@@ -6,12 +6,11 @@ namespace sophiatx { namespace plugins { namespace account_history {
 
 
 namespace detail { class account_history_api_impl; }
-class account_history_api_plugin;
 
 class account_history_api
 {
    public:
-      account_history_api(account_history_api_plugin& plugin);
+      account_history_api();
       ~account_history_api();
 
       DECLARE_API(

@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(bloom_test_1)
    }
    catch ( const fc::exception& e )
    {
-      edump((e.to_detail_string()) );
+      std::cerr << e.to_detail_string() << std::endl;
    }
 }
 
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(bloom_test_2)
    } 
    catch ( const fc::exception& e )
    {
-      edump((e.to_detail_string()) );
+      std::cerr << e.to_detail_string() << std::endl;
    }
 }
 

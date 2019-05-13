@@ -111,6 +111,7 @@ namespace fc
           *  @param ctx - generally provided using the FC_LOG_CONTEXT(LEVEL) macro 
           */
          log_message( log_context ctx, std::string format, variant_object args = variant_object() );
+         log_message( std::string format, variant_object args = variant_object() );
          ~log_message();
 
          log_message( const variant& v );
@@ -161,3 +162,6 @@ FC_REFLECT_TYPENAME( fc::log_message );
 #define FC_LOG_MESSAGE( LOG_LEVEL, FORMAT, ... ) \
    fc::log_message( FC_LOG_CONTEXT(LOG_LEVEL), FORMAT, fc::mutable_variant_object()__VA_ARGS__ )
 
+
+#define FC_LOG_MESSAGE_( FORMAT, ... ) \
+   fc::log_message( FORMAT, fc::mutable_variant_object()__VA_ARGS__ )

@@ -9,7 +9,7 @@ namespace detail {
 class custom_api_impl
 {
 public:
-   custom_api_impl(custom_api_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ), _app( plugin.app())  {
+   custom_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
    }
 
    DECLARE_API_IMPL(
@@ -18,8 +18,8 @@ public:
          (get_app_custom_messages)
    )
 
+
    std::shared_ptr<chain::database_interface>  _db;
-   appbase::application* _app;
 };
 
 
@@ -177,15 +177,12 @@ DEFINE_API_IMPL( custom_api_impl, list_received_documents )
 
 } // detail
 
-custom_api::custom_api(custom_api_plugin& plugin): my( new detail::custom_api_impl(plugin) )
+custom_api::custom_api(): my( new detail::custom_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_CUSTOM_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_CUSTOM_API_PLUGIN_NAME );
 }
 
-custom_api::~custom_api() 
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_CUSTOM_API_PLUGIN_NAME, my->_app );
-}
+custom_api::~custom_api() {}
 
 DEFINE_READ_APIS( custom_api,
       (list_received_documents)

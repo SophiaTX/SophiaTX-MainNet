@@ -1,6 +1,6 @@
 #include <fc/real128.hpp>
 #include <boost/test/unit_test.hpp>
-#include <fc/log/logger.hpp>
+#include <iostream>
 
 BOOST_AUTO_TEST_SUITE(fc)
 
@@ -47,9 +47,9 @@ BOOST_AUTO_TEST_CASE(real128_test)
 
    BOOST_CHECK_EQUAL( real128(uint64_t(-1)).to_uint64(), uint64_t(-1) );
 
-   wdump( (ten)(two)(twenty) );
-   wdump((real128("12345.6789")) );
-   wdump( (ten/3*3) );
+   std::cout << std::string(ten) << " " << std::string(two) << " " << std::string(twenty) << std::endl;
+   std::cout << std::string(real128("12345.6789")) << std::endl;
+   std::cout << std::string(ten/3*3) << std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

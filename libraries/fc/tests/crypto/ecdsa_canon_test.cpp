@@ -34,17 +34,17 @@ int main( int argc, char** argv )
       memcpy( bip_0062_canon2_sig.data, bip_0062_canon2, sizeof( unsigned char ) * 65 );
       fc::ecc::compact_signature non_canon_sig;
       memcpy( non_canon_sig.data, non_canon, sizeof( unsigned char ) * 65 );
-      ilog( "Testing non-canonical validation" );
+      std::cout << "Testing non-canonical validation" << std::endl;
       FC_ASSERT( fc::ecc::public_key::is_canonical( fc_canon_sig,          fc::ecc::canonical_signature_type::non_canonical ) );
       FC_ASSERT( fc::ecc::public_key::is_canonical( bip_0062_canon_sig,    fc::ecc::canonical_signature_type::non_canonical ) );
       FC_ASSERT( fc::ecc::public_key::is_canonical( bip_0062_canon2_sig,   fc::ecc::canonical_signature_type::non_canonical ) );
       FC_ASSERT( fc::ecc::public_key::is_canonical( non_canon_sig,         fc::ecc::canonical_signature_type::non_canonical ) );
-      ilog( "Testing bip_0062 canonical validation" );
+      std::cout << "Testing bip_0062 canonical validation" << std::endl;
       FC_ASSERT( fc::ecc::public_key::is_canonical( fc_canon_sig,          fc::ecc::canonical_signature_type::bip_0062 ) );
       FC_ASSERT( fc::ecc::public_key::is_canonical( bip_0062_canon_sig,    fc::ecc::canonical_signature_type::bip_0062 ) );
       FC_ASSERT( fc::ecc::public_key::is_canonical( bip_0062_canon2_sig,   fc::ecc::canonical_signature_type::bip_0062 ) );
       FC_ASSERT( !fc::ecc::public_key::is_canonical( non_canon_sig,        fc::ecc::canonical_signature_type::bip_0062 ) );
-      ilog( "Testing fc canonical validation" );
+      std::cout << "Testing fc canonical validation" << std::endl;
       FC_ASSERT(  fc::ecc::public_key::is_canonical( fc_canon_sig,         fc::ecc::canonical_signature_type::fc_canonical ) );
       FC_ASSERT( !fc::ecc::public_key::is_canonical( bip_0062_canon_sig,   fc::ecc::canonical_signature_type::fc_canonical ) );
       FC_ASSERT(  fc::ecc::public_key::is_canonical( bip_0062_canon2_sig,  fc::ecc::canonical_signature_type::fc_canonical ) );
@@ -52,7 +52,7 @@ int main( int argc, char** argv )
    }
    catch( fc::exception& e )
    {
-      ilog( "Uncaught Exception: ${e}", ("e", e) );
+      std::cerr << "Uncaught Exception: " << e.what() << std::endl;
       return 1;
    }
    return 0;

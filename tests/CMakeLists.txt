@@ -16,7 +16,7 @@ add_executable( plugin_test ${PLUGIN_TESTS} )
 target_link_libraries( plugin_test db_fixture sophiatx_chain sophiatx_protocol account_history_plugin witness_plugin debug_node_plugin fc ${PLATFORM_SPECIFIC_LIBS} )
 
 
-add_subdirectory(smart_contracts)
+#add_subdirectory(smart_contracts)
 add_subdirectory(utilities)
 
 if(MSVC)

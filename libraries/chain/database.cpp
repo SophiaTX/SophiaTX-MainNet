@@ -1616,7 +1616,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         elog( "Processing ${n} genesis hardforks", ("n", n) );
+         wlog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();
@@ -2022,18 +2022,19 @@ void database::process_operations(const signed_transaction& trx) {
    }
 
    // If there is fee-free operation present, update bandwidth stats
-   if (fee_free_ops_count) {
-      flat_set< account_name_type > required; vector<authority> other;
-      trx.get_required_authorities( required, required, other );
-
-      // Process transaction in terms of bandwidth and updates according account's bandwidth statistics.
-      // Throws tx_exceeded_bandwidth exception in case max allowed bandwidth validation fails
-      update_accounts_bandwidth(required, fee_free_ops_bandwidth, fee_free_ops_count);
-   }
+//   if (fee_free_ops_count) {
+//      flat_set< account_name_type > required; vector<authority> other;
+//      trx.get_required_authorities( required, required, other );
+//
+//      // Process transaction in terms of bandwidth and updates according account's bandwidth statistics.
+//      // Throws tx_exceeded_bandwidth exception in case max allowed bandwidth validation fails
+//      update_accounts_bandwidth(required, fee_free_ops_bandwidth, fee_free_ops_count);
+//   }
 }
 
 void database::update_accounts_bandwidth(const flat_set< account_name_type >& accounts, const uint64_t fee_free_ops_bandwidth, const uint64_t fee_free_ops_count) {
    uint32_t act_head_block = this->head_block_num();
+   std::cout << "****  update_accounts_bandwidth  *****" << std::endl;
 
    // Updates all involved accounts bandwidth
    for (const account_name_type &account : accounts) {

@@ -9,19 +9,18 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
+
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
-#include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
-#include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
-#include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
+#include <fc/log/logger.hpp>
 
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 
-
 #include "database_fixture.hpp"
+
 
 uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP = 1431700000;
 
@@ -50,21 +49,23 @@ clean_database_fixture::clean_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
+   appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+   db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+   appbase::app().load_config(argc, argv);
 
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_plugin>();
-   appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness"}, false);
-   auto appconfig = appbase::app_factory().read_app_config("test");
-   app = &appbase::app_factory().new_application("test");
-   auto _db_plugin = app->get_register_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
-   db_plugin = static_cast<sophiatx::plugins::debug_node::debug_node_plugin*>(_db_plugin.get());
+   fc::Logger::init("sophiatx","error");
    db_plugin->logging = false;
-   app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness"});
 
-   db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+   appbase::app().initialize<
+      sophiatx::plugins::chain::chain_plugin_full,
+      sophiatx::plugins::account_history::account_history_plugin,
+      sophiatx::plugins::debug_node::debug_node_plugin,
+      sophiatx::plugins::witness::witness_plugin
+      >( argc, argv );
+
+   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -95,7 +96,7 @@ clean_database_fixture::clean_database_fixture()
       account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
       fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 10000 );
    }
 
    validate_database();
@@ -113,7 +114,7 @@ clean_database_fixture::~clean_database_fixture()
 { try {
    // If we're unwinding due to an exception, don't do any more checks.
    // This way, boost test's last checkpoint tells us approximately where the error was.
-   if( !std::uncaught_exception() )
+   if( !std::uncaught_exceptions() )
    {
       BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
    }
@@ -173,7 +174,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
       fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 10000 );
    }
 
    validate_database();
@@ -193,20 +194,23 @@ private_database_fixture::private_database_fixture()
             std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
       }
 
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_plugin>();
-      appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness"}, false);
-      auto appconfig = appbase::app_factory().read_app_config("test");
-      app = &appbase::app_factory().new_application("test");
-      auto _db_plugin = app->get_register_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
-      db_plugin = static_cast<sophiatx::plugins::debug_node::debug_node_plugin*>(_db_plugin.get());
-      db_plugin->logging = false;
-      app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness"});
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+      appbase::app().load_config(argc, argv);
 
-      db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+      db_plugin->logging = false;
+      fc::Logger::init("sophiatx","error");
+
+      appbase::app().initialize<
+            sophiatx::plugins::chain::chain_plugin_full,
+            sophiatx::plugins::account_history::account_history_plugin,
+            sophiatx::plugins::debug_node::debug_node_plugin,
+            sophiatx::plugins::witness::witness_plugin
+      >( argc, argv );
+
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
       init_account_pub_key = init_account_priv_key.get_public_key();
@@ -239,7 +243,7 @@ private_database_fixture::private_database_fixture()
 //         account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
 //         fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 //         vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 10000 );
 //      }
 
 //      validate_database();
@@ -258,7 +262,7 @@ private_database_fixture::~private_database_fixture()
    try {
       // If we're unwinding due to an exception, don't do any more checks.
       // This way, boost test's last checkpoint tells us approximately where the error was.
-      if( !std::uncaught_exception() )
+      if( !std::uncaught_exceptions() )
       {
          BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
       }
@@ -274,24 +278,25 @@ live_database_fixture::live_database_fixture()
 {
    try
    {
-      //int argc = boost::unit_test::framework::master_test_suite().argc;
-      //char** argv = boost::unit_test::framework::master_test_suite().argv;
+      int argc = boost::unit_test::framework::master_test_suite().argc;
+      char** argv = boost::unit_test::framework::master_test_suite().argv;
 
       ilog( "Loading saved chain" );
       _chain_dir = fc::current_path() / "test_blockchain";
       FC_ASSERT( fc::exists( _chain_dir ), "Requires blockchain to test on in ./test_blockchain" );
 
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
-      appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
+      appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+      appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+      db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      appbase::app().load_config(argc, argv);
 
-      auto appconfig = appbase::app_factory().read_app_config("test");
-      app = &appbase::app_factory().new_application("test");
-      auto _db_plugin = app->get_register_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
-      db_plugin = static_cast<sophiatx::plugins::debug_node::debug_node_plugin*>(_db_plugin.get());
-      app->initialize(appconfig, {"chain", "account_history_", "debug_node"});
+      fc::Logger::init("sophiatx","error");
+      appbase::app().initialize<
+         sophiatx::plugins::chain::chain_plugin_full,
+         sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
+         >( argc, argv );
 
-      db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+      db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
       BOOST_REQUIRE( db );
 
       {
@@ -316,7 +321,7 @@ live_database_fixture::~live_database_fixture()
    {
       // If we're unwinding due to an exception, don't do any more checks.
       // This way, boost test's last checkpoint tells us approximately where the error was.
-      if( !std::uncaught_exception() )
+      if( !std::uncaught_exceptions() )
       {
          BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
       }
@@ -449,7 +454,7 @@ const account_object& database_fixture::account_create(
          name,
          SOPHIATX_INIT_MINER_NAME,
          init_account_priv_key,
-         std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount, share_type( 0 ) ),
+         std::max( db->get_witness_schedule_object().median_props.account_creation_fee.amount, protocol::share_type(10000) ),
          key,
          "" );
    }
@@ -697,33 +702,33 @@ json_rpc_database_fixture::json_rpc_database_fixture()
          std::cout << "running test " << boost::unit_test::framework::current_test_case().p_name << std::endl;
    }
 
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::chain::chain_plugin_full>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::account_history::account_history_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::debug_node::debug_node_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::witness::witness_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::json_rpc::json_rpc_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::block_api::block_api_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::database_api::database_api_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::alexandria_api::alexandria_api_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::p2p::p2p_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::network_broadcast_api::network_broadcast_api_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::custom::custom_api_plugin>();
-   appbase::app_factory().register_plugin_factory<sophiatx::plugins::subscribe::subscribe_api_plugin>();
-   appbase::app_factory().initialize(argc, argv, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "alexandria_api"}, false);
+   appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
+   appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
+   db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+   rpc_plugin = &appbase::app().register_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >();
+   appbase::app().load_config(argc, argv);
 
-   auto appconfig = appbase::app_factory().read_app_config("test");
+   db_plugin->logging = false;
+   fc::Logger::init("sophiatx","error");
+   appbase::app().initialize<
+      sophiatx::plugins::chain::chain_plugin_full,
+      sophiatx::plugins::account_history::account_history_plugin,
+      sophiatx::plugins::debug_node::debug_node_plugin,
+      sophiatx::plugins::witness::witness_plugin,
+      sophiatx::plugins::json_rpc::json_rpc_plugin,
+      sophiatx::plugins::block_api::block_api_plugin,
+      sophiatx::plugins::database_api::database_api_plugin,
+      sophiatx::plugins::alexandria_api::alexandria_api_plugin
+      >( argc, argv );
+   appbase::app().load_config(argc, argv);
 
-   app = &appbase::app_factory().new_application("test");
+   appbase::app().get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
 
-   auto _db_plugin = app->get_register_plugin<sophiatx::plugins::debug_node::debug_node_plugin>() ;
-   db_plugin = static_cast<sophiatx::plugins::debug_node::debug_node_plugin*>(_db_plugin.get());
-   auto _rpc_plugin = app->get_register_plugin<sophiatx::plugins::json_rpc::json_rpc_plugin>() ;
-   rpc_plugin = static_cast<sophiatx::plugins::json_rpc::json_rpc_plugin*>(_rpc_plugin.get());
-   app->initialize(appconfig, {"chain", "account_history", "debug_node", "witness","json_rpc", "block_api", "database_api", "alexandria_api"});
-
-   app->get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
-
-   db = std::static_pointer_cast<database>(app->get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
+   db = std::static_pointer_cast<database>(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db());
    BOOST_REQUIRE( db );
 
    init_account_pub_key = init_account_priv_key.get_public_key();
@@ -751,7 +756,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
       account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
       fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
       vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 10000  );
    }
 
    validate_database();
@@ -768,7 +773,7 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
 { try {
    // If we're unwinding due to an exception, don't do any more checks.
    // This way, boost test's last checkpoint tells us approximately where the error was.
-   if( !std::uncaught_exception() )
+   if( !std::uncaught_exceptions() )
    {
       BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
    }
@@ -827,7 +832,6 @@ void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code
       BOOST_REQUIRE( error.contains( "code" ) );
       BOOST_REQUIRE( error["code"].is_int64() );
       answer_code = error["code"].as_int64();
-
       BOOST_REQUIRE( answer_code == code );
       if( is_warning )
          BOOST_TEST_MESSAGE( error["message"].as_string() );

@@ -8,12 +8,11 @@ namespace detail {
 
 class template_api_impl
 {
-public:
-   template_api_impl(template_plugin& plugin) : _app(plugin.app()), _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+   public:
+   template_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
    DECLARE_API_IMPL((example_call))
 
-   appbase::application* _app;
    std::shared_ptr<database_interface> _db;
 };
 
@@ -29,15 +28,12 @@ DEFINE_API_IMPL(template_api_impl, example_call)
 
 } // detail
 
-template_api::template_api(template_plugin& plugin): my( new detail::template_api_impl(plugin) )
+template_api::template_api(): my( new detail::template_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_TEMPLATE_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_TEMPLATE_PLUGIN_NAME );
 }
 
-template_api::~template_api()
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_TEMPLATE_PLUGIN_NAME, my->_app );
-}
+template_api::~template_api() {}
 
 DEFINE_READ_APIS( template_api, (example_call) )
 

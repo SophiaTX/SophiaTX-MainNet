@@ -3,7 +3,6 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 
 #include <fc/network/ip.hpp>
-#include <fc/log/logger_config.hpp>
 #include <fc/io/json.hpp>
 #include <fc/network/resolve.hpp>
 #include <fc/crypto/openssl.hpp>
@@ -470,9 +469,9 @@ void webserver_plugin_impl::handle_ws_message( websocket_server_type::connection
 webserver_plugin::webserver_plugin() {}
 webserver_plugin::~webserver_plugin() {}
 
-void webserver_plugin::set_program_options( options_description& cli, options_description& cfg )
+void webserver_plugin::set_program_options( options_description&, options_description& cfg )
 {
-   cli.add_options()
+   cfg.add_options()
       ("webserver-ws-endpoint", bpo::value< string >(), "Local websocket endpoint for webserver requests.")
       ("webserver-http-endpoint", bpo::value< string >(), "Local http endpoint for webserver requests.")
       ("webserver-https-endpoint", bpo::value< string >(), "Local https endpoint for webserver requests.")
@@ -533,10 +532,10 @@ void webserver_plugin::plugin_initialize( const variables_map& options )
 
 void webserver_plugin::plugin_startup()
 {
-   my->api = app() -> find_plugin< plugins::json_rpc::json_rpc_plugin >();
+   my->api = appbase::app().find_plugin< plugins::json_rpc::json_rpc_plugin >();
    FC_ASSERT( my->api != nullptr, "Could not find API Register Plugin" );
 
-   plugins::chain::chain_plugin* chain = app() -> find_plugin< plugins::chain::chain_plugin >();
+   plugins::chain::chain_plugin* chain = appbase::app().find_plugin< plugins::chain::chain_plugin >();
    if( chain != nullptr && chain->get_state() != appbase::abstract_plugin::started )
    {
       ilog( "Waiting for chain plugin to start" );

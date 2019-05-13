@@ -18,7 +18,7 @@ class multiparty_messaging_plugin_impl : public custom_operation_interpreter
 {
 public:
    multiparty_messaging_plugin_impl( multiparty_messaging_plugin& _plugin ) :
-         _db( _plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
          _self( _plugin ),
          app_id(_plugin.app_id) { }
 
@@ -208,7 +208,7 @@ multiparty_messaging_plugin::multiparty_messaging_plugin() {}
 void multiparty_messaging_plugin::set_program_options( options_description& cli, options_description& cfg )
 {
    cfg.add_options()
-         ("mpm-app-id", boost::program_options::value< uint64_t >()->default_value( 2 ), "App id used by the multiparty messaging" )
+         ("mpm-app-id", boost::program_options::value< long long >()->default_value( 2 ), "App id used by the multiparty messaging" )
          ("mpm-account", boost::program_options::value<vector<string>>()->composing()->multitoken(), "Accounts tracked by the plugin. If not specified, tries to listen to all messages within the given app ID")
          ("mpm-private-key", bpo::value<vector<string>>()->composing()->multitoken(), "WIF MEMO PRIVATE KEY to be used by one or more tracked accounts" )
    ;
@@ -217,7 +217,7 @@ void multiparty_messaging_plugin::set_program_options( options_description& cli,
 void multiparty_messaging_plugin::plugin_initialize( const boost::program_options::variables_map& options )
 {
    if( options.count( "mpm-app-id" ) ){
-      app_id = options[ "mpm-app-id" ].as< uint64_t >();
+      app_id = options[ "mpm-app-id" ].as< long long >();
    }else{
       ilog("App ID not given, multiparty messaging is disabled");
       return;
@@ -248,7 +248,7 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
    try
    {
       ilog( "Initializing multiparty_messaging_plugin_impl plugin" );
-      auto& db = app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
+      auto& db = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db();
 
       db->set_custom_operation_interpreter(app_id, dynamic_pointer_cast<custom_operation_interpreter, detail::multiparty_messaging_plugin_impl>(_my));
       add_plugin_index< group_index >(db);

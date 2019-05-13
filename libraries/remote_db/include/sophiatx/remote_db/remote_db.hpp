@@ -47,9 +47,9 @@ public:
       instance().remote_db_loaded_ = true;
    }
 
-   inline static fc::variant remote_call(const std::string &network_id, const std::string &api, const std::string call, const fc::variant &args) {
+   inline static fc::variant remote_call(const std::string &api, const std::string call, const fc::variant &args) {
       FC_ASSERT(instance().remote_db_loaded_, "remote_db is not initialized!");
-      return instance().api_connection_->send_call(network_id, api, call, args);
+      return instance().api_connection_->send_call(api, call, true, {args});
    }
 
    inline static std::map<uint64_t, received_object>

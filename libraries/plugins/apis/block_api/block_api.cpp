@@ -10,7 +10,7 @@ namespace sophiatx { namespace plugins { namespace block_api {
 class block_api_impl
 {
    public:
-      block_api_impl(block_api_plugin& plugin);
+      block_api_impl();
       ~block_api_impl();
 
       DECLARE_API_IMPL(
@@ -19,7 +19,6 @@ class block_api_impl
          (get_average_block_size)
       )
 
-   appbase::application* _app;
    std::shared_ptr<chain::database_interface> _db;
 };
 
@@ -29,19 +28,16 @@ class block_api_impl
 //                                                                  //
 //////////////////////////////////////////////////////////////////////
 
-block_api::block_api(block_api_plugin& plugin)
-   : my( new block_api_impl(plugin) )
+block_api::block_api()
+   : my( new block_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_BLOCK_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_BLOCK_API_PLUGIN_NAME );
 }
 
-block_api::~block_api()
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_BLOCK_API_PLUGIN_NAME, my->_app );
-}
+block_api::~block_api() {}
 
-block_api_impl::block_api_impl(block_api_plugin& plugin)
-   : _app(plugin.app()), _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+block_api_impl::block_api_impl()
+   : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
 block_api_impl::~block_api_impl() {}
 
