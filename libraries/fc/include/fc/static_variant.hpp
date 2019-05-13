@@ -205,6 +205,9 @@ public:
 
 template<typename... Types>
 class static_variant {
+public:
+    using tag_type = int64_t;
+
    protected:
     static_assert(impl::type_info<Types...>::no_reference_types, "Reference types are not permitted in static_variant.");
     static_assert(impl::type_info<Types...>::no_duplicates, "static_variant type arguments contain duplicate types.");
@@ -212,7 +215,6 @@ class static_variant {
     template<typename X>
     using type_in_typelist = typename std::enable_if<impl::position<X, Types...>::pos != -1, X>::type; // type is in typelist of static_variant.
 
-    using tag_type = int64_t;
     tag_type _tag;
     impl::dynamic_storage storage;
 
