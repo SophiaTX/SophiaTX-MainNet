@@ -10,8 +10,7 @@ namespace fc {
           return c - 'a' + 10;
       if( c >= 'A' && c <= 'F' )
           return c - 'A' + 10;
-      FC_THROW_EXCEPTION( exception, "Invalid hex character '${c}'", ("c", fc::string(&c,1) ) );
-      return 0;
+      FC_THROW_EXCEPTION( exception, "Invalid hex character '${c}'", ("c", std::string(&c,1) ) );
     }
 
     std::string to_hex( const char* d, uint32_t s ) 
@@ -24,7 +23,7 @@ namespace fc {
         return r;
     }
 
-    size_t from_hex( const fc::string& hex_str, char* out_data, size_t out_data_len ) {
+    size_t from_hex( const std::string& hex_str, char* out_data, size_t out_data_len ) {
         fc::string::const_iterator i = hex_str.begin();
         uint8_t* out_pos = (uint8_t*)out_data;
         uint8_t* out_end = out_pos + out_data_len;

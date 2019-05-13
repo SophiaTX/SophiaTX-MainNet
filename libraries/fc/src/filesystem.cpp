@@ -19,10 +19,6 @@
   #include <sys/types.h>
   #include <sys/stat.h>
   #include <pwd.h>
-# ifdef FC_HAS_SIMPLE_FILE_LOCK  
-  #include <sys/file.h>
-  #include <fcntl.h>
-# endif
 #endif
 
 namespace fc {

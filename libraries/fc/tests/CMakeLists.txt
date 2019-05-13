@@ -1,7 +1,3 @@
-
-add_executable( bip_lock bip_lock.cpp )
-target_link_libraries( bip_lock fc )
-
 add_executable( api api.cpp )
 target_link_libraries( api fc )
 
@@ -10,7 +6,6 @@ target_link_libraries( ntp_test fc )
 
 add_executable( task_cancel_test all_tests.cpp thread/task_cancel.cpp )
 target_link_libraries( task_cancel_test fc )
-
 
 add_executable( bloom_test all_tests.cpp bloom_test.cpp )
 target_link_libraries( bloom_test fc )
@@ -21,19 +16,11 @@ target_link_libraries( real128_test fc )
 add_executable( hmac_test hmac_test.cpp )
 target_link_libraries( hmac_test fc )
 
-
 add_executable( ecc_test crypto/ecc_test.cpp )
 target_link_libraries( ecc_test fc )
 
 add_executable( log_test crypto/log_test.cpp )
 target_link_libraries( log_test fc )
-
-#add_executable( test_aes aes_test.cpp )
-#target_link_libraries( test_aes fc ${rt_library} ${pthread_library} )
-#add_executable( test_sleep sleep.cpp )
-#target_link_libraries( test_sleep fc )
-#add_executable( test_rate_limiting rate_limiting.cpp )
-#target_link_libraries( test_rate_limiting fc )
 
 add_executable( sha_test sha_test.cpp )
 target_link_libraries( sha_test fc )

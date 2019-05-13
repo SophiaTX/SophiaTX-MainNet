@@ -173,18 +173,13 @@ set( fc_sources
      src/io/sstream.cpp
      src/io/json.cpp
      src/io/varint.cpp
-     src/io/console.cpp
-     src/filesystem.cpp
+        src/filesystem.cpp
      src/interprocess/signals.cpp
      src/interprocess/file_mapping.cpp
-     src/interprocess/mmap_struct.cpp
-     src/interprocess/file_mutex.cpp
-     src/rpc/cli.cpp
+        src/rpc/cli.cpp
      src/rpc/http_api.cpp
-     src/rpc/json_connection.cpp
-     src/rpc/state.cpp
-     src/rpc/bstate.cpp
-     src/rpc/websocket_api.cpp
+        src/rpc/state.cpp
+        src/rpc/websocket_api.cpp
      src/log/log_message.cpp
      src/log/sys_logger.cpp
      src/log/logger.cpp
