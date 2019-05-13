@@ -37,6 +37,10 @@ namespace  fc
 
        ~openssl_scope()
        {
+          FIPS_mode_set(0);
+          CONF_modules_unload(1);
+          EVP_cleanup();
+          CRYPTO_cleanup_all_ex_data();
           clean_up_engine();
        }
 

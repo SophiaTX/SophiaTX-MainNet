@@ -44,7 +44,7 @@ namespace fc {
       shared_ptr( shared_ptr&& p )
       :_ptr(p._ptr){ p._ptr = nullptr; }
 
-      ~shared_ptr() { if( nullptr != _ptr ) { _ptr->release(); } }
+      ~shared_ptr() { if( nullptr != _ptr ) { _ptr->release(); _ptr = nullptr; } }
 
       shared_ptr& reset( T* v = nullptr, bool inc = false )  {
         if( v == _ptr ) return *this;
