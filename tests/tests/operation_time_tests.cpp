@@ -148,6 +148,46 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
    FC_LOG_AND_RETHROW()
 }
 
+BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
+   try {
+      BOOST_TEST_MESSAGE( "Testing: limit max number of fee free operations" );
+
+      ACTORS( (alice)(sam) )
+      fund( AN("alice") , 5000000 );
+      vest( AN("alice"), 5000000 );
+      fund( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+
+      private_key_type sam_witness_key = generate_private_key( "sam_key" );
+      witness_create( AN("sam"), sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
+
+      BOOST_TEST_MESSAGE( "--- Test normal single vote" );
+      account_witness_vote_operation op;
+      op.account = AN("alice");
+      op.witness = AN("sam");
+      op.approve = true;
+
+      signed_transaction tx;
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      sign(tx, alice_private_key );
+      db->push_transaction( tx, 0 );
+
+
+      BOOST_TEST_MESSAGE( "--- Test failure multiple votes(fee free operations)" );
+      signed_transaction tx2;
+      tx2.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      for (size_t idx = 0; idx <= SOPHIATX_MAX_ALLOWED_OPS_COUNT; idx++) {
+         op.approve = !op.approve;
+         tx2.operations.push_back( op );
+      }
+      sign(tx2, alice_private_key );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx2, 0 ), tx_exceeded_bandwidth );
+
+   }
+   FC_LOG_AND_RETHROW();
+}
+
 BOOST_AUTO_TEST_CASE( feed_publish_mean )
 {
    try
