@@ -35,10 +35,10 @@ namespace fc {
 
     template<typename AA, typename BB, typename CC, typename DD>
     tuple( AA&& aa, BB&& bb, CC&& cc, DD&& dd )
-    :a( fc::forward<AA>(aa) ),
-     b( fc::forward<BB>(bb) ),
-     c( fc::forward<CC>(cc) ),
-     d( fc::forward<DD>(dd) )
+    :a( std::forward<AA>(aa) ),
+     b( std::forward<BB>(bb) ),
+     c( std::forward<CC>(cc) ),
+     d( std::forward<DD>(dd) )
      {}
 
     template<typename V>
@@ -73,12 +73,12 @@ namespace fc {
         };
 
         #define RREF_PARAMS(z,n,data) BOOST_PP_CAT(AA,n)&& BOOST_PP_CAT(p,n)
-        #define ILIST_PARAMS(z,n,data) BOOST_PP_CAT(a,n)( fc::forward<BOOST_PP_CAT(AA,n)>( BOOST_PP_CAT(p,n) ) )
+        #define ILIST_PARAMS(z,n,data) BOOST_PP_CAT(a,n)( std::forward<BOOST_PP_CAT(AA,n)>( BOOST_PP_CAT(p,n) ) )
         #define ILIST_PARAMS_COPY(z,n,data) BOOST_PP_CAT(a,n)( t.BOOST_PP_CAT(a,n)  )
         #define VISIT_PARAMS(z,n,data) v(BOOST_PP_CAT(a,n));
         #define LIST_MEMBERS_ON(z,n,data) data.BOOST_PP_CAT(a,n)
         #define DEDUCE_MEMBERS(z,n,data) typename fc::deduce<BOOST_PP_CAT(AA,n)>::type
-        #define FORWARD_PARAMS(z,n,data) fc::forward<BOOST_PP_CAT(AA,n)>(BOOST_PP_CAT(p,n))
+        #define FORWARD_PARAMS(z,n,data) std::forward<BOOST_PP_CAT(AA,n)>(BOOST_PP_CAT(p,n))
         #define MEM_PARAMS(z,n,data) BOOST_PP_CAT(A,n) BOOST_PP_CAT(a,n);
         #define TUPLE(z,n,unused) \
         template<BOOST_PP_ENUM_PARAMS( n, typename A)> \

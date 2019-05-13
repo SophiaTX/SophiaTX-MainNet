@@ -74,7 +74,7 @@ namespace fc {
     return *this;
    }
    path& path::operator =( path&& p ) {
-    *_p = fc::move( *p._p );
+    *_p = std::move( *p._p );
     return *this;
    }
 

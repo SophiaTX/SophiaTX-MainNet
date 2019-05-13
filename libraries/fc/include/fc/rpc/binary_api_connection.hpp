@@ -3,7 +3,7 @@
 #include <fc/io/raw.hpp>
 #include <fc/optional.hpp>
 #include <fc/api.hpp>
-#include <fc/any.hpp>
+#include <boost/any.hpp>
 #include <memory>
 #include <vector>
 #include <functional>
@@ -201,7 +201,7 @@ namespace fc {
 
 
          std::weak_ptr<fc::binary_api_connection>                         _binary_api_connection;
-         fc::any                                                          _api;
+         boost::any                                                          _api;
          std::map< std::string, uint32_t >                                _by_name;
          std::vector< std::function<vector<char>(const vector<char>&)> >  _methods;
    }; // class generic_api

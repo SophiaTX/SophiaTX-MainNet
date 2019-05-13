@@ -2,7 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <fc/any.hpp>
+#include <boost/any.hpp>
 #include <fc/network/ip.hpp>
 #include <fc/signals.hpp>
 
@@ -26,12 +26,12 @@ namespace fc { namespace http {
          void on_message_handler( const std::function<void(const std::string&)>& h ) { _on_message = h; }
          void on_http_handler( const std::function<std::string(const std::string&)>& h ) { _on_http = h; }
 
-         void     set_session_data( fc::any d ){ _session_data = std::move(d); }
-         fc::any& get_session_data() { return _session_data; }
+         void     set_session_data( boost::any d ){ _session_data = std::move(d); }
+         boost::any& get_session_data() { return _session_data; }
 
          fc::signal<void()> closed;
       private:
-         fc::any                                   _session_data;
+         boost::any                                   _session_data;
          std::function<void(const std::string&)>   _on_message;
          std::function<string(const std::string&)> _on_http;
    };

@@ -108,14 +108,14 @@ namespace fc { namespace rpc  {
                                variant_object a1, 
                                microseconds timeout = microseconds::maximum())
          {
-            return async_call( method, fc::move(a1) ).wait(timeout).as<Result>();
+            return async_call( method, std::move(a1) ).wait(timeout).as<Result>();
          }
          template<typename Result>
          Result call( const fc::string& method, 
                                mutable_variant_object a1, 
                                microseconds timeout = microseconds::maximum())
          {
-            return async_call( method, variant_object( fc::move(a1) ) ).wait(timeout).as<Result>();
+            return async_call( method, variant_object( std::move(a1) ) ).wait(timeout).as<Result>();
          }
 
 

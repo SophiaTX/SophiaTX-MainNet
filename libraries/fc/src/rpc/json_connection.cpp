@@ -15,7 +15,7 @@ namespace fc { namespace rpc {
       {
          public:
             json_connection_impl( fc::buffered_istream_ptr&& in, fc::buffered_ostream_ptr&& out )
-            :_in(fc::move(in)),_out(fc::move(out)),_eof(false),_next_id(0){}
+            :_in(std::move(in)),_out(std::move(out)),_eof(false),_next_id(0){}
 
             fc::buffered_istream_ptr                                              _in;
             fc::buffered_ostream_ptr                                              _out;
@@ -240,7 +240,7 @@ namespace fc { namespace rpc {
    }//namespace detail
 
    json_connection::json_connection( fc::buffered_istream_ptr in, fc::buffered_ostream_ptr out )
-   :my( new detail::json_connection_impl(fc::move(in),fc::move(out)) )
+   :my( new detail::json_connection_impl(std::move(in),std::move(out)) )
    {}
 
    json_connection::~json_connection()
@@ -287,12 +287,12 @@ namespace fc { namespace rpc {
    void json_connection::add_method( const fc::string& name, method m )
    {
       ilog( "add method ${name}", ("name",name) );
-      my->_methods.emplace(std::pair<std::string,method>(name,fc::move(m)));
+      my->_methods.emplace(std::pair<std::string,method>(name,std::move(m)));
    }
    void json_connection::add_named_param_method( const fc::string& name, named_param_method m )
    {
       ilog( "add named param method ${name}", ("name",name) );
-      my->_named_param_methods.emplace(std::pair<std::string,named_param_method>(name,fc::move(m)));
+      my->_named_param_methods.emplace(std::pair<std::string,named_param_method>(name,std::move(m)));
    }
    void json_connection::remove_method( const fc::string& name )
    {
@@ -668,7 +668,7 @@ namespace fc { namespace rpc {
 
    future<variant> json_connection::async_call( const fc::string& method, mutable_variant_object named_args )
    {
-        return async_call( method, variant_object( fc::move(named_args) ) );
+        return async_call( method, variant_object( std::move(named_args) ) );
    }
    future<variant> json_connection::async_call( const fc::string& method, const variant_object& named_args )
    {

@@ -22,7 +22,7 @@ namespace fc {
       template<typename Functor>
       connection_id_type connect( Functor&& f ) {
          fc::unique_lock<fc::mutex> lock(_mutex);
-         //auto c = new std::function<Signature>( fc::forward<Functor>(f) ); 
+         //auto c = new std::function<Signature>( std::forward<Functor>(f) );
          _handlers.push_back( std::make_shared<func_type>(f) );
          return reinterpret_cast<connection_id_type>(_handlers.back().get());
       }
@@ -31,7 +31,7 @@ namespace fc {
       void emit( Arg&& arg ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Arg>(arg) );
+          (*handlers[i])( std::forward<Arg>(arg) );
         }
       }
       void operator()() {
@@ -44,35 +44,35 @@ namespace fc {
       void operator()( Arg&& arg ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Arg>(arg) );
+          (*handlers[i])( std::forward<Arg>(arg) );
         }
       }
       template<typename Arg,typename Arg2>
       void emit( Arg&& arg, Arg2&& arg2 ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Arg>(arg), fc::forward<Arg2>(arg2) );
+          (*handlers[i])( std::forward<Arg>(arg), std::forward<Arg2>(arg2) );
         }
       }
       template<typename Arg, typename Arg2>
       void operator()( Arg&& arg, Arg2&& arg2 ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Arg>(arg), fc::forward<Arg2>(arg2) );
+          (*handlers[i])( std::forward<Arg>(arg), std::forward<Arg2>(arg2) );
         }
       }
       template<typename Arg, typename Arg2, typename Arg3>
       void emit( Arg&& arg, Arg2&& arg2, Arg3&& arg3 ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Arg>(arg), fc::forward<Arg2>(arg2), fc::forward<Arg3>(arg3) );
+          (*handlers[i])( std::forward<Arg>(arg), std::forward<Arg2>(arg2), std::forward<Arg3>(arg3) );
         }
       }
       template<typename Arg, typename Arg2, typename Arg3>
       void operator()( Arg&& arg, Arg2&& arg2, Arg3&& arg3 ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Arg>(arg), fc::forward<Arg2>(arg2), fc::forward<Arg3>(arg3) );
+          (*handlers[i])( std::forward<Arg>(arg), std::forward<Arg2>(arg2), std::forward<Arg3>(arg3) );
         }
       }
 #else
@@ -80,14 +80,14 @@ namespace fc {
       void emit( Args&&... args ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Args>(args)... );
+          (*handlers[i])( std::forward<Args>(args)... );
         }
       }
       template<typename... Args>
       void operator()( Args&&... args ) {
         list_type handlers = getHandlers();
         for( size_t i = 0; i < handlers.size(); ++i ) {
-          (*handlers[i])( fc::forward<Args>(args)... );
+          (*handlers[i])( std::forward<Args>(args)... );
         }
       }
 #endif

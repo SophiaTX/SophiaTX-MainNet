@@ -12,7 +12,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/string.hpp>
-#include <fc/container/deque_fwd.hpp>
 #include <fc/container/flat_fwd.hpp>
 #include <boost/multi_index_container_fwd.hpp>
 
@@ -321,7 +320,7 @@ namespace fc
         template<typename T>
         variant& operator=( T&& v )
         {
-           return *this = variant( fc::forward<T>(v) );
+           return *this = variant( std::forward<T>(v) );
         }
 
         template<typename T>

@@ -35,7 +35,7 @@ namespace fc
 
          unique_ptr& operator=( unique_ptr&& o )
          {
-            fc_swap( _p, o._p );
+            std::swap( _p, o._p );
             return *this;
          }
 

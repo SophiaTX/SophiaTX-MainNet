@@ -193,8 +193,7 @@ set( fc_sources
      src/crypto/aes.cpp
      src/crypto/crc.cpp
      src/crypto/city.cpp
-     src/crypto/base36.cpp
-     src/crypto/base58.cpp
+        src/crypto/base58.cpp
      src/crypto/base64.cpp
      src/crypto/base64m.cpp
      src/crypto/bigint.cpp
@@ -205,8 +204,7 @@ set( fc_sources
      src/crypto/sha224.cpp
      src/crypto/sha512.cpp
      src/crypto/dh.cpp
-     src/crypto/blowfish.cpp
-     src/crypto/elliptic_common.cpp
+        src/crypto/elliptic_common.cpp
      src/crypto/restartable_sha256.cpp
      ${ECC_REST}
      src/crypto/elliptic_${ECC_IMPL}.cpp

@@ -8,6 +8,6 @@ namespace fc {
      fc::vector<promise_base::ptr> p(2);
      p[0] = static_pointer_cast<promise_base*>(f1.promise());
      p[1] = static_pointer_cast<promise_base*>(f2.promise());
-     return wait( fc::move(p), timeout_us );   
+     return wait( std::move(p), timeout_us );
    }
 }
