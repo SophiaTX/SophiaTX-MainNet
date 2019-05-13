@@ -2,7 +2,11 @@
 # Defines fc library target.
 
 PROJECT( fc )
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.12 )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.1 )
+
+set( CMAKE_CXX_STANDARD 14 )
+SET( CMAKE_CXX_STANDARD_REQUIRED ON )
+set( CMAKE_CXX_EXTENSIONS OFF )
 
 MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
 SET( CMAKE_AUTOMOC OFF )
@@ -248,10 +252,6 @@ if(WIN32)
   target_compile_definitions( fc PRIVATE _CRT_NONSTDC_NO_DEPRECATE )
 endif(WIN32)
 # end readline stuff
-
-if( NOT CPP_STANDARD )
-  set( CPP_STANDARD "-std=c++11" )
-endif()
 
 IF(WIN32)
   target_compile_definitions(fc PUBLIC WIN32 NOMINMAX _WIN32_WINNT=0x0501 _CRT_SECURE_NO_WARNINGS
