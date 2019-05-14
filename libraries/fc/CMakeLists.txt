@@ -2,7 +2,11 @@
 # Defines fc library target.
 
 PROJECT( fc )
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8.12 )
+CMAKE_MINIMUM_REQUIRED( VERSION 3.1 )
+
+set( CMAKE_CXX_STANDARD 14 )
+SET( CMAKE_CXX_STANDARD_REQUIRED ON )
+set( CMAKE_CXX_EXTENSIONS OFF )
 
 MESSAGE(STATUS "Configuring project fc located in: ${CMAKE_CURRENT_SOURCE_DIR}")
 SET( CMAKE_AUTOMOC OFF )
@@ -173,18 +177,13 @@ set( fc_sources
      src/io/sstream.cpp
      src/io/json.cpp
      src/io/varint.cpp
-     src/io/console.cpp
-     src/filesystem.cpp
+        src/filesystem.cpp
      src/interprocess/signals.cpp
      src/interprocess/file_mapping.cpp
-     src/interprocess/mmap_struct.cpp
-     src/interprocess/file_mutex.cpp
-     src/rpc/cli.cpp
+        src/rpc/cli.cpp
      src/rpc/http_api.cpp
-     src/rpc/json_connection.cpp
-     src/rpc/state.cpp
-     src/rpc/bstate.cpp
-     src/rpc/websocket_api.cpp
+        src/rpc/state.cpp
+        src/rpc/websocket_api.cpp
      src/log/log_message.cpp
      src/log/sys_logger.cpp
      src/log/logger.cpp
@@ -193,8 +192,7 @@ set( fc_sources
      src/crypto/aes.cpp
      src/crypto/crc.cpp
      src/crypto/city.cpp
-     src/crypto/base36.cpp
-     src/crypto/base58.cpp
+        src/crypto/base58.cpp
      src/crypto/base64.cpp
      src/crypto/base64m.cpp
      src/crypto/bigint.cpp
@@ -205,8 +203,7 @@ set( fc_sources
      src/crypto/sha224.cpp
      src/crypto/sha512.cpp
      src/crypto/dh.cpp
-     src/crypto/blowfish.cpp
-     src/crypto/elliptic_common.cpp
+        src/crypto/elliptic_common.cpp
      src/crypto/restartable_sha256.cpp
      ${ECC_REST}
      src/crypto/elliptic_${ECC_IMPL}.cpp
@@ -255,10 +252,6 @@ if(WIN32)
   target_compile_definitions( fc PRIVATE _CRT_NONSTDC_NO_DEPRECATE )
 endif(WIN32)
 # end readline stuff
-
-if( NOT CPP_STANDARD )
-  set( CPP_STANDARD "-std=c++11" )
-endif()
 
 IF(WIN32)
   target_compile_definitions(fc PUBLIC WIN32 NOMINMAX _WIN32_WINNT=0x0501 _CRT_SECURE_NO_WARNINGS

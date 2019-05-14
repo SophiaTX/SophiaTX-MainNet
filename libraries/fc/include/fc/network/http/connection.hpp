@@ -1,7 +1,7 @@
 #pragma once
-#include <fc/vector.hpp>
 #include <fc/string.hpp>
 #include <memory>
+#include <vector>
 
 namespace fc { 
   namespace ip { class endpoint; }
@@ -12,7 +12,7 @@ namespace fc {
      struct header 
      {
        header( fc::string k, fc::string v )
-       :key(fc::move(k)),val(fc::move(v)){}
+       :key(std::move(k)),val(std::move(v)){}
        header(){}
        fc::string key;
        fc::string val;

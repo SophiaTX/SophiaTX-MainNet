@@ -1,6 +1,5 @@
 #pragma once
 #include <fc/container/flat_fwd.hpp>
-#include <fc/container/deque_fwd.hpp>
 #include <fc/io/varint.hpp>
 #include <fc/array.hpp>
 #include <fc/safe.hpp>

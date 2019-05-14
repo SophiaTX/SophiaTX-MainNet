@@ -44,7 +44,7 @@ namespace fc {
       shared_ptr( shared_ptr&& p )
       :_ptr(p._ptr){ p._ptr = nullptr; }
 
-      ~shared_ptr() { if( nullptr != _ptr ) { _ptr->release(); } }
+      ~shared_ptr() { if( nullptr != _ptr ) { _ptr->release(); _ptr = nullptr; } }
 
       shared_ptr& reset( T* v = nullptr, bool inc = false )  {
         if( v == _ptr ) return *this;
@@ -62,7 +62,7 @@ namespace fc {
         return *this;
       }
       shared_ptr& operator=(shared_ptr&& p ) {
-        fc_swap(_ptr,p._ptr); 
+        std::swap(_ptr,p._ptr);
         return *this;
       }
       T& operator*  ()const  { return *_ptr; }

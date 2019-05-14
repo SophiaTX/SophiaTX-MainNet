@@ -2,13 +2,13 @@
 #include <fc/variant.hpp>
 #include <fc/optional.hpp>
 #include <fc/api.hpp>
-#include <fc/any.hpp>
+#include <boost/any.hpp>
 #include <memory>
 #include <vector>
 #include <functional>
 #include <utility>
 #include <fc/signals.hpp>
-//#include <fc/rpc/json_connection.hpp>
+
 
 namespace fc {
    class api_connection;
@@ -216,7 +216,7 @@ namespace fc {
 
 
          std::weak_ptr<fc::api_connection>                       _api_connection;
-         fc::any                                                 _api;
+         boost::any                                                 _api;
          std::map< std::string, uint32_t >                       _by_name;
          std::vector< std::function<variant(const variants&)> >  _methods;
    }; // class generic_api

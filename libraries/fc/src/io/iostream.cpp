@@ -104,7 +104,7 @@ namespace fc {
   size_t cin_t::readsome( char* buf, size_t len ) {
     cin_buffer& b = get_cin_buffer();
     int64_t avail = b.write_pos - b.read_pos;
-    avail = (fc::min)(int64_t(len),avail);
+    avail = (std::min)(int64_t(len),avail);
     int64_t u = 0;
 
     if( !((avail>0) && (len>0)) ) {

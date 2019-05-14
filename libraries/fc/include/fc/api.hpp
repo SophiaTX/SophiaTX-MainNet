@@ -1,6 +1,6 @@
 #pragma once 
 #include <fc/thread/future.hpp>
-#include <fc/any.hpp>
+#include <boost/any.hpp>
 #include <functional>
 #include <boost/config.hpp>
 
@@ -75,7 +75,7 @@ namespace fc {
       api( const T& p )
       :_vtable( std::make_shared<vtable_type>() )
       {
-         _data = std::make_shared<fc::any>(p);
+         _data = std::make_shared<boost::any>(p);
          T& ptr = boost::any_cast<T&>(*_data);
          auto& pointed_at = *ptr;
          typedef typename std::remove_reference<decltype(pointed_at)>::type source_vtable_type;
@@ -95,7 +95,7 @@ namespace fc {
 
     protected:
       std::shared_ptr<vtable_type>    _vtable;
-      std::shared_ptr<fc::any>        _data;
+      std::shared_ptr<boost::any>        _data;
   };
 
 } // namespace fc

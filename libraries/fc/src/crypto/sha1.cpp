@@ -11,14 +11,15 @@ namespace fc
 {
   
 sha1::sha1() { memset( _hash, 0, sizeof(_hash) ); }
-sha1::sha1( const string& hex_str ) {
+sha1::sha1( const std::string& hex_str ) {
   fc::from_hex( hex_str, (char*)_hash, sizeof(_hash) );  
 }
 
-string sha1::str()const {
+std::string sha1::str()const {
   return fc::to_hex( (char*)_hash, sizeof(_hash) );
 }
-sha1::operator string()const { return  str(); }
+
+sha1::operator std::string()const { return  str(); }
 
 char* sha1::data()const { return (char*)&_hash[0]; }
 
@@ -37,6 +38,7 @@ sha1 sha1::hash( const char* d, uint32_t dlen ) {
   e.write(d,dlen);
   return e.result();
 }
+
 sha1 sha1::hash( const string& s ) {
   return hash( s.c_str(), s.size() );
 }
@@ -44,11 +46,13 @@ sha1 sha1::hash( const string& s ) {
 void sha1::encoder::write( const char* d, uint32_t dlen ) {
   SHA1_Update( &my->ctx, d, dlen); 
 }
+
 sha1 sha1::encoder::result() {
   sha1 h;
   SHA1_Final((uint8_t*)h.data(), &my->ctx );
   return h;
 }
+
 void sha1::encoder::reset() {
   SHA1_Init( &my->ctx);  
 }
@@ -58,6 +62,7 @@ sha1 operator << ( const sha1& h1, uint32_t i ) {
   fc::detail::shift_l( h1.data(), result.data(), result.data_size(), i );
   return result;
 }
+
 sha1 operator ^ ( const sha1& h1, const sha1& h2 ) {
   sha1 result;
   result._hash[0] = h1._hash[0] ^ h2._hash[0];
@@ -92,7 +97,7 @@ bool operator == ( const sha1& h1, const sha1& h2 ) {
     std::vector<char> ve = v.as< std::vector<char> >();
     if( ve.size() )
     {
-        memcpy(&bi, ve.data(), fc::min<size_t>(ve.size(),sizeof(bi)) );
+        memcpy(&bi, ve.data(), std::min<size_t>(ve.size(),sizeof(bi)) );
     }
     else
     {

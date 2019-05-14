@@ -15,7 +15,6 @@
 #include <fc/time.hpp>
 #include <fc/io/iostream.hpp>
 #include <fc/thread/thread.hpp>
-#include <fc/vector.hpp>
 #include <fc/interprocess/file_mapping.hpp>
 #include <fc/thread/unique_lock.hpp>
 #include <fc/asio.hpp>

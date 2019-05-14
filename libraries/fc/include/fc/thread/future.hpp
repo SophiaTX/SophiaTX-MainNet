@@ -36,7 +36,7 @@ namespace fc {
      template<typename Functor, typename T>
      class completion_handler_impl : public completion_handler {
        public:
-         completion_handler_impl( Functor&& f ):_func(fc::move(f)){}
+         completion_handler_impl( Functor&& f ):_func(std::move(f)){}
          completion_handler_impl( const Functor& f ):_func(f){}
      
          virtual void on_complete( const void* v, const fc::exception_ptr& e ) {
@@ -48,7 +48,7 @@ namespace fc {
      template<typename Functor>
      class completion_handler_impl<Functor,void> : public completion_handler {
        public:
-         completion_handler_impl( Functor&& f ):_func(fc::move(f)){}
+         completion_handler_impl( Functor&& f ):_func(std::move(f)){}
          completion_handler_impl( const Functor& f ):_func(f){}
          virtual void on_complete( const void* v, const fc::exception_ptr& e ) {
            _func(e);
@@ -111,7 +111,7 @@ namespace fc {
       typedef fc::shared_ptr< promise<T> > ptr;
       promise( const char* desc FC_TASK_NAME_DEFAULT_ARG):promise_base(desc){}
       promise( const T& val ){ set_value(val); }
-      promise( T&& val ){ set_value(fc::move(val) ); }
+      promise( T&& val ){ set_value(std::move(val) ); }
     
       const T& wait(const microseconds& timeout = microseconds::maximum() ){
         this->_wait( timeout );
@@ -128,13 +128,13 @@ namespace fc {
       }
 
       void set_value( T&& v ) {
-        result = fc::move(v);
+        result = std::move(v);
         _set_value(&*result);
       }
 
       template<typename CompletionHandler>
       void on_complete( CompletionHandler&& c ) {
-        _on_complete( new detail::completion_handler_impl<CompletionHandler,T>(fc::forward<CompletionHandler>(c)) );
+        _on_complete( new detail::completion_handler_impl<CompletionHandler,T>(std::forward<CompletionHandler>(c)) );
       }
     protected:
       optional<T> result;
@@ -160,7 +160,7 @@ namespace fc {
 
       template<typename CompletionHandler>
       void on_complete( CompletionHandler&& c ) {
-        _on_complete( new detail::completion_handler_impl<CompletionHandler,void>(fc::forward<CompletionHandler>(c)) );
+        _on_complete( new detail::completion_handler_impl<CompletionHandler,void>(std::forward<CompletionHandler>(c)) );
       }
     protected:
       ~promise(){}
@@ -185,12 +185,12 @@ namespace fc {
   class future {
     public:
       future( const fc::shared_ptr<promise<T>>& p ):m_prom(p){}
-      future( fc::shared_ptr<promise<T>>&& p ):m_prom(fc::move(p)){}
+      future( fc::shared_ptr<promise<T>>&& p ):m_prom(std::move(p)){}
       future(const future<T>& f ) : m_prom(f.m_prom){}
       future(){}
 
       future& operator=(future<T>&& f ) {
-        fc_swap(m_prom,f.m_prom); 
+        std::swap(m_prom,f.m_prom);
         return *this;
       }
 
@@ -250,7 +250,7 @@ namespace fc {
        */
       template<typename CompletionHandler>
       void on_complete( CompletionHandler&& c ) {
-        m_prom->on_complete( fc::forward<CompletionHandler>(c) );
+        m_prom->on_complete( std::forward<CompletionHandler>(c) );
       }
     private:
       friend class thread;
@@ -261,12 +261,12 @@ namespace fc {
   class future<void> {
     public:
       future( const fc::shared_ptr<promise<void>>& p ):m_prom(p){}
-      future( fc::shared_ptr<promise<void>>&& p ):m_prom(fc::move(p)){}
+      future( fc::shared_ptr<promise<void>>&& p ):m_prom(std::move(p)){}
       future(const future<void>& f ) : m_prom(f.m_prom){}
       future(){}
 
       future& operator=(future<void>&& f ) {
-        fc_swap(m_prom,f.m_prom); 
+        std::swap(m_prom,f.m_prom);
         return *this;
       }
 
@@ -315,7 +315,7 @@ namespace fc {
 
       template<typename CompletionHandler>
       void on_complete( CompletionHandler&& c ) {
-        m_prom->on_complete( fc::forward<CompletionHandler>(c) );
+        m_prom->on_complete( std::forward<CompletionHandler>(c) );
       }
 
     private:
