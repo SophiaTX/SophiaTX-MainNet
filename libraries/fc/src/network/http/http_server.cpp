@@ -150,9 +150,9 @@ namespace fc { namespace http {
 
   server::server():my( new impl() ){}
   server::server( uint16_t port ) :my( new impl(fc::ip::endpoint( fc::ip::address(),port)) ){}
-  server::server( server&& s ):my(fc::move(s.my)){}
+  server::server( server&& s ):my(std::move(s.my)){}
 
-  server& server::operator=(server&& s)      { fc_swap(my,s.my); return *this; }
+  server& server::operator=(server&& s)      { std::swap(my,s.my); return *this; }
 
   server::~server(){}
 
@@ -169,11 +169,11 @@ namespace fc { namespace http {
 
   server::response::response(){}
   server::response::response( const server::response& s ):my(s.my){}
-  server::response::response( server::response&& s ):my(fc::move(s.my)){}
+  server::response::response( server::response&& s ):my(std::move(s.my)){}
   server::response::response( const fc::shared_ptr<server::response::impl>& m ):my(m){}
 
   server::response& server::response::operator=(const server::response& s) { my = s.my; return *this; }
-  server::response& server::response::operator=(server::response&& s)      { fc_swap(my,s.my); return *this; }
+  server::response& server::response::operator=(server::response&& s)      { std::swap(my,s.my); return *this; }
 
   void server::response::add_header( const fc::string& key, const fc::string& val )const {
      my->rep.headers.push_back( fc::http::header( key, val ) );

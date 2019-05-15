@@ -35,11 +35,11 @@ namespace fc  {
   string::string(const char* s, int l) :my(s,l){ }
   string::string(){}
   string::string( const fc::string& c ):my(*c.my) { }
-  string::string( string&& m ):my(fc::move(*m.my)) {}
+  string::string( string&& m ):my(std::move(*m.my)) {}
   string::string( const char* c ):my(c){}
   string::string( const_iterator b, const_iterator e ):my(b,e){}
   string::string( const std::string& s ):my(s) {}
-  string::string( std::string&& s ):my(fc::move(s)) {}
+  string::string( std::string&& s ):my(std::move(s)) {}
   string::~string() { }
   string::operator std::string&() { return *my; }
   string::operator const std::string&()const { return *my; }
@@ -78,7 +78,7 @@ namespace fc  {
   bool    string::operator != ( const string& s )const { return *my != *s.my; }
 
   string& string::operator =( const string& c )          { *my = *c.my; return *this; }
-  string& string::operator =( string&& c )               { *my = fc::move( *c.my ); return *this; }
+  string& string::operator =( string&& c )               { *my = std::move( *c.my ); return *this; }
 
   string& string::operator+=( const string& s )          { *my += *s.my; return *this; }
   string& string::operator+=( char c )                   { *my += c; return *this; }

@@ -10,7 +10,7 @@ state::~state()
 
 void state::add_method( const fc::string& name, method m )
 {
-   _methods.emplace(std::pair<std::string,method>(name,fc::move(m)));
+   _methods.emplace(std::pair<std::string,method>(name,std::move(m)));
 }
 
 void state::remove_method( const fc::string& name )

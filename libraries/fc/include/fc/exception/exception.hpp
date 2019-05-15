@@ -168,10 +168,10 @@ namespace fc
    {
 #if defined(_MSC_VER) && (_MSC_VER < 1700)
      return std::make_shared<unhandled_exception>( log_message(),
-                                                   std::copy_exception(fc::forward<T>(e)) );
+                                                   std::copy_exception(std::forward<T>(e)) );
 #else
      return std::make_shared<unhandled_exception>( log_message(),
-                                                   std::make_exception_ptr(fc::forward<T>(e)) );
+                                                   std::make_exception_ptr(std::forward<T>(e)) );
 #endif
    }
 
@@ -234,9 +234,9 @@ namespace fc
        TYPE( const std::string& what_value, const fc::log_messages& m ) \
        :BASE( m, CODE, BOOST_PP_STRINGIZE(TYPE), what_value ){} \
        TYPE( fc::log_message&& m ) \
-       :BASE( fc::move(m), CODE, BOOST_PP_STRINGIZE(TYPE), WHAT ){}\
+       :BASE( std::move(m), CODE, BOOST_PP_STRINGIZE(TYPE), WHAT ){}\
        TYPE( fc::log_messages msgs ) \
-       :BASE( fc::move( msgs ), CODE, BOOST_PP_STRINGIZE(TYPE), WHAT ) {} \
+       :BASE( std::move( msgs ), CODE, BOOST_PP_STRINGIZE(TYPE), WHAT ) {} \
        TYPE( const TYPE& c ) \
        :BASE(c){} \
        TYPE( const BASE& c ) \

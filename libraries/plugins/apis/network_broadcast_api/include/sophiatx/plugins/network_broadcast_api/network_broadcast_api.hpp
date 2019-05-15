@@ -7,7 +7,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 
 #include <boost/thread/mutex.hpp>
 

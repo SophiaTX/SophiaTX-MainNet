@@ -107,7 +107,7 @@ bool operator == ( const ripemd160& h1, const ripemd160& h2 ) {
     std::vector<char> ve = v.as< std::vector<char> >();
     if( ve.size() )
     {
-        memcpy(&bi, ve.data(), fc::min<size_t>(ve.size(),sizeof(bi)) );
+        memcpy(&bi, ve.data(), std::min<size_t>(ve.size(),sizeof(bi)) );
     }
     else
     {

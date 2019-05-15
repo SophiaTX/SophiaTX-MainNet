@@ -3,7 +3,6 @@
 #define FC_CONTEXT_STACK_SIZE (2048*1024)
 
 #include <fc/thread/task.hpp>
-#include <fc/vector.hpp>
 #include <fc/string.hpp>
 
 namespace fc {
@@ -70,7 +69,7 @@ namespace fc {
          typedef decltype(f()) Result;
          typedef typename fc::deduce<Functor>::type FunctorType;
          fc::task<Result,sizeof(FunctorType)>* tsk = 
-              new fc::task<Result,sizeof(FunctorType)>( fc::forward<Functor>(f), desc );
+              new fc::task<Result,sizeof(FunctorType)>( std::forward<Functor>(f), desc );
          fc::future<Result> r(fc::shared_ptr< fc::promise<Result> >(tsk,true) );
          async_task(tsk,prio);
          return r;
@@ -92,7 +91,7 @@ namespace fc {
                      const char* desc FC_TASK_NAME_DEFAULT_ARG, priority prio = priority()) -> fc::future<decltype(f())> {
          typedef decltype(f()) Result;
          fc::task<Result,sizeof(Functor)>* tsk = 
-              new fc::task<Result,sizeof(Functor)>( fc::forward<Functor>(f), desc );
+              new fc::task<Result,sizeof(Functor)>( std::forward<Functor>(f), desc );
          fc::future<Result> r(fc::shared_ptr< fc::promise<Result> >(tsk,true) );
          async_task(tsk,prio,when);
          return r;
@@ -126,7 +125,7 @@ namespace fc {
           std::vector<fc::promise_base::ptr> proms(2);
           proms[0] = fc::static_pointer_cast<fc::promise_base>(f1.m_prom);
           proms[1] = fc::static_pointer_cast<fc::promise_base>(f2.m_prom);
-          return wait_any_until(fc::move(proms), fc::time_point::now()+timeout_us );
+          return wait_any_until(std::move(proms), fc::time_point::now()+timeout_us );
        }
     private:
       thread( class thread_d* );
@@ -199,11 +198,11 @@ namespace fc {
 
    template<typename Functor>
    auto async( Functor&& f, const char* desc FC_TASK_NAME_DEFAULT_ARG, priority prio = priority()) -> fc::future<decltype(f())> {
-      return fc::thread::current().async( fc::forward<Functor>(f), desc, prio );
+      return fc::thread::current().async( std::forward<Functor>(f), desc, prio );
    }
    template<typename Functor>
    auto schedule( Functor&& f, const fc::time_point& t, const char* desc FC_TASK_NAME_DEFAULT_ARG, priority prio = priority()) -> fc::future<decltype(f())> {
-      return fc::thread::current().schedule( fc::forward<Functor>(f), t, desc, prio );
+      return fc::thread::current().schedule( std::forward<Functor>(f), t, desc, prio );
    }
 
   /**
