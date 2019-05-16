@@ -30,21 +30,14 @@ using namespace appbase;
 class webserver_plugin : public appbase::plugin< webserver_plugin >
 {
    public:
-      static std::shared_ptr<webserver_plugin> &get_plugin() {
-         static std::shared_ptr<webserver_plugin> instance(new webserver_plugin);
-         return instance;
-      }
-
-      webserver_plugin(webserver_plugin const &) = delete;
-      void operator=(webserver_plugin const &) = delete;
-
+      webserver_plugin();
       virtual ~webserver_plugin();
 
       APPBASE_PLUGIN_REQUIRES( (plugins::json_rpc::json_rpc_plugin) );
 
       static const std::string& name() { static std::string name = SOPHIATX_WEBSERVER_PLUGIN_NAME; return name; }
 
-      static void set_program_options(options_description&, options_description& cfg);
+      virtual void set_program_options(options_description&, options_description& cfg) override;
 
    protected:
       virtual void plugin_initialize(const variables_map& options) override;
@@ -52,30 +45,7 @@ class webserver_plugin : public appbase::plugin< webserver_plugin >
       virtual void plugin_shutdown() override;
 
    private:
-      webserver_plugin();
       std::unique_ptr< detail::webserver_plugin_impl > my;
 };
 
 } } } // sophiatx::plugins::webserver
-
-
-namespace appbase {
-using namespace sophiatx::plugins::webserver;
-template<>
-class plugin_factory<webserver_plugin> : public abstract_plugin_factory {
-public:
-   virtual ~plugin_factory() {}
-
-   virtual std::shared_ptr<abstract_plugin> new_plugin() const {
-      return webserver_plugin::get_plugin();
-   }
-
-   virtual void set_program_options(options_description &cli, options_description &cfg) {
-      webserver_plugin::set_program_options(cli, cfg);
-   };
-
-   virtual std::string get_name() {
-      return webserver_plugin::name();
-   }
-};
-}

@@ -10,8 +10,8 @@ class custom_tokens_api_impl
 {
    public:
    custom_tokens_api_impl(custom_tokens_plugin& plugin) :
-         _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ), _plugin(plugin),
-         _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >()) {}
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()), _plugin(plugin),
+         _json_api(appbase::app().find_plugin< plugins::json_rpc::json_rpc_plugin >()) {}
 
    DECLARE_API_IMPL((get_token)(list_token_balances)(list_token_operations)(list_token_errors))
 
@@ -126,7 +126,7 @@ DEFINE_API_IMPL( custom_tokens_api_impl, list_token_errors)
 
 custom_tokens_api::custom_tokens_api(custom_tokens_plugin& plugin): my( new detail::custom_tokens_api_impl(plugin) )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_CT_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_CT_PLUGIN_NAME);
 }
 
 custom_tokens_api::~custom_tokens_api() {}

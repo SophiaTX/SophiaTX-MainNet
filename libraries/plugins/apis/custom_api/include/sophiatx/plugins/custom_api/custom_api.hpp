@@ -7,7 +7,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 #include <fc/crypto/base58.hpp>
 
 #define CUSTOM_API_SINGLE_QUERY_LIMIT 10000
@@ -37,7 +36,7 @@ struct received_object
 
    uint64_t          id;
    string            sender;
-   vector<string>    recipients;
+   std::vector<string>    recipients;
    uint64_t          app_id;
    string            data;
    bool              binary;
@@ -71,12 +70,11 @@ typedef std::map< uint64_t, received_object > list_received_documents_return;
 typedef received_object get_received_document_return;
 typedef map<uint64_t, received_object> get_app_custom_messages_return;
 
-class custom_api_plugin;
 
 class custom_api
 {
 public:
-   custom_api(custom_api_plugin& plugin);
+   custom_api();
    ~custom_api();
 
    DECLARE_API(

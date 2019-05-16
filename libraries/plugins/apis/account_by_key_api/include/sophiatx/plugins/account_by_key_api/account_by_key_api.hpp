@@ -5,7 +5,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 
 namespace sophiatx { namespace plugins { namespace account_by_key {
 
@@ -24,12 +23,10 @@ struct get_key_references_return
    std::vector< std::vector< sophiatx::protocol::account_name_type > > accounts;
 };
 
-class account_by_key_api_plugin;
-
 class account_by_key_api
 {
    public:
-      account_by_key_api(account_by_key_api_plugin& plugin );
+      account_by_key_api();
       ~account_by_key_api();
 
       DECLARE_API( (get_key_references) )

@@ -12,7 +12,7 @@ class account_bandwidth_api_plugin;
 class account_bandwidth_api_impl
 {
 public:
-   account_bandwidth_api_impl(account_bandwidth_api_plugin & plugin);
+   account_bandwidth_api_impl();
 
    DECLARE_API_IMPL(
          (get_account_bandwidth)

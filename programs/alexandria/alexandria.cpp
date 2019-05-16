@@ -12,6 +12,7 @@
 #include <fc/crypto/base58.hpp>
 #include <fc/crypto/aes.hpp>
 #include <fc/crypto/rand.hpp>
+#include <fc/crypto/hex.hpp>
 #include <fc/api.hpp>
 
 

@@ -3,12 +3,12 @@
 #include <deque>
 #include <map>
 #include <vector>
+#include <string>
 
 #include <fc/string.hpp>
 #include <fc/optional.hpp>
 
 #include <fc/container/flat_fwd.hpp>
-#include <fc/container/deque_fwd.hpp>
 
 namespace fc {
   class value;

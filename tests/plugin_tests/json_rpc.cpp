@@ -201,32 +201,23 @@ BOOST_AUTO_TEST_CASE( misc_validation )
    try
    {
       std::string request;
-      request = "{\"jsonrpc\": \"2.0\", \"method\": \"a.b.c.d\", \"params\": [\"a\",\"b\", {} ], \"id\": 1}";
+
+      request = "{\"jsonrpc\": \"2.0\", \"method\": \"a.b.c\", \"params\": [\"a\",\"b\", {} ], \"id\": 1}";
       make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
 
-
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"a..c\", \"params\": [\"a\",\"b\", {} ], \"id\": 1}";
-      make_request( request, JSON_RPC_ERROR_DURING_CALL );
+      make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"fake_api.fake_method\", \"params\": [\"a\",\"b\", {} ], \"id\": 1}";
       make_request( request, JSON_RPC_ERROR_DURING_CALL );
 
-      request = "{\"jsonrpc\": \"2.0\", \"method\": \"fake_network.fake_api.fake_method\", \"params\": [\"a\",\"b\", {} ], \"id\": 1}";
-      make_request( request, JSON_RPC_ERROR_DURING_CALL );
-
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": [\"fake_api\",\"fake_method\", {} ], \"id\": 1}";
-      make_request( request, JSON_RPC_ERROR_DURING_CALL );
-
-      request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": [\"fake_network\",\"fake_api\",\"fake_method\", {} ], \"id\": 1}";
       make_request( request, JSON_RPC_ERROR_DURING_CALL );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": {}, \"id\": 1}";
       make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
 
       request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": { \"fake_api\":\"database_api\", \"fake_method\":\"get_dynamic_global_properties\", \"fake_args\":{} }, \"id\": 1}";
-      make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
-
-      request = "{\"jsonrpc\": \"2.0\", \"method\": \"call\", \"params\": { \"fake_network_id\":\"testnet\", \"fake_api\":\"database_api\", \"fake_method\":\"get_dynamic_global_properties\", \"fake_args\":{} }, \"id\": 1}";
       make_request( request, JSON_RPC_PARSE_PARAMS_ERROR );
    }
    FC_LOG_AND_RETHROW()
@@ -241,28 +232,13 @@ BOOST_AUTO_TEST_CASE( positive_validation )
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"get_dynamic_global_properties\"], \"id\":1}";
       make_positive_request( request );
 
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"get_dynamic_global_properties\", {}], \"id\":2}";
-      make_positive_request( request );
-
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"test\", \"database_api\", \"get_dynamic_global_properties\"], \"id\":3}";
-      make_positive_request( request );
-
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"test\", \"database_api\", \"get_dynamic_global_properties\", {}], \"id\":3}";
+      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"database_api\", \"get_dynamic_global_properties\", {}], \"id\":3}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"database_api.get_dynamic_global_properties\",\"id\":4}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"database_api.get_dynamic_global_properties\", \"params\":{}, \"id\":5}";
-      make_positive_request( request );
-
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"database_api.get_dynamic_global_properties\", \"params\":{\"network_id\":\"test\"}, \"id\":5}";
-      make_positive_request( request );
-
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"test.database_api.get_dynamic_global_properties\", \"params\":{}, \"id\":6}";
-      make_positive_request( request );
-
-      request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_dynamic_global_properties\", {}], \"id\":8}";
       make_positive_request( request );
 
       request = "{\"jsonrpc\":\"2.0\", \"method\":\"call\", \"params\":[\"alexandria_api\", \"get_dynamic_global_properties\", {}], \"id\":8}";

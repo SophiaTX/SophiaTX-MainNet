@@ -4,8 +4,8 @@
 
 namespace sophiatx { namespace plugins { namespace account_bandwidth_api {
 
-account_bandwidth_api_impl::account_bandwidth_api_impl(account_bandwidth_api_plugin &plugin) :
-      _db(plugin.app()->get_plugin<sophiatx::plugins::chain::chain_plugin>().db()) {}
+account_bandwidth_api_impl::account_bandwidth_api_impl() :
+      _db(appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db()) {}
 
 
 DEFINE_API_IMPL(account_bandwidth_api_impl, get_account_bandwidth) {

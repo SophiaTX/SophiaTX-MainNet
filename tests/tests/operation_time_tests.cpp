@@ -148,6 +148,86 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
    FC_LOG_AND_RETHROW()
 }
 
+BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
+   try {
+      BOOST_TEST_MESSAGE( "Testing: max. allowed bandwidth/count of fee free operations" );
+
+      ACTORS( (alice)(sam) )
+      fund( AN("alice") , 5000000 );
+      vest( AN("alice"), 5000000 );
+      fund( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+
+      long total_ops_badwidth = 0;
+
+      private_key_type sam_witness_key = generate_private_key( "sam_key" );
+      witness_create( AN("sam"), sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
+
+
+
+      BOOST_TEST_MESSAGE( "--- Test success normal single witness vote(fee free operation)" );
+      account_witness_vote_operation op;
+      op.account = AN("alice");
+      op.witness = AN("sam");
+      op.approve = true;
+
+      signed_transaction tx;
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      tx.operations.push_back( op );
+      sign(tx, alice_private_key );
+      db->push_transaction( tx, 0 );
+
+
+
+      BOOST_TEST_MESSAGE( "--- Test failure max. fee free operations count exceeded" );
+      tx.operations.clear();
+      tx.signatures.clear();
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
+      for (size_t idx = 0; idx <= SOPHIATX_MAX_ALLOWED_OPS_COUNT; idx++) {
+         op.approve = !op.approve;
+         tx.operations.push_back( op );
+      }
+      sign(tx, alice_private_key );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_exceeded_bandwidth );
+
+
+
+      BOOST_TEST_MESSAGE( "--- Test failure max. fee free operations bandwidth exceeded" );
+      account_update_operation acc_update_op;
+      acc_update_op.account = AN("sam");
+      acc_update_op.json_metadata = "{\"data\":\"" + std::string(8000 /* approx. max_metadata_size */, '*') + "\"}";
+      size_t acc_update_op_size = fc::raw::pack_size(acc_update_op);
+
+      size_t tx_count = 0;
+      while (total_ops_badwidth + acc_update_op_size < SOPHIATX_MAX_ALLOWED_BANDWIDTH) {
+         tx.operations.clear();
+         tx.signatures.clear();
+
+         long tx_size = fc::raw::pack_size(tx);
+         while (tx_size + acc_update_op_size < SOPHIATX_MAX_TRANSACTION_SIZE &&
+                total_ops_badwidth + acc_update_op_size < SOPHIATX_MAX_ALLOWED_BANDWIDTH) {
+            tx.operations.push_back( acc_update_op );
+            tx_size += acc_update_op_size;
+            total_ops_badwidth += acc_update_op_size;
+         }
+
+         tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION - tx_count/* hack duplicate tx check */);
+         sign(tx, sam_private_key );
+         db->push_transaction( tx, 0 );
+         tx_count++;
+      }
+
+      tx.operations.clear();
+      tx.signatures.clear();
+      tx.operations.push_back( acc_update_op );
+      tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION - tx_count/* hack duplicate tx check */);
+      sign(tx, sam_private_key );
+      SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), tx_exceeded_bandwidth );
+
+   }
+   FC_LOG_AND_RETHROW();
+}
+
 BOOST_AUTO_TEST_CASE( feed_publish_mean )
 {
    try

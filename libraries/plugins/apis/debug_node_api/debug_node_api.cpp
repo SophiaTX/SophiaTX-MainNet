@@ -19,10 +19,9 @@ namespace detail {
 class debug_node_api_impl
 {
    public:
-      debug_node_api_impl(debug_node_api_plugin& plugin) :
-         _app(plugin.app()),
-         _db( std::static_pointer_cast<chain::database>(plugin.app()->get_plugin< chain::chain_plugin >().db()) ),
-         _debug_node( plugin.app()->get_plugin< debug_node_plugin >() ) {}
+      debug_node_api_impl() :
+         _db( std::static_pointer_cast<chain::database>(appbase::app().get_plugin< chain::chain_plugin >().db()) ),
+         _debug_node( appbase::app().get_plugin< debug_node_plugin >() ) {}
 
       DECLARE_API_IMPL(
          (debug_push_blocks)
@@ -36,7 +35,6 @@ class debug_node_api_impl
          (debug_get_json_schema)
       )
 
-      appbase::application* _app;
       std::shared_ptr<chain::database> _db;
       debug_node::debug_node_plugin& _debug_node;
 };
@@ -154,15 +152,12 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_get_json_schema )
 
 } // detail
 
-debug_node_api::debug_node_api(debug_node_api_plugin& plugin): my( new detail::debug_node_api_impl(plugin) )
+debug_node_api::debug_node_api(): my( new detail::debug_node_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_DEBUG_NODE_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_DEBUG_NODE_API_PLUGIN_NAME );
 }
 
-debug_node_api::~debug_node_api()
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_DEBUG_NODE_API_PLUGIN_NAME, my->_app );
-}
+debug_node_api::~debug_node_api() {}
 
 DEFINE_LOCKLESS_APIS( debug_node_api,
    (debug_push_blocks)

@@ -29,8 +29,8 @@ namespace detail {
 class account_history_plugin_impl
 {
    public:
-      account_history_plugin_impl( account_history_plugin& plugin ) :
-         _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
+      account_history_plugin_impl() :
+         _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       virtual ~account_history_plugin_impl() {}
 
@@ -217,7 +217,7 @@ void account_history_plugin::set_program_options(
 
 void account_history_plugin::plugin_initialize( const boost::program_options::variables_map& options )
 {
-   my = std::make_unique< detail::account_history_plugin_impl >(*this);
+   my = std::make_unique< detail::account_history_plugin_impl >();
 
    my->pre_apply_connection = my->_db->pre_apply_operation.connect( 0, [&]( const operation_notification& note ){ my->on_operation(note); } );
 

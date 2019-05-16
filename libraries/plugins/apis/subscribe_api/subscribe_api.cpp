@@ -16,11 +16,7 @@ struct custom_content_callback;
 class subscribe_api_impl
 {
 public:
-   subscribe_api_impl(subscribe_api_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),
-                                                     _json_api(plugin.app()->find_plugin< plugins::json_rpc::json_rpc_plugin >()),
-                                                     _app( plugin.app() )
-   {
-      //TODO - bind on custom evaluator instead
+   subscribe_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() )  {
       post_apply_connection = _db->post_apply_operation.connect( 0, [&]( const chain::operation_notification& note ){ on_operation(note); } );
    }
 
@@ -34,7 +30,6 @@ public:
    boost::signals2::connection      post_apply_connection;
    std::vector<custom_content_callback>  _content_subscriptions;
    plugins::json_rpc::json_rpc_plugin* _json_api;
-   appbase::application* _app;
 
 };
 
@@ -57,7 +52,7 @@ struct custom_content_callback{
       cb_args.search_type = args.search_type;
       cb_args.count = 1;
       cb_args.start = std::to_string(last_position+1);
-      auto vdocs = impl._json_api->call_api_method(impl._app->id, "custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
+      auto vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
       if(!vdocs)
          return;
       custom::list_received_documents_return docs;
@@ -72,7 +67,7 @@ struct custom_content_callback{
          notify(v);
          last_position++;
          cb_args.start = std::to_string(last_position+1);
-         vdocs = impl._json_api->call_api_method(impl._app->id, "custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
+         vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
          if(!vdocs)
             break;
          fc::from_variant( *vdocs, docs );
@@ -114,24 +109,17 @@ DEFINE_API_IMPL( subscribe_api_impl, custom_object_subscription )
    return args.return_id;
 }
 
-
-
-
-
 } // namespace detail
 
-subscribe_api::subscribe_api(subscribe_api_plugin& plugin): my( new detail::subscribe_api_impl(plugin) )
+subscribe_api::subscribe_api(): my( new detail::subscribe_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME );
 }
 
 void subscribe_api::api_startup(){
-
 }
 
-subscribe_api::~subscribe_api() {
-   JSON_RPC_DEREGISTER_API( SOPHIATX_SUBSCRIBE_API_PLUGIN_NAME, my->_app );
-}
+subscribe_api::~subscribe_api() {}
 
 DEFINE_READ_APIS( subscribe_api,
      (custom_object_subscription)

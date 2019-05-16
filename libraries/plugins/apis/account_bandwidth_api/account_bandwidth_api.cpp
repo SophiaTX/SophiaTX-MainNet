@@ -4,9 +4,9 @@
 
 namespace sophiatx { namespace plugins { namespace account_bandwidth_api {
 
-account_bandwidth_api::account_bandwidth_api(account_bandwidth_api_plugin &plugin) :
-   my(std::make_unique<account_bandwidth_api_impl>(plugin)) {
-   JSON_RPC_REGISTER_API(SOPHIATX_ACCOUNT_BANDWIDTH_API_PLUGIN_NAME, plugin.app());
+account_bandwidth_api::account_bandwidth_api() :
+   my(std::make_unique<account_bandwidth_api_impl>()) {
+   JSON_RPC_REGISTER_API(SOPHIATX_ACCOUNT_BANDWIDTH_API_PLUGIN_NAME);
 }
 
 account_bandwidth_api::~account_bandwidth_api() {}

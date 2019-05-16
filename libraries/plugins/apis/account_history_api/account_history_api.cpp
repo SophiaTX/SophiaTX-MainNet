@@ -12,7 +12,7 @@ namespace detail {
 class account_history_api_impl
 {
    public:
-      account_history_api_impl(account_history_api_plugin& plugin) : _db( plugin.app()->get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ),  _app( plugin.app()) {}
+      account_history_api_impl() : _db( appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin >().db() ) {}
 
       DECLARE_API_IMPL(
          (get_ops_in_block)
@@ -21,7 +21,6 @@ class account_history_api_impl
       )
 
       std::shared_ptr<chain::database_interface> _db;
-      appbase::application* _app;
 };
 
 DEFINE_API_IMPL( account_history_api_impl, get_ops_in_block )
@@ -109,15 +108,12 @@ DEFINE_API_IMPL( account_history_api_impl, get_account_history )
 
 } // detail
 
-account_history_api::account_history_api(account_history_api_plugin& plugin): my( new detail::account_history_api_impl(plugin) )
+account_history_api::account_history_api(): my( new detail::account_history_api_impl() )
 {
-   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME, plugin.app() );
+   JSON_RPC_REGISTER_API( SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME );
 }
 
-account_history_api::~account_history_api() 
-{
-   JSON_RPC_DEREGISTER_API( SOPHIATX_ACCOUNT_HISTORY_API_PLUGIN_NAME, my->_app );
-}
+account_history_api::~account_history_api() {}
 
 DEFINE_READ_APIS( account_history_api,
    (get_ops_in_block)

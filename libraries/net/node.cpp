@@ -82,13 +82,6 @@
 
 #include <fc/git_revision.hpp>
 
-//#define ENABLE_DEBUG_ULOGS
-
-#ifdef DEFAULT_LOGGER
-# undef DEFAULT_LOGGER
-#endif
-#define DEFAULT_LOGGER "p2p"
-
 #define P2P_IN_DEDICATED_THREAD 1
 
 #define INVOCATION_COUNTER(name) \
@@ -1145,9 +1138,8 @@ namespace graphene { namespace net {
             if (items_by_type.first == core_message_type_enum::block_message_type)
               for (const item_hash_t& id : items_by_type.second)
               {
-                fc_dlog(fc::logger::get("sync"),
-                        "requesting a block from peer ${endpoint} (message_id is ${id})",
-                        ("endpoint", peer_and_items.peer->get_remote_endpoint())("id", id));
+                dlog("requesting a block from peer ${endpoint} (message_id is ${id})",
+                    ("endpoint", peer_and_items.peer->get_remote_endpoint())("id", id));
               }
 
             peer_and_items.peer->send_message(fetch_items_message(items_by_type.first,
@@ -1335,21 +1327,14 @@ namespace graphene { namespace net {
             if (!active_peer->sync_items_requested_from_peer.empty() &&
                 active_peer->last_sync_item_received_time < active_ignored_request_threshold)
             {
-              fc_wlog(fc::logger::get("sync"),
-                      "disconnecting peer ${peer} because they haven't made any progress on my remaining ${count} sync item requests",
-                      ("peer", active_peer->get_remote_endpoint())("count", active_peer->sync_items_requested_from_peer.size()));
               wlog("Disconnecting peer ${peer} because they haven't made any progress on my remaining ${count} sync item requests",
                    ("peer", active_peer->get_remote_endpoint())("count", active_peer->sync_items_requested_from_peer.size()));
               disconnect_due_to_request_timeout = true;
-              break;
             }
             if (!disconnect_due_to_request_timeout &&
                 active_peer->item_ids_requested_from_peer &&
                 active_peer->item_ids_requested_from_peer->get<1>() < active_ignored_request_threshold)
               {
-                fc_wlog(fc::logger::get("sync"), "Disconnecting peer ${peer} because they didn't respond to my request for sync item ids after ${synopsis}",
-                      ("peer", active_peer->get_remote_endpoint())
-                      ("synopsis", active_peer->item_ids_requested_from_peer->get<0>()));
                 wlog("Disconnecting peer ${peer} because they didn't respond to my request for sync item ids after ${synopsis}",
                       ("peer", active_peer->get_remote_endpoint())
                       ("synopsis", active_peer->item_ids_requested_from_peer->get<0>()));
@@ -1359,8 +1344,6 @@ namespace graphene { namespace net {
               for (const peer_connection::item_to_time_map_type::value_type& item_and_time : active_peer->items_requested_from_peer)
                 if (item_and_time.second < active_ignored_request_threshold)
                 {
-                  fc_wlog(fc::logger::get("sync"), "Disconnecting peer ${peer} because they didn't respond to my request for item ${id}",
-                        ("peer", active_peer->get_remote_endpoint())("id", item_and_time.first.item_hash));
                   wlog("Disconnecting peer ${peer} because they didn't respond to my request for item ${id}",
                         ("peer", active_peer->get_remote_endpoint())("id", item_and_time.first.item_hash));
                   disconnect_due_to_request_timeout = true;
@@ -1387,8 +1370,6 @@ namespace graphene { namespace net {
             {
               // This is a state we should never get into in the first place, but if we do, we should disconnect the peer
               // to re-establish the connection.
-              fc_wlog(fc::logger::get("sync"), "Disconnecting peer ${peer} because we think we need blocks from them but sync has stalled.",
-                      ("peer", active_peer->get_remote_endpoint()));
               wlog("Disconnecting peer ${peer} because we think we need blocks from them but sync has stalled.",
                       ("peer", active_peer->get_remote_endpoint()));
               peers_to_disconnect_forcibly.push_back(active_peer);
@@ -1916,9 +1897,6 @@ namespace graphene { namespace net {
             uint32_t head_block_num = _delegate->get_block_number(_delegate->get_head_block_id());
             if (next_fork_block_number < head_block_num)
             {
-#ifdef ENABLE_DEBUG_ULOGS
-              ulog("Rejecting connection from peer because their version is too old.  Their version date: ${date}", ("date", originating_peer->graphene_git_revision_unix_timestamp));
-#endif
               wlog("Received hello message from peer running a version of that can only understand blocks up to #${their_hard_fork}, but I'm at head block number #${my_block_number}",
                    ("their_hard_fork", next_fork_block_number)("my_block_number", head_block_num));
               std::ostringstream rejection_message;
@@ -3021,12 +2999,11 @@ namespace graphene { namespace net {
       try
       {
         std::vector<fc::uint160_t> contained_transaction_message_ids;
-        fc_ilog(fc::logger::get("sync"),
-                "p2p pushing sync block #${block_num} ${block_hash}",
+        dlog("p2p pushing sync block #${block_num} ${block_hash}",
                 ("block_num", block_message_to_send.block.block_num())
                 ("block_hash", block_message_to_send.block_id));
         _delegate->handle_block(block_message_to_send, true, contained_transaction_message_ids);
-        ilog("Successfully pushed sync block ${num} (id:${id})",
+        dlog("Successfully pushed sync block ${num} (id:${id})",
              ("num", block_message_to_send.block.block_num())
              ("id", block_message_to_send.block_id));
         _most_recent_blocks_accepted.push_back(block_message_to_send.block_id);
@@ -3035,12 +3012,6 @@ namespace graphene { namespace net {
       }
       catch (const block_older_than_undo_history& e)
       {
-        fc_wlog(fc::logger::get("sync"),
-                "p2p failed to push sync block #${block_num} ${block_hash}: block is on a fork older than our undo history would "
-                "allow us to switch to: ${e}",
-                ("block_num", block_message_to_send.block.block_num())
-                ("block_hash", block_message_to_send.block_id)
-                ("e", (fc::exception)e));
         wlog("Failed to push sync block ${num} (id:${id}): block is on a fork older than our undo history would "
              "allow us to switch to: ${e}",
              ("num", block_message_to_send.block.block_num())
@@ -3055,10 +3026,6 @@ namespace graphene { namespace net {
       }
       catch (const fc::exception& e)
       {
-        fc_wlog(fc::logger::get("sync"),
-                "p2p failed to push sync block #${block_num} ${block_hash}: client rejected sync block sent by peer: ${e}",
-                ("block_num", block_message_to_send.block.block_num())
-                ("block_hash", block_message_to_send.block_id)("e", e));
         wlog("Failed to push sync block ${num} (id:${id}): client rejected sync block sent by peer: ${e}",
              ("num", block_message_to_send.block.block_num())
              ("id", block_message_to_send.block_id)
@@ -3097,9 +3064,7 @@ namespace graphene { namespace net {
                 peers_to_disconnect[peer] = std::make_pair(disconnect_reason_stream.str(),
                                                            fc::oexception(fc::exception(FC_LOG_MESSAGE(error, "You need to upgrade your client due to hard fork at block ${block_number}",
                                                                                                        ("block_number", block_message_to_send.block.block_num())))));
-#ifdef ENABLE_DEBUG_ULOGS
-                ulog("Disconnecting from peer during sync because their version is too old.  Their version date: ${date}", ("date", peer->graphene_git_revision_unix_timestamp));
-#endif
+                wlog("Disconnecting from peer during sync because their version is too old.  Their version date: ${date}", ("date", peer->graphene_git_revision_unix_timestamp));
                 disconnecting_this_peer = true;
               }
             }
@@ -3322,8 +3287,6 @@ namespace graphene { namespace net {
         {
           dlog("stopping processing sync block backlog because we have ${count} blocks in progress",
                ("count", _handle_message_calls_in_progress.size()));
-          //ulog("stopping processing sync block backlog because we have ${count} blocks in progress, total on hand: ${received}",
-          //     ("count", _handle_message_calls_in_progress.size())("received", _received_sync_items.size()));
           if (_received_sync_items.size() >= _node_configuration.maximum_number_of_sync_blocks_to_prefetch)
             _suspend_fetching_sync_blocks = true;
           break;
@@ -3380,8 +3343,7 @@ namespace graphene { namespace net {
         {
           std::vector<fc::uint160_t> contained_transaction_message_ids;
           _message_ids_currently_being_processed.insert(message_hash);
-          fc_ilog(fc::logger::get("sync"),
-                  "p2p pushing block #${block_num} ${block_hash} from ${peer} (message_id was ${id})",
+          ilog("p2p pushing block #${block_num} ${block_hash} from ${peer} (message_id was ${id})",
                   ("block_num", block_message_to_process.block.block_num())
                   ("block_hash", block_message_to_process.block_id)
                   ("peer", originating_peer->get_remote_endpoint())("id", message_hash));
@@ -3413,8 +3375,7 @@ namespace graphene { namespace net {
         }
         else
         {
-          fc_ilog(fc::logger::get("sync"),
-                  "p2p NOT pushing block #${block_num} ${block_hash} from ${peer} because we recently pushed it",
+          ilog("p2p NOT pushing block #${block_num} ${block_hash} from ${peer} because we recently pushed it",
                   ("block_num", block_message_to_process.block.block_num())
                   ("block_hash", block_message_to_process.block_id)
                   ("peer", originating_peer->get_remote_endpoint())("id", message_hash));
@@ -3460,9 +3421,7 @@ namespace graphene { namespace net {
                   next_fork_block_number <= block_number)
               {
                 peers_to_disconnect.insert(peer);
-#ifdef ENABLE_DEBUG_ULOGS
-                ulog("Disconnecting from peer because their version is too old.  Their version date: ${date}", ("date", peer->graphene_git_revision_unix_timestamp));
-#endif
+                wlog("Disconnecting from peer because their version is too old.  Their version date: ${date}", ("date", peer->graphene_git_revision_unix_timestamp));
               }
             }
           }
@@ -4569,7 +4528,7 @@ namespace graphene { namespace net {
                 error_message_stream << "\nStill waiting for port " << listen_endpoint.port() << " to become available\n";
               }
               std::string error_message = error_message_stream.str();
-              ulog(error_message);
+              elog(error_message);
               _delegate->error_encountered( error_message, fc::oexception() );
               fc::usleep( fc::seconds(GRAPHENE_NET_PORT_WAIT_DELAY_SECONDS) );
             }
@@ -4711,7 +4670,7 @@ namespace graphene { namespace net {
       _handshaking_connections.erase(peer);
       _closing_connections.erase(peer);
       _terminating_connections.erase(peer);
-      fc_ilog(fc::logger::get("sync"), "New peer is connected (${peer}), now ${count} active peers",
+      ilog("New peer is connected (${peer}), now ${count} active peers",
               ("peer", peer->get_remote_endpoint())
               ("count", _active_connections.size()));
     }
@@ -4723,7 +4682,7 @@ namespace graphene { namespace net {
       _handshaking_connections.erase(peer);
       _closing_connections.insert(peer);
       _terminating_connections.erase(peer);
-      fc_ilog(fc::logger::get("sync"), "Peer connection closing (${peer}), now ${count} active peers",
+      ilog("Peer connection closing (${peer}), now ${count} active peers",
               ("peer", peer->get_remote_endpoint())
               ("count", _active_connections.size()));
     }
@@ -4735,7 +4694,7 @@ namespace graphene { namespace net {
       _handshaking_connections.erase(peer);
       _closing_connections.erase(peer);
       _terminating_connections.insert(peer);
-      fc_ilog(fc::logger::get("sync"), "Peer connection terminating (${peer}), now ${count} active peers",
+      ilog("Peer connection terminating (${peer}), now ${count} active peers",
               ("peer", peer->get_remote_endpoint())
               ("count", _active_connections.size()));
     }
@@ -4743,44 +4702,44 @@ namespace graphene { namespace net {
     void node_impl::dump_node_status()
     {
       VERIFY_CORRECT_THREAD();
-      ilog( "----------------- PEER STATUS UPDATE --------------------" );
-      ilog( " number of peers: ${active} active, ${handshaking}, ${closing} closing.  attempting to maintain ${desired} - ${maximum} peers",
+      dlog( "----------------- PEER STATUS UPDATE --------------------" );
+      dlog( " number of peers: ${active} active, ${handshaking}, ${closing} closing.  attempting to maintain ${desired} - ${maximum} peers",
            ( "active", _active_connections.size() )("handshaking", _handshaking_connections.size() )("closing",_closing_connections.size() )
            ( "desired", _node_configuration.desired_number_of_connections )("maximum", _node_configuration.maximum_number_of_connections ) );
       for( const peer_connection_ptr& peer : _active_connections )
       {
-        ilog( "       active peer ${endpoint} peer_is_in_sync_with_us:${in_sync_with_us} we_are_in_sync_with_peer:${in_sync_with_them}",
+        dlog( "       active peer ${endpoint} peer_is_in_sync_with_us:${in_sync_with_us} we_are_in_sync_with_peer:${in_sync_with_them}",
              ( "endpoint", peer->get_remote_endpoint() )
              ( "in_sync_with_us", !peer->peer_needs_sync_items_from_us )("in_sync_with_them", !peer->we_need_sync_items_from_peer ) );
         if( peer->we_need_sync_items_from_peer )
-          ilog( "              above peer has ${count} sync items we might need", ("count", peer->ids_of_items_to_get.size() ) );
+          dlog( "              above peer has ${count} sync items we might need", ("count", peer->ids_of_items_to_get.size() ) );
         if (peer->inhibit_fetching_sync_blocks)
-          ilog( "              we are not fetching sync blocks from the above peer (inhibit_fetching_sync_blocks == true)" );
+          dlog( "              we are not fetching sync blocks from the above peer (inhibit_fetching_sync_blocks == true)" );
 
       }
       for( const peer_connection_ptr& peer : _handshaking_connections )
       {
-        ilog( "  handshaking peer ${endpoint} in state ours(${our_state}) theirs(${their_state})",
+        dlog( "  handshaking peer ${endpoint} in state ours(${our_state}) theirs(${their_state})",
              ( "endpoint", peer->get_remote_endpoint() )("our_state", peer->our_state )("their_state", peer->their_state ) );
       }
 
-      ilog( "--------- MEMORY USAGE ------------" );
-      ilog( "node._active_sync_requests size: ${size}", ("size", _active_sync_requests.size() ) );
-      ilog( "node._received_sync_items size: ${size}", ("size", _received_sync_items.size() ) );
-      ilog( "node._new_received_sync_items size: ${size}", ("size", _new_received_sync_items.size() ) );
-      ilog( "node._items_to_fetch size: ${size}", ("size", _items_to_fetch.size() ) );
-      ilog( "node._new_inventory size: ${size}", ("size", _new_inventory.size() ) );
-      ilog( "node._message_cache size: ${size}", ("size", _message_cache.size() ) );
+      dlog( "--------- MEMORY USAGE ------------" );
+      dlog( "node._active_sync_requests size: ${size}", ("size", _active_sync_requests.size() ) );
+      dlog( "node._received_sync_items size: ${size}", ("size", _received_sync_items.size() ) );
+      dlog( "node._new_received_sync_items size: ${size}", ("size", _new_received_sync_items.size() ) );
+      dlog( "node._items_to_fetch size: ${size}", ("size", _items_to_fetch.size() ) );
+      dlog( "node._new_inventory size: ${size}", ("size", _new_inventory.size() ) );
+      dlog( "node._message_cache size: ${size}", ("size", _message_cache.size() ) );
       for( const peer_connection_ptr& peer : _active_connections )
       {
-        ilog( "  peer ${endpoint}", ("endpoint", peer->get_remote_endpoint() ) );
-        ilog( "    peer.ids_of_items_to_get size: ${size}", ("size", peer->ids_of_items_to_get.size() ) );
-        ilog( "    peer.inventory_peer_advertised_to_us size: ${size}", ("size", peer->inventory_peer_advertised_to_us.size() ) );
-        ilog( "    peer.inventory_advertised_to_peer size: ${size}", ("size", peer->inventory_advertised_to_peer.size() ) );
-        ilog( "    peer.items_requested_from_peer size: ${size}", ("size", peer->items_requested_from_peer.size() ) );
-        ilog( "    peer.sync_items_requested_from_peer size: ${size}", ("size", peer->sync_items_requested_from_peer.size() ) );
+        dlog( "  peer ${endpoint}", ("endpoint", peer->get_remote_endpoint() ) );
+        dlog( "    peer.ids_of_items_to_get size: ${size}", ("size", peer->ids_of_items_to_get.size() ) );
+        dlog( "    peer.inventory_peer_advertised_to_us size: ${size}", ("size", peer->inventory_peer_advertised_to_us.size() ) );
+        dlog( "    peer.inventory_advertised_to_peer size: ${size}", ("size", peer->inventory_advertised_to_peer.size() ) );
+        dlog( "    peer.items_requested_from_peer size: ${size}", ("size", peer->items_requested_from_peer.size() ) );
+        dlog( "    peer.sync_items_requested_from_peer size: ${size}", ("size", peer->sync_items_requested_from_peer.size() ) );
       }
-      ilog( "--------- END MEMORY USAGE ------------" );
+      dlog( "--------- END MEMORY USAGE ------------" );
     }
 
     void node_impl::disconnect_from_peer( peer_connection* peer_to_disconnect,

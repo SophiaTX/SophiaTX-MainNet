@@ -8,7 +8,7 @@
 // Every symbol defined here needs to be handled appropriately in get_config.cpp
 // This is checked by get_config_check.sh called from Dockerfile
 
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 1, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 2, 0) )
 
 
 #ifdef IS_TEST_NET

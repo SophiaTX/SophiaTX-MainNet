@@ -222,15 +222,17 @@ void chain_plugin_full::set_program_options(options_description& cli, options_de
          ("checkpoint,c", bpo::value<vector<string>>()->composing(), "Pairs of [BLOCK_NUM,BLOCK_ID] that should be enforced as checkpoints.")
          ("flush-state-interval", bpo::value<uint32_t>(),
             "flush shared memory changes to disk every N blocks")
+         ;
+   cli.add_options()
+         ("replay-blockchain", bpo::bool_switch()->default_value(false), "clear chain database and replay all blocks" )
+         ("resync-blockchain", bpo::bool_switch()->default_value(false), "clear chain database and block log" )
+         ("stop-replay-at-block", bpo::value<uint32_t>(), "Stop and exit after reaching given block number")
+         ("set-benchmark-interval", bpo::value<uint32_t>(), "Print time and memory usage every given number of blocks")
+         ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
          ("check-locks", bpo::bool_switch()->default_value(false), "Check correctness of chainbase locking" )
          ("validate-database-invariants", bpo::bool_switch()->default_value(false), "Validate all supply invariants check out" )
          ("initminer-mining-pubkey", bpo::value<std::string>(), "initminer public key for mining. Used only for private nets.")
          ("initminer-account-pubkey", bpo::value<std::string>(), "initminer public key for account operations. Used only for private nets.")
-         ("set-benchmark-interval", bpo::value<uint32_t>(), "Print time and memory usage every given number of blocks")
-         ("dump-memory-details", bpo::bool_switch()->default_value(false), "Dump database objects memory usage info. Use set-benchmark-interval to set dump interval.")
-         ("replay-blockchain", bpo::bool_switch()->default_value(false), "clear chain database and replay all blocks" )
-         ("resync-blockchain", bpo::bool_switch()->default_value(false), "clear chain database and block log" )
-         ("stop-replay-at-block", bpo::value<uint32_t>(), "Stop and exit after reaching given block number")
          ;
 }
 
@@ -258,19 +260,19 @@ void chain_plugin_full::plugin_initialize(const variables_map& options) {
 
         if( (private_net && options.count("initminer-account-pubkey")) ||
             (private_net && options.count("genesis-json") == 0 ) ){
-           genesis_state_type genesis;
-           genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
-           genesis.initial_balace = 0;
-           genesis.initial_public_key = options.count("initminer-account-pubkey") ?
-                   public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >()) :
-                   public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
-           genesis.is_private_net = true;
+            genesis_state_type genesis;
+            genesis.genesis_time = time_point_sec::from_iso_string("2018-01-01T08:00:00");
+            genesis.initial_balace = 0;
+            genesis.initial_public_key = options.count("initminer-account-pubkey") ?
+                                       public_key_type(options.at( "initminer-account-pubkey" ).as< std::string >()) :
+                                       public_key_type(options.at( "initminer-mining-pubkey" ).as< std::string >());
+            genesis.is_private_net = true;
 
-           fc::sha256::encoder enc;
-           fc::raw::pack( enc, genesis );
-           genesis.initial_chain_id = enc.result();
+            fc::sha256::encoder enc;
+            fc::raw::pack( enc, genesis );
+            genesis.initial_chain_id = enc.result();
 
-           return genesis;
+            return genesis;
         }
 
         if( options.count("genesis-json") )
@@ -331,12 +333,12 @@ void chain_plugin_full::plugin_startup()
 
    chain_id_type chain_id = genesis.compute_chain_id();
 
-   shared_memory_dir = app_factory().data_dir / chain_id.str() / "blockchain";
+   shared_memory_dir = app().data_dir() / chain_id.str() / "blockchain";
 
    // correct directories, TODO can be removed after next HF2
-   if( ! genesis.is_private_net && bfs::exists( app_factory().data_dir / "blockchain" ) ){
+   if( ! genesis.is_private_net && bfs::exists( app().data_dir() / "blockchain" ) ){
       bfs::create_directories ( shared_memory_dir );
-      bfs::rename( app_factory().data_dir / "blockchain", shared_memory_dir );
+      bfs::rename( app().data_dir() / "blockchain", shared_memory_dir );
    }
 
    ilog("Starting node with chain id ${i}", ("i", chain_id));
@@ -435,7 +437,7 @@ void chain_plugin_full::plugin_startup()
       if( stop_replay_at > 0 && stop_replay_at == last_block_number )
       {
          ilog("Stopped blockchain replaying on user request. Last applied block number: ${n}.", ("n", last_block_number));
-         app()->quit();
+         appbase::app().quit();
          return;
       }
    }

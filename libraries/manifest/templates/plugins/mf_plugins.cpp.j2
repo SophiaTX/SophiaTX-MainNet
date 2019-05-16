@@ -12,7 +12,7 @@ namespace sophiatx { namespace plugins {
 void register_plugins()
 {
    {% for plugin in plugins %}
-   appbase::app_factory().register_plugin_factory< sophiatx::plugins::{{ plugin["plugin_namespace"] }}::{{ plugin["plugin_name" ] }}_plugin >();
+   appbase::app().register_plugin< sophiatx::plugins::{{ plugin["plugin_namespace"] }}::{{ plugin["plugin_name" ] }}_plugin >();
    {% endfor %}
 }
 

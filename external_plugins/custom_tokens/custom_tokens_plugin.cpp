@@ -21,7 +21,7 @@ namespace detail {
 class custom_tokens_plugin_impl {
 public:
    custom_tokens_plugin_impl(custom_tokens_plugin &_plugin) :
-         db_(_plugin.app()->get_plugin<sophiatx::plugins::chain::chain_plugin>().db()),
+         db_(appbase::app().get_plugin<sophiatx::plugins::chain::chain_plugin>().db()),
          self_(_plugin),
          app_id_(_plugin.app_id_) {}
 
@@ -346,7 +346,7 @@ void custom_tokens_plugin::plugin_initialize(const boost::program_options::varia
 
    try {
       ilog("Initializing custom_tokens_plugin_impl plugin");
-      auto &db = app()->get_plugin<sophiatx::plugins::chain::chain_plugin>().db();
+      auto &db = app().get_plugin<sophiatx::plugins::chain::chain_plugin>().db();
 
       my_->post_apply_connection = db->post_apply_operation.connect(0, [ & ](const operation_notification &o) {
            my_->post_operation(o);

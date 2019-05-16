@@ -102,22 +102,6 @@ variant websocket_api_connection::send_call(
    return _rpc_state.wait_for_response( *req.id );
 }
 
-variant websocket_api_connection::send_call(
-      string network_name,
-      string api_name,
-      string method_name,
-      variant args )
-{
-
-   request req;
-   // Call arguments are forwarded as json object {"par1_name":par1_value, ...}
-   FC_ASSERT(args.is_object(), "There must be only 1 call argument, which is formatted as object");
-   req = _rpc_state.start_remote_call(  "call", {std::move(network_name), std::move(api_name), std::move(method_name), std::move(args) } );
-
-   _connection.send_message( fc::json::to_string(req) );
-   return _rpc_state.wait_for_response( *req.id );
-}
-
 variant websocket_api_connection::send_callback(
    uint64_t callback_id,
    variants args /* = variants() */ )

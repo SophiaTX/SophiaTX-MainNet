@@ -1616,7 +1616,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         elog( "Processing ${n} genesis hardforks", ("n", n) );
+         wlog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();
@@ -2378,6 +2378,10 @@ void database::init_hardforks()
    _hardfork_times[ SOPHIATX_HARDFORK_1_1 ] = fc::time_point_sec( SOPHIATX_HARDFORK_1_1_TIME );
    _hardfork_versions[ SOPHIATX_HARDFORK_1_1 ] = SOPHIATX_HARDFORK_1_1_VERSION;
 
+   FC_ASSERT( SOPHIATX_HARDFORK_1_2 == 2, "Invalid hardfork configuration" );
+   _hardfork_times[ SOPHIATX_HARDFORK_1_2 ] = fc::time_point_sec( SOPHIATX_HARDFORK_1_2_TIME );
+   _hardfork_versions[ SOPHIATX_HARDFORK_1_2 ] = SOPHIATX_HARDFORK_1_2_VERSION;
+
    const auto& hardforks = get_hardfork_property_object();
    FC_ASSERT( hardforks.last_hardfork <= SOPHIATX_NUM_HARDFORKS, "Chain knows of more hardforks than configuration", ("hardforks.last_hardfork",hardforks.last_hardfork)("SOPHIATX_NUM_HARDFORKS",SOPHIATX_NUM_HARDFORKS) );
    FC_ASSERT( _hardfork_versions[ hardforks.last_hardfork ] <= SOPHIATX_BLOCKCHAIN_VERSION, "Blockchain version is older than last applied hardfork" );
@@ -2435,6 +2439,8 @@ void database::apply_hardfork( uint32_t hardfork )
    {
       case SOPHIATX_HARDFORK_1_1:
          recalculate_all_votes();
+         break;
+      case SOPHIATX_HARDFORK_1_2:
          break;
       default:
          break;
