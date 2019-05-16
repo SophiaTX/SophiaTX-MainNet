@@ -57,7 +57,9 @@ private:
 
 #define STR(x) #x
 #define STRINGIFY(x) STR(x)
-#define LOCATION "[" __FILE__ ":" STRINGIFY(__LINE__) "] --"
+#define __FILENAME__ ( strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__ )
+
+#define LOCATION "[" + std::string(__FILENAME__) + ":" + STRINGIFY(__LINE__) + "] --"
 
 //Usage: ilog( "Format four: ${arg}  five: ${five}", ("arg",4)("five",5) );
 #define dlog( FORMAT, ... ) fc::Logger::getInstance()->debug( LOCATION, FC_LOG_MESSAGE_( FORMAT, __VA_ARGS__ ).get_message() )
