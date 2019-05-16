@@ -1614,7 +1614,7 @@ void database::_apply_block( const signed_block& next_block )
 
       if( n > 0 )
       {
-         elog( "Processing ${n} genesis hardforks", ("n", n) );
+         wlog( "Processing ${n} genesis hardforks", ("n", n) );
          set_hardfork( n, true );
 
          const hardfork_property_object& hardfork_state = get_hardfork_property_object();

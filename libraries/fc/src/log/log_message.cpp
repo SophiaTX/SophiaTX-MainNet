@@ -185,6 +185,13 @@ namespace fc
       my->args    = std::move(args);
    }
 
+   log_message::log_message( std::string format, variant_object args )
+   :my( std::make_shared<detail::log_message_impl>() )
+   {
+      my->format  = std::move(format);
+      my->args    = std::move(args);
+   }
+
    log_message::log_message( const variant& v )
    :my( std::make_shared<detail::log_message_impl>( log_context( v.get_object()["context"] ) ) )
    {

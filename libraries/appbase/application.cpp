@@ -62,6 +62,11 @@ void application::set_program_options()
    options_description app_cli_opts( "Application Command Line Options" );
    app_cfg_opts.add_options()
          ("plugin", bpo::value< vector<string> >()->composing(), "Plugin(s) to enable, may be specified multiple times");
+   app_cfg_opts.add_options()
+         ("backtrace", bpo::value< string >()->default_value( "yes" ), "Whether to print backtrace on SIGSEGV" );
+   app_cfg_opts.add_options()
+         ("log-level", bpo::value< string >()->default_value( "info" ), "Log level. Possible values: debug, info, notice, warning, error, critical, alert, emergency. For monitoring to work, min. level is notice !" );
+
 
    app_cfg_opts.add_options()
          ("external-plugins-dir", bpo::value<bfs::path>()->default_value( "external-plugins" ), "Directory containing external/runtime-loadable plugins binaries (absolute path or relative to the program option data-dir/)");
@@ -212,8 +217,8 @@ void fix_deprecated_data_folder_structure(const bfs::path& actual_data_dir,
    }
 }
 
-bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*> autostart_plugins)
-{
+
+bool application::load_config( int argc, char** argv ) {
    try
    {
       set_program_options();
@@ -253,9 +258,21 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
 
       // Copies parameters from config_file into my->_args
       bpo::store(bpo::parse_config_file< char >( config_file_path.make_preferred().string().c_str(),
-                                             my->_cfg_options, true ), my->_args );
+                                                 my->_cfg_options, true ), my->_args );
 
+      return true;
+   }
+   catch (const boost::program_options::error& e)
+   {
+      std::cerr << "Error parsing command line: " << e.what() << "\n";
+      return false;
+   }
+}
 
+bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*> autostart_plugins)
+{
+   try
+   {
       if(my->_args.count("plugin") > 0)
       {
          auto plugins = my->_args.at("plugin").as<std::vector<std::string>>();
@@ -263,8 +280,9 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
          {
             vector<string> names;
             boost::split(names, arg, boost::is_any_of(" \t,"));
-            for(const std::string& name : names)
+            for(const std::string& name : names) {
                get_plugin(name).initialize(my->_args);
+            }
          }
       }
 
@@ -273,9 +291,10 @@ bool application::initialize_impl(int argc, char** argv, vector<abstract_plugin*
          return false;
       }
 
-      for (const auto& plugin : autostart_plugins)
+      for (const auto& plugin : autostart_plugins) {
          if (plugin != nullptr && plugin->get_state() == abstract_plugin::registered)
             plugin->initialize(my->_args);
+      }
 
       bpo::notify(my->_args);
 

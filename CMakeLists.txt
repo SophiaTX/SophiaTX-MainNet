@@ -287,6 +287,7 @@ endif(BUILD_PIC)
 add_subdirectory( programs )
 add_subdirectory( tests )
 
+
 if (ENABLE_INSTALLER)
 
 set(VERSION_MAJOR 1)

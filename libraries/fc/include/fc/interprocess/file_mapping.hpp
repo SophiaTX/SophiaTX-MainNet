@@ -24,7 +24,7 @@ namespace fc {
     #ifdef _WIN64
       fc::fwd<boost::interprocess::file_mapping,0x38> my;
     #else
-      fc::fwd<boost::interprocess::file_mapping,0x24> my;
+      fc::fwd<boost::interprocess::file_mapping,0x28> my;
     #endif
   };
 

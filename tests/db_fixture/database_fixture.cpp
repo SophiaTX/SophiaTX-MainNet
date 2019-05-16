@@ -13,12 +13,14 @@
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
+#include <fc/log/logger.hpp>
 
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 
 #include "database_fixture.hpp"
+
 
 uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP = 1431700000;
 
@@ -51,8 +53,11 @@ clean_database_fixture::clean_database_fixture()
    appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
    db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+   appbase::app().load_config(argc, argv);
 
+   fc::Logger::init("sophiatx","error");
    db_plugin->logging = false;
+
    appbase::app().initialize<
       sophiatx::plugins::chain::chain_plugin_full,
       sophiatx::plugins::account_history::account_history_plugin,
@@ -109,7 +114,7 @@ clean_database_fixture::~clean_database_fixture()
 { try {
    // If we're unwinding due to an exception, don't do any more checks.
    // This way, boost test's last checkpoint tells us approximately where the error was.
-   if( !std::uncaught_exception() )
+   if( !std::uncaught_exceptions() )
    {
       BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
    }
@@ -193,8 +198,11 @@ private_database_fixture::private_database_fixture()
       appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
       appbase::app().register_plugin< sophiatx::plugins::witness::witness_plugin >();
+      appbase::app().load_config(argc, argv);
 
       db_plugin->logging = false;
+      fc::Logger::init("sophiatx","error");
+
       appbase::app().initialize<
             sophiatx::plugins::chain::chain_plugin_full,
             sophiatx::plugins::account_history::account_history_plugin,
@@ -254,7 +262,7 @@ private_database_fixture::~private_database_fixture()
    try {
       // If we're unwinding due to an exception, don't do any more checks.
       // This way, boost test's last checkpoint tells us approximately where the error was.
-      if( !std::uncaught_exception() )
+      if( !std::uncaught_exceptions() )
       {
          BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
       }
@@ -280,7 +288,9 @@ live_database_fixture::live_database_fixture()
       appbase::app().register_plugin<sophiatx::plugins::chain::chain_plugin_full>();
       appbase::app().register_plugin< sophiatx::plugins::account_history::account_history_plugin >();
       db_plugin = &appbase::app().register_plugin< sophiatx::plugins::debug_node::debug_node_plugin >();
+      appbase::app().load_config(argc, argv);
 
+      fc::Logger::init("sophiatx","error");
       appbase::app().initialize<
          sophiatx::plugins::chain::chain_plugin_full,
          sophiatx::plugins::account_history::account_history_plugin, sophiatx::plugins::debug_node::debug_node_plugin
@@ -311,7 +321,7 @@ live_database_fixture::~live_database_fixture()
    {
       // If we're unwinding due to an exception, don't do any more checks.
       // This way, boost test's last checkpoint tells us approximately where the error was.
-      if( !std::uncaught_exception() )
+      if( !std::uncaught_exceptions() )
       {
          BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
       }
@@ -701,8 +711,10 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::witness::witness_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >();
+   appbase::app().load_config(argc, argv);
 
    db_plugin->logging = false;
+   fc::Logger::init("sophiatx","error");
    appbase::app().initialize<
       sophiatx::plugins::chain::chain_plugin_full,
       sophiatx::plugins::account_history::account_history_plugin,
@@ -714,6 +726,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
       sophiatx::plugins::witness::witness_api_plugin,
       sophiatx::plugins::alexandria_api::alexandria_api_plugin
       >( argc, argv );
+   appbase::app().load_config(argc, argv);
 
 
    appbase::app().get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
@@ -763,7 +776,7 @@ json_rpc_database_fixture::~json_rpc_database_fixture()
 { try {
    // If we're unwinding due to an exception, don't do any more checks.
    // This way, boost test's last checkpoint tells us approximately where the error was.
-   if( !std::uncaught_exception() )
+   if( !std::uncaught_exceptions() )
    {
       BOOST_CHECK( db->node_properties().skip_flags == database_interface::skip_nothing );
    }

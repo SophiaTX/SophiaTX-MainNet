@@ -2,7 +2,7 @@
 //#include <sophiatx/chain/generic_custom_operation_interpreter.hpp>
 //#include <sophiatx/chain/account_object.hpp>
 //
-//#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 //
 //#include "../db_fixture/database_fixture.hpp"
 //

@@ -1,6 +1,5 @@
 #pragma once
 #include <fc/crypto/sha256.hpp>
-#include <fc/vector.hpp>
 
 namespace fc { namespace equihash {
 

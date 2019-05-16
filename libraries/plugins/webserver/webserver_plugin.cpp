@@ -3,7 +3,6 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 
 #include <fc/network/ip.hpp>
-#include <fc/log/logger_config.hpp>
 #include <fc/io/json.hpp>
 #include <fc/network/resolve.hpp>
 #include <fc/crypto/openssl.hpp>

@@ -66,6 +66,8 @@ public:
    void start_write_processing();
    void stop_write_processing();
 
+   const genesis_state_type& get_genesis() const { return genesis; }
+
 private:
    bool                             replay = false;
    bool                             check_locks = false;

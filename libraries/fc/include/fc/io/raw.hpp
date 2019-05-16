@@ -46,7 +46,7 @@ namespace fc {
        fc::raw::unpack( s, what, depth );
        fc::raw::unpack( s, msgs, depth );
 
-       e = fc::exception( fc::move(msgs), code, name, what );
+       e = fc::exception( std::move(msgs), code, name, what );
     }
 
     template<typename Stream>

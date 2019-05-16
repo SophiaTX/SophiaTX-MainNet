@@ -6,7 +6,7 @@
 #include <sstream>
 #include <experimental/optional>
 
-namespace sophiatx { namespace utilities {
+namespace fc {
 
 class SysLogger {
 public:
@@ -210,6 +210,8 @@ private:
    std::experimental::optional<std::string> msg_prefix_;
 };
 
-}}
+
+
+}
 
 #endif //SOPHIATX_SYSLOGGER_HPP

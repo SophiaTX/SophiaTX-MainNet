@@ -5,7 +5,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <fc/log/logger_config.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/macros.hpp>
 #include <fc/io/fstream.hpp>

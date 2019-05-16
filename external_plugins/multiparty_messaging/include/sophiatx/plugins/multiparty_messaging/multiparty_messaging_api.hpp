@@ -7,7 +7,6 @@
 
 #include <fc/optional.hpp>
 #include <fc/variant.hpp>
-#include <fc/vector.hpp>
 
 namespace sophiatx { namespace plugins { namespace multiparty_messaging {
 
@@ -30,7 +29,7 @@ public:
 
    string description;
 
-   vector < account_name_type > members;
+   std::vector < account_name_type > members;
    account_name_type admin;
 
    fc::sha256 group_key;
@@ -49,8 +48,8 @@ public:
    account_name_type group_name;
    uint32_t          sequence;
    account_name_type sender;
-   vector < account_name_type > recipients;
-   vector<char>      data;
+   std::vector < account_name_type > recipients;
+   std::vector<char>      data;
    bool system_message = false;
 };
 
@@ -82,7 +81,7 @@ struct list_messages_args{
 typedef vector<api_message_object> list_messages_return;
 
 struct create_group_args{
-   vector<account_name_type> members;
+   std::vector<account_name_type> members;
    string description;
    account_name_type admin;
 };
@@ -94,7 +93,7 @@ struct create_group_return{
 
 struct add_group_participants_args{
    account_name_type group_name;
-   vector<account_name_type> new_members;
+   std::vector<account_name_type> new_members;
    account_name_type admin;
    bool check_members;
 };
@@ -103,7 +102,7 @@ typedef std::map<account_name_type, group_meta> add_group_participants_return;
 
 struct delete_group_participants_args{
    account_name_type group_name;
-   vector<account_name_type> deleted_members;
+   std::vector<account_name_type> deleted_members;
    account_name_type admin;
    bool check_members;
 };
@@ -128,7 +127,7 @@ typedef std::map<account_name_type, group_meta> disband_group_return;
 struct send_group_message_args{
    account_name_type group_name;
    account_name_type sender;
-   vector<char> data;
+   std::vector<char> data;
 };
 
 typedef std::map<account_name_type, group_meta> send_group_message_return;

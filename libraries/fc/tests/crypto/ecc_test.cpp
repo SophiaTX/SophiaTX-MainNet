@@ -109,7 +109,8 @@ int main( int argc, char** argv )
    } 
    catch ( const fc::exception& e )
    {
-      edump( (e.to_detail_string()) );
+
+      std::cerr << e.to_detail_string() << std::endl;
    }
    }
 

@@ -94,21 +94,21 @@ namespace fc { namespace raw {
          {
             fc::string val;
             raw::unpack(s,val,depth);
-            v = fc::move(val);
+            v = std::move(val);
             return;
          }
          case variant::array_type:
          {
             variants val;
             raw::unpack(s,val,depth);
-            v = fc::move(val);
+            v = std::move(val);
             return;
          }
          case variant::object_type:
          {
             variant_object val; 
             raw::unpack(s,val,depth);
-            v = fc::move(val);
+            v = std::move(val);
             return;
          }
          default:
@@ -142,9 +142,9 @@ namespace fc { namespace raw {
           fc::variant value;
           fc::raw::unpack(s,key, depth);
           fc::raw::unpack(s,value, depth);
-          mvo.set( fc::move(key), fc::move(value) );
+          mvo.set( std::move(key), std::move(value) );
        }
-       v = fc::move(mvo);
+       v = std::move(mvo);
     }
 
 } } // fc::raw
