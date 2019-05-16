@@ -8,7 +8,7 @@
 // Every symbol defined here needs to be handled appropriately in get_config.cpp
 // This is checked by get_config_check.sh called from Dockerfile
 
-#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 1, 0) )
+#define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 2, 0) )
 
 
 #ifdef IS_TEST_NET
@@ -128,10 +128,12 @@
 #define SOPHIATX_MINER_PAY_PERCENT               (SOPHIATX_1_PERCENT) // 1%
 #define SOPHIATX_MAX_RATION_DECAY_RATE           (1000000)
 
-#define SOPHIATX_BANDWIDTH_AVERAGE_WINDOW_SECONDS (60*60*24*7) ///< 1 week
-#define SOPHIATX_BANDWIDTH_PRECISION             (uint64_t(1000000)) ///< 1 million
-
-#define SOPHIATX_MAX_RESERVE_RATIO               (20000)
+// bandwidth and total operations num counters are reset to zero every SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
+#define SOPHIATX_LIMIT_BANDWIDTH_BLOCKS          51      // one round (153 seconds)
+// max allowed fee-free operations bandwidth [Bytes] per account
+#define SOPHIATX_MAX_ALLOWED_BANDWIDTH           51000   // [Bytes]
+// max allowed fee-free operations count per account
+#define SOPHIATX_MAX_ALLOWED_OPS_COUNT           102     // [count]
 
 #define SOPHIATX_CREATE_ACCOUNT_DELEGATION_RATIO    5
 #define SOPHIATX_CREATE_ACCOUNT_DELEGATION_TIME     fc::days(30)

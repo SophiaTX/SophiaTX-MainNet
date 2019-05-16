@@ -58,7 +58,8 @@ enum object_type
    application_object_type,
    account_fee_sponsor_object_type,
    application_buying_object_type,
-   hybrid_db_property_object_type
+   hybrid_db_property_object_type,
+   account_bandwidth_object_type
 };
 
 class dynamic_global_property_object;
@@ -84,6 +85,7 @@ class application_object;
 class account_fee_sponsor_object;
 class application_buying_object;
 class hybrid_db_property_object;
+class account_bandwidth_object;
 
 
 typedef oid< dynamic_global_property_object         > dynamic_global_property_id_type;
@@ -109,14 +111,8 @@ typedef oid< application_object                     > application_id_type;
 typedef oid< account_fee_sponsor_object             > account_fee_sponsor_id_type;
 typedef oid< application_buying_object              > application_buying_id_type;
 typedef oid< hybrid_db_property_object              > hybrid_db_property_object_id_type;
+typedef oid< account_bandwidth_object               > account_bandwidth_object_id_type;
 
-
-enum bandwidth_type
-{
-   post,    ///< Rate limiting posting reward eligibility over time
-   forum,   ///< Rate limiting for all forum related actins
-   market   ///< Rate limiting for all other actions
-};
 
 } } //sophiatx::chain
 
@@ -184,8 +180,7 @@ FC_REFLECT_ENUM( sophiatx::chain::object_type,
                  (account_fee_sponsor_object_type)
                  (application_buying_object_type)
                  (hybrid_db_property_object_type)
+                 (account_bandwidth_object_type)
                )
 
 FC_REFLECT_TYPENAME( sophiatx::chain::shared_string )
-
-FC_REFLECT_ENUM( sophiatx::chain::bandwidth_type, (post)(forum)(market) )

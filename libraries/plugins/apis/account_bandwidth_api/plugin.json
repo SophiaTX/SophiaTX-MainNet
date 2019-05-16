@@ -1,0 +1,5 @@
+{
+   "plugin_name": "account_bandwidth_api",
+   "plugin_namespace": "account_bandwidth_api",
+   "plugin_project": "account_bandwidth_api_plugin"
+}

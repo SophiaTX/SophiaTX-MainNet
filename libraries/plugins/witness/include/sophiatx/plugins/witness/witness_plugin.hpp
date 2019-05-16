@@ -7,9 +7,6 @@
 
 #define SOPHIATX_WITNESS_PLUGIN_NAME "witness"
 
-#define RESERVE_RATIO_PRECISION ((int64_t)10000)
-#define RESERVE_RATIO_MIN_INCREMENT ((int64_t)5000)
-
 namespace sophiatx { namespace plugins { namespace witness {
 
 namespace detail { class witness_plugin_impl; }

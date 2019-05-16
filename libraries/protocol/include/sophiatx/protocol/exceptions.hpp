@@ -18,6 +18,7 @@ namespace sophiatx { namespace protocol {
    FC_DECLARE_DERIVED_EXCEPTION( tx_missing_other_auth,             sophiatx::protocol::transaction_exception, 3040000, "missing required other authority" )
    FC_DECLARE_DERIVED_EXCEPTION( tx_irrelevant_sig,                 sophiatx::protocol::transaction_exception, 3050000, "irrelevant signature included" )
    FC_DECLARE_DERIVED_EXCEPTION( tx_duplicate_sig,                  sophiatx::protocol::transaction_exception, 3060000, "duplicate signature included" )
+   FC_DECLARE_DERIVED_EXCEPTION( tx_exceeded_bandwidth,             sophiatx::protocol::transaction_exception, 3070000, "exceeded fee-free ops max. allowed bandwidth" )
 
    #define SOPHIATX_RECODE_EXC( cause_type, effect_type ) \
       catch( const cause_type& e ) \

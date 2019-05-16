@@ -4,6 +4,7 @@
 #include <sophiatx/plugins/block_api/block_api_objects.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_objects.hpp>
 #include <sophiatx/plugins/database_api/database_api_objects.hpp>
+#include <sophiatx/chain/account_bandwidth_object.hpp>
 #include <sophiatx/plugins/custom_api/custom_api.hpp>  //TODO: separate custom_api_objects
 
 #include <sophiatx/chain/sophiatx_object_types.hpp>
@@ -259,7 +260,6 @@ struct extended_account : public api_account_object
    set< string >                           witness_votes;
    /// posts recommened for this user
 };
-
 
 struct extended_dynamic_global_properties
 {

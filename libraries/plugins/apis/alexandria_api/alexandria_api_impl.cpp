@@ -58,12 +58,12 @@ void alexandria_api_impl::set_network_broadcast_api(const shared_ptr<network_bro
    _network_broadcast_api = network_broadcast_api;
 }
 
-const shared_ptr<witness::witness_api> &alexandria_api_impl::get_witness_api() const {
-   return _witness_api;
+const shared_ptr<account_bandwidth_api::account_bandwidth_api>& alexandria_api_impl::get_account_bandwidth_api() const {
+   return _account_bandwidth_api;
 }
 
-void alexandria_api_impl::set_witness_api(const shared_ptr<witness::witness_api> &witness_api) {
-   _witness_api = witness_api;
+void alexandria_api_impl::set_account_bandwidth_api(const shared_ptr<account_bandwidth_api::account_bandwidth_api> &account_bandwidth_api) {
+   _account_bandwidth_api = account_bandwidth_api;
 }
 
 const shared_ptr<custom::custom_api> &alexandria_api_impl::get_custom_api() const {
@@ -541,6 +541,15 @@ DEFINE_API_IMPL(alexandria_api_impl, get_accounts) {
    return result;
 }
 
+DEFINE_API_IMPL(alexandria_api_impl, get_account_bandwidth) {
+   get_account_bandwidth_return result;
+
+   checkApiEnabled(_account_bandwidth_api);
+   result.bandwidth = _account_bandwidth_api->get_account_bandwidth( { args.account } ).bandwidth;
+
+   return result;
+}
+
 DEFINE_API_IMPL(alexandria_api_impl, delete_application)
 {
    delete_application_return result;
@@ -745,7 +754,6 @@ DEFINE_API_IMPL(alexandria_api_impl, broadcast_transaction)
 DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
 {
    checkApiEnabled(_database_api);
-   checkApiEnabled(_witness_api);
 
    //set fees first
    signed_transaction tx;

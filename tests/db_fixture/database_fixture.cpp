@@ -9,7 +9,7 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
-#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
+
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
@@ -709,7 +709,6 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    rpc_plugin = &appbase::app().register_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::witness::witness_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >();
    appbase::app().load_config(argc, argv);
 
@@ -723,11 +722,9 @@ json_rpc_database_fixture::json_rpc_database_fixture()
       sophiatx::plugins::json_rpc::json_rpc_plugin,
       sophiatx::plugins::block_api::block_api_plugin,
       sophiatx::plugins::database_api::database_api_plugin,
-      sophiatx::plugins::witness::witness_api_plugin,
       sophiatx::plugins::alexandria_api::alexandria_api_plugin
       >( argc, argv );
    appbase::app().load_config(argc, argv);
-
 
    appbase::app().get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
 
