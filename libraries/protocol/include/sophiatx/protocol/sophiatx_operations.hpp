@@ -840,10 +840,6 @@ FC_REFLECT_DERIVED( sophiatx::protocol::account_witness_proxy_operation, (sophia
 FC_REFLECT_DERIVED( sophiatx::protocol::custom_operation, (sophiatx::protocol::base_operation), (sender)(recipients)(app_id)(data) )
 FC_REFLECT_DERIVED( sophiatx::protocol::custom_json_operation, (sophiatx::protocol::base_operation), (sender)(recipients)(app_id)(json) )
 FC_REFLECT_DERIVED( sophiatx::protocol::custom_binary_operation, (sophiatx::protocol::base_operation), (sender)(recipients)(app_id)(data) )
-#ifdef SOPHIATX_ENABLE_SMT
-FC_REFLECT( sophiatx::protocol::votable_asset_info_v1, (max_accepted_payout)(allow_curation_rewards) )
-FC_REFLECT( sophiatx::protocol::allowed_vote_assets, (votable_assets) )
-#endif
 
 FC_REFLECT_DERIVED( sophiatx::protocol::escrow_transfer_operation, (sophiatx::protocol::base_operation), (from)(to)(sophiatx_amount)(escrow_id)(agent)(escrow_fee)(json_meta)(ratification_deadline)(escrow_expiration) );
 FC_REFLECT_DERIVED( sophiatx::protocol::escrow_approve_operation, (sophiatx::protocol::base_operation), (from)(to)(agent)(who)(escrow_id)(approve) );
