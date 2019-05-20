@@ -757,21 +757,6 @@ DEFINE_API_IMPL( database_api_impl, get_burned_balance )
    return asset(_db->get_economic_model().burn_pool, SOPHIATX_SYMBOL);
 }
 
-#ifdef SOPHIATX_ENABLE_SMT
-//////////////////////////////////////////////////////////////////////
-//                                                                  //
-// SMT                                                              //
-//                                                                  //
-//////////////////////////////////////////////////////////////////////
-
-DEFINE_API_IMPL( database_api_impl, get_smt_next_identifier )
-{
-   get_smt_next_identifier_return result;
-   result.nais = _db->get_smt_next_identifier();
-   return result;
-}
-#endif
-
 DEFINE_LOCKLESS_APIS( database_api, (get_config) )
 
 DEFINE_READ_APIS( database_api,

@@ -5,7 +5,6 @@
 #include <sophiatx/protocol/operation_util.hpp>
 #include <sophiatx/protocol/sophiatx_operations.hpp>
 #include <sophiatx/protocol/sophiatx_virtual_operations.hpp>
-#include <sophiatx/protocol/smt_operations.hpp>
 
 namespace sophiatx { namespace protocol {
 
