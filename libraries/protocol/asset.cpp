@@ -107,7 +107,17 @@ asset asset::from_string( const std::string& from )
       std::string str_symbol = s.substr( space_pos + 1 );
 
       auto numpart = s.substr( 0, space_pos );
-      auto dvalue = std::stod(numpart);
+      double dvalue = 0.0;
+
+        try
+        {
+           dvalue = boost::lexical_cast<double>(numpart.c_str());
+        }
+        catch( const boost::bad_lexical_cast& e )
+        {
+           FC_THROW_EXCEPTION( fc::parse_error_exception, "Couldn't parse double" );
+        }
+
       auto ivalue = static_cast<int64_t>(round(dvalue * SOPHIATX_SATOSHIS));
 
       FC_ASSERT( ivalue >= 0);
