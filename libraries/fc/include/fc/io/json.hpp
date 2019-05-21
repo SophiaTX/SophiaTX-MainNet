@@ -35,10 +35,10 @@ namespace fc
 
          static variant  from_stream( buffered_istream& in, parse_type ptype = legacy_parser );
 
-         static variant  from_string( const string& utf8_str, parse_type ptype = legacy_parser );
-         static variants variants_from_string( const string& utf8_str, parse_type ptype = legacy_parser );
-         static string   to_string( const variant& v, output_formatting format = stringify_large_ints_and_doubles );
-         static string   to_pretty_string( const variant& v, output_formatting format = stringify_large_ints_and_doubles );
+         static variant  from_string( const std::string& utf8_str, parse_type ptype = legacy_parser );
+         static variants variants_from_string( const std::string& utf8_str, parse_type ptype = legacy_parser );
+         static std::string   to_string( const variant& v, output_formatting format = stringify_large_ints_and_doubles );
+         static std::string   to_pretty_string( const variant& v, output_formatting format = stringify_large_ints_and_doubles );
 
          static bool     is_valid( const std::string& json_str, parse_type ptype = legacy_parser );
 
@@ -58,13 +58,13 @@ namespace fc
          }
 
          template<typename T>
-         static string   to_string( const T& v, output_formatting format = stringify_large_ints_and_doubles ) 
+         static std::string   to_string( const T& v, output_formatting format = stringify_large_ints_and_doubles )
          {
             return to_string( variant(v), format );
          }
 
          template<typename T>
-         static string   to_pretty_string( const T& v, output_formatting format = stringify_large_ints_and_doubles ) 
+         static std::string   to_pretty_string( const T& v, output_formatting format = stringify_large_ints_and_doubles )
          {
             return to_pretty_string( variant(v), format );
          }

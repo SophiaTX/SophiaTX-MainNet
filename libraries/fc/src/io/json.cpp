@@ -17,18 +17,18 @@ namespace fc
     // forward declarations of provided functions
     template<typename T, json::parse_type parser_type> variant variant_from_stream( T& in );
     template<typename T> char parseEscape( T& in );
-    template<typename T> fc::string stringFromStream( T& in );
+    template<typename T> std::string stringFromStream( T& in );
     template<typename T> bool skip_white_space( T& in );
-    template<typename T> fc::string stringFromToken( T& in );
+    template<typename T> std::string stringFromToken( T& in );
     template<typename T, json::parse_type parser_type> variant_object objectFromStream( T& in );
     template<typename T, json::parse_type parser_type> variants arrayFromStream( T& in );
     template<typename T, json::parse_type parser_type> variant number_from_stream( T& in );
     template<typename T> variant token_from_stream( T& in );
-    void escape_string( const string& str, ostream& os );
+    void escape_string( const std::string& str, ostream& os );
     template<typename T> void to_stream( T& os, const variants& a, json::output_formatting format );
     template<typename T> void to_stream( T& os, const variant_object& o, json::output_formatting format );
     template<typename T> void to_stream( T& os, const variant& v, json::output_formatting format );
-    fc::string pretty_print( const fc::string& v, uint8_t indent );
+    std::string pretty_print( const std::string& v, uint8_t indent );
 }
 
 #include <fc/io/json_relaxed.hpp>
@@ -86,7 +86,7 @@ namespace fc
    }
 
    template<typename T>
-   fc::string stringFromStream( T& in )
+   std::string stringFromStream( T& in )
    {
       fc::stringstream token;
       try
@@ -96,7 +96,7 @@ namespace fc
          if( c != '"' )
             FC_THROW_EXCEPTION( parse_error_exception,
                                             "Expected '\"' but read '${char}'",
-                                            ("char", string(&c, (&c) + 1) ) );
+                                            ("char", std::string(&c, (&c) + 1) ) );
          in.get();
          while( true )
          {
@@ -123,7 +123,7 @@ namespace fc
                                           ("token", token.str() ) );
    }
    template<typename T>
-   fc::string stringFromToken( T& in )
+   std::string stringFromToken( T& in )
    {
       fc::stringstream token;
       try
@@ -177,7 +177,7 @@ namespace fc
          if( c != '{' )
             FC_THROW_EXCEPTION( parse_error_exception,
                                      "Expected '{', but read '${char}'",
-                                     ("char",string(&c, &c + 1)) );
+                                     ("char",std::string(&c, &c + 1)) );
          in.get();
          skip_white_space(in);
          while( in.peek() != '}' )
@@ -188,7 +188,7 @@ namespace fc
                continue;
             }
             if( skip_white_space(in) ) continue;
-            string key = stringFromStream( in );
+            std::string key = stringFromStream( in );
             skip_white_space(in);
             if( in.peek() != ':' )
             {
@@ -304,14 +304,14 @@ namespace fc
       catch (const std::ios_base::failure&)
       {
       }
-      fc::string str = ss.str();
+      std::string str = ss.str();
       if (str == "-." || str == ".") // check the obviously wrong things we could have encountered
         FC_THROW_EXCEPTION(parse_error_exception, "Can't parse token \"${token}\" as a JSON numeric constant", ("token", str));
       if( dot )
-        return parser_type == json::legacy_parser_with_string_doubles ? variant(str) : variant(to_double(str));
+        return parser_type == json::legacy_parser_with_string_doubles ? variant(str) : variant(std::stod(str));
       if( neg )
-        return to_int64(str);
-      return to_uint64(str);
+        return variant(std::stoll(str));
+      return variant(std::stoull(str));
    }
    template<typename T>
    variant token_from_stream( T& in )
@@ -356,7 +356,7 @@ namespace fc
 
       // we can get here either by processing a delimiter as in "null,"
       // an EOF like "null<EOF>", or an invalid token like "nullZ"
-      fc::string str = ss.str();
+      std::string str = ss.str();
       if( str == "null" )
         return variant();
       if( str == "true" )
@@ -438,7 +438,7 @@ namespace fc
 
 
    /** the purpose of this check is to verify that we will not get a stack overflow in the recursive descent parser */
-   void check_string_depth( const string& utf8_str  )
+   void check_string_depth( const std::string& utf8_str  )
    {
       int32_t open_object = 0;
       int32_t open_array  = 0;
@@ -510,7 +510,7 @@ namespace fc
     *
     *  All other characters are printed as UTF8.
     */
-   void escape_string( const string& str, ostream& os )
+   void escape_string( const std::string& str, ostream& os )
    {
       os << '"';
       for( auto itr = str.begin(); itr != str.end(); ++itr )
@@ -579,7 +579,7 @@ namespace fc
       }
       os << '"';
    }
-   ostream& json::to_stream( ostream& out, const fc::string& str )
+   ostream& json::to_stream( ostream& out, const std::string& str )
    {
         escape_string( str, out );
         return out;
@@ -678,7 +678,7 @@ namespace fc
       }
    }
 
-   fc::string   json::to_string( const variant& v, output_formatting format /* = stringify_large_ints_and_doubles */ )
+   std::string   json::to_string( const variant& v, output_formatting format /* = stringify_large_ints_and_doubles */ )
    {
       fc::stringstream ss;
       fc::to_stream( ss, v, format );
@@ -686,7 +686,7 @@ namespace fc
    }
 
 
-    fc::string pretty_print( const fc::string& v, uint8_t indent ) {
+    std::string pretty_print( const std::string& v, uint8_t indent ) {
       int level = 0;
       fc::stringstream ss;
       bool first = false;
@@ -781,7 +781,7 @@ namespace fc
 
 
 
-   fc::string json::to_pretty_string( const variant& v, output_formatting format /* = stringify_large_ints_and_doubles */ )
+   std::string json::to_pretty_string( const variant& v, output_formatting format /* = stringify_large_ints_and_doubles */ )
    {
 	   return pretty_print(to_string(v, format), 2);
    }

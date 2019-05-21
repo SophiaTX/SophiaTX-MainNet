@@ -3,6 +3,7 @@
 #include <fc/io/sstream.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/io/json.hpp>
+#include <fc/string_utils.hpp>
 
 #include <iostream>
 
@@ -157,7 +158,7 @@ namespace fc
     *   and other information that is generally only useful for
     *   developers.
     */
-   string exception::to_detail_string( log_level ll  )const
+   std::string exception::to_detail_string( log_level ll  )const
    {
       fc::stringstream ss;
       ss << variant(my->_code).as_string() <<" " << my->_name << ": " <<my->_what<<"\n";
@@ -175,7 +176,7 @@ namespace fc
    /**
     *   Generates a user-friendly error report.
     */
-   string exception::to_string( log_level ll )const
+   std::string exception::to_string( log_level ll )const
    {
       fc::stringstream ss;
       ss << what() << ":";
@@ -209,7 +210,7 @@ namespace fc
        return std::make_shared<exception>(*this);
    }
 
-   fc::string except_str()
+    std::string except_str()
    {
        return boost::current_exception_diagnostic_information();
    }

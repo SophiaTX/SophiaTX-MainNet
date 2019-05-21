@@ -1,5 +1,7 @@
 #pragma once
-#include <fc/utility.hpp>
+
+#include <cstdint>
+#include <utility>
 
 namespace fc {
 

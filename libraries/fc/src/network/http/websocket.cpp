@@ -295,7 +295,7 @@ namespace fc { namespace http {
       class websocket_tls_server_impl
       {
          public:
-            websocket_tls_server_impl( const string& server_pem, const string& ssl_password )
+            websocket_tls_server_impl( const std::string& server_pem, const std::string& ssl_password )
             :_server_thread( fc::thread::current() )
             {
                //if( server_pem.size() )
@@ -605,7 +605,7 @@ namespace fc { namespace http {
 
 
 
-   websocket_tls_server::websocket_tls_server( const string& server_pem, const string& ssl_password ):my( new detail::websocket_tls_server_impl(server_pem, ssl_password) ) {}
+   websocket_tls_server::websocket_tls_server( const std::string& server_pem, const std::string& ssl_password ):my( new detail::websocket_tls_server_impl(server_pem, ssl_password) ) {}
    websocket_tls_server::~websocket_tls_server(){}
 
    void websocket_tls_server::on_connection( const on_connection_handler& handler )

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/time.hpp>
 
 namespace sophiatx { namespace protocol {

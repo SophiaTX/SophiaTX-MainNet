@@ -52,7 +52,7 @@ namespace fc {
 
    path::path( const char* p )
    :_p(p){}
-   path::path( const fc::string& p )
+   path::path( const std::string& p )
    :_p(p.c_str()){}
 
    path::path(const std::wstring& p)
@@ -93,11 +93,11 @@ namespace fc {
    path::operator const boost::filesystem::path& ()const {
     return *_p;
    }
-   fc::string path::generic_string()const {
+   std::string path::generic_string()const {
     return _p->generic_string();
    }
 
-   fc::string path::preferred_string() const
+   std::string path::preferred_string() const
    {
      return boost::filesystem::path(*_p).make_preferred().string();
    }
@@ -143,13 +143,13 @@ namespace fc {
     *  @todo use iterators instead of indexes for 
     *  faster performance
     */
-   fc::string path::windows_string()const {
+   std::string path::windows_string()const {
      std::string result = _p->generic_string();
      std::replace(result.begin(), result.end(), '/', '\\');
      return result;
    }
 
-   fc::string path::string()const {
+   std::string path::string()const {
     return _p->string();
    }
    fc::path path::filename()const {

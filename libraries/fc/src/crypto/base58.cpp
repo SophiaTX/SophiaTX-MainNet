@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include <fc/log/logger.hpp>
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/exception/exception.hpp>
 
 #include <stdexcept>

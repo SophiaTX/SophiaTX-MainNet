@@ -8,7 +8,7 @@
 
 #include <sophiatx/egenesis/egenesis.hpp>
 
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/io/fstream.hpp>
 
 #include <boost/asio.hpp>

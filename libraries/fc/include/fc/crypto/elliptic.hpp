@@ -236,7 +236,7 @@ namespace fc {
 
      bool            verify_range_proof_rewind( blind_factor_type& blind_out,
                                           uint64_t& value_out,
-                                          string& message_out,
+                                          std::string& message_out,
                                           const blind_factor_type& nonce,
                                           uint64_t& min_val,
                                           uint64_t& max_val,

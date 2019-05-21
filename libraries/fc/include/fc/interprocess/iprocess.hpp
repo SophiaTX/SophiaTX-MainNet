@@ -2,7 +2,7 @@
 #include <fc/thread/future.hpp>
 #include <fc/io/buffered_iostream.hpp>
 #include <vector>
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/filesystem.hpp>
 
 namespace fc

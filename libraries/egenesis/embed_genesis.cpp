@@ -30,7 +30,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include <fc/filesystem.hpp>
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/io/fstream.hpp>
 #include <fc/io/json.hpp>
 #include <sophiatx/chain/genesis_state.hpp>

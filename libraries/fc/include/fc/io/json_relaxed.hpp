@@ -442,7 +442,7 @@ namespace fc { namespace json_relaxed
                        {
                            if( strict )
                                FC_THROW_EXCEPTION( parse_error_exception, "number cannot end with '.' in strict mode" );
-                           return fc::variant( fc::to_double(token.c_str()) );
+                           return fc::variant( std::stod(token.c_str()) );
                        }
 
                        //idump((i));
@@ -542,7 +542,7 @@ namespace fc { namespace json_relaxed
                                return fc::variant( token );
                        }
                    }
-                   return fc::variant( fc::to_double(token.c_str()) );
+                   return fc::variant( std::stod(token.c_str()) );
                case 'a': case 'b': case 'c': case 'd':           case 'f': case 'g': case 'h':
                case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p':
                case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x':
@@ -571,7 +571,7 @@ namespace fc { namespace json_relaxed
          if( c != '{' )
             FC_THROW_EXCEPTION( parse_error_exception,
                                      "Expected '{', but read '${char}'",
-                                     ("char",string(&c, &c + 1)) );
+                                     ("char",std::string(&c, &c + 1)) );
          in.get();
          skip_white_space(in);
          while( in.peek() != '}' )
@@ -582,7 +582,7 @@ namespace fc { namespace json_relaxed
                continue;
             }
             if( skip_white_space(in) ) continue;
-            string key = json_relaxed::stringFromStream<T, strict>( in );
+            std::string key = json_relaxed::stringFromStream<T, strict>( in );
             skip_white_space(in);
             if( in.peek() != ':' )
             {

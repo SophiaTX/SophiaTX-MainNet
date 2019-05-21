@@ -3,7 +3,7 @@
 #define FC_CONTEXT_STACK_SIZE (2048*1024)
 
 #include <fc/thread/task.hpp>
-#include <fc/string.hpp>
+
 
 namespace fc {
   class time_point;
@@ -36,12 +36,12 @@ namespace fc {
       /**
        *  @brief returns the name given by @ref set_name() for this thread
        */
-      const string& name()const;
+      const std::string& name()const;
 
       /**
        *  @brief associates a name with this thread.
        */
-      void        set_name( const string& n );
+      void        set_name( const std::string& n );
        
       const char* current_task_desc() const;
 
@@ -54,7 +54,7 @@ namespace fc {
        *  @note debug info is more useful if you provide a description for your
        *  async tasks and promises.
        */
-      void    debug( const fc::string& d );
+      void    debug( const std::string& d );
      
      
       /**

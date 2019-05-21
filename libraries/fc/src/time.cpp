@@ -3,7 +3,7 @@
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sstream>
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/exception/exception.hpp>
 

@@ -18,25 +18,25 @@ namespace fc { namespace rpc {
       public:
          ~cli();
 
-         virtual variant send_call( api_id_type api_id, string method_name, bool args_as_object, variants args = variants() );
-         virtual variant send_call( string api_name, string method_name, bool args_as_object, variants args = variants() );
+         virtual variant send_call( api_id_type api_id, std::string method_name, bool args_as_object, variants args = variants() );
+         virtual variant send_call( std::string api_name, std::string method_name, bool args_as_object, variants args = variants() );
          virtual variant send_callback( uint64_t callback_id, variants args = variants() );
          virtual void    send_notice( uint64_t callback_id, variants args = variants() );
 
          void start();
          void stop();
          void wait();
-         void format_result( const string& method, std::function<string(variant,const variants&)> formatter);
+         void format_result( const std::string& method, std::function<std::string(variant,const variants&)> formatter);
 
-         virtual void getline( const fc::string& prompt, fc::string& line );
+         virtual void getline( const std::string& prompt, std::string& line );
 
-         void set_prompt( const string& prompt );
+         void set_prompt( const std::string& prompt );
 
       private:
          void run();
 
          std::string _prompt = ">>>";
-         std::map<string,std::function<string(variant,const variants&)> > _result_formatters;
+         std::map<std::string,std::function<std::string(variant,const variants&)> > _result_formatters;
          fc::future<void> _run_complete;
    };
 } }

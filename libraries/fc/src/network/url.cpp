@@ -1,5 +1,5 @@
 #include <fc/network/url.hpp>
-#include <fc/string.hpp>
+#include <fc/string_utils.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/log/logger.hpp>
@@ -38,7 +38,7 @@ namespace fc
            auto pos = host_port.find( ':' );
            if( pos != fc::string::npos ) {
               try {
-              _port = static_cast<uint16_t>(to_uint64( host_port.substr( pos+1 ) ));
+              _port = static_cast<uint16_t>(std::stoull( host_port.substr( pos+1 ) ));
               } catch ( ... ) {
                 FC_THROW_EXCEPTION( parse_error_exception, "Unable to parse port field in url",( "url", s ) );
               }

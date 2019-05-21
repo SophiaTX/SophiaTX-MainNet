@@ -319,7 +319,7 @@ namespace fc {
       my = new impl;
     try
     {
-      my->_accept.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string((string)ep.get_address()), ep.port()));
+      my->_accept.bind(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string((std::string)ep.get_address()), ep.port()));
       my->_accept.listen();
     } 
     FC_RETHROW_EXCEPTIONS(warn, "error listening on socket");

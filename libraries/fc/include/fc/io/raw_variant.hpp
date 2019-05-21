@@ -28,7 +28,7 @@ namespace fc { namespace raw {
          {
             fc::raw::pack( s, v );
          }
-         virtual void handle( const string& v )const
+         virtual void handle( const std::string& v )const
          {
             fc::raw::pack( s, v );
          }
