@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( parse_size_test )
    BOOST_CHECK_THROW( fc::parse_size( "" ), std::invalid_argument );
    BOOST_CHECK_THROW( fc::parse_size( "k" ), fc::parse_error_exception );
 
-   BOOST_CHECK_EQUAL( fc::parse_size( "0" ), static_cast<uint64_t>(0) );gitgit
+   BOOST_CHECK_EQUAL( fc::parse_size( "0" ), static_cast<uint64_t>(0) );
    BOOST_CHECK_EQUAL( fc::parse_size( "1" ), static_cast<uint64_t>(1) );
    BOOST_CHECK_EQUAL( fc::parse_size( "2" ), static_cast<uint64_t>(2) );
    BOOST_CHECK_EQUAL( fc::parse_size( "3" ), static_cast<uint64_t>(3) );
