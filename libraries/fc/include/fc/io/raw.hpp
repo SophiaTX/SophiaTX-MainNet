@@ -206,7 +206,7 @@ namespace fc {
        FC_ASSERT( vi == tmp );
     }
 
-    template<typename Stream> inline void pack( Stream& s, const char* v ) { fc::raw::pack( s, fc::string(v) ); }
+    template<typename Stream> inline void pack( Stream& s, const char* v ) { fc::raw::pack( s, std::string(v) ); }
 
     template<typename Stream, typename T>
     void pack( Stream& s, const safe<T>& v ) { fc::raw::pack( s, v.value ); }
@@ -262,20 +262,20 @@ namespace fc {
         s.read( value.data(), value.size() );
     }
 
-    // fc::string
-    template<typename Stream> inline void pack( Stream& s, const fc::string& v )  {
+    // std::string
+    template<typename Stream> inline void pack( Stream& s, const std::string& v )  {
       fc::raw::pack( s, unsigned_int((uint32_t)v.size()));
       if( v.size() ) s.write( v.c_str(), v.size() );
     }
 
-    template<typename Stream> inline void unpack( Stream& s, fc::string& v, uint32_t depth ) {
+    template<typename Stream> inline void unpack( Stream& s, std::string& v, uint32_t depth ) {
       FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
       depth++;
       std::vector<char> tmp;
       fc::raw::unpack(s,tmp, depth);
       if( tmp.size() )
-         v = fc::string(tmp.data(),tmp.data()+tmp.size());
-      else v = fc::string();
+         v = std::string(tmp.data(),tmp.data()+tmp.size());
+      else v = std::string();
     }
 
     // bool
