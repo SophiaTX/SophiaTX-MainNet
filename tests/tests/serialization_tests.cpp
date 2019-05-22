@@ -149,8 +149,8 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_THROW( asset::from_string( "1 .333" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1 1.1" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "11111111111111111111111111111111111111111111111 SPHTX" ), fc::exception );
-      BOOST_CHECK_THROW( asset::from_string( "1.1.1 SPHTX" ), std::exception );
-      BOOST_CHECK_THROW( asset::from_string( "1.abc SPHTX" ), std::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.1.1 SPHTX" ), fc::exception );
+      BOOST_CHECK_THROW( asset::from_string( "1.abc SPHTX" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( " SPHTX" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "SPHTX" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1.333" ), fc::exception );
