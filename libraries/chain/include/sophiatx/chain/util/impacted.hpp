@@ -4,8 +4,6 @@
 #include <sophiatx/protocol/operations.hpp>
 #include <sophiatx/protocol/transaction.hpp>
 
-#include <fc/string_utils.hpp>
-
 namespace sophiatx { namespace app {
 
 using namespace fc;

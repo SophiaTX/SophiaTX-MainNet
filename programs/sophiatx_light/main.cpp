@@ -34,9 +34,9 @@ using std::vector;
 string& version_string()
 {
    static string v_str =
-         "sophiatx_blockchain_version: " + fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) + "\n" +
-         "sophiatx_git_revision:       " + fc::string( sophiatx::utilities::git_revision_sha ) + "\n" +
-         "fc_git_revision:          " + fc::string( fc::git_revision_sha ) + "\n";
+         "sophiatx_blockchain_version: " + std::string( SOPHIATX_BLOCKCHAIN_VERSION ) + "\n" +
+         "sophiatx_git_revision:       " + std::string( sophiatx::utilities::git_revision_sha ) + "\n" +
+         "fc_git_revision:          " + std::string( fc::git_revision_sha ) + "\n";
    return v_str;
 }
 

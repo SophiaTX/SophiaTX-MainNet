@@ -35,14 +35,14 @@ namespace fc { namespace ssh {
   const logger& client::get_logger()const     { return my->logr;           }
   void client::set_logger( const logger& l )  { my->logr = l;               }
 
-  void client::connect( const fc::string& user, const fc::string& host, uint16_t port ) {
+  void client::connect( const std::string& user, const std::string& host, uint16_t port ) {
        my->hostname = host;
        my->uname    = user;
        my->port     = port;
        my->connect();
   }
-  void client::connect( const fc::string& user, const fc::string& pass, 
-                        const fc::string& host, uint16_t port  ) {
+  void client::connect( const std::string& user, const std::string& pass,
+                        const std::string& host, uint16_t port  ) {
        my->hostname = host;
        my->uname    = user;
        my->upass    = pass;
@@ -54,7 +54,7 @@ namespace fc { namespace ssh {
   void client::close() { my->close(); }
 
 
-//  ssh::process client::exec( const fc::string& cmd, const fc::string& pty_type  ) {
+//  ssh::process client::exec( const std::string& cmd, const std::string& pty_type  ) {
 //    return ssh::process( *this, cmd, pty_type ); 
 //  }
 
@@ -221,7 +221,7 @@ namespace fc { namespace ssh {
                                             "sftp readdir failed ${code}");
         }
         if (rc > 0) {
-          fc::string file_or_dir_name(mem, rc);
+          std::string file_or_dir_name(mem, rc);
           if (file_or_dir_name == "." || file_or_dir_name == "..")
             continue;
           fc::path full_remote_path = remote_path / file_or_dir_name;
@@ -435,7 +435,7 @@ namespace fc { namespace ssh {
   /* static */
   void detail::client_impl::handle_trace( LIBSSH2_SESSION* session, void* context, const char* data, size_t length ) {
     client_impl* my = (client_impl*)context;
-    fc::string str(data,length);
+    std::string str(data,length);
     wlog( "${message}", ("message",str) );
   }
 
@@ -692,7 +692,7 @@ namespace fc { namespace ssh {
   }
 
 
-  LIBSSH2_CHANNEL* detail::client_impl::open_channel( const fc::string& pty_type ) {
+  LIBSSH2_CHANNEL* detail::client_impl::open_channel( const std::string& pty_type ) {
     LIBSSH2_CHANNEL*                      chan = 0;
     /* anonymous scope */ {
       fc::scoped_lock<fc::mutex> channel_open_lock(channel_open_mutex);

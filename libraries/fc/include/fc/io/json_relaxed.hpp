@@ -26,7 +26,7 @@ namespace fc { namespace json_relaxed
    template<typename T>
    std::string tokenFromStream( T& in )
    {
-      fc::stringstream token;
+      std::stringstream token;
       try
       {
          char c = in.peek();
@@ -83,7 +83,7 @@ namespace fc { namespace json_relaxed
    template<typename T, bool strict, bool allow_escape>
    std::string quoteStringFromStream( T& in )
    {
-       fc::stringstream token;
+       std::stringstream token;
        try
        {
            char q = in.get();

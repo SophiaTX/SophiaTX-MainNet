@@ -77,7 +77,7 @@ namespace fc {
   fc::thread& cin_thread() { static fc::thread i("cin"); return i; }
 
   fc::istream& getline( fc::istream& i, std::string& s, char delim  ) {
-    fc::stringstream ss; 
+    std::stringstream ss;
     char c;
     i.read( &c, 1 );
     while( true ) {

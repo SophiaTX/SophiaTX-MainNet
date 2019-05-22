@@ -1,5 +1,4 @@
 #include <fc/thread/thread.hpp>
-#include <fc/string_utils.hpp>
 #include <fc/time.hpp>
 #include <boost/thread.hpp>
 #include "context.hpp"
@@ -7,7 +6,7 @@
 #include <boost/thread.hpp>
 #include <boost/atomic.hpp>
 #include <vector>
-//#include <fc/logger.hpp>
+
 
 namespace fc {
     struct sleep_priority_less {
@@ -39,7 +38,7 @@ namespace fc {
 #endif
             { 
               static boost::atomic<int> cnt(0);
-              name = fc::string("th_") + char('a'+cnt++); 
+              name = std::string("th_") + char('a'+cnt++); 
 //              printf("thread=%p\n",this);
             }
 
@@ -86,7 +85,7 @@ namespace fc {
            std::vector<fc::context*>       free_list;      // list of unused contexts that are ready for deletion
 
            bool                     done;
-           fc::string               name;
+           std::string               name;
            fc::context*             current;     // the currently-executing task in this thread
 
            fc::context*             pt_head;     // list of contexts that can be reused for new tasks
@@ -108,7 +107,7 @@ namespace fc {
 #endif
 
 #if 0
-           void debug( const fc::string& s ) {
+           void debug( const std::string& s ) {
           return;
               //boost::unique_lock<boost::mutex> lock(log_mutex());
 

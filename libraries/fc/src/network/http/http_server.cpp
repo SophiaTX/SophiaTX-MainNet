@@ -17,7 +17,7 @@ namespace fc { namespace http {
       {}
 
       void send_header() {
-         fc::stringstream ss;
+         std::stringstream ss;
          ss << "HTTP/1.1 " << rep.status << " ";
          switch( rep.status ) {
             case fc::http::reply::OK: ss << "OK\r\n"; break;

@@ -29,6 +29,7 @@
 
 #include <fc/crypto/digest.hpp>
 #include <fc/crypto/hex.hpp>
+#include <fc/string_utils.hpp>
 #include "../db_fixture/database_fixture.hpp"
 
 #include <algorithm>

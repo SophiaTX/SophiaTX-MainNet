@@ -106,7 +106,7 @@ http::reply connection::request( const std::string& method,
     my->sock.connect_to( my->ep );
   }
   try {
-      fc::stringstream req;
+      std::stringstream req;
       req << method <<" "<<parsed_url.path()->generic_string()<<" HTTP/1.1\r\n";
       req << "Host: "<<*parsed_url.host()<<"\r\n";
       req << "Content-Type: application/json\r\n";

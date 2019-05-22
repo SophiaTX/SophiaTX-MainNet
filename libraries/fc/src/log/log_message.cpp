@@ -149,14 +149,14 @@ std::string log_level::to_string() {
 
 
 
-   string     log_context::get_file()const       { return my->file; }
+   std::string     log_context::get_file()const       { return my->file; }
    uint64_t   log_context::get_line_number()const { return my->line; }
-   string     log_context::get_method()const     { return my->method; }
-   string     log_context::get_task_name()const { return my->task_name; }
-   string     log_context::get_host_name()const   { return my->hostname; }
+   std::string     log_context::get_method()const     { return my->method; }
+   std::string     log_context::get_task_name()const { return my->task_name; }
+   std::string     log_context::get_host_name()const   { return my->hostname; }
    time_point log_context::get_timestamp()const  { return my->timestamp; }
    log_level  log_context::get_log_level()const{ return my->level;   }
-   string     log_context::get_context()const   { return my->context; }
+   std::string     log_context::get_context()const   { return my->context; }
 
 
    variant log_context::to_variant()const

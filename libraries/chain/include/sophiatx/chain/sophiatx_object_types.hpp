@@ -121,7 +121,7 @@ namespace fc
    class variant;
    inline void to_variant( const sophiatx::chain::shared_string& s, variant& var )
    {
-      var = fc::string( sophiatx::chain::to_string( s ) );
+      var = std::string( sophiatx::chain::to_string( s ) );
    }
 
    inline void from_variant( const variant& var, sophiatx::chain::shared_string& s )
