@@ -3,7 +3,6 @@
 #include <fc/thread/thread.hpp>
 #include <iostream>
 #include <string.h>
-//#include <fc/log.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
 #include <string>

@@ -42,24 +42,6 @@ extern uint32_t SOPHIATX_TESTING_GENESIS_TIMESTAMP;
    db.push_transaction( trx, ~0 ); \
 }
 
-/*#define SOPHIATX_REQUIRE_THROW( expr, exc_type )          \
-{                                                         \
-   std::string req_throw_info = fc::json::to_string(      \
-      fc::mutable_variant_object()                        \
-      ("source_file", __FILE__)                           \
-      ("source_lineno", __LINE__)                         \
-      ("expr", #expr)                                     \
-      ("exc_type", #exc_type)                             \
-      );                                                  \
-   if( fc::enable_record_assert_trip )                    \
-      std::cout << "SOPHIATX_REQUIRE_THROW begin "        \
-         << req_throw_info << std::endl;                  \
-   BOOST_REQUIRE_THROW( expr, exc_type );                 \
-   if( fc::enable_record_assert_trip )                    \
-      std::cout << "SOPHIATX_REQUIRE_THROW end "          \
-         << req_throw_info << std::endl;                  \
-}*/
-
 #define AN( name)                                         \
    sophiatx::protocol::make_random_fixed_string( name )
 
