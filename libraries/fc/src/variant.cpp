@@ -659,14 +659,13 @@ void to_variant( const std::vector<char>& var,  variant& vo )
 void from_variant( const variant& var,  std::vector<char>& vo )
 {
      auto str = var.as_string();
+     FC_ASSERT( str.size() % 2 == 0, "the length of hex string should be even number" );
      vo.resize( str.size() / 2 );
      if( vo.size() )
      {
         size_t r = from_hex( str, vo.data(), vo.size() );
         FC_ASSERT( r == vo.size() );
      }
-//   std::string b64 = base64_decode( var.as_string() );
-//   vo = std::vector<char>( b64.c_str(), b64.c_str() + b64.size() );
 }
 
 string      format_string( const string& format, const variant_object& args )
