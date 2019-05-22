@@ -4,7 +4,7 @@
 PROJECT( fc )
 CMAKE_MINIMUM_REQUIRED( VERSION 3.1 )
 
-set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD 17 )
 SET( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
@@ -177,13 +177,13 @@ set( fc_sources
      src/io/sstream.cpp
      src/io/json.cpp
      src/io/varint.cpp
-        src/filesystem.cpp
+     src/filesystem.cpp
      src/interprocess/signals.cpp
      src/interprocess/file_mapping.cpp
-        src/rpc/cli.cpp
+     src/rpc/cli.cpp
      src/rpc/http_api.cpp
-        src/rpc/state.cpp
-        src/rpc/websocket_api.cpp
+     src/rpc/state.cpp
+     src/rpc/websocket_api.cpp
      src/log/log_message.cpp
      src/log/sys_logger.cpp
      src/log/logger.cpp
@@ -192,7 +192,7 @@ set( fc_sources
      src/crypto/aes.cpp
      src/crypto/crc.cpp
      src/crypto/city.cpp
-        src/crypto/base58.cpp
+     src/crypto/base58.cpp
      src/crypto/base64.cpp
      src/crypto/base64m.cpp
      src/crypto/bigint.cpp
@@ -203,7 +203,7 @@ set( fc_sources
      src/crypto/sha224.cpp
      src/crypto/sha512.cpp
      src/crypto/dh.cpp
-        src/crypto/elliptic_common.cpp
+     src/crypto/elliptic_common.cpp
      src/crypto/restartable_sha256.cpp
      ${ECC_REST}
      src/crypto/elliptic_${ECC_IMPL}.cpp
