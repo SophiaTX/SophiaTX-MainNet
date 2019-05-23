@@ -151,8 +151,8 @@ DEFINE_API_IMPL(alexandria_api_impl, info)
    auto dynamic_props = get_dynamic_global_properties( {} ).properties;
    fc::mutable_variant_object info_data(fc::variant(dynamic_props).get_object());
 
-   info_data["witness_majority_version"] = fc::string( _database_api->get_witness_schedule( {} ).majority_version );
-   info_data["hardfork_version"] = fc::string( _database_api->get_hardfork_properties( {} ).current_hardfork_version );
+   info_data["witness_majority_version"] = std::string( _database_api->get_witness_schedule( {} ).majority_version );
+   info_data["hardfork_version"] = std::string( _database_api->get_hardfork_properties( {} ).current_hardfork_version );
    //info_data["head_block_id"] = dynamic_props.head_block_id;
    info_data["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                        time_point_sec(time_point::now()),
@@ -1406,10 +1406,10 @@ DEFINE_API_IMPL(alexandria_api_impl, get_version)
 {
    get_version_return result;
    result.version_info = get_version_info (
-      fc::string( SOPHIATX_BLOCKCHAIN_VERSION ),
-      fc::string( sophiatx::utilities::git_revision_sha ),
-      fc::string( fc::git_revision_sha ),
-      fc::string( get_chain_id()  )
+      std::string( SOPHIATX_BLOCKCHAIN_VERSION ),
+      std::string( sophiatx::utilities::git_revision_sha ),
+      std::string( fc::git_revision_sha ),
+      std::string( get_chain_id()  )
       );
 
    return result;

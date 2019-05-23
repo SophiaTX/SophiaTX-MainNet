@@ -8,7 +8,7 @@
 namespace sophiatx { namespace protocol {
 
 /* Quick conversion utilities from http://joelverhagen.com/blog/2010/11/convert-an-int-to-a-string-and-vice-versa-in-c/ */
-inline int string_to_int( fc::string input )
+inline int string_to_int( std::string input )
 {
    std::stringstream s( input );
    int i;
@@ -16,7 +16,7 @@ inline int string_to_int( fc::string input )
    return i;
 }
 
-inline fc::string int_to_string( int input )
+inline std::string int_to_string( int input )
 {
    std::stringstream s;
    s << input;
@@ -30,7 +30,7 @@ version::version( uint8_t m, uint8_t h, uint16_t r )
    v_num =   v_num | r;
 }
 
-version::operator fc::string()const
+version::operator std::string()const
 {
    std::stringstream s;
    s << ( ( v_num >> 24 ) & 0x000000FF )
@@ -48,7 +48,7 @@ namespace fc
 {
    void to_variant( const sophiatx::protocol::version& v, variant& var )
    {
-      var = fc::string( v );
+      var = std::string( v );
    }
 
    void from_variant( const variant& var, sophiatx::protocol::version& v )

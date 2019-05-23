@@ -93,12 +93,12 @@ namespace fc {
        *  Connect, with no password specified.  Authentication will try public key, 
        *  (via agent or explicitly-set key), empty password, then keyboard-interactive
        */
-      void connect( const fc::string& user, const fc::string& host, uint16_t port = 22);
+      void connect( const std::string& user, const std::string& host, uint16_t port = 22);
 
       /**
        *  Connect, specifying a password to be used for password authentication
        */
-      void connect( const fc::string& user, const fc::string& pass, const fc::string& host, uint16_t port = 22);
+      void connect( const std::string& user, const std::string& pass, const std::string& host, uint16_t port = 22);
 
       /**
        *  @note THIS METHOD IS DEPRECATED and should be replace with:
@@ -117,7 +117,7 @@ namespace fc {
        *  @note Processes launched in this manner will fully buffer stdin and stdout regardless of whether
        *     the process calls flush().  If you need unbuffered (streaming, realtime) access to standard
        *     out then you must launch the process via a shell.
-      ssh::process exec( const fc::string& cmd, const fc::string& pty_type = "" );
+      ssh::process exec( const std::string& cmd, const std::string& pty_type = "" );
        */
 
 

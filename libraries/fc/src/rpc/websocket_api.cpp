@@ -58,7 +58,7 @@ websocket_api_connection::websocket_api_connection( fc::http::websocket_connecti
 
 variant websocket_api_connection::send_call(
    api_id_type api_id,
-   string method_name,
+   std::string method_name,
    bool args_as_object,
    variants args /* = variants() */ )
 {
@@ -81,8 +81,8 @@ variant websocket_api_connection::send_call(
 }
 
 variant websocket_api_connection::send_call(
-   string api_name,
-   string method_name,
+   std::string api_name,
+   std::string method_name,
    bool args_as_object,
    variants args )
 {
@@ -191,7 +191,7 @@ std::string websocket_api_connection::on_message(
       wdump((e.to_detail_string()));
       return e.to_detail_string();
    }
-   return string();
+   return std::string();
 }
 
 } } // namespace fc::rpc

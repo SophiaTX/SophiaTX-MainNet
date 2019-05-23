@@ -29,6 +29,7 @@
 
 #include <fc/crypto/digest.hpp>
 #include <fc/crypto/hex.hpp>
+#include <fc/string_utils.hpp>
 #include "../db_fixture/database_fixture.hpp"
 
 #include <algorithm>
@@ -42,8 +43,8 @@ BOOST_FIXTURE_TEST_SUITE( basic_tests, clean_database_fixture )
 
 BOOST_AUTO_TEST_CASE( parse_size_test )
 {
-   BOOST_CHECK_THROW( fc::parse_size( "" ), fc::parse_error_exception );
-   BOOST_CHECK_THROW( fc::parse_size( "k" ), fc::parse_error_exception );
+   BOOST_CHECK_THROW( fc::parse_size( "" ), std::invalid_argument );
+   BOOST_CHECK_THROW( fc::parse_size( "k" ), std::invalid_argument );
 
    BOOST_CHECK_EQUAL( fc::parse_size( "0" ), static_cast<uint64_t>(0) );
    BOOST_CHECK_EQUAL( fc::parse_size( "1" ), static_cast<uint64_t>(1) );

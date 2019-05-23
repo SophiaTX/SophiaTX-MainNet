@@ -100,7 +100,7 @@ namespace fc {
    {
       const boost::filesystem::path& bfp = filename;
       boost::filesystem::ifstream f( bfp, std::ios::in | std::ios::binary );
-      // don't use fc::stringstream here as we need something with override for << rdbuf()
+      // don't use std::stringstream here as we need something with override for << rdbuf()
       std::stringstream ss;
       ss << f.rdbuf();
       result = ss.str();

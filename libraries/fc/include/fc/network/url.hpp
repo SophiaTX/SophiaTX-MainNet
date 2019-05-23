@@ -1,5 +1,5 @@
 #pragma once
-#include <fc/string.hpp>
+
 #include <fc/optional.hpp>
 #include <stdint.h>
 #include <fc/filesystem.hpp>
@@ -8,7 +8,7 @@
 
 namespace fc {
 
-  typedef fc::optional<fc::string>           ostring;
+  typedef fc::optional<std::string>           ostring;
   typedef fc::optional<fc::path>             opath;
   typedef fc::optional<fc::variant_object>   ovariant_object;
 
@@ -24,7 +24,7 @@ namespace fc {
   {
     public:
       url();
-      explicit url( const string& u );
+      explicit url( const std::string& u );
       url( const url& c );
       url( url&& c );
       url( mutable_url&& c );
@@ -39,10 +39,10 @@ namespace fc {
       
       bool operator==( const url& cmp )const;
       
-      operator string()const;
+      operator std::string()const;
       
       //// file, ssh, tcp, http, ssl, etc...
-      string                    proto()const; 
+      std::string                    proto()const;
       ostring                   host()const;
       ostring                   user()const;
       ostring                   pass()const;
@@ -65,7 +65,7 @@ namespace fc {
   {
     public:
       mutable_url();
-      explicit mutable_url( const string& mutable_url );
+      explicit mutable_url( const std::string& mutable_url );
       mutable_url( const mutable_url& c );
       mutable_url( const url& c );
       mutable_url( mutable_url&& c );
@@ -78,10 +78,10 @@ namespace fc {
       bool operator==( const mutable_url& cmp )const;
       bool operator==( const url& cmp )const;
       
-      operator string()const;
+      operator std::string()const;
       
       //// file, ssh, tcp, http, ssl, etc...
-      string                    proto()const; 
+      std::string                    proto()const;
       ostring                   host()const;
       ostring                   user()const;
       ostring                   pass()const;
@@ -89,10 +89,10 @@ namespace fc {
       ovariant_object           args()const;
       fc::optional<uint16_t>    port()const;
       
-      void set_proto( string        );
-      void set_host( string         );
-      void set_user( string         );
-      void set_pass( string         );
+      void set_proto( std::string        );
+      void set_host( std::string         );
+      void set_user( std::string         );
+      void set_pass( std::string         );
       void set_path( fc::path p     );
       void set_args( variant_object );
       void set_port( uint16_t       );

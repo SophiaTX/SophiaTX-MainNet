@@ -5,6 +5,8 @@
 
 #include <sophiatx/remote_db/remote_db.hpp>
 
+#include <fc/string_utils.hpp>
+
 
 namespace sophiatx {
 namespace plugins {

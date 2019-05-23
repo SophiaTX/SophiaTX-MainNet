@@ -81,7 +81,7 @@ namespace fc
        template<typename T>
        static inline void to_variant( const T& o, fc::variant& v ) 
        { 
-           v = fc::reflector<T>::to_fc_string(o);
+           v = fc::reflector<T>::to_std_string(o);
        }
        template<typename T>
        static inline void from_variant( const fc::variant& v, T& o ) 

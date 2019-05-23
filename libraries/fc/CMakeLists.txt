@@ -166,7 +166,7 @@ set( fc_sources
      src/thread/non_preemptable_scope_check.cpp
      src/asio.cpp
      src/stacktrace.cpp
-     src/string.cpp
+     src/string_utils.cpp
      src/shared_ptr.cpp
      src/time.cpp
      src/utf8.cpp

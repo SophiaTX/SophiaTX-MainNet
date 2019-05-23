@@ -75,8 +75,8 @@ namespace fc {
 
   fc::thread& cin_thread() { static fc::thread i("cin"); return i; }
 
-  fc::istream& getline( fc::istream& i, fc::string& s, char delim  ) {
-    fc::stringstream ss; 
+  fc::istream& getline( fc::istream& i, std::string& s, char delim  ) {
+    std::stringstream ss;
     char c;
     i.read( &c, 1 );
     while( true ) {
@@ -193,13 +193,6 @@ namespace fc {
      o.write( v.c_str(), v.size() );
      return o;
   }
-#ifdef USE_FC_STRING
-  ostream& operator<<( ostream& o, const fc::string& v )
-  {
-     o.write( v.c_str(), v.size() );
-     return o;
-  }
-#endif
 
   ostream& operator<<( ostream& o, const double& v )
   {
@@ -264,14 +257,6 @@ namespace fc {
      assert(false && "not implemented");
      return o;
   }
-
-#ifdef USE_FC_STRING
-  istream& operator>>( istream& o, fc::string& v )
-  {
-     assert(false && "not implemented");
-     return o;
-  }
-#endif
 
   istream& operator>>( istream& o, char& v )
   {

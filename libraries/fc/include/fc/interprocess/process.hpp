@@ -3,7 +3,7 @@
 
 namespace fc {
 
-  fc::path find_executable_in_path( const fc::string name );
+  fc::path find_executable_in_path( const std::string name );
 
   /**
    *  @brief start and manage an local process

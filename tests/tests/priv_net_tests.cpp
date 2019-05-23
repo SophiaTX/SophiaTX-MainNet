@@ -20,7 +20,6 @@
 using namespace sophiatx;
 using namespace sophiatx::chain;
 using namespace sophiatx::protocol;
-using fc::string;
 
 #define DUMP( x ) {fc::variant vo; fc::to_variant( x , vo); std::cout<< fc::json::to_string(vo) <<"\n";}
 BOOST_FIXTURE_TEST_SUITE( operation_tests, private_database_fixture )

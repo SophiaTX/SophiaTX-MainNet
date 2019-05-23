@@ -2,7 +2,6 @@
 #include <utility>
 #include <memory>
 
-#include <fc/string.hpp>
 #include <fc/reflect/typename.hpp>
 #include <fc/optional.hpp>
 #include <fc/fwd.hpp>
