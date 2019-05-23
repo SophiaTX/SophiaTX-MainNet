@@ -51,7 +51,7 @@ void info()
       auto initminer_private_key = sophiatx::utilities::key_to_wif( SOPHIATX_INIT_PRIVATE_KEY );
       std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
       std::cerr << "initminer private key: " << initminer_private_key << "\n";
-      std::cerr << "blockchain version: " << fc::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
+      std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
       std::cerr << "------------------------------------------------------\n";
 #else
     const auto& genesis = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin_full >().get_genesis();

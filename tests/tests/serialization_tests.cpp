@@ -145,7 +145,6 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_THROW( asset::from_string( "1.000SPHTX" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1. 333 SPHTX" ), fc::exception ); // Fails because symbol is '333 SPHTX', which is too long
       BOOST_CHECK_THROW( asset::from_string( "1 .333 SPHTX" ), fc::exception );
-      //BOOST_CHECK_THROW( asset::from_string( "1. 333 X" ), fc::exception ); // Not a system asset
       BOOST_CHECK_THROW( asset::from_string( "1 .333 X" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1 .333" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1 1.1" ), fc::exception );
@@ -159,7 +158,6 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_THROW( asset::from_string( "" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( " " ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "  " ), fc::exception );
-      //BOOST_CHECK_THROW( asset::from_string( "100 SPHTX" ), fc::exception ); // Does not match system asset precision
    }
    FC_LOG_AND_RETHROW()
 }
@@ -168,7 +166,7 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
 {
    try
    {
-      fc::string s;
+      std::string s;
 
       BOOST_CHECK_EQUAL( asset().symbol.decimals(), 6 );
       BOOST_CHECK_EQUAL( fc::json::to_string( asset() ), "[\"0\",3,\"@@000000021\"]" );

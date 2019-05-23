@@ -461,13 +461,13 @@ struct scheduled_hardfork
 struct get_version_info
 {
    get_version_info() {}
-   get_version_info( fc::string bc_v, fc::string s_v, fc::string fc_v, fc::string ci_v )
+   get_version_info( std::string bc_v, std::string s_v, std::string fc_v, std::string ci_v )
          :blockchain_version( bc_v ), sophiatx_revision( s_v ), fc_revision( fc_v ), chain_id(ci_v) {}
 
-   fc::string blockchain_version;
-   fc::string sophiatx_revision;
-   fc::string fc_revision;
-   fc::string chain_id;
+   std::string blockchain_version;
+   std::string sophiatx_revision;
+   std::string fc_revision;
+   std::string chain_id;
 };
 
 struct api_hardfork_property_object

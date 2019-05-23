@@ -1,7 +1,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/fwd_impl.hpp>
 #include <openssl/sha.h>
-#include <string.h>
+#include <string>
 #include <fc/crypto/sha1.hpp>
 #include <fc/variant.hpp>
 #include <vector>
@@ -39,7 +39,7 @@ sha1 sha1::hash( const char* d, uint32_t dlen ) {
   return e.result();
 }
 
-sha1 sha1::hash( const string& s ) {
+sha1 sha1::hash( const std::string& s ) {
   return hash( s.c_str(), s.size() );
 }
 

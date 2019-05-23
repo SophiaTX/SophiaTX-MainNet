@@ -15,12 +15,12 @@ namespace fc { namespace rpc {
 
          virtual variant send_call(
             api_id_type api_id,
-            string method_name,
+            std::string method_name,
             bool args_as_object,
             variants args = variants() ) override;
          virtual variant send_call(
-            string api_name,
-            string method_name,
+            std::string api_name,
+            std::string method_name,
             bool args_as_object,
             variants args = variants() ) override;
          virtual variant send_callback(

@@ -93,10 +93,10 @@ clean_database_fixture::clean_database_fixture()
     // Fill up the rest of the required miners
    for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
    {
-      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -171,10 +171,10 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    // Fill up the rest of the required miners
    for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
    {
-      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -240,10 +240,10 @@ private_database_fixture::private_database_fixture()
 //      // Fill up the rest of the required miners
 //      for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
 //      {
-//         account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-//         fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-//         vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+//         account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+//         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+//         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
 //      }
 
 //      validate_database();
@@ -611,7 +611,7 @@ void database_fixture::set_witness_props( const flat_map< string, vector< char >
    for( size_t i = 1; i < 8; i++ )
    {
       witness_set_properties_operation op;
-      op.owner = AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i ));
+      op.owner = AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i ));
       op.props = props;
 
       if( op.props.find( "key" ) == op.props.end() )
@@ -753,10 +753,10 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    // Fill up the rest of the required miners
    for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
    {
-      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
+      account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
    }
 
    validate_database();

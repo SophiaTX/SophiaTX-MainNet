@@ -49,46 +49,7 @@ namespace sophiatx { namespace protocol {
      friend bool operator < ( const asset_symbol_type& a, const asset_symbol_type& b )
      {  return (a.value < b.value);    }
   };
-/*
-class asset_symbol_type
-{
-   public:
 
-      asset_symbol_type() {}
-
-      // buf must have space for SOPHIATX_ASSET_SYMBOL_MAX_LENGTH+1
-      static asset_symbol_type from_string( const std::string& str );
-      static asset_symbol_type from_asset_num( uint32_t asset_num )
-      {   asset_symbol_type result;   result.asset_num = asset_num;   return result;   }
-
-      std::string to_string()const;
-
-      //Returns true when symbol represents vesting variant of the token, false for liquid one.
-      bool is_vesting() const;
-      //Returns vesting symbol when called from liquid one and liquid symbol when called from vesting one. Returns back the SBD symbol if represents SBD.
-
-      asset_symbol_type get_paired_symbol() const;
-
-      uint8_t decimals()const
-      {  return uint8_t( asset_num & 0x0F );    }
-      void validate()const;
-
-      friend bool operator == ( const asset_symbol_type& a, const asset_symbol_type& b )
-      {  return (a.asset_num == b.asset_num);   }
-      friend bool operator != ( const asset_symbol_type& a, const asset_symbol_type& b )
-      {  return (a.asset_num != b.asset_num);   }
-      friend bool operator <  ( const asset_symbol_type& a, const asset_symbol_type& b )
-      {  return (a.asset_num <  b.asset_num);   }
-      friend bool operator >  ( const asset_symbol_type& a, const asset_symbol_type& b )
-      {  return (a.asset_num >  b.asset_num);   }
-      friend bool operator <= ( const asset_symbol_type& a, const asset_symbol_type& b )
-      {  return (a.asset_num <= b.asset_num);   }
-      friend bool operator >= ( const asset_symbol_type& a, const asset_symbol_type& b )
-      {  return (a.asset_num >= b.asset_num);   }
-
-      uint32_t asset_num = 0;
-};
-*/
 } } // sophiatx::protocol
 
 namespace fc {

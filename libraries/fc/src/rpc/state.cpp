@@ -8,17 +8,17 @@ state::~state()
    close();
 }
 
-void state::add_method( const fc::string& name, method m )
+void state::add_method( const std::string& name, method m )
 {
    _methods.emplace(std::pair<std::string,method>(name,std::move(m)));
 }
 
-void state::remove_method( const fc::string& name )
+void state::remove_method( const std::string& name )
 {
    _methods.erase(name);
 }
 
-variant state::local_call( const string& method_name, const variants& args )
+variant state::local_call( const std::string& method_name, const variants& args )
 {
    auto method_itr = _methods.find(method_name);
    if( method_itr == _methods.end() && _unhandled )
@@ -42,7 +42,7 @@ void  state::handle_reply( const response& response )
    _awaiting.erase(await);
 }
 
-request state::start_remote_call( const string& method_name, variants args )
+request state::start_remote_call( const std::string& method_name, variants args )
 {
    request request{ "2.0", _next_id++, method_name, std::move(args) };
    _awaiting[*request.id] = fc::promise<variant>::ptr( new fc::promise<variant>("json_connection::async_call") );
@@ -61,7 +61,7 @@ void state::close()
       item.second->set_exception( fc::exception_ptr(new FC_EXCEPTION( eof_exception, "connection closed" )) );
    _awaiting.clear();
 }
-void state::on_unhandled( const std::function<variant(const string&, const variants&)>& unhandled )
+void state::on_unhandled( const std::function<variant(const std::string&, const variants&)>& unhandled )
 {
    _unhandled = unhandled;
 }

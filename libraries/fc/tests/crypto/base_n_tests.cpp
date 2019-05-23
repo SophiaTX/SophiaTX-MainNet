@@ -16,8 +16,8 @@ static const std::string TEST5("\0\0\0", 3);
 static void test_16( const std::string& test, const std::string& expected )
 {
    std::vector<char> vec( test.begin(), test.end() );
-   fc::string enc1 = fc::to_hex( vec );
-   fc::string enc2 = fc::to_hex( test.c_str(), test.size() );
+   std::string enc1 = fc::to_hex( vec );
+   std::string enc2 = fc::to_hex( test.c_str(), test.size() );
    BOOST_CHECK_EQUAL( enc1, enc2 );
    BOOST_CHECK_EQUAL( expected, enc2 );
 
@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_SUITE(fc_crypto)
    static void test_58( const std::string& test, const std::string& expected )
    {
       std::vector<char> vec( test.begin(), test.end() );
-      fc::string enc1 = fc::to_base58( vec );
-      fc::string enc2 = fc::to_base58( test.c_str(), test.size() );
+      std::string enc1 = fc::to_base58( vec );
+      std::string enc2 = fc::to_base58( test.c_str(), test.size() );
       BOOST_CHECK_EQUAL( enc1, enc2 );
       BOOST_CHECK_EQUAL( expected, enc2 );
 
@@ -78,8 +78,8 @@ BOOST_AUTO_TEST_SUITE(fc_crypto)
 
    static void test_64( const std::string& test, const std::string& expected )
    {
-      fc::string enc1 = fc::base64_encode( test );
-      fc::string enc2 = fc::base64_encode( test.c_str(), test.size() );
+      std::string enc1 = fc::base64_encode( test );
+      std::string enc2 = fc::base64_encode( test.c_str(), test.size() );
       BOOST_CHECK_EQUAL( enc1, enc2 );
       BOOST_CHECK_EQUAL( expected, enc2 );
 

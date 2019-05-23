@@ -44,12 +44,12 @@ cli::~cli()
    }
 }
 
-variant cli::send_call( api_id_type api_id, string method_name, bool args_as_object, variants args /* = variants() */ )
+variant cli::send_call( api_id_type api_id, std::string method_name, bool args_as_object, variants args /* = variants() */ )
 {
    FC_ASSERT(false);
 }
 
-variant cli::send_call( string api_name, string method_name, bool args_as_object, variants args /* = variants() */ )
+variant cli::send_call( std::string api_name, std::string method_name, bool args_as_object, variants args /* = variants() */ )
 {
    FC_ASSERT(false);
 }
@@ -81,12 +81,12 @@ void cli::wait()
    _run_complete.wait();
 }
 
-void cli::format_result( const string& method, std::function<string(variant,const variants&)> formatter)
+void cli::format_result( const std::string& method, std::function<std::string(variant,const variants&)> formatter)
 {
    _result_formatters[method] = formatter;
 }
 
-void cli::set_prompt( const string& prompt )
+void cli::set_prompt( const std::string& prompt )
 {
    _prompt = prompt;
 }
@@ -118,7 +118,7 @@ void cli::run()
          if( args.size() == 0 )
             continue;
 
-         const string& method = args[0].get_string();
+         const std::string& method = args[0].get_string();
 
          auto result = receive_call( 0, method, variants( args.begin()+1,args.end() ) );
          auto itr = _result_formatters.find( method );
@@ -186,7 +186,7 @@ static char** cli_completion( const char * text , int start, int end)
 #endif
 
 
-void cli::getline( const fc::string& prompt, fc::string& line)
+void cli::getline( const std::string& prompt, std::string& line)
 {
    // getting file descriptor for C++ streams is near impossible
    // so we just assume it's the same as the C stream...

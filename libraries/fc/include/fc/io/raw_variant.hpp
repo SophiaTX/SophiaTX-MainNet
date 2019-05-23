@@ -28,7 +28,7 @@ namespace fc { namespace raw {
          {
             fc::raw::pack( s, v );
          }
-         virtual void handle( const string& v )const
+         virtual void handle( const std::string& v )const
          {
             fc::raw::pack( s, v );
          }
@@ -92,7 +92,7 @@ namespace fc { namespace raw {
          }
          case variant::string_type:
          {
-            fc::string val;
+            std::string val;
             raw::unpack(s,val,depth);
             v = std::move(val);
             return;
@@ -138,7 +138,7 @@ namespace fc { namespace raw {
        mvo.reserve(vs.value);
        for( uint32_t i = 0; i < vs.value; ++i )
        {
-          fc::string key;
+          std::string key;
           fc::variant value;
           fc::raw::unpack(s,key, depth);
           fc::raw::unpack(s,value, depth);

@@ -16,18 +16,18 @@ namespace fc {
       return utf8::is_valid( str.begin(), str.end() );
    }
 
-   string prune_invalid_utf8( const string& str ) {
-      string result;
+   std::string prune_invalid_utf8( const std::string& str ) {
+      std::string result;
 
       auto itr = utf8::find_invalid(str.begin(), str.end()); 
       if( itr == str.end() ) return str;
 
-      result = string( str.begin(), itr );
+      result = std::string( str.begin(), itr );
       while( itr != str.end() ) {
          ++itr;
          auto start = itr;
          itr = utf8::find_invalid( start, str.end()); 
-         result += string( start, itr );
+         result += std::string( start, itr );
       }
       return result;
    }
