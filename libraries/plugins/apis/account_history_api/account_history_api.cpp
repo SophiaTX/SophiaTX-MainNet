@@ -49,7 +49,7 @@ DEFINE_API_IMPL( account_history_api_impl, get_transaction )
    if( itr != idx.end() && itr->trx_id == args.id )
    {
       auto blk = _db->fetch_block_by_number( itr->block );
-      FC_ASSERT( blk.valid() );
+      FC_ASSERT( blk.has_value() );
       FC_ASSERT( blk->transactions.size() > itr->trx_in_block );
       get_transaction_return result = blk->transactions[itr->trx_in_block];
       result.block_num       = itr->block;

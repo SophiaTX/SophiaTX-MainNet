@@ -3,7 +3,7 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/io/datastream.hpp>
 #include <fc/io/varint.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/time.hpp>
@@ -232,13 +232,13 @@ namespace fc {
 
     // optional
     template<typename Stream, typename T>
-    void pack( Stream& s, const fc::optional<T>& v ) {
-      fc::raw::pack( s, bool(!!v) );
-      if( !!v ) fc::raw::pack( s, *v );
+    void pack( Stream& s, const std::optional<T>& v ) {
+      fc::raw::pack( s, bool(!!v.has_value()) );
+      if( !!v.has_value() ) fc::raw::pack( s, *v );
     }
 
     template<typename Stream, typename T>
-    void unpack( Stream& s, fc::optional<T>& v, uint32_t depth )
+    void unpack( Stream& s, std::optional<T>& v, uint32_t depth )
     { try {
       FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
       depth++;

@@ -24,7 +24,7 @@ using namespace std;
 
 struct Java_AlexandriaJNI_memo_data {
 
-   static fc::optional<Java_AlexandriaJNI_memo_data> from_string( string str ) {
+   static std::optional<Java_AlexandriaJNI_memo_data> from_string( string str ) {
       try {
          if( str.size() > sizeof(Java_AlexandriaJNI_memo_data)) {
             auto data = fc::from_base58( str );
@@ -33,7 +33,7 @@ struct Java_AlexandriaJNI_memo_data {
             return m;
          }
       } catch ( ... ) {}
-      return fc::optional<Java_AlexandriaJNI_memo_data>();
+      return std::optional<Java_AlexandriaJNI_memo_data>();
    }
 
    int64_t         nonce = 0;

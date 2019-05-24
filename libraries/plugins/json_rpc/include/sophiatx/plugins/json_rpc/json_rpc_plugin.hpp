@@ -9,7 +9,7 @@
 #include <fc/exception/exception.hpp>
 
 #include <boost/config.hpp>
-#include <boost/any.hpp>
+#include <any>
 
 /**
  * This plugin holds bindings for all APIs and their methods
@@ -101,7 +101,7 @@ class json_rpc_plugin : public appbase::plugin< json_rpc_plugin >
       virtual void plugin_startup() override;
       virtual void plugin_shutdown() override;
 
-      fc::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const;
+      std::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const;
       void add_api_method( const string& api_name, const string& method_name, const api_method& api, const api_method_signature& sig );
 
       string call( const string& body, bool& is_error);

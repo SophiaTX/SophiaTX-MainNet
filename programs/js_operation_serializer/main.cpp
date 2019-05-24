@@ -98,7 +98,7 @@ struct js_name<fc::array<T,N>>
 };
 template<size_t N>   struct js_name<fc::array<char,N>>    { static std::string name(){ return  "bytes "+ std::to_string(N); }; };
 template<size_t N>   struct js_name<fc::array<uint8_t,N>> { static std::string name(){ return  "bytes "+ std::to_string(N); }; };
-template<typename T> struct js_name< fc::optional<T> >    { static std::string name(){ return "optional " + js_name<T>::name(); } };
+template<typename T> struct js_name< std::optional<T> >    { static std::string name(){ return "optional " + js_name<T>::name(); } };
 template<typename T> struct js_name< fc::flat_set<T> >    { static std::string name(){ return "set " + js_name<T>::name(); } };
 template<typename T> struct js_name< std::vector<T> >     { static std::string name(){ return "array " + js_name<T>::name(); } };
 template<typename T> struct js_name< fc::safe<T> > { static std::string name(){ return js_name<T>::name(); } };
@@ -245,7 +245,7 @@ template<> struct serializer<int64_t,false> { static void init() {} static void 
 template<> struct serializer<int64_t,true> { static void init() {} static void generate() {} };
 
 template<typename T>
-struct serializer<fc::optional<T>,false>
+struct serializer<std::optional<T>,false>
 {
    static void init() { serializer<T>::init(); }
    static void generate(){}

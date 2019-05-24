@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include <fc/optional.hpp>
+#include <optional>
 
 #include <fc/container/flat_fwd.hpp>
 
@@ -54,7 +54,7 @@ namespace fc {
         return n.c_str();  
      }
   };
-  template<typename T> struct get_typename<optional<T>>   
+  template<typename T> struct get_typename<std::optional<T>>
   { 
      static const char* name()  { 
          static std::string n = std::string("optional<") + get_typename<T>::name() + ">"; 

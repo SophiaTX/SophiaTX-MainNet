@@ -2,7 +2,7 @@
 #include <sophiatx/plugins/debug_node_api/debug_node_api.hpp>
 
 #include <fc/filesystem.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant_object.hpp>
 
 #include <sophiatx/chain/block_log.hpp>
@@ -64,7 +64,7 @@ DEFINE_API_IMPL( debug_node_api_impl, debug_push_blocks )
          skip_flags = skip_flags | chain::database_interface::skip_validate_invariants;
       for( uint32_t i=0; i<count; i++ )
       {
-         //fc::optional< chain::signed_block > block = log.read_block( log.get_block_pos( first_block + i ) );
+         //std::optional< chain::signed_block > block = log.read_block( log.get_block_pos( first_block + i ) );
          uint64_t block_pos = log.get_block_pos( first_block + i );
          if( block_pos == chain::block_log::npos )
          {

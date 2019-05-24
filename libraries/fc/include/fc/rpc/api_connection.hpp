@@ -1,8 +1,8 @@
 #pragma once
 #include <fc/variant.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/api.hpp>
-#include <boost/any.hpp>
+#include <any>
 #include <memory>
 #include <vector>
 #include <functional>
@@ -193,7 +193,7 @@ namespace fc {
             std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface,Adaptor>(Args...)>& f )const;
 
             template<typename Interface, typename Adaptor, typename ... Args>
-            std::function<variant(const fc::variants&)> to_generic( const std::function<fc::optional<api<Interface,Adaptor>>(Args...)>& f )const;
+            std::function<variant(const fc::variants&)> to_generic( const std::function<std::optional<api<Interface,Adaptor>>(Args...)>& f )const;
 
             template<typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<fc::api_ptr(Args...)>& f )const;
@@ -216,7 +216,7 @@ namespace fc {
 
 
          std::weak_ptr<fc::api_connection>                       _api_connection;
-         boost::any                                                 _api;
+         std::any                                                 _api;
          std::map< std::string, uint32_t >                       _by_name;
          std::vector< std::function<variant(const variants&)> >  _methods;
    }; // class generic_api
@@ -294,7 +294,7 @@ namespace fc {
          struct api_visitor
          {
             uint32_t                            _api_id;
-            optional< std::string >             _api_name;
+            std::optional< std::string >             _api_name;
             bool                                _api_calls_args_object;
             std::shared_ptr<fc::api_connection> _connection;
 
@@ -420,7 +420,7 @@ namespace fc {
    generic_api::generic_api( const Api& a, const std::shared_ptr<fc::api_connection>& c )
    :_api_connection(c),_api(a)
    {
-      boost::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
+      std::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
    }
 
    template<typename Interface, typename Adaptor, typename ... Args>
@@ -439,7 +439,7 @@ namespace fc {
    }
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic(
-                                               const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
+                                               const std::function<std::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
    {
       auto api_con = _api_con;
       auto gapi = &_api;

@@ -294,7 +294,7 @@ protected:
    void notify_changed_objects();
 
 private:
-   optional<chainbase::database::session> _pending_tx_session;
+   std::optional<chainbase::database::session> _pending_tx_session;
 
    void apply_block(const signed_block &next_block, uint32_t skip = skip_nothing);
 

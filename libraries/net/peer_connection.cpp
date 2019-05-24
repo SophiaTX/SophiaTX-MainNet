@@ -113,8 +113,8 @@ namespace graphene { namespace net
 #if 0 // this gets too verbose
 #ifndef NDEBUG
       struct scope_logger {
-        fc::optional<fc::ip::endpoint> endpoint;
-        scope_logger(const fc::optional<fc::ip::endpoint>& endpoint) : endpoint(endpoint) { dlog("entering peer_connection::destroy() for peer ${endpoint}", ("endpoint", endpoint)); }
+        std::optional<fc::ip::endpoint> endpoint;
+        scope_logger(const std::optional<fc::ip::endpoint>& endpoint) : endpoint(endpoint) { dlog("entering peer_connection::destroy() for peer ${endpoint}", ("endpoint", endpoint)); }
         ~scope_logger() { dlog("leaving peer_connection::destroy() for peer ${endpoint}", ("endpoint", endpoint)); }
       } send_message_scope_logger(get_remote_endpoint());
 #endif
@@ -217,7 +217,7 @@ namespace graphene { namespace net
       }
     }
 
-    void peer_connection::connect_to( const fc::ip::endpoint& remote_endpoint, fc::optional<fc::ip::endpoint> local_endpoint )
+    void peer_connection::connect_to( const fc::ip::endpoint& remote_endpoint, std::optional<fc::ip::endpoint> local_endpoint )
     {
       VERIFY_CORRECT_THREAD();
       try
@@ -423,7 +423,7 @@ namespace graphene { namespace net
       return _message_connection.get_last_message_received_time();
     }
 
-    fc::optional<fc::ip::endpoint> peer_connection::get_remote_endpoint()
+    std::optional<fc::ip::endpoint> peer_connection::get_remote_endpoint()
     {
       VERIFY_CORRECT_THREAD();
       return _remote_endpoint;
@@ -434,7 +434,7 @@ namespace graphene { namespace net
       return _message_connection.get_socket().local_endpoint();
     }
 
-    void peer_connection::set_remote_endpoint( fc::optional<fc::ip::endpoint> new_remote_endpoint )
+    void peer_connection::set_remote_endpoint( std::optional<fc::ip::endpoint> new_remote_endpoint )
     {
       VERIFY_CORRECT_THREAD();
       _remote_endpoint = new_remote_endpoint;
@@ -515,11 +515,11 @@ namespace graphene { namespace net
       return firewall_check_state && firewall_check_state->requesting_peer != node_id_t();
     }
 
-    fc::optional<fc::ip::endpoint> peer_connection::get_endpoint_for_connecting() const
+    std::optional<fc::ip::endpoint> peer_connection::get_endpoint_for_connecting() const
     {
       if (inbound_port)
         return fc::ip::endpoint(inbound_address, inbound_port);
-      return fc::optional<fc::ip::endpoint>();
+      return std::optional<fc::ip::endpoint>();
     }
 
 } } // end namespace graphene::net

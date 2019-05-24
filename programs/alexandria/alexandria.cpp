@@ -25,7 +25,7 @@ namespace {
 
 struct memo_data {
 
-   static fc::optional<memo_data> from_string( string str ) {
+   static std::optional<memo_data> from_string( string str ) {
       try {
          if( str.size() > sizeof(memo_data)) {
             auto data = fc::from_base58( str );
@@ -34,7 +34,7 @@ struct memo_data {
             return m;
          }
       } catch ( ... ) {}
-      return fc::optional<memo_data>();
+      return std::optional<memo_data>();
    }
 
    int64_t         nonce = 0;

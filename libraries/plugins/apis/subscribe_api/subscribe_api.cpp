@@ -53,7 +53,7 @@ struct custom_content_callback{
       cb_args.count = 1;
       cb_args.start = std::to_string(last_position+1);
       auto vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
-      if(!vdocs)
+      if(!vdocs.has_value())
          return;
       custom::list_received_documents_return docs;
       fc::from_variant( *vdocs, docs );
@@ -68,7 +68,7 @@ struct custom_content_callback{
          last_position++;
          cb_args.start = std::to_string(last_position+1);
          vdocs = impl._json_api->call_api_method("custom_api", "list_received_documents", fc::variant(cb_args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
-         if(!vdocs)
+         if(!vdocs.has_value())
             break;
          fc::from_variant( *vdocs, docs );
       }

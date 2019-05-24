@@ -146,24 +146,24 @@ void convert_to_c_array(
 
 struct egenesis_info
 {
-   fc::optional< genesis_state_type > genesis;
-   fc::optional< chain_id_type > chain_id;
-   fc::optional< std::string > genesis_json;
-   fc::optional< fc::sha256 > genesis_json_hash;
-   fc::optional< std::string > genesis_json_array;
+   std::optional< genesis_state_type > genesis;
+   std::optional< chain_id_type > chain_id;
+   std::optional< std::string > genesis_json;
+   std::optional< fc::sha256 > genesis_json_hash;
+   std::optional< std::string > genesis_json_array;
    int genesis_json_array_width,
        genesis_json_array_height;
 
    void fillin()
    {
       // must specify either genesis_json or genesis
-      if( genesis.valid() )
+      if( genesis.has_value() )
       {
-         if( !genesis_json.valid() )
+         if( !genesis_json.has_value() )
             // If genesis_json not exist, generate from genesis
             genesis_json = fc::json::to_string( *genesis );
       }
-      else if( genesis_json.valid() )
+      else if( genesis_json.has_value() )
       {
          // If genesis not exist, generate from genesis_json
          genesis = fc::json::from_string( *genesis_json ).as< genesis_state_type >();
@@ -175,13 +175,13 @@ struct egenesis_info
          exit(1);
       }
       // init genesis_json_hash from genesis_json
-      if( !genesis_json_hash.valid() )
+      if( !genesis_json_hash.has_value() )
          genesis_json_hash = fc::sha256::hash( *genesis_json );
       // init chain_id from genesis_json_hash
-      if( !chain_id.valid() )
+      if( !chain_id.has_value() )
          chain_id = genesis_json_hash;
       // init genesis_json_array from genesis_json
-      if( !genesis_json_array.valid() )
+      if( !genesis_json_array.has_value() )
       {
          genesis_json_array = std::string();
          // TODO: gzip
@@ -213,7 +213,7 @@ void load_genesis(
    {
       std::string chain_id_str = options["chain-id"].as<std::string>();
       std::cerr << "embed_genesis:  Genesis ID from argument is " << chain_id_str << "\n";
-      info.chain_id = chain_id_str;
+      info.chain_id.emplace(chain_id_str);
    }
    return;
 }
@@ -255,7 +255,7 @@ int main( int argc, char** argv )
       ( "generated_file_banner", generated_file_banner )
       ( "chain_id", (*info.chain_id).str() )
       ;
-   if( info.genesis_json.valid() )
+   if( info.genesis_json.has_value() )
    {
       template_context["genesis_json_length"] = info.genesis_json->length();
       template_context["genesis_json_array"] = (*info.genesis_json_array);

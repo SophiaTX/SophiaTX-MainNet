@@ -5,7 +5,7 @@
 
 #include <sophiatx/protocol/types.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 
 namespace sophiatx { namespace plugins { namespace subscribe {

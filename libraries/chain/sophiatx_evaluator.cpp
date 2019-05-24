@@ -1116,7 +1116,7 @@ void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
    _db->get_account(op.sponsored);
    optional< account_name_type > existing_sponsor = _db->get_sponsor(op.sponsored);
    if(op.is_sponsoring){
-      FC_ASSERT(!existing_sponsor, "This account is already sponsored");
+      FC_ASSERT(!existing_sponsor.has_value(), "This account is already sponsored");
       _db->create<account_fee_sponsor_object>([&](account_fee_sponsor_object& o){
          o.sponsor = op.sponsor;
          o.sponsored = op.sponsored;

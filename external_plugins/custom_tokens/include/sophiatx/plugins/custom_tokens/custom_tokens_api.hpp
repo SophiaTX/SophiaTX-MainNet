@@ -7,7 +7,7 @@
 #include <sophiatx/protocol/operations.hpp>
 #include <sophiatx/protocol/types.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 
 namespace sophiatx {
