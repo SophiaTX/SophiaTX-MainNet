@@ -122,7 +122,6 @@ DEFINE_API_IMPL( multiparty_messaging_api_impl, get_group)
       final_result = *group_itr;
    return final_result;
 }
-g
 
 DEFINE_API_IMPL( multiparty_messaging_api_impl, get_group_name)
 {
