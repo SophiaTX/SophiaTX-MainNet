@@ -1,0 +1,8 @@
+#!/bin/sh
+# postinst script for bal-licexp
+#
+# see: dh_installdeb(1)
+
+echo "postinstall script"
+
+exit 0

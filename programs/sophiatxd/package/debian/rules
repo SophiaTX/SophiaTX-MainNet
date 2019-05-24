@@ -1,0 +1,45 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
+
+%:
+	dh  $@
+override_dh_auto_configure:
+	cmake -j 4 \
+	    -B cmake-build-release \
+	    --target sophiatxd \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
+        -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
+        -DBUILD_PIC=ON \
+        -DOPENSSL_ROOT_DIR=/home/fornadel/workspace/libraries/openssl-1.1.1 \
+        -DBOOST_ROOT=/home/fornadel/workspace/libraries/boost_1_69_0 \
+        ../../../
+
+override_dh_auto_build:
+	make -C cmake-build-release/
+
+override_dh_auto_install:
+	cmake -DCOMPONENT=sophiatxd \
+	      -DCONF_INSTALL_DIR=`pwd`/debian/eset-package/etc \
+	      -DAPP_INSTALL_DIR=`pwd`/debian/eset-package/usr/bin/ \
+	      -P cmake-build-release/cmake_install.cmake
+
+override_dh_usrlocal:
+
+override_dh_install:
+	dh_install --sourcedir=.
+
+override_dh_shlibdeps:
+	dh_shlibdeps -- -S/usr/local

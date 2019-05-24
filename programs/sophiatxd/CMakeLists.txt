@@ -35,10 +35,8 @@ if( CLANG_TIDY_EXE )
    )
 endif( CLANG_TIDY_EXE )
 
-install( TARGETS
-   sophiatxd
+set(APP_INSTALL_DIR "/usr/local/bin" CACHE PATH "Aplication install directory")
+set(CONF_INSTALL_DIR "/etc" CACHE PATH "Configuration install directory")
 
-   RUNTIME DESTINATION bin
-   LIBRARY DESTINATION lib
-   ARCHIVE DESTINATION lib
-)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/programs/sophiatxd/sophiatxd DESTINATION ${APP_INSTALL_DIR} COMPONENT sophiatxd)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/etc/ DESTINATION ${CONF_INSTALL_DIR} COMPONENT sophiatxd)
