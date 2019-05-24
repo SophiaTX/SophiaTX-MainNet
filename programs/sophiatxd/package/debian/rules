@@ -17,23 +17,21 @@ export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
 	dh  $@
 override_dh_auto_configure:
 	cmake -j 4 \
-	    -B cmake-build-release \
-	    --target sophiatxd \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
-        -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
-        -DBUILD_PIC=ON \
-        -DOPENSSL_ROOT_DIR=/home/fornadel/workspace/libraries/openssl-1.1.1 \
-        -DBOOST_ROOT=/home/fornadel/workspace/libraries/boost_1_69_0 \
-        ../../../
+	      -B cmake-build-release \
+	      --target sophiatxd \
+	      -DCMAKE_BUILD_TYPE=Release \
+          -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
+          -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
+          -DBUILD_PIC=ON \
+          -DOPENSSL_ROOT_DIR=/home/fornadel/workspace/libraries/openssl-1.1.1 \
+          -DBOOST_ROOT=/home/fornadel/workspace/libraries/boost_1_69_0 \
+          ../../../
 
 override_dh_auto_build:
 	make -C cmake-build-release/
 
 override_dh_auto_install:
 	cmake -DCOMPONENT=sophiatxd \
-	      -DCONF_INSTALL_DIR=`pwd`/debian/eset-package/etc \
-	      -DAPP_INSTALL_DIR=`pwd`/debian/eset-package/usr/bin/ \
 	      -P cmake-build-release/cmake_install.cmake
 
 override_dh_usrlocal:
