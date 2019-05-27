@@ -354,7 +354,7 @@ asset_symbol_type database_fixture::name_to_asset_symbol( const std::string& nam
 
 void database_fixture::open_database()
 {
-   if( !data_dir )
+   if( !data_dir.has_value() )
    {
       data_dir = fc::temp_directory( sophiatx::utilities::temp_directory_path() );
       db->_log_hardforks = false;
@@ -371,7 +371,7 @@ void database_fixture::open_database()
 
 void database_fixture::open_database_private()
 {
-   if( !data_dir )
+   if( !data_dir.has_value() )
    {
       data_dir = fc::temp_directory( sophiatx::utilities::temp_directory_path() );
       db->_log_hardforks = false;
@@ -813,14 +813,14 @@ void check_id_equal( const fc::variant& id_a, const fc::variant& id_b )
    }
 }
 
-void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code, bool is_warning, bool is_fail, fc::optional< fc::variant > id )
+void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code, bool is_warning, bool is_fail, std::optional< fc::variant > id )
 {
    fc::variant_object error;
    int64_t answer_code;
 
    if( is_fail )
    {
-      if( id.valid() && code != JSON_RPC_INVALID_REQUEST )
+      if( id.has_value() && code != JSON_RPC_INVALID_REQUEST )
       {
          BOOST_REQUIRE( answer.get_object().contains( "id" ) );
          check_id_equal( answer[ "id" ], *id );
@@ -840,7 +840,7 @@ void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code
    {
       BOOST_REQUIRE( answer.get_object().contains( "result" ) );
       BOOST_REQUIRE( answer.get_object().contains( "id" ) );
-      if( id.valid() )
+      if( id.has_value() )
          check_id_equal( answer[ "id" ], *id );
    }
 }
@@ -856,7 +856,7 @@ void json_rpc_database_fixture::make_array_request( std::string& request, int64_
    BOOST_REQUIRE( array.size() == request_array.size() );
    for( size_t i = 0; i < array.size(); ++i )
    {
-      fc::optional< fc::variant > id;
+      std::optional< fc::variant > id;
 
       try
       {
@@ -872,7 +872,7 @@ fc::variant json_rpc_database_fixture::make_request( std::string& request, int64
 {
    fc::variant answer = get_answer( request );
    BOOST_REQUIRE( answer.is_object() );
-   fc::optional< fc::variant > id;
+   std::optional< fc::variant > id;
 
    try
    {

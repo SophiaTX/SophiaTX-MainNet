@@ -5,7 +5,7 @@
 
 #include <sophiatx/protocol/types.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 
 namespace sophiatx { namespace plugins { namespace debug_node {
@@ -39,7 +39,7 @@ typedef void_type debug_pop_block_args;
 
 struct debug_pop_block_return
 {
-   fc::optional< protocol::signed_block > block;
+   std::optional< protocol::signed_block > block;
 };
 
 typedef void_type debug_get_witness_schedule_args;

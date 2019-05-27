@@ -7,7 +7,7 @@
 #include <websocketpp/logger/stub.hpp>
 #include <websocketpp/extensions/permessage_deflate/enabled.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 #include <fc/thread/thread.hpp>
 #include <fc/asio.hpp>

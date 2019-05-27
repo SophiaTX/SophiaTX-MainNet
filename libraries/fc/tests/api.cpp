@@ -20,10 +20,10 @@ class login_api
    public:
       fc::api<calculator> get_calc()const
       {
-         FC_ASSERT( calc );
+         FC_ASSERT( calc.has_value() );
          return *calc;
       }
-      fc::optional<fc::api<calculator>> calc;
+      std::optional<fc::api<calculator>> calc;
       std::set<std::string> test( const std::string&, const std::string& ) { return std::set<std::string>(); }
 };
 FC_API( login_api, (get_calc)(test) );

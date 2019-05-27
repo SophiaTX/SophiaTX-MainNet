@@ -4,7 +4,7 @@
 #include <fc/shared_ptr.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/thread/spin_yield_lock.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 
 //#define FC_TASK_NAMES_ARE_MANDATORY 1
 #ifdef FC_TASK_NAMES_ARE_MANDATORY
@@ -137,7 +137,7 @@ namespace fc {
         _on_complete( new detail::completion_handler_impl<CompletionHandler,T>(std::forward<CompletionHandler>(c)) );
       }
     protected:
-      optional<T> result;
+      std::optional<T> result;
       ~promise(){}
   };
 

@@ -41,7 +41,7 @@ struct write_request_visitor
 
    std::shared_ptr<database> db;
    uint32_t  skip = 0;
-   fc::optional< fc::exception >* except;
+   std::optional< fc::exception >* except;
 
    typedef bool result_type;
 

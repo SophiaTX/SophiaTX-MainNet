@@ -51,7 +51,7 @@ namespace graphene { namespace net {
     fc::time_point_sec                last_connection_attempt_time;
     uint32_t                          number_of_successful_connection_attempts;
     uint32_t                          number_of_failed_connection_attempts;
-    fc::optional<fc::exception>       last_error;
+    std::optional<fc::exception>       last_error;
 
     potential_peer_record() :
       number_of_successful_connection_attempts(0),
@@ -106,7 +106,7 @@ namespace graphene { namespace net {
 
     void update_entry(const potential_peer_record& updatedRecord);
     potential_peer_record lookup_or_create_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup);
-    fc::optional<potential_peer_record> lookup_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup);
+    std::optional<potential_peer_record> lookup_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup);
 
     typedef detail::peer_database_iterator iterator;
     iterator begin() const;

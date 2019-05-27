@@ -69,7 +69,7 @@ namespace fc { namespace ssh {
         std::string            command;
         fc::promise<int>::ptr result;
 
-        fc::optional<int>     return_code;
+        std::optional<int>     return_code;
         fc::ostring           return_signal;
         fc::ostring           return_signal_message;
     private:

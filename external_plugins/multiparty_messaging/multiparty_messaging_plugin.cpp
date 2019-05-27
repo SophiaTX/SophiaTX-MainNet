@@ -180,7 +180,7 @@ void multiparty_messaging_plugin_impl::apply( const protocol::custom_json_operat
             group_op g_op = *message_content.operation_data;
             FC_ASSERT(g_op.version == 1 && g_op.type == "add");
             //check that this group is new to us
-            FC_ASSERT(g_op.new_group_name);
+            FC_ASSERT(g_op.new_group_name.has_value());
             if( find_group(*g_op.new_group_name)) return;
 
             fc::sha256 new_key = extract_key(g_op.new_key, fc::sha256(), fc::sha256(), *message_meta.sender);
@@ -239,8 +239,8 @@ void multiparty_messaging_plugin::plugin_initialize( const boost::program_option
       const std::vector<std::string> keys = options["mpm-private-key"].as<std::vector<std::string>>();
       for (const std::string& wif_key : keys )
       {
-         fc::optional<fc::ecc::private_key> private_key = sophiatx::utilities::wif_to_key(wif_key);
-         FC_ASSERT( private_key.valid(), "unable to parse private key" );
+         std::optional<fc::ecc::private_key> private_key = sophiatx::utilities::wif_to_key(wif_key);
+         FC_ASSERT( private_key.has_value(), "unable to parse private key" );
          _private_keys[private_key->get_public_key()] = *private_key;
       }
    }

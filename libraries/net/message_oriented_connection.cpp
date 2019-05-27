@@ -227,12 +227,12 @@ namespace graphene { namespace net {
       VERIFY_CORRECT_THREAD();
 #if 0 // this gets too verbose
 #ifndef NDEBUG
-      fc::optional<fc::ip::endpoint> remote_endpoint;
+      std::optional<fc::ip::endpoint> remote_endpoint;
       if (_sock.get_socket().is_open())
         remote_endpoint = _sock.get_socket().remote_endpoint();
       struct scope_logger {
-        const fc::optional<fc::ip::endpoint>& endpoint;
-        scope_logger(const fc::optional<fc::ip::endpoint>& endpoint) : endpoint(endpoint) { dlog("entering message_oriented_connection::send_message() for peer ${endpoint}", ("endpoint", endpoint)); }
+        const std::optional<fc::ip::endpoint>& endpoint;
+        scope_logger(const std::optional<fc::ip::endpoint>& endpoint) : endpoint(endpoint) { dlog("entering message_oriented_connection::send_message() for peer ${endpoint}", ("endpoint", endpoint)); }
         ~scope_logger() { dlog("leaving message_oriented_connection::send_message() for peer ${endpoint}", ("endpoint", endpoint)); }
       } send_message_scope_logger(remote_endpoint);
 #endif
@@ -281,7 +281,7 @@ namespace graphene { namespace net {
     {
       VERIFY_CORRECT_THREAD();
 
-      fc::optional<fc::ip::endpoint> remote_endpoint;
+      std::optional<fc::ip::endpoint> remote_endpoint;
       if (_sock.get_socket().is_open())
         remote_endpoint = _sock.get_socket().remote_endpoint();
       ilog( "in destroy_connection() for ${endpoint}", ("endpoint", remote_endpoint) );

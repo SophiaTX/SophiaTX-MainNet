@@ -5,7 +5,7 @@
 
 #include <sophiatx/protocol/types.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 #include <fc/crypto/base58.hpp>
 

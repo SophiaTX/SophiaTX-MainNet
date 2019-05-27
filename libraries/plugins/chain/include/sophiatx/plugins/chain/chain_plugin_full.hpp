@@ -35,7 +35,7 @@ struct write_context
    write_request_ptr             req_ptr;
    uint32_t                      skip = 0;
    bool                          success = true;
-   fc::optional< fc::exception > except;
+   std::optional< fc::exception > except;
    promise_ptr                   prom_ptr;
 
 };

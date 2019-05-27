@@ -44,7 +44,7 @@ std::string key_to_wif(const fc::ecc::private_key& key)
   return key_to_wif( key.get_secret() );
 }
 
-fc::optional<fc::ecc::private_key> wif_to_key( const std::string& wif_key )
+std::optional<fc::ecc::private_key> wif_to_key( const std::string& wif_key )
 {
   std::vector<char> wif_bytes;
   try
@@ -53,10 +53,10 @@ fc::optional<fc::ecc::private_key> wif_to_key( const std::string& wif_key )
   }
   catch (const fc::parse_error_exception&)
   {
-    return fc::optional<fc::ecc::private_key>();
+    return std::optional<fc::ecc::private_key>();
   }
   if (wif_bytes.size() < 5)
-    return fc::optional<fc::ecc::private_key>();
+    return std::optional<fc::ecc::private_key>();
   std::vector<char> key_bytes(wif_bytes.begin() + 1, wif_bytes.end() - 4);
   fc::ecc::private_key key = fc::variant(key_bytes).as<fc::ecc::private_key>();
   fc::sha256 check = fc::sha256::hash(wif_bytes.data(), wif_bytes.size() - 4);
@@ -66,7 +66,7 @@ fc::optional<fc::ecc::private_key> wif_to_key( const std::string& wif_key )
       memcmp( (char*)&check2, wif_bytes.data() + wif_bytes.size() - 4, 4 ) == 0 )
     return key;
 
-  return fc::optional<fc::ecc::private_key>();
+  return std::optional<fc::ecc::private_key>();
 }
 
 } } // end namespace sophiatx::utilities
