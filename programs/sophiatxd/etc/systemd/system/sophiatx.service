@@ -1,5 +1,5 @@
 [Unit]
-Description=SophiaTX service
+Description=SophiaTX Blockchain service
 Documentation=https://developers.sophiatx.com/
 Requires=syslog.socket
 
