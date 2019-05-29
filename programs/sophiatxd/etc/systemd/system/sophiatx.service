@@ -8,7 +8,7 @@ Type=simple
 ExecStart=/usr/bin/sophiatxd -config /etc/sophiatx-service/config.ini --data-dir /var/lib/sophiatx
 ExecReload=/usr/bin/sophiatxd -config /etc/sophiatx-service/config.ini --data-dir /var/lib/sophiatx --replay-blockchain
 StandardOutput=journal
-Restart=always
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target

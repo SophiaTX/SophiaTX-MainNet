@@ -1,0 +1,16 @@
+#!/bin/sh
+# postrm script for sophiatx
+
+case "$1" in
+    remove|purge)
+        rm -f /etc/default/sophiatx
+
+        systemctl disable sophiatx
+        rm -f /lib/systemd/system/sophiatx.service
+    ;;
+
+    *)
+    ;;
+esac
+
+exit 0
