@@ -148,7 +148,7 @@ DEFINE_API_IMPL(alexandria_api_impl, info)
 {
    checkApiEnabled(_database_api);
 
-   auto dynamic_props = get_dynamic_global_properties( {} ).properties;
+   auto dynamic_props = _database_api->get_dynamic_global_properties( {} );
    fc::mutable_variant_object info_data(fc::variant(dynamic_props).get_object());
 
    info_data["witness_majority_version"] = std::string( _database_api->get_witness_schedule( {} ).majority_version );
@@ -777,7 +777,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
       tx.operations.push_back(op);
    }
 
-   auto dyn_props = get_dynamic_global_properties( {} ).properties;
+   auto dyn_props = _database_api->get_dynamic_global_properties( {} );
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -811,7 +811,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_transaction)
    op.visit(op_v);
    tx.operations.push_back(op);
 
-   auto dyn_props = get_dynamic_global_properties( {} ).properties;
+   auto dyn_props = _database_api->get_dynamic_global_properties( {} );
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
