@@ -165,8 +165,6 @@ namespace detail
          vector< string >                                   _methods;
          map< string, map< string, api_method_signature > > _method_sigs;
          std::unique_ptr< json_rpc_logger >                 _logger;
-         vector<string>                                     _subscribe_methods;
-         map<uint64_t, std::function<void(string)> >        _subscribe_callbacks;
    };
 
    json_rpc_plugin_impl::json_rpc_plugin_impl() {}
