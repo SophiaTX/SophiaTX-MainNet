@@ -22,11 +22,11 @@ export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
 override_dh_auto_configure:
 	cmake -j 4 \
 	      -B cmake-build-release \
-	      --target sophiatxd \
+	      --target sophiatxd_light \
 	      -DCMAKE_BUILD_TYPE=Release \
-	      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
-          -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
-          -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
+	      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx-light/usr/bin/ \
+          -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx-light/etc \
+          -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx-light/lib \
           -DBUILD_PIC=ON \
           -DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR_ENV) \
           -DBOOST_ROOT=$(BOOST_ROOT_DIR_ENV) \
@@ -36,7 +36,7 @@ override_dh_auto_build:
 	make -C cmake-build-release/
 
 override_dh_auto_install:
-	cmake -DCOMPONENT=sophiatxd \
+	cmake -DCOMPONENT=sophiatxd_light \
 	      -P cmake-build-release/cmake_install.cmake
 
 override_dh_usrlocal:

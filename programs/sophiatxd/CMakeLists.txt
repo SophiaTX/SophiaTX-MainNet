@@ -36,7 +36,9 @@ if( CLANG_TIDY_EXE )
 endif( CLANG_TIDY_EXE )
 
 set(APP_INSTALL_DIR "/usr/local/bin" CACHE PATH "Aplication install directory")
+set(SERVICE_INSTALL_DIR "/etc" CACHE PATH "Aplication service configuration install directory")
 set(CONF_INSTALL_DIR "/etc" CACHE PATH "Configuration install directory")
 
 install(PROGRAMS ${CMAKE_BINARY_DIR}/programs/sophiatxd/sophiatxd DESTINATION ${APP_INSTALL_DIR} COMPONENT sophiatxd)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/ DESTINATION ${SERVICE_INSTALL_DIR} COMPONENT sophiatxd)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/etc/ DESTINATION ${CONF_INSTALL_DIR} COMPONENT sophiatxd)

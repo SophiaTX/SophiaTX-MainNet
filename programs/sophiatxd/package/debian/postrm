@@ -3,10 +3,14 @@
 
 case "$1" in
     remove|purge)
-        rm -f /etc/default/sophiatx
+        DATA_DIR=/var/lib/sophiatx
+        LOG_DIR=/var/log/sophiatx
 
         systemctl disable sophiatx
-        rm -f /lib/systemd/system/sophiatx.service
+
+        rm -rf $DATA_DIR
+        rm -rf $LOG_DIR
+        rm -f /etc/default/sophiatx
     ;;
 
     *)

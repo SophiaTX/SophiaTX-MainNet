@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for sophiatx
+# postinst script for sophiatx-light
 #
 # see: dh_installdeb(1)
 
@@ -17,37 +17,37 @@
 
 case "$1" in
     configure)
-        DATA_DIR=/var/lib/sophiatx
-        LOG_DIR=/var/log/sophiatx
-        LOG_FILE=$LOG_DIR/sophiatx.log
+        DATA_DIR=/var/lib/sophiatx-light
+        LOG_DIR=/var/log/sophiatx-light
+        LOG_FILE=$LOG_DIR/sophiatx-light.log
 
         command -v systemctl >/dev/null 2>&1
         if [ "$?" -ne 0 ]; then
-            echo "System must support systemctl to run sophiatx." >&2
+            echo "System must support systemctl to run sophiatx-light." >&2
             exit 1
         fi
 
-        id sophiatx >/dev/null 2>&1
+        id sophiatx-light >/dev/null 2>&1
         if [ "$?" -ne 0 ]; then
-            useradd --system -U -M sophiatx -s /bin/false -d $DATA_DIR
+            useradd --system -U -M sophiatx-light -s /bin/false -d $DATA_DIR
         fi
 
         test -d $DATA_DIR || mkdir -p $DATA_DIR
         test -d $LOG_DIR || mkdir -p $LOG_DIR
         touch $LOG_FILE
 
-        chown -R -L sophiatx:sophiatx $DATA_DIR
+        chown -R -L sophiatx-light:sophiatx-light $DATA_DIR
         chown -R -L syslog:adm $LOG_DIR
         chmod 755 $DATA_DIR
         chmod 755 $LOG_DIR
         chmod 644 $LOG_FILE
 
         # Add defaults file, if it doesn't exist
-        if [ ! -e /etc/default/sophiatx ]; then
-            touch /etc/default/sophiatx
+        if [ ! -e /etc/default/sophiatx-light ]; then
+            touch /etc/default/sophiatx-light
         fi
 
-        systemctl enable sophiatx
+        systemctl enable sophiatx-light
      ;;
 
      abort-upgrade|abort-remove|abort-deconfigure)

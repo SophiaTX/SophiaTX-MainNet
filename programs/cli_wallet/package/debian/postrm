@@ -1,0 +1,13 @@
+#!/bin/sh
+# postrm script for sophiatx-cli-wallet
+
+case "$1" in
+    remove|purge)
+        rm -rf $LOG_DIR
+    ;;
+
+    *)
+    ;;
+esac
+
+exit 0

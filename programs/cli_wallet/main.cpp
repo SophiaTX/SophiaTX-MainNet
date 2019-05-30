@@ -105,7 +105,7 @@ int main( int argc, char** argv )
             _sophiatx_chain_id = generate_chain_id( options["chain-id"].as< std::string >() );
 
       // Initializes logger
-      fc::Logger::init("cli_wallet"/* Do not change this parameter as syslog config depends on it !!! */, options.at("log-level").as< std::string >());
+      fc::Logger::init("sophiatx-cli-wallet"/* Do not change this parameter as syslog config depends on it !!! */, options.at("log-level").as< std::string >());
 
 
       //
@@ -123,7 +123,7 @@ int main( int argc, char** argv )
       }
       else
       {
-         std::cout << "Starting a new wallet\n";
+         ilog("Starting a new wallet");
       }
 
       // but allow CLI to override
@@ -149,14 +149,14 @@ int main( int argc, char** argv )
          wallet_cli->format_result( name_formatter.first, name_formatter.second );
 
       boost::signals2::scoped_connection closed_connection(con->closed.connect([=]{
-         cerr << "Server has disconnected us.\n";
+         elog("Server has disconnected us.");
          wallet_cli->stop();
       }));
       (void)(closed_connection);
 
       if( wapiptr->is_new() )
       {
-         std::cout << "Please use the set_password method to initialize a new wallet before continuing\n";
+         ilog("Please use the set_password method to initialize a new wallet before continuing");
          wallet_cli->set_prompt( "new >>> " );
       } else
          wallet_cli->set_prompt( "locked >>> " );
