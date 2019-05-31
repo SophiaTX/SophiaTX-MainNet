@@ -4,7 +4,7 @@
  *  @brief Defines exception's used by fc
  */
 #include <fc/log/logger.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/macros.hpp>
 #include <exception>
 #include <functional>
@@ -132,7 +132,7 @@ namespace fc
    void from_variant( const variant& e, exception& ll );
    typedef std::shared_ptr<exception> exception_ptr;
 
-   typedef optional<exception> oexception;
+   typedef std::optional<exception> oexception;
 
 
    /**

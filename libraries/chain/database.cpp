@@ -108,7 +108,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
       {
          auto head_block = _block_log.read_block_by_num( head_block_num() );
          // This assertion should be caught and a reindex should occur
-         FC_ASSERT( head_block.valid() && head_block->id() == head_block_id(), "Chain state does not match block log. Please reindex blockchain." );
+         FC_ASSERT( head_block.has_value() && head_block->id() == head_block_id(), "Chain state does not match block log. Please reindex blockchain." );
 
          _fork_db.start_block( *head_block );
       }
@@ -235,7 +235,7 @@ void database::close(bool rewind)
 
 bool database::is_known_block( const block_id_type& id )const
 { try {
-   return fetch_block_by_id( id ).valid();
+   return fetch_block_by_id( id ).has_value();
 } FC_CAPTURE_AND_RETHROW() }
 
 /**
@@ -268,7 +268,7 @@ block_id_type database::find_block_id_for_num( uint32_t block_num )const
 
       // Next we query the block log.   Irreversible blocks are here.
       auto b = _block_log.read_block_by_num( block_num );
-      if( b.valid() )
+      if( b.has_value() )
          return b->id();
 
       // Finally we query the fork DB.
@@ -299,8 +299,7 @@ optional<signed_block> database::fetch_block_by_id( const block_id_type& id )con
       if( tmp && tmp->id() == id )
          return tmp;
 
-      tmp.reset();
-      return tmp;
+      return std::nullopt;
    }
 
    return b->data;
@@ -692,8 +691,8 @@ void database::_push_transaction( const signed_transaction& trx )
 {
    // If this is the first transaction pushed after applying a block, start a new undo session.
    // This allows us to quickly rewind to the clean state of the head block, in case a new block arrives.
-   if( !_pending_tx_session.valid() )
-      _pending_tx_session = start_undo_session();
+   if( !_pending_tx_session.has_value() )
+      _pending_tx_session.emplace(start_undo_session());
 
    // Create a temporary undo session as a child of _pending_tx_session.
    // The temporary session will be discarded by the destructor if
@@ -769,7 +768,7 @@ signed_block database::_generate_block(
    // re-apply pending transactions in this method.
    //
    _pending_tx_session.reset();
-   _pending_tx_session = start_undo_session();
+   _pending_tx_session.emplace(start_undo_session());
    uint64_t postponed_tx_count = 0;
    // pop pending state (reset to head block state)
    for( const signed_transaction& tx : _pending_tx )
@@ -869,7 +868,7 @@ void database::pop_block()
 
       /// save the head block so we can recover its transactions
       optional<signed_block> head_block = fetch_block_by_id( head_id );
-      SOPHIATX_ASSERT( head_block.valid(), pop_empty_chain, "there are no blocks to pop" );
+      SOPHIATX_ASSERT( head_block.has_value(), pop_empty_chain, "there are no blocks to pop" );
 
       _fork_db.pop_block();
       undo();
@@ -884,7 +883,7 @@ void database::clear_pending()
 {
    try
    {
-      assert( (_pending_tx.size() == 0) || _pending_tx_session.valid() );
+      assert( (_pending_tx.size() == 0) || _pending_tx_session.has_value() );
       _pending_tx.clear();
       _pending_tx_session.reset();
    }

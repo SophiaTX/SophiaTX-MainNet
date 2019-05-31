@@ -106,7 +106,7 @@ alexandria_api::api_account_object multiparty_messaging_api_impl::get_account(co
 
    auto result = json_api->call_api_method("alexandria_api", "get_account", fc::variant(args), [](fc::variant& v, uint64_t i){ FC_UNUSED(v) FC_UNUSED(i)} );
 
-   FC_ASSERT(result.valid(), "Account does not exist!");
+   FC_ASSERT(result.has_value(), "Account does not exist!");
    alexandria_api::get_account_return acc_return;
    fc::from_variant( *result, acc_return );
    FC_ASSERT(acc_return.account.size(), "Account does not exist!");

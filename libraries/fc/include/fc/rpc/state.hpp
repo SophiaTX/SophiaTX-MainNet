@@ -7,7 +7,7 @@ namespace fc { namespace rpc {
    struct request
    {
       std::string         jsonrpc = "2.0";
-      optional<uint64_t>  id;
+      std::optional<uint64_t>  id;
       std::string         method;
       variants            params;
    };
@@ -16,7 +16,7 @@ namespace fc { namespace rpc {
    {
       int64_t           code;
       std::string       message;
-      optional<variant> data;
+      std::optional<variant> data;
    };
 
    struct response
@@ -25,8 +25,8 @@ namespace fc { namespace rpc {
       response( int64_t i, fc::variant r ):id(i),result(r){}
       response( int64_t i, error_object r ):id(i),error(r){}
       int64_t                id = 0;
-      optional<fc::variant>  result;
-      optional<error_object> error;
+      std::optional<fc::variant>  result;
+      std::optional<error_object> error;
    };
 
    class state

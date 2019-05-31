@@ -3,7 +3,7 @@
 
 #include <sophiatx/protocol/types.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 
 namespace sophiatx { namespace plugins { namespace chain {
 

@@ -192,12 +192,12 @@ void debug_node_plugin::debug_generate_blocks(
       return;
    }
 
-   fc::optional<fc::ecc::private_key> debug_private_key;
+   std::optional<fc::ecc::private_key> debug_private_key;
    chain::public_key_type debug_public_key;
    if( args.debug_key != "" )
    {
       debug_private_key = sophiatx::utilities::wif_to_key( args.debug_key );
-      FC_ASSERT( debug_private_key.valid() );
+      FC_ASSERT( debug_private_key.has_value() );
       debug_public_key = debug_private_key->get_public_key();
    }
    else

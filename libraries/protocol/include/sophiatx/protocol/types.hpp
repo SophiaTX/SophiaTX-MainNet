@@ -14,7 +14,7 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/reflect/variant.hpp>
 #include <fc/safe.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/container/flat.hpp>
 #include <fc/io/raw.hpp>
 #include <fc/uint128.hpp>
@@ -50,7 +50,7 @@ namespace sophiatx {
    using                               fc::variant_object;
    using                               fc::variant;
    using                               fc::enum_type;
-   using                               fc::optional;
+   using                               std::optional;
    using                               fc::unsigned_int;
    using                               fc::signed_int;
    using                               fc::time_point_sec;

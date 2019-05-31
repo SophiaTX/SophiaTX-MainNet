@@ -111,7 +111,7 @@ void http_api_connection::on_request( const fc::http::request& req, const fc::ht
          {
             try
             {
-               FC_ASSERT( call.id.valid(), "id member of json rpc is required" );
+               FC_ASSERT( call.id.has_value(), "id member of json rpc is required" );
                auto result = _rpc_state.local_call( call.method, call.params );
                resp_body = fc::json::to_string( fc::rpc::response( *call.id, result ) );
                resp_status = http::reply::OK;
@@ -120,7 +120,7 @@ void http_api_connection::on_request( const fc::http::request& req, const fc::ht
          }
          catch ( const fc::exception& e )
          {
-            resp_body = fc::json::to_string( fc::rpc::response( (call.id.valid()) ? *call.id : 1, error_object{ 1, e.to_detail_string(), fc::variant(e)} ) );
+            resp_body = fc::json::to_string( fc::rpc::response( (call.id.has_value()) ? *call.id : 1, error_object{ 1, e.to_detail_string(), fc::variant(e)} ) );
             resp_status = (send_error) ? http::reply::InternalServerError : http::reply::OK;
          }
       }

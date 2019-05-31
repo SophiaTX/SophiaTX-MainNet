@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
             if( cutoff_height >= 200 )
             {
                auto block = db->fetch_block_by_number( cutoff_height );
-               BOOST_REQUIRE( block.valid() );
+               BOOST_REQUIRE( block.has_value() );
                cutoff_block = *block;
                break;
             }

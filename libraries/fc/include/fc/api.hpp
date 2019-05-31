@@ -1,6 +1,6 @@
 #pragma once 
 #include <fc/thread/future.hpp>
-#include <boost/any.hpp>
+#include <any>
 #include <functional>
 #include <boost/config.hpp>
 
@@ -75,8 +75,8 @@ namespace fc {
       api( const T& p )
       :_vtable( std::make_shared<vtable_type>() )
       {
-         _data = std::make_shared<boost::any>(p);
-         T& ptr = boost::any_cast<T&>(*_data);
+         _data = std::make_shared<std::any>(p);
+         T& ptr = std::any_cast<T&>(*_data);
          auto& pointed_at = *ptr;
          typedef typename std::remove_reference<decltype(pointed_at)>::type source_vtable_type;
          _vtable->FC_CALL_MEMBER_TEMPLATE_KEYWORD visit_other( vtable_copy_visitor<source_vtable_type>(pointed_at) );
@@ -95,7 +95,7 @@ namespace fc {
 
     protected:
       std::shared_ptr<vtable_type>    _vtable;
-      std::shared_ptr<boost::any>        _data;
+      std::shared_ptr<std::any>        _data;
   };
 
 } // namespace fc

@@ -117,7 +117,7 @@ void websocket_api_connection::send_notice(
    variants args /* = variants() */ )
 {
 
-   request req{ "2.0", optional<uint64_t>(), "notice", {callback_id, std::move(args)}};
+   request req{ "2.0", std::optional<uint64_t>(), "notice", {callback_id, std::move(args)}};
    _connection.send_message( fc::json::to_string(req) );
 }
 

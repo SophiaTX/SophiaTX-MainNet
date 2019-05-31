@@ -14,7 +14,7 @@
 #include <boost/range/algorithm/reverse.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
-#include <boost/any.hpp>
+#include <any>
 
 using std::string;
 using std::vector;
@@ -100,7 +100,7 @@ public:
    virtual uint32_t estimate_last_known_fork_from_git_revision_timestamp( uint32_t ) const override;
    virtual void error_encountered( const std::string& message, const fc::oexception& error ) override;
 
-   fc::optional<fc::ip::endpoint> endpoint;
+   std::optional<fc::ip::endpoint> endpoint;
    vector<fc::ip::endpoint> seeds;
    string user_agent;
    fc::mutable_variant_object config;
@@ -271,7 +271,7 @@ graphene::net::message p2p_plugin_impl::get_item( const graphene::net::item_id& 
          if( !opt_block )
             elog("Couldn't find block ${id} -- corresponding ID in our chain is ${id2}",
                ("id", id.item_hash)("id2", chain.db()->get_block_id_for_num(block_header::num_from_id(id.item_hash))));
-         FC_ASSERT( opt_block.valid() );
+         FC_ASSERT( opt_block.has_value() );
          // ilog("Serving up block #${num}", ("num", opt_block->block_num()));
          return block_message(std::move(*opt_block));
       });
@@ -434,7 +434,7 @@ fc::time_point_sec p2p_plugin_impl::get_block_time( const graphene::net::item_ha
       return chain.db()->with_read_lock( [&]()
       {
          auto opt_block = chain.db()->fetch_block_by_id( block_id );
-         if( opt_block.valid() ) return opt_block->timestamp;
+         if( opt_block.has_value() ) return opt_block->timestamp;
          return fc::time_point_sec::min();
       });
    } FC_CAPTURE_AND_RETHROW( (block_id) )

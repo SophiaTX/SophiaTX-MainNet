@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/container/flat_fwd.hpp>
 #include <boost/multi_index_container_fwd.hpp>
 
@@ -323,10 +323,10 @@ namespace fc
         }
 
         template<typename T>
-        variant( const optional<T>& v )
+        variant( const std::optional<T>& v )
         {
            memset( this, 0, sizeof(*this) );
-           if( v.valid() ) *this = variant(*v);
+           if( v.has_value() ) *this = variant(*v);
         }
 
         template<typename T>
@@ -339,7 +339,7 @@ namespace fc
         double  _data;                ///< Alligned according to double requirements
         char    _type[sizeof(void*)]; ///< pad to void* size
    };
-   typedef optional<variant> ovariant;
+   typedef std::optional<variant> ovariant;
   
    /** @ingroup Serializable */
    void from_variant( const variant& var,  std::string& vo );
@@ -362,9 +362,9 @@ namespace fc
    void from_variant( const variant& var,  uint32_t& vo );
    /** @ingroup Serializable */
    template<typename T>
-   void from_variant( const variant& var,  optional<T>& vo )
+   void from_variant( const variant& var,  std::optional<T>& vo )
    {
-      if( var.is_null() ) vo = optional<T>();
+      if( var.is_null() ) vo = std::optional<T>();
       else
       {
           vo = T();

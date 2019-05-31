@@ -4,7 +4,7 @@
 
 #include <sophiatx/protocol/types.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 
 namespace sophiatx { namespace plugins { namespace track_and_trace_plugin {

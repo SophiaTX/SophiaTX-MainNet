@@ -59,7 +59,7 @@ namespace fc
            _path = fc::path( "/" ) / _lpath;
 #endif
            std::getline( ss, _largs );
-           if( _args.valid() && _args->size() ) 
+           if( _args.has_value() && _args->size() )
            {
              // TODO: args = std::move(_args);
            }
@@ -71,7 +71,7 @@ namespace fc
          ostring                   _pass;
          opath                     _path;
          ovariant_object           _args;
-         fc::optional<uint16_t>    _port;
+         std::optional<uint16_t>    _port;
     };
   }
 
@@ -88,16 +88,16 @@ namespace fc
   {
       std::stringstream ss;
       ss<<my->_proto<<"://";
-      if( my->_user.valid() ) {
+      if( my->_user.has_value() ) {
         ss << *my->_user;
-        if( my->_pass.valid() ) {
+        if( my->_pass.has_value() ) {
           ss<<":"<<*my->_pass;
         }
         ss<<"@";
       }
-      if( my->_host.valid() ) ss<<*my->_host;
-      if( my->_port.valid() ) ss<<":"<<*my->_port;
-      if( my->_path.valid() ) ss<<my->_path->generic_string();
+      if( my->_host.has_value() ) ss<<*my->_host;
+      if( my->_port.has_value() ) ss<<":"<<*my->_port;
+      if( my->_path.has_value() ) ss<<my->_path->generic_string();
     //  if( my->_args ) ss<<"?"<<*my->_args;
       return ss.str();
   }
@@ -188,7 +188,7 @@ namespace fc
   {
     return my->_args;
   }
-  fc::optional<uint16_t>    url::port()const
+  std::optional<uint16_t>    url::port()const
   {
     return my->_port;
   }

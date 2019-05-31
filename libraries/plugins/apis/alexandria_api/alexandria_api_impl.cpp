@@ -107,7 +107,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_block) {
    auto block = _block_api->get_block( { args.num } ).block;
 
    if( block) {
-      result.block = api_signed_block(*block);
+      result.block.emplace(api_signed_block(*block));
    }
 
    return result;
@@ -148,7 +148,7 @@ DEFINE_API_IMPL(alexandria_api_impl, info)
 {
    checkApiEnabled(_database_api);
 
-   auto dynamic_props = get_dynamic_global_properties( {} ).properties;
+   auto dynamic_props = _database_api->get_dynamic_global_properties( {} );
    fc::mutable_variant_object info_data(fc::variant(dynamic_props).get_object());
 
    info_data["witness_majority_version"] = std::string( _database_api->get_witness_schedule( {} ).majority_version );
@@ -777,7 +777,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
       tx.operations.push_back(op);
    }
 
-   auto dyn_props = get_dynamic_global_properties( {} ).properties;
+   auto dyn_props = _database_api->get_dynamic_global_properties( {} );
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -811,7 +811,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_transaction)
    op.visit(op_v);
    tx.operations.push_back(op);
 
-   auto dyn_props = get_dynamic_global_properties( {} ).properties;
+   auto dyn_props = _database_api->get_dynamic_global_properties( {} );
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -926,7 +926,7 @@ DEFINE_API_IMPL(alexandria_api_impl, add_fee)
 DEFINE_API_IMPL(alexandria_api_impl, sign_digest)
 {
    auto priv_key = sophiatx::utilities::wif_to_key(args.pk);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    sign_digest_return result;
    result.signed_digest = priv_key->sign_compact(args.digest);
@@ -1007,7 +1007,7 @@ DEFINE_API_IMPL(alexandria_api_impl, generate_key_pair_from_brain_key)
 DEFINE_API_IMPL(alexandria_api_impl, get_public_key)
 {
    auto priv_key = sophiatx::utilities::wif_to_key(args.private_key);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    get_public_key_return result;
    result.public_key = priv_key->get_public_key();
@@ -1036,7 +1036,7 @@ DEFINE_API_IMPL(alexandria_api_impl, encrypt_data)
    memo_data m;
 
    auto priv_key = utilities::wif_to_key(args.private_key);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    m.nonce = fc::time_point::now().time_since_epoch().count();
 
@@ -1063,7 +1063,7 @@ DEFINE_API_IMPL(alexandria_api_impl, decrypt_data)
 
    fc::sha512 shared_secret;
    auto priv_key = sophiatx::utilities::wif_to_key(args.private_key);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    shared_secret = priv_key->get_shared_secret(args.public_key);
 
@@ -1329,7 +1329,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_required_signatures)
    size_t i = 0;
    for( const optional<alexandria_api::api_account_object>& approving_acct : approving_account_objects )
    {
-      if( !approving_acct.valid() )
+      if( !approving_acct.has_value() )
       {
          wlog( "operation_get_required_auths said approval of non-existing account ${name} was needed",
                ("name", v_approving_account_names[i]) );

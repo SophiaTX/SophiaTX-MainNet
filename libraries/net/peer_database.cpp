@@ -68,7 +68,7 @@ namespace graphene { namespace net {
       void erase(const fc::ip::endpoint& endpointToErase);
       void update_entry(const potential_peer_record& updatedRecord);
       potential_peer_record lookup_or_create_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup);
-      fc::optional<potential_peer_record> lookup_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup);
+      std::optional<potential_peer_record> lookup_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup);
 
       peer_database::iterator begin() const;
       peer_database::iterator end() const;
@@ -163,12 +163,12 @@ namespace graphene { namespace net {
       return potential_peer_record(endpointToLookup);
     }
 
-    fc::optional<potential_peer_record> peer_database_impl::lookup_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup)
+    std::optional<potential_peer_record> peer_database_impl::lookup_entry_for_endpoint(const fc::ip::endpoint& endpointToLookup)
     {
       auto iter = _potential_peer_set.get<endpoint_index>().find(endpointToLookup);
       if (iter != _potential_peer_set.get<endpoint_index>().end())
         return *iter;
-      return fc::optional<potential_peer_record>();
+      return std::optional<potential_peer_record>();
     }
 
     peer_database::iterator peer_database_impl::begin() const
@@ -254,7 +254,7 @@ namespace graphene { namespace net {
     return my->lookup_or_create_entry_for_endpoint(endpointToLookup);
   }
 
-  fc::optional<potential_peer_record> peer_database::lookup_entry_for_endpoint(const fc::ip::endpoint& endpoint_to_lookup)
+  std::optional<potential_peer_record> peer_database::lookup_entry_for_endpoint(const fc::ip::endpoint& endpoint_to_lookup)
   {
     return my->lookup_entry_for_endpoint(endpoint_to_lookup);
   }

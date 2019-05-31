@@ -55,7 +55,9 @@ int main( int argc, char** argv )
       sophiatx::plugins::register_plugins();
 
       // Reads main application config file
-      appbase::app().load_config(argc, argv);
+       if( !appbase::app().load_config(argc, argv)) {
+           return 0;
+       }
       auto& args = appbase::app().get_args();
 
       // Initializes logger

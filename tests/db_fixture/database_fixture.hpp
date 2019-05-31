@@ -267,7 +267,7 @@ struct json_rpc_database_fixture : public database_fixture
       sophiatx::plugins::json_rpc::json_rpc_plugin* rpc_plugin;
 
       fc::variant get_answer( std::string& request );
-      void review_answer( fc::variant& answer, int64_t code, bool is_warning, bool is_fail, fc::optional< fc::variant > id );
+      void review_answer( fc::variant& answer, int64_t code, bool is_warning, bool is_fail, std::optional< fc::variant > id );
 
    public:
 
