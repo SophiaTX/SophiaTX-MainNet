@@ -26,6 +26,8 @@ case "$1" in
         chown -R -L syslog:adm $LOG_DIR
         chmod 755 $LOG_DIR
         chmod 644 $LOG_FILE
+
+        service logrotate restart
      ;;
 
      abort-upgrade|abort-remove|abort-deconfigure)

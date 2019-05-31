@@ -6,8 +6,6 @@ case "$1" in
         DATA_DIR=/var/lib/sophiatx-light
         LOG_DIR=/var/log/sophiatx-light
 
-        systemctl disable sophiatx-light
-
         rm -rf $DATA_DIR
         rm -rf $LOG_DIR
         rm -f /etc/default/sophiatx-light

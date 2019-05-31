@@ -6,8 +6,6 @@ case "$1" in
         DATA_DIR=/var/lib/sophiatx
         LOG_DIR=/var/log/sophiatx
 
-        systemctl disable sophiatx
-
         rm -rf $DATA_DIR
         rm -rf $LOG_DIR
         rm -f /etc/default/sophiatx

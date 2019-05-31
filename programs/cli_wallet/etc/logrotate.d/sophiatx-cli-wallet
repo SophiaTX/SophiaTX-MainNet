@@ -1,9 +1,9 @@
 /var/log/sophiatx-cli-wallet/sophiatx-cli-wallet.log {
         daily
-        maxsize 250M
         missingok
         notifempty
-        rotate 60
+        rotate 30
+        dateext
         compress
         create 644 syslog adm
         sharedscripts

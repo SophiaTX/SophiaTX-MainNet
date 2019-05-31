@@ -16,6 +16,9 @@ export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
 # Hard-code these env. variables here or use --set-envvar option when running debuild
 #export OPENSSL_ROOT_DIR_ENV=/path/to/openssl/root
 #export BOOST_ROOT_DIR_ENV=/path/to/boost/root
+#export CMAKE_BUILD_TYPE_ENV=Release
+#export BUILD_SOPHIATX_TESTNET_ENV=false
+#export SOPHIATX_EGENESIS_JSON_ENV=/path/to/genesis
 
 %:
 	dh  $@
@@ -23,13 +26,15 @@ override_dh_auto_configure:
 	cmake -j 4 \
 	      -B cmake-build-release \
 	      --target sophiatxd \
-	      -DCMAKE_BUILD_TYPE=Release \
-	      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
-          -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
-          -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
+	      -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ENV) \
+	      -DBUILD_SOPHIATX_TESTNET=$(BUILD_SOPHIATX_TESTNET_ENV) \
+	      -DSOPHIATX_EGENESIS_JSON=$(SOPHIATX_EGENESIS_JSON_ENV) \
           -DBUILD_PIC=ON \
           -DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR_ENV) \
           -DBOOST_ROOT=$(BOOST_ROOT_DIR_ENV) \
+          -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
+          -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
+          -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
           ../../../
 
 override_dh_auto_build:
