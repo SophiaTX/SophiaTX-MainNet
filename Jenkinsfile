@@ -48,7 +48,7 @@
                  "sophiatx,sophiatx-light,cli-wallet", // values
                  "", //default value
                  0, //visible item cnt
-                 "Multi-select", // description
+                 "Choose packages to be built", // description
                  )
 
 
