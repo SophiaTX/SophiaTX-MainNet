@@ -186,12 +186,27 @@ def run_archive() {
  }
 
  def create_packages() {
-    echo "params.Package: ${params.Package}"
-    println(params.Package.contains("sophiatx"))
-    println(params.Package.contains("light-client"))
-    println(params.Package.contains("cli-wallet"))
+    if (params.Package.contains("sophiatx")) {
+        build_package("programs/sophiatxd/package")
+    }
 
-    error("Game over")
+    if (params.Package.contains("light-client")) {
+        build_package("programs/sophiatxd_light/package")
+    }
+
+    if (params.Package.contains("cli-wallet")) {
+        build_package("programs/cli_wallet/package")
+    }
+ }
+
+ def build_package(dirPath) {
+    dir(dirPath)
+    sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
+                            --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
+                            --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
+                            --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
+                            --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
+                            -uc -us"
  }
 
  def checkBox (String name, String values, String defaultValue,
