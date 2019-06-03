@@ -5,8 +5,8 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 ////////////////////////////////////////
 
 properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
-                        string(defaultValue: "", description: 'Custom genesis URL(valid only for Customnet)', name: 'CustomGenesisUrl'),
                         checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
+                        string(defaultValue: "", description: 'Custom genesis URL(valid only for Customnet)', name: 'Genesis'),
                         checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
@@ -19,23 +19,12 @@ pipeline {
     parallelsAlwaysFailFast() 
   }
   environment {
-    GENESIS_FILE = "genesis.json"
-    BUILD_TESTNET = "false"
-    BUILD_TYPE = "Release"
+    GENESIS_FILE = ""
+    BUILD_TESTNET = ""
+    BUILD_TYPE = ""
   }
   agent any
   stages {
-      stage('Input') {
-            steps {
-                input('Do you want to proceed?')
-            }
-        }
-
-        stage('If Proceed is clicked') {
-            steps {
-                print('hello')
-            }
-        }
     stage('Init build variables') {
       steps {
         echo "Network: ${params.Network}"
@@ -81,34 +70,21 @@ pipeline {
 def init() {
     if( params.Debug ) {
       BUILD_TYPE = "Debug"
+    } else {
+      BUILD_TYPE = "Release"
     }
 
     if( params.Network == "Mainnet" ) {
       BUILD_TESTNET = "false"
       GENESIS_FILE = "genesis.json"
-    }
-    else if( params.Network == "Testnet" ) {
+    } else if( params.Network == "Testnet" ) {
       BUILD_TESTNET = "true"
       GENESIS_FILE = "genesis_testnet.json"
-    }
-    else {
+    } else {
       BUILD_TESTNET = "false"
-
-      def customGenesis
-      // Get the input
-      def userInput = input(
-              id: 'userInput', message: 'Enter url of custom genesis:?',
-              parameters: [
-                      string(defaultValue: 'None',
-                              description: 'Url of custom genesis file',
-                              name: 'CustomGenesisUrl')
-              ])
-
-      // Save to variables. Default to empty string if not found.
-      customGenesis = userInput.CustomGenesisUrl?:''
-
-      // Echo to console
-      echo("Custom Genesis URL: ${customGenesis}")
+      if (params.Genesis == "") {
+        error("Custom genesis URL must be provided to build custom network..")
+      }
 
       // Wget
       // ...
