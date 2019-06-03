@@ -6,8 +6,8 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 
 properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
                         booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
-                        checkBox("Network", "SophiaTX-mainnet,SophiaTX-testnet,SophiaTX-mainnet,SophiaTX-testnet,Custom-mainnet", "" /*default*/, 0, "Select network", ""),
-                        checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "Select packages to be built")
+                        checkBox("Network", "SophiaTX-mainnet,SophiaTX-testnet,AbilitiX-mainnet,AbilitiX-testnet,Custom-mainnet", "" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
+                        checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
 
@@ -145,13 +145,13 @@ def run_archive() {
  }
 
  def checkBox (String name, String values, String defaultValue,
-               int visibleItemCnt=0, String description='', String delimiter=',') {
+               int visibleItemCnt=0, String type, String description='', String delimiter=',') {
 
      // default same as number of values
      visibleItemCnt = visibleItemCnt ?: values.split(',').size()
      return new ExtendedChoiceParameterDefinition(
              name, //name,
-             "PT_CHECKBOX", //type
+             type, //type
              values, //value
              "", //projectName
              "", //propertyFile
