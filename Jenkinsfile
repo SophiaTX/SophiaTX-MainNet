@@ -79,7 +79,7 @@ def start_build() {
               -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet} \
               -DAPP_INSTALL_DIR=install/bin/ \
               -DCONF_INSTALL_DIR=install/etc \
-              -DSERVICE_INSTALL_DIR=install/etc \"
+              -DSERVICE_INSTALL_DIR=install/etc"
   sh 'make -j4'
 }
 
