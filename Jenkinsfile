@@ -4,9 +4,8 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 
 ////////////////////////////////////////
 
-properties([parameters([booleanParam(defaultValue: false, description: 'Debug Mode', name: 'build_as_debug'),
-                        booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
-                        checkBox("Network", "SophiaTX-mainnet,SophiaTX-testnet,AbilitiX-mainnet,AbilitiX-testnet,Custom-mainnet", "AbilitiX-testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
+properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
+                        checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
                         checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
@@ -20,14 +19,20 @@ pipeline {
   }
   environment {
     GENESIS_FILE = "genesis.json"
+    BUILD_TESTNET = "false"
     BUILD_TYPE = "Release"
   }
   agent any
   stages {
-    stage('Git Checkout') {
+    stage('Init build variables') {
       steps {
         echo "Network: ${params.Network}"
         echo "Package: ${params.Package}"
+        init()
+      }
+    }
+    stage('Git Checkout') {
+      steps {
         checkout scm
       }
     }
@@ -60,15 +65,45 @@ pipeline {
 }
 ////////////////////////////////////////
 
-def start_build() {
-  script {
-    if( params.build_as_testnet ) {
-      GENESIS_FILE = "genesis_testnet.json"
-    }
-    if( params.build_as_debug ) {
+
+def init() {
+    if( params.Debug ) {
       BUILD_TYPE = "Debug"
     }
-  }
+
+    if( params.Network == "Mainnet" ) {
+      BUILD_TESTNET = "false"
+      GENESIS_FILE = "genesis.json"
+    }
+    else if( params.Network == "Testnet" ) {
+      BUILD_TESTNET = "true"
+      GENESIS_FILE = "genesis_testnet.json"
+    }
+    else {
+      BUILD_TESTNET = "false"
+
+      def customGenesis
+      // Get the input
+      def userInput = input(
+              id: 'userInput', message: 'Enter url of custom genesis:?',
+              parameters: [
+                      string(defaultValue: 'None',
+                              description: 'Url of custom genesis file',
+                              name: 'CustomGenesisUrl')
+              ])
+
+      // Save to variables. Default to empty string if not found.
+      customGenesis = userInput.CustomGenesisUrl?:''
+
+      // Echo to console
+      echo("Custom Genesis URL: ${customGenesis}")
+
+      // Wget
+      // ...
+    }
+}
+
+def start_build() {
   sh "cmake . -DUSE_PCH=OFF \
               -DZLIB_ROOT=${ZLIB} \
               -DBOOST_ROOT=${BOOST_167} \
@@ -78,16 +113,17 @@ def start_build() {
               -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
               -DCMAKE_INSTALL_PREFIX=install \
               -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} \
-              -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet} \
+              -DBUILD_SOPHIATX_TESTNET=${BUILD_TESTNET} \
               -DAPP_INSTALL_DIR=install/bin/ \
               -DCONF_INSTALL_DIR=install/etc \
               -DSERVICE_INSTALL_DIR=install/etc"
-  sh 'make -j4'
+
+  sh 'make install -j4'
 }
 
 def tests() {
   script {
-    if( !params.build_as_testnet ) {
+    if( BUILD_TESTNET == "false" ) {
       sh './tests/chain_test'
       sh './tests/plugin_test'
       //sh './tests/smart_contracts/smart_contracts_tests'
@@ -100,12 +136,11 @@ def tests() {
 }
 
 def run_archive() {
-  sh 'make install '
   dir('install') {
     dir('lib') {
       script {
         echo "${LIB_ARCHIVE_NAME}"
-        if( !params.build_as_debug ) {
+        if( !params.Debug ) {
           try {
               sh 'strip -s libalexandria.so libalexandriaJNI.so *_plugin.so' //strip symbols
               } catch(Exception e) {
@@ -121,7 +156,7 @@ def run_archive() {
     sh 'rm -f test*' //remove test binaries
     script {
       echo "${ARCHIVE_NAME}"
-      if( !params.build_as_debug ) {
+      if( !params.Debug ) {
         try {
             sh 'strip -s *' //strip symbols
             } catch(Exception e) {
@@ -129,7 +164,7 @@ def run_archive() {
             }
           }
 
-          if( params.build_as_testnet ) {
+          if( BUILD_TESTNET == "true" ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
            sh "cp -r ${WORKSPACE}/etc ."
            sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini etc/" //create tar file
@@ -137,7 +172,7 @@ def run_archive() {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
            sh "cp -r ${WORKSPACE}/etc ."
-           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini etc/" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini/" //create tar file
          }
        }
        archiveArtifacts '*.gz'
