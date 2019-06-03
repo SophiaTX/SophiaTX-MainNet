@@ -4,7 +4,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 
 ////////////////////////////////////////
 
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
+properties([parameters([booleanParam(defaultValue: false, description: 'Debug Mode', name: 'build_as_debug'),
                         booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
                         checkBox("Network", "SophiaTX-mainnet,SophiaTX-testnet,AbilitiX-mainnet,AbilitiX-testnet,Custom-mainnet", "AbilitiX-testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
                         checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
@@ -26,7 +26,8 @@ pipeline {
   stages {
     stage('Git Checkout') {
       steps {
-        echo "${params.opt}"
+        echo "Network: ${params.Network}"
+        echo "Package: ${params.Package}"
         checkout scm
       }
     }
