@@ -200,14 +200,16 @@ def run_archive() {
  }
 
  def build_package(String dirPath) {
-
-    dir(dirPath)
-    sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
-                            --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
-                            --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
-                            --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
-                            --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
-                            -uc -us"
+    sh "pwd"
+    sh "ls -la"
+    dir(dirPath) {
+        sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
+                    --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
+                    --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
+                    --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
+                    --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
+                    -uc -us"
+    }
  }
 
  def checkBox (String name, String values, String defaultValue,
