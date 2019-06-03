@@ -6,7 +6,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 
 properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
                         booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
-                        checkBox("Package" /*name*/, "sophiatx,sophiatx-light,cli-wallet" /*values*/, "" /*default*/, 0 /*visible item cnt*/, "Choose packages to be built" /*description */)
+                        checkBox("Package" /*name*/, "sophiatx,sophiatx-light,cli-wallet" /*values*/, "" /*default*/, 0 /*visible item cnt*/, "Choose packages to be built" /*description*/)
                       ])
           ])
 
