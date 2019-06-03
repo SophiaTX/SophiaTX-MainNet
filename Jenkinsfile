@@ -44,9 +44,9 @@
              )
  }
 
- def testParam = checkBox("opt", // name
-                 "opt1,opt2,opt3", // values
-                 "opt1", //default value
+ def testParam = checkBox("Package", // name
+                 "sophiatx,sophiatx-light,cli-wallet", // values
+                 "", //default value
                  0, //visible item cnt
                  "Multi-select", // description
                  )
