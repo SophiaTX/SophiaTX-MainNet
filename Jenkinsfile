@@ -67,7 +67,19 @@ def start_build() {
       BUILD_TYPE = "Debug"
     }
   }
-  sh "cmake . -DUSE_PCH=OFF -DZLIB_ROOT=${ZLIB} -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
+  sh "cmake . -DUSE_PCH=OFF \
+              -DZLIB_ROOT=${ZLIB} \
+              -DBOOST_ROOT=${BOOST_167} \
+              -DOPENSSL_ROOT_DIR=${OPENSSL_111} \
+              -DSQLITE3_ROOT_DIR=${SQLITE_3253} \
+              -DSOPHIATX_STATIC_BUILD=ON \
+              -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+              -DCMAKE_INSTALL_PREFIX=install \
+              -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} \
+              -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet} \
+              -DAPP_INSTALL_DIR=install/bin/ \
+              -DCONF_INSTALL_DIR=install/etc \
+              -DSERVICE_INSTALL_DIR=install/etc \"
   sh 'make -j4'
 }
 
@@ -86,7 +98,7 @@ def tests() {
 }
 
 def run_archive() {
-  sh 'make install'
+  sh 'make install '
   dir('install') {
     dir('lib') {
       script {
