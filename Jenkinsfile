@@ -24,6 +24,17 @@ pipeline {
   }
   agent any
   stages {
+      stage('Input') {
+            steps {
+                input('Do you want to proceed?')
+            }
+        }
+
+        stage('If Proceed is clicked') {
+            steps {
+                print('hello')
+            }
+        }
     stage('Init build variables') {
       steps {
         echo "Network: ${params.Network}"
@@ -167,7 +178,7 @@ def run_archive() {
           if( BUILD_TESTNET == "true" ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
            sh "cp -r ${WORKSPACE}/etc ."
-           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini etc/" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
            } else {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
