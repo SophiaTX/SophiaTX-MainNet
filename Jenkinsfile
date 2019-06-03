@@ -1,64 +1,14 @@
 #!groovy
 
+import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition
+
 ////////////////////////////////////////
-
- import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition
-
- def checkBox (String name, String values, String defaultValue,
-               int visibleItemCnt=0, String description='', String delimiter=',') {
-
-     // default same as number of values
-     visibleItemCnt = visibleItemCnt ?: values.split(',').size()
-     return new ExtendedChoiceParameterDefinition(
-             name, //name,
-             "PT_CHECKBOX", //type
-             values, //value
-             "", //projectName
-             "", //propertyFile
-             "", //groovyScript
-             "", //groovyScriptFile
-             "", //bindings
-             "", //groovyClasspath
-             "", //propertyKey
-             defaultValue, //defaultValue
-             "", //defaultPropertyFile
-             "", //defaultGroovyScript
-             "", //defaultGroovyScriptFile
-             "", //defaultBindings
-             "", //defaultGroovyClasspath
-             "", //defaultPropertyKey
-             "", //descriptionPropertyValue
-             "", //descriptionPropertyFile
-             "", //descriptionGroovyScript
-             "", //descriptionGroovyScriptFile
-             "", //descriptionBindings
-             "", //descriptionGroovyClasspath
-             "", //descriptionPropertyKey
-             "", //javascriptFile
-             "", //javascript
-             false, //saveJSONParameterToFile
-             false, //quoteValue
-             visibleItemCnt, //visibleItemCount
-             description, //description
-             delimiter //multiSelectDelimiter
-             )
- }
-
- def testParam = checkBox("Package", // name
-                 "sophiatx,sophiatx-light,cli-wallet", // values
-                 "", //default value
-                 0, //visible item cnt
-                 "Choose packages to be built", // description
-                 )
-
-
-
 
 properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
                         booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
-                        testParam
-                       ])
-           ])
+                        checkBox("Package" /*name*/, "sophiatx,sophiatx-light,cli-wallet" /*values*/, "" /*default*/, 0 /*visible item cnt*/, "Choose packages to be built" /*description */)
+                      ])
+          ])
 
 
 pipeline {
@@ -179,4 +129,44 @@ def run_archive() {
        archiveArtifacts '*.gz'
      }
    }
+ }
+
+ def checkBox (String name, String values, String defaultValue,
+               int visibleItemCnt=0, String description='', String delimiter=',') {
+
+     // default same as number of values
+     visibleItemCnt = visibleItemCnt ?: values.split(',').size()
+     return new ExtendedChoiceParameterDefinition(
+             name, //name,
+             "PT_CHECKBOX", //type
+             values, //value
+             "", //projectName
+             "", //propertyFile
+             "", //groovyScript
+             "", //groovyScriptFile
+             "", //bindings
+             "", //groovyClasspath
+             "", //propertyKey
+             defaultValue, //defaultValue
+             "", //defaultPropertyFile
+             "", //defaultGroovyScript
+             "", //defaultGroovyScriptFile
+             "", //defaultBindings
+             "", //defaultGroovyClasspath
+             "", //defaultPropertyKey
+             "", //descriptionPropertyValue
+             "", //descriptionPropertyFile
+             "", //descriptionGroovyScript
+             "", //descriptionGroovyScriptFile
+             "", //descriptionBindings
+             "", //descriptionGroovyClasspath
+             "", //descriptionPropertyKey
+             "", //javascriptFile
+             "", //javascript
+             false, //saveJSONParameterToFile
+             false, //quoteValue
+             visibleItemCnt, //visibleItemCount
+             description, //description
+             delimiter //multiSelectDelimiter
+             )
  }
