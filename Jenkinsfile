@@ -7,7 +7,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
                         checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
                         string(defaultValue: "", description: 'Custom genesis URL(Valid only for Customnet)', name: 'GenesisURL'),
-                        checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
+                        checkBox("Package", "sophiatx,light-client,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
 
@@ -35,6 +35,11 @@ pipeline {
         checkout scm
       }
     }
+    stage('Package') {
+      steps {
+        create_packages()
+      }
+    }
     stage('Build') {
       steps {
         start_build()
@@ -53,11 +58,6 @@ pipeline {
       }
       steps {
         run_archive()
-      }
-    }
-    stage('Package') {
-      steps {
-        create_packages()
       }
     }
     stage('Clean WS') {
@@ -100,7 +100,7 @@ def init() {
       try {
         sh "wget --output-document=${GENESIS_FILE} ${params.GenesisURL}"
       } catch(Exception e) {
-        error("Failed to download genesis file from URL: ${params.GenesisURL}")
+        error("Failed to download genesis file from URL: ${params.GenesisURL}. Valid genesis URL must be provided for Custom networks!")
       }
 
     } else {
@@ -187,6 +187,7 @@ def run_archive() {
 
  def create_packages() {
     echo "params.Package: ${params.Package}"
+    error("Game over")
  }
 
  def checkBox (String name, String values, String defaultValue,
