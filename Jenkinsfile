@@ -6,7 +6,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 
 properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
                         booleanParam(defaultValue: false, description: '', name: 'build_as_testnet'),
-                        checkBox("Network", "SophiaTX-mainnet,SophiaTX-testnet,SophiaTX-mainnet,SophiaTX-testnet,Custom-mainnet", "" /*default*/, 0, "Select network", "")
+                        checkBox("Network", "SophiaTX-mainnet,SophiaTX-testnet,SophiaTX-mainnet,SophiaTX-testnet,Custom-mainnet", "" /*default*/, 0, "Select network", ""),
                         checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "Select packages to be built")
                       ])
           ])
