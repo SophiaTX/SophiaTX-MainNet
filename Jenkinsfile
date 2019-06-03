@@ -6,7 +6,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 
 properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
                         checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
-                        string(defaultValue: "", description: 'Custom genesis URL(valid only for Customnet)', name: 'Genesis'),
+                        string(defaultValue: "", description: 'Custom genesis URL(Valid only for Customnet)', name: 'GenesisURL'),
                         checkBox("Package", "sophiatx,sophiatx-light,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
@@ -27,8 +27,6 @@ pipeline {
   stages {
     stage('Init build variables') {
       steps {
-        echo "Network: ${params.Network}"
-        echo "Package: ${params.Package}"
         init()
       }
     }
@@ -57,6 +55,11 @@ pipeline {
         run_archive()
       }
     }
+    stage('Package') {
+      steps {
+        create_packages()
+      }
+    }
     stage('Clean WS') {
       steps {
         cleanWs()
@@ -80,14 +83,28 @@ def init() {
     } else if( params.Network == "Testnet" ) {
       BUILD_TESTNET = "true"
       GENESIS_FILE = "genesis_testnet.json"
-    } else {
+    } else if( params.Network == "Customnet" ) {
       BUILD_TESTNET = "false"
-      if (params.Genesis == "") {
-        error("Custom genesis URL must be provided to build custom network..")
+      if (params.GenesisURL == "") {
+        error("Genesis URL must be provided to build Custom network...")
       }
 
-      // Wget
-      // ...
+      GENESIS_FILE = "${WORKSPACE}/custom_genesis.json"
+
+      try {
+        sh "rm -f ${GENESIS_FILE}"
+      } catch(Exception e) {
+        echo "Skipping removing existing(previous) custom genesis file. It does not exist."
+      }
+
+      try {
+        sh "wget --output-document=${GENESIS_FILE} ${params.GenesisURL}"
+      } catch(Exception e) {
+        error("Failed to download genesis file from URL: ${params.GenesisURL}")
+      }
+
+    } else {
+        error("Invalid \"Network\" option selected...")
     }
 }
 
@@ -166,6 +183,10 @@ def run_archive() {
        archiveArtifacts '*.gz'
      }
    }
+ }
+
+ def create_packages() {
+    echo "params.Package: ${params.Package}"
  }
 
  def checkBox (String name, String values, String defaultValue,
