@@ -199,7 +199,8 @@ def run_archive() {
     }
  }
 
- def build_package(dirPath) {
+ def build_package(String dirPath) {
+
     dir(dirPath)
     sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
                             --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
