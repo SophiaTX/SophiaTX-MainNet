@@ -24,7 +24,7 @@ export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
 	dh  $@
 override_dh_auto_configure:
 	cmake -j 4 \
-	      -B cmake-build-release \
+	      -Bcmake-build-release -H \
 	      --target sophiatxd \
 	      -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ENV) \
 	      -DBUILD_SOPHIATX_TESTNET=$(BUILD_SOPHIATX_TESTNET_ENV) \
