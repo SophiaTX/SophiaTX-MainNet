@@ -197,29 +197,30 @@ def run_archive() {
     }
 
     if (params.Package.contains("sophiatx")) {
-        build_package("programs/sophiatxd/package")
+        build_package("programs/sophiatxd")
     }
 
     if (params.Package.contains("light-client")) {
-        build_package("programs/sophiatxd_light/package")
+        build_package("programs/sophiatxd_light")
     }
 
     if (params.Package.contains("cli-wallet")) {
-        build_package("programs/cli_wallet/package")
+        build_package("programs/cli_wallet")
     }
  }
 
  def build_package(String dirPath) {
     dir(dirPath) {
-        sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
-                    --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
-                    --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
-                    --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
-                    --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
-                    -uc -us"
-        dir(..) {
-            archiveArtifacts '*.deb'
+        dir("package") {
+            sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
+                        --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
+                        --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
+                        --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
+                        --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
+                        -uc -us"
         }
+
+        archiveArtifacts '*.deb'
     }
  }
 
