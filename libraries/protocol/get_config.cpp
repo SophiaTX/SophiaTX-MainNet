@@ -16,12 +16,6 @@ fc::variant_object get_config()
    result["IS_TEST_NET"] = false;
 #endif
 
-#if 0
-    // do not expose private key, period.
-    // we need this line present but inactivated so CI check for all constants in config.hpp doesn't complain.
-    // result["SOPHIATX_INIT_PRIVATE_KEY"] = SOPHIATX_INIT_PRIVATE_KEY;
-#endif
-
     result["SOPHIATX_BLOCKCHAIN_VERSION"] = SOPHIATX_BLOCKCHAIN_VERSION;
     result["SOPHIATX_INIT_PUBLIC_KEY_STR"] = SOPHIATX_INIT_PUBLIC_KEY_STR;
     result["SOPHIATX_MIN_ACCOUNT_CREATION_FEE"] = SOPHIATX_MIN_ACCOUNT_CREATION_FEE;
