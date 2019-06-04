@@ -31,6 +31,8 @@ then
    helpFunction
 fi
 
+packageDir=`pwd`
+
 mkdir -p cmake-build-release
 cd cmake-build-release/
 cmake -j 4 \
@@ -41,8 +43,8 @@ cmake -j 4 \
       -DBUILD_PIC=ON \
       -DOPENSSL_ROOT_DIR=$opensslPath \
       -DBOOST_ROOT=$boostPath \
-      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
-      -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
-      -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
+      -DAPP_INSTALL_DIR=$packageDir/debian/sophiatx/usr/bin/ \
+      -DCONF_INSTALL_DIR=$packageDir/debian/sophiatx/etc \
+      -DSERVICE_INSTALL_DIR=$packageDir/debian/sophiatx/lib \
       ../../../../
 cd ../

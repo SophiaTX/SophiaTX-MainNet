@@ -171,12 +171,10 @@ def run_archive() {
 
           if( BUILD_TESTNET == "true" ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
-           sh "cp -r ${WORKSPACE}/etc ."
            sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
            } else {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
-           sh "cp -r ${WORKSPACE}/etc ."
            sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini/" //create tar file
          }
        }
@@ -212,7 +210,8 @@ def run_archive() {
  def build_package(String dirPath) {
     dir(dirPath) {
         dir("package") {
-            sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
+            sh "debuild --eDEB_BUILD_OPTIONS="parallel=4" \
+                        --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
                         --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
                         --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
                         --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
