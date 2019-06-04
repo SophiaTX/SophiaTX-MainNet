@@ -35,11 +35,6 @@ pipeline {
         checkout scm
       }
     }
-    stage('Package') {
-      steps {
-        create_packages()
-      }
-    }
     stage('Build') {
       steps {
         start_build()
@@ -48,6 +43,11 @@ pipeline {
     stage('Tests') {
       steps {
         tests()
+      }
+    }
+    stage('Package') {
+      steps {
+        create_packages()
       }
     }
     stage('Archive') {
@@ -79,17 +79,17 @@ def init() {
 
     if( params.Network == "Mainnet" ) {
       BUILD_TESTNET = "false"
-      GENESIS_FILE = "genesis.json"
+      GENESIS_FILE = "${WORKSPACE}/libraries/egenesis/genesis.json"
     } else if( params.Network == "Testnet" ) {
       BUILD_TESTNET = "true"
-      GENESIS_FILE = "genesis_testnet.json"
+      GENESIS_FILE = "${WORKSPACE}/libraries/egenesis/genesis_testnet.json"
     } else if( params.Network == "Customnet" ) {
       BUILD_TESTNET = "false"
       if (params.GenesisURL == "") {
         error("Genesis URL must be provided to build Custom network...")
       }
 
-      GENESIS_FILE = "${WORKSPACE}/custom_genesis.json"
+      GENESIS_FILE = "${WORKSPACE}/libraries/egenesis/custom_genesis.json"
 
       try {
         sh "rm -f ${GENESIS_FILE}"
@@ -186,6 +186,16 @@ def run_archive() {
  }
 
  def create_packages() {
+    if (params.Package == "") {
+        return
+    }
+
+    // If there is existing cmakecache from previous build, delete it as we want
+    // different output directory for build files
+    if (fileExists('CMakeCache.txt') == true) {
+        sh "rm -f CMakeCache.txt"
+    }
+
     if (params.Package.contains("sophiatx")) {
         build_package("programs/sophiatxd/package")
     }
@@ -200,8 +210,6 @@ def run_archive() {
  }
 
  def build_package(String dirPath) {
-    sh "pwd"
-    sh "ls -la"
     dir(dirPath) {
         sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
                     --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
@@ -209,6 +217,9 @@ def run_archive() {
                     --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
                     --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
                     -uc -us"
+        dir(..) {
+            archiveArtifacts '*.deb'
+        }
     }
  }
 
