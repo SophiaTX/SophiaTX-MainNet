@@ -1,15 +1,46 @@
-#!/bin/sh
+#!/bin/bash
+
+helpFunction()
+{
+   echo ""
+   echo "Usage: $0 -b buildType -t testnet -G genesisPath -O opensslPath -B boostPath"
+   echo -e "\t-b Build Type - \"Debug\" or \"Release\""
+   echo -e "\t-t Build SophiaTX as testnet - \"true\" or \"false\""
+   echo -e "\t-G Path to the genesis file"
+   echo -e "\t-O Path to the openSSL root directory"
+   echo -e "\t-B Path to the Boost root directory"
+   exit 1 # Exit script after printing help
+}
+
+while getopts "b:t:G:O:B:" opt
+do
+   case "$opt" in
+      b ) buildType="$OPTARG" ;;
+      t ) testnet="$OPTARG" ;;
+      G ) genesisPath="$OPTARG" ;;
+      O ) opensslPath="$OPTARG" ;;
+      B ) boostPath="$OPTARG" ;;
+      ? ) helpFunction ;; # Print helpFunction in case parameter is non-existent
+   esac
+done
+
+# Print helpFunction in case parameters are empty
+if [ -z "$buildType" ] || [ -z "$testnet" ] || [ -z "$genesisPath" ] || [ -z "$opensslPath" ] || [ -z "$boostPath" ]
+then
+   echo "Some or all of the parameters are empty";
+   helpFunction
+fi
 
 mkdir -p cmake-build-release
 cd cmake-build-release/
 cmake -j 4 \
       --target sophiatxd \
-      -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ENV) \
-      -DBUILD_SOPHIATX_TESTNET=$(BUILD_SOPHIATX_TESTNET_ENV) \
-      -DSOPHIATX_EGENESIS_JSON=$(SOPHIATX_EGENESIS_JSON_ENV) \
+      -DCMAKE_BUILD_TYPE=$buildType \
+      -DBUILD_SOPHIATX_TESTNET=$testnet \
+      -DSOPHIATX_EGENESIS_JSON=$genesisPath \
       -DBUILD_PIC=ON \
-      -DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR_ENV) \
-      -DBOOST_ROOT=$(BOOST_ROOT_DIR_ENV) \
+      -DOPENSSL_ROOT_DIR=$opensslPath \
+      -DBOOST_ROOT=$boostPath \
       -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
       -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
       -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
