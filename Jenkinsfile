@@ -216,7 +216,7 @@ def run_archive() {
                         --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
                         --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
                         --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
-                        -uc -us -j4"
+                        -uc -us"
         }
 
         archiveArtifacts '*.deb'

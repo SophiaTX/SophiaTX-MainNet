@@ -42,7 +42,7 @@ override_dh_auto_configure:
     #      ../../../
 
 override_dh_auto_build:
-	make -C cmake-build-release/
+	make -C cmake-build-release/ -j4
 
 override_dh_auto_install:
 	cmake -DCOMPONENT=sophiatxd \
