@@ -18,6 +18,6 @@ PACKAGE_DIR=$$(pwd)/debian/sophiatx-cli-wallet
 	dh $@ --parallel
 
 override_dh_auto_install:
-	install ${INSTALL_DIR_ENV}/bin/sophiatx_cli_wallet                                      -D -t  ${PACKAGE_DIR}/usr/bin/
-	install ${INSTALL_DIR_ENV}/etc/logrotate.d/sophiatx-cli-wallet                          -D -t  ${PACKAGE_DIR}/etc/logrotate.d/
-	install ${INSTALL_DIR_ENV}/etc/rsyslog.d/22-sophiatx-cli-wallet.conf                    -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
+	install ${INSTALL_DIR_ENV}/bin/sophiatx_cli_wallet                   -D -t  ${PACKAGE_DIR}/usr/bin/
+	install ${INSTALL_DIR_ENV}/etc/logrotate.d/sophiatx-cli-wallet       -D -t  ${PACKAGE_DIR}/etc/logrotate.d/
+	install ${INSTALL_DIR_ENV}/etc/rsyslog.d/22-sophiatx-cli-wallet.conf -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
