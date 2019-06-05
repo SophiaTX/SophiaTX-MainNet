@@ -12,7 +12,7 @@
 # Hard-code these env. variables here or use --set-envvar option when running debuild
 #export INSTALL_DIR_ENV=/path/to/install/dir
 
-PACKAGE_DIR=$$(pwd)/debian/sophiatx-package
+PACKAGE_DIR=$$(pwd)/debian/sophiatx
 
 %:
 	dh $@ --parallel
