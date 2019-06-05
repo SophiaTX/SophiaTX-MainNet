@@ -12,6 +12,7 @@
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
+export DEB_BUILD_MAINT_OPTIONS=parallel=4
 
 # Hard-code these env. variables here or use --set-envvar option when running debuild
 #export OPENSSL_ROOT_DIR_ENV=/path/to/openssl/root

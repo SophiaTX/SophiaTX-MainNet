@@ -202,11 +202,11 @@ def run_archive() {
     }
  }
 
- def build_jenkins_package() {
+ def build_jenkins_package(String dirPath) {
     dir(dirPath) {
         dir("jenkins_package") {
-            sh 'export DEB_BUILD_OPTIONS="parallel=4"'
-            sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
+            println("${WORKSPACE}/${INSTALL_PREFIX}")
+            sh "debuild --set-envvar INSTALL_DIR_ENV="${WORKSPACE}/${INSTALL_PREFIX}"" \
                         -uc -us"
         }
 
@@ -222,7 +222,6 @@ def run_archive() {
 
     dir(dirPath) {
         dir("package") {
-            sh 'export DEB_BUILD_OPTIONS="parallel=4"'
             sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
                         --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
                         --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
