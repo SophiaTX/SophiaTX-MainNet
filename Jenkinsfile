@@ -61,11 +61,11 @@ pipeline {
         run_archive()
       }
     }
-    //stage('Clean WS') {
-    //  steps {
-    //    cleanWs()
-    //  }
-    //}
+    stage('Clean WS') {
+      steps {
+        cleanWs()
+      }
+    }
   }
 }
 ////////////////////////////////////////
@@ -207,6 +207,10 @@ def run_archive() {
         dir("jenkins_package") {
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
                         -uc -us"
+        }
+
+        if( BUILD_TESTNET == "false" ) {
+            sh 'for f in *.deb ; do mv -- "$f" "$f_#${env.BUILD_NUMBER}" ; done'
         }
 
         archiveArtifacts '*.deb'
