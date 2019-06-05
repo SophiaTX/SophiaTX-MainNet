@@ -7,7 +7,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
                         checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
                         string(defaultValue: "", description: 'Custom genesis URL(Valid only for \"Customnet\" Network)', name: 'GenesisURL'),
-                        checkBox("Package", "sophiatx,light-client,cli-wallet", "" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
+                        checkBox("Package", "sophiatx,light-client,cli-wallet", "sophiatx" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
 
@@ -190,15 +190,15 @@ def run_archive() {
     }
 
     if (params.Package.contains("sophiatx")) {
-        build_package("programs/sophiatxd")
+        build_jenkins_package("programs/sophiatxd")
     }
 
     if (params.Package.contains("light-client")) {
-        build_package("programs/sophiatxd_light")
+        build_jenkins_package("programs/sophiatxd_light")
     }
 
     if (params.Package.contains("cli-wallet")) {
-        build_package("programs/cli_wallet")
+        build_jenkins_package("programs/cli_wallet")
     }
  }
 
