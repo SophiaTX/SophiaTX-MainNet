@@ -238,7 +238,7 @@ namespace fc
 
     const variant& mutable_variant_object::operator[]( std::string_view key )const
     {
-        return (*this)[key];
+        return (*this)[key.data()];
     }
 
    const variant& mutable_variant_object::operator[]( const char* key )const
