@@ -200,7 +200,7 @@ def run_archive() {
  def create_packages() {
     println("create_packages")
     if (params.Package == "") {
-        println("params.Package == \"\")
+        println("params.Package == null")
         return
     }
     println("after params.Package")
