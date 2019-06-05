@@ -30,11 +30,6 @@ pipeline {
         init()
       }
     }
-    stage('My Test') {
-      steps {
-        my_test()
-      }
-    }
     stage('Git Checkout') {
       steps {
         checkout scm
@@ -188,24 +183,10 @@ def run_archive() {
    }
  }
 
- def my_test() {
-     println("create_packages")
-     println(params.Package)
-    if (!params.Package) {
-        println("params.Package == null")
-        return
-    }
-    println("after params.Package")
- }
-
  def create_packages() {
-    println("create_packages")
-    println(params.Package)
-    if (params.Package == "") {
-        println("params.Package == null")
+    if (!params.Package) {
         return
     }
-    println("after params.Package")
 
     // If there is existing cmakecache from previous build, delete it as we want
     // different output directory for build files
