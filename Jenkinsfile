@@ -191,7 +191,7 @@ def run_archive() {
     }
 
     if (params.Package.contains("sophiatx")) {
-        build_jenkins_package("programs/sophiatxd", "sophiatx")
+        build_jenkins_package("programs/sophiatxd", "sophiatx-testnet")
     }
 
     if (params.Package.contains("light-client")) {
