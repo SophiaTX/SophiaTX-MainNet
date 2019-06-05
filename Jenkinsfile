@@ -121,7 +121,7 @@ def start_build() {
               -DBUILD_SOPHIATX_TESTNET=${BUILD_TESTNET} \
               -DAPP_INSTALL_DIR=install/bin/ \
               -DCONF_INSTALL_DIR=install/etc \
-              -DSERVICE_INSTALL_DIR=install/etc"
+              -DSERVICE_INSTALL_DIR=install/lib"
 
   sh 'make install -j4'
 }
@@ -188,12 +188,6 @@ def run_archive() {
         return
     }
 
-    // If there is existing cmakecache from previous build, delete it as we want
-    // different output directory for build files
-    if (fileExists('CMakeCache.txt') == true) {
-        sh "rm -f CMakeCache.txt"
-    }
-
     if (params.Package.contains("sophiatx")) {
         build_package("programs/sophiatxd")
     }
@@ -208,8 +202,18 @@ def run_archive() {
  }
 
  def build_package(String dirPath) {
+    // If there is existing cmakecache from previous build, delete it as we want
+    // different output directory for build files
+    // Uncomment this to create package from scratch
+    //if (fileExists('CMakeCache.txt') == true) {
+    //    sh "rm -f CMakeCache.txt"
+    //}
+
     dir(dirPath) {
-        dir("package") {
+        // To create package from scratch - brand new compliation, etc..., change dir to "package", not "jenkins_package" !!!
+        dir("jenkins_package") {
+            // --set-envvar options are here just for option when creating packages from scratch(see comment above).
+            // It does not affect creating jenkins optimized packages in any way
             sh 'export DEB_BUILD_OPTIONS="parallel=4"'
             sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
                         --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
