@@ -69,6 +69,23 @@
 #define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS 96 //January 1
 #define SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 159 //January 1 - take into account missing blocks
 
+#define VESTS_SYMBOL_U64  (uint64_t('V') | (uint64_t('E') << 8) | (uint64_t('S') << 16) | (uint64_t('T') << 24) | (uint64_t('S') << 32))
+#define SOPHIATX_SYMBOL_U64  (uint64_t('S') | (uint64_t('P') << 8) | (uint64_t('H') << 16) | (uint64_t('T') << 24) | (uint64_t('X') << 32))
+#define SBD1_SYMBOL_U64    (uint64_t('U') | (uint64_t('S') << 8) | (uint64_t('D') << 16) )
+#define SBD2_SYMBOL_U64    (uint64_t('E') | (uint64_t('U') << 8) | (uint64_t('R') << 16) )
+#define SBD3_SYMBOL_U64    (uint64_t('C') | (uint64_t('H') << 8) | (uint64_t('F') << 16) )
+#define SBD4_SYMBOL_U64    (uint64_t('C') | (uint64_t('N') << 8) | (uint64_t('Y') << 16) )
+#define SBD5_SYMBOL_U64    (uint64_t('G') | (uint64_t('B') << 8) | (uint64_t('P') << 16) )
+
+
+#define VESTS_SYMBOL_SER  (VESTS_SYMBOL_U64) ///< VESTS|VESTS with 6 digits of precision
+#define SOPHIATX_SYMBOL_SER  (SOPHIATX_SYMBOL_U64) ///< SPHTX|TESTS with 6 digits of precision
+#define SBD1_SYMBOL_SER    (SBD1_SYMBOL_U64)
+#define SBD2_SYMBOL_SER    (SBD2_SYMBOL_U64)
+#define SBD3_SYMBOL_SER    (SBD3_SYMBOL_U64)
+#define SBD4_SYMBOL_SER    (SBD4_SYMBOL_U64)
+#define SBD5_SYMBOL_SER    (SBD5_SYMBOL_U64)
+
 #define VESTS_SYMBOL  ( sophiatx::protocol::asset_symbol_type( VESTS_SYMBOL_SER ) )
 #define SOPHIATX_SYMBOL  ( sophiatx::protocol::asset_symbol_type( SOPHIATX_SYMBOL_SER ) )
 #define SBD1_SYMBOL    ( sophiatx::protocol::asset_symbol_type( SBD1_SYMBOL_SER ) ) //USD
