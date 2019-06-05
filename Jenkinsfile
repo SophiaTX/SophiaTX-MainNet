@@ -206,6 +206,9 @@ def run_archive() {
  def build_jenkins_package(String dirPath, String testPackageName) {
     dir(dirPath) {
         dir("jenkins_package") {
+            // all Copy configuration files from package directory except "rules"
+            sh "cp -n -r ../package/debian/* debian/"
+
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
                         -uc -us"
         }

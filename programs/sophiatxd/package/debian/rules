@@ -24,7 +24,7 @@ export DEB_BUILD_MAINT_OPTIONS=parallel=4
 %:
 	dh $@ --parallel
 override_dh_auto_configure:
-	./prepare_package_build -b $(CMAKE_BUILD_TYPE_ENV) -t $(BUILD_SOPHIATX_TESTNET_ENV) -G $(SOPHIATX_EGENESIS_JSON_ENV) -O $(OPENSSL_ROOT_DIR_ENV) -B $(BOOST_ROOT_DIR_ENV)
+	./prepare_package_build -n "sophiatx" -b $(CMAKE_BUILD_TYPE_ENV) -t $(BUILD_SOPHIATX_TESTNET_ENV) -G $(SOPHIATX_EGENESIS_JSON_ENV) -O $(OPENSSL_ROOT_DIR_ENV) -B $(BOOST_ROOT_DIR_ENV)
 
 	# This cmake command can be called instead of "prepare_package_build" script
 	# when building with cmake that supports option "-B <path-to-build>= Explicitly specify a build directory."

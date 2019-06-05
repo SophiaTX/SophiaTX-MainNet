@@ -3,7 +3,8 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -b buildType -t testnet -G genesisPath -O opensslPath -B boostPath"
+   echo "Usage: $0 -n configDirName -b buildType -t testnet -G genesisPath -O opensslPath -B boostPath"
+   echo -e "\t-n Config directory name. Configs will be created in /etc/${configDirName} "
    echo -e "\t-b Build Type - \"Debug\" or \"Release\""
    echo -e "\t-t Build SophiaTX as testnet - \"true\" or \"false\""
    echo -e "\t-G Path to the genesis file"
@@ -12,9 +13,10 @@ helpFunction()
    exit 1 # Exit script after printing help
 }
 
-while getopts "b:t:G:O:B:" opt
+while getopts "n:b:t:G:O:B:" opt
 do
    case "$opt" in
+      n ) configDirName="$OPTARG" ;;
       b ) buildType="$OPTARG" ;;
       t ) testnet="$OPTARG" ;;
       G ) genesisPath="$OPTARG" ;;
@@ -25,11 +27,22 @@ do
 done
 
 # Print helpFunction in case parameters are empty
-if [ -z "$buildType" ] || [ -z "$testnet" ] || [ -z "$genesisPath" ] || [ -z "$opensslPath" ] || [ -z "$boostPath" ]
+if [ -z "configDirName" ] [ -z "$buildType" ] || [ -z "$testnet" ] || [ -z "$genesisPath" ] || [ -z "$opensslPath" ] || [ -z "$boostPath" ]
 then
    echo "Some or all of the parameters are empty";
    helpFunction
 fi
+
+
+# Creates directory for configs
+configDir=../etc/$configDirName
+mkdir -p $configDir/
+
+# Copies default configs
+cp ../../../contrib/fullnode_config.ini $configDir/config.ini
+
+cp ../../../contrib/fullnode_config.ini $configDir/configs_examples/
+cp ../../../contrib/witness_config.ini $configDir/configs_examples/
 
 packageDir=`pwd`
 
