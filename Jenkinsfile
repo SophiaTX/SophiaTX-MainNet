@@ -191,19 +191,19 @@ def run_archive() {
     }
 
     if (params.Package.contains("sophiatx")) {
-        build_jenkins_package("programs/sophiatxd")
+        build_jenkins_package("programs/sophiatxd", "sophiatx")
     }
 
     if (params.Package.contains("light-client")) {
-        build_jenkins_package("programs/sophiatxd_light")
+        build_jenkins_package("programs/sophiatxd_light", "sophiatx-light-clien")
     }
 
     if (params.Package.contains("cli-wallet")) {
-        build_jenkins_package("programs/cli_wallet")
+        build_jenkins_package("programs/cli_wallet", "sophiatx-cli-wallet")
     }
  }
 
- def build_jenkins_package(String dirPath) {
+ def build_jenkins_package(String dirPath, String testPackageName) {
     dir(dirPath) {
         dir("jenkins_package") {
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
@@ -211,8 +211,8 @@ def run_archive() {
         }
 
         if( params.Network == "Testnet" ) {
-            //sh "for x in *.deb;do mv ${x} ${x}_#${env.BUILD_NUMBER};done"
-            sh "mv *.deb test.deb"
+            packageName = testPackageName + "_#${env.BUILD_NUMBER}"
+            sh "mv *.deb ${packageName}"
         } else if( params.Network == "Customnet" ) {
             if (params.PackageName == "") {
                 error("PackageName must be provided when creating \"Customnet\" package!")
