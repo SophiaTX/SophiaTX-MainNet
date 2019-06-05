@@ -206,7 +206,7 @@ def run_archive() {
     dir(dirPath) {
         dir("jenkins_package") {
             println("${WORKSPACE}\/${INSTALL_PREFIX}")
-            sh "debuild --set-envvar INSTALL_DIR_ENV="${WORKSPACE}\/${INSTALL_PREFIX}"" \
+            sh "debuild --set-envvar INSTALL_DIR_ENV="${WORKSPACE}\/${INSTALL_PREFIX}" \
                         -uc -us"
         }
 
