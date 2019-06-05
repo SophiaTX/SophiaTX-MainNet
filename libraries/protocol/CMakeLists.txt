@@ -20,7 +20,6 @@ add_library( sophiatx_protocol
              asset.cpp
              asset_symbol.cpp
              version.cpp
-             get_config.cpp
 
              ${HEADERS}
              ${hardfork_hpp_file}

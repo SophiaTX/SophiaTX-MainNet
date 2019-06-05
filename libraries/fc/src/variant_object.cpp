@@ -236,6 +236,11 @@ namespace fc
       return (*this)[key.c_str()];
    }
 
+    const variant& mutable_variant_object::operator[]( std::string_view key )const
+    {
+        return (*this)[key];
+    }
+
    const variant& mutable_variant_object::operator[]( const char* key )const
    {
       auto itr = find( key );

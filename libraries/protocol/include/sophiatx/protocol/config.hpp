@@ -5,7 +5,7 @@
 #include <sophiatx/protocol/hardfork.hpp>
 
 // WARNING!
-// Every symbol defined here needs to be handled appropriately in get_config.cpp
+// Every symbol defined here needs to be handled appropriately in get_config.hpp
 // This is checked by get_config_check.sh called from Dockerfile
 
 #define SOPHIATX_BLOCKCHAIN_VERSION              ( version(1, 2, 0) )

@@ -5,6 +5,10 @@
 #include <sophiatx/plugins/database_api/database_api_args.hpp>
 #include <sophiatx/plugins/database_api/database_api_objects.hpp>
 
+namespace sophiatx { namespace protocol {
+class sophiatx_config;
+} }
+
 namespace sophiatx { namespace plugins { namespace database_api {
 
 class database_api_impl;
