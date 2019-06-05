@@ -23,22 +23,26 @@ export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
 %:
 	dh  $@
 override_dh_auto_configure:
-	cmake -j 4 \
-	      -B cmake-build-release \
-	      --target sophiatxd_light \
-	      -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ENV) \
-	      -DBUILD_SOPHIATX_TESTNET=$(BUILD_SOPHIATX_TESTNET_ENV) \
-	      -DSOPHIATX_EGENESIS_JSON=$(SOPHIATX_EGENESIS_JSON_ENV) \
-          -DBUILD_PIC=ON \
-          -DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR_ENV) \
-          -DBOOST_ROOT=$(BOOST_ROOT_DIR_ENV) \
-          -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
-          -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
-          -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
-          ../../../
+	./prepare_package_build -b $(CMAKE_BUILD_TYPE_ENV) -t $(BUILD_SOPHIATX_TESTNET_ENV) -G $(SOPHIATX_EGENESIS_JSON_ENV) -O $(OPENSSL_ROOT_DIR_ENV) -B $(BOOST_ROOT_DIR_ENV)
+
+	# This cmake command can be called instead of "prepare_package_build" script
+	# when building with cmake that supports option "-B <path-to-build>= Explicitly specify a build directory."
+	#cmake -j 4 \
+	#      -B cmake-build-release \
+	#      --target sophiatxd_light \
+	#      -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE_ENV) \
+	#      -DBUILD_SOPHIATX_TESTNET=$(BUILD_SOPHIATX_TESTNET_ENV) \
+	#      -DSOPHIATX_EGENESIS_JSON=$(SOPHIATX_EGENESIS_JSON_ENV) \
+    #      -DBUILD_PIC=ON \
+    #      -DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR_ENV) \
+    #      -DBOOST_ROOT=$(BOOST_ROOT_DIR_ENV) \
+    #      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
+    #      -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
+    #      -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
+    #      ../../../
 
 override_dh_auto_build:
-	make -C cmake-build-release/
+	make -C cmake-build-release/ -j4
 
 override_dh_auto_install:
 	cmake -DCOMPONENT=sophiatxd_light \
