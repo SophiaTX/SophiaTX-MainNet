@@ -7,6 +7,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
                         checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
                         string(defaultValue: "", description: 'Custom genesis URL(Valid only for \"Customnet\" Network)', name: 'GenesisURL'),
+                        string(defaultValue: "", description: 'Package name(Valid only for \"Customnet\" Network)', name: 'PackageName'),
                         checkBox("Package", "sophiatx,light-client,cli-wallet", "sophiatx,light-client,cli-wallet" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
                       ])
           ])
@@ -207,6 +208,16 @@ def run_archive() {
         dir("jenkins_package") {
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
                         -uc -us"
+        }
+
+        if( params.Network == "Testnet" ) {
+            sh "for x in *.deb;do mv $x ${x%.deb}_#${env.BUILD_NUMBER}.deb;done"
+        } else if( params.Network == "Customnet" ) {
+            if (params.PackageName == "") {
+                error("PackageName must be provided when creating \"Customnet\" package!")
+            }
+
+            sh "mv *.deb ${params.PackageName}"
         }
 
         archiveArtifacts '*.deb'
