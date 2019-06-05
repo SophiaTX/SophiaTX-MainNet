@@ -210,7 +210,7 @@ def run_archive() {
         }
 
         if( BUILD_TESTNET == "true" ) {
-            sh 'for f in *.deb ; do mv -- "$f" "$f_#${env.BUILD_NUMBER}" ; done'
+            sh "for f in *.deb ; do mv -- \"$f\" \"$f_#${env.BUILD_NUMBER}\" ; done"
         }
 
         archiveArtifacts '*.deb'
