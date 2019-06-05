@@ -188,7 +188,7 @@ def run_archive() {
    }
  }
 
- def my_test {
+ def my_test() {
      println("create_packages")
         if (params.Package == "") {
             println("params.Package == \"\")
