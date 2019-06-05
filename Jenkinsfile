@@ -190,11 +190,12 @@ def run_archive() {
 
  def my_test() {
      println("create_packages")
-        if (params.Package == "") {
-            println("params.Package == null")
-            return
-        }
-        println("after params.Package")
+     println(params.Package)
+    if (!params.Package) {
+        println("params.Package == null")
+        return
+    }
+    println("after params.Package")
  }
 
  def create_packages() {
