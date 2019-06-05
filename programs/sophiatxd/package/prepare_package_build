@@ -36,7 +36,7 @@ fi
 
 # Creates directory for configs
 configDir=../etc/$configDirName
-mkdir -p $configDir/
+mkdir -p $configDir/configs_examples/
 
 # Copies default configs
 cp ../../../contrib/fullnode_config.ini $configDir/config.ini
