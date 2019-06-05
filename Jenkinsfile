@@ -61,11 +61,11 @@ pipeline {
         run_archive()
       }
     }
-    stage('Clean WS') {
-      steps {
-        cleanWs()
-      }
-    }
+    //stage('Clean WS') {
+    //  steps {
+    //    cleanWs()
+    //  }
+    //}
   }
 }
 ////////////////////////////////////////
@@ -205,7 +205,6 @@ def run_archive() {
  def build_jenkins_package(String dirPath) {
     dir(dirPath) {
         dir("jenkins_package") {
-            println("${WORKSPACE}/${INSTALL_PREFIX}")
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
                         -uc -us"
         }
