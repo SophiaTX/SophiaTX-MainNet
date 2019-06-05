@@ -22,6 +22,7 @@ pipeline {
     GENESIS_FILE = ""
     BUILD_TESTNET = ""
     BUILD_TYPE = ""
+    INSTALL_PREFIX="install"
   }
   agent any
   stages {
@@ -116,12 +117,12 @@ def start_build() {
               -DSQLITE3_ROOT_DIR=${SQLITE_3253} \
               -DSOPHIATX_STATIC_BUILD=ON \
               -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-              -DCMAKE_INSTALL_PREFIX=install \
+              -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
               -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} \
               -DBUILD_SOPHIATX_TESTNET=${BUILD_TESTNET} \
-              -DAPP_INSTALL_DIR=install/bin/ \
-              -DCONF_INSTALL_DIR=install/etc \
-              -DSERVICE_INSTALL_DIR=install/lib"
+              -DAPP_INSTALL_DIR=${INSTALL_PREFIX}/bin/ \
+              -DCONF_INSTALL_DIR=${INSTALL_PREFIX}/etc \
+              -DSERVICE_INSTALL_DIR=${INSTALL_PREFIX}/lib"
 
   sh 'make install -j4'
 }
@@ -201,19 +202,26 @@ def run_archive() {
     }
  }
 
+ def build_jenkins_package() {
+    dir(dirPath) {
+        dir("jenkins_package") {
+            sh 'export DEB_BUILD_OPTIONS="parallel=4"'
+            sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
+                        -uc -us"
+        }
+
+        archiveArtifacts '*.deb'
+    }
+ }
+
  def build_package(String dirPath) {
     // If there is existing cmakecache from previous build, delete it as we want
-    // different output directory for build files
-    // Uncomment this to create package from scratch
-    //if (fileExists('CMakeCache.txt') == true) {
-    //    sh "rm -f CMakeCache.txt"
-    //}
+    if (fileExists('CMakeCache.txt') == true) {
+        sh "rm -f CMakeCache.txt"
+    }
 
     dir(dirPath) {
-        // To create package from scratch - brand new compliation, etc..., change dir to "package", not "jenkins_package" !!!
-        dir("jenkins_package") {
-            // --set-envvar options are here just for option when creating packages from scratch(see comment above).
-            // It does not affect creating jenkins optimized packages in any way
+        dir("package") {
             sh 'export DEB_BUILD_OPTIONS="parallel=4"'
             sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
                         --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \

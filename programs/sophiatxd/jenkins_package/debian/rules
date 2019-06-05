@@ -9,17 +9,19 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-INSTALL_DIR=../../../install
+# Hard-code these env. variables here or use --set-envvar option when running debuild
+#export INSTALL_DIR_ENV=/path/to/install/dir
+
 PACKAGE_DIR=$$(pwd)/debian/sophiatx-package
 
 %:
 	dh $@ --parallel
 
 override_dh_auto_install:
-	install ${INSTALL_DIR}/bin/sophiatxd                                     -D -t  ${PACKAGE_DIR}/usr/bin/
-	install ${INSTALL_DIR}/etc/sophiatx/config.ini                           -D -t  ${PACKAGE_DIR}/etc/sophiatx/
-	install ${INSTALL_DIR}/etc/sophiatx/configs_examples/fullnode_config.ini -D -t  ${PACKAGE_DIR}/etc/sophiatx/configs-examples/
-	install ${INSTALL_DIR}/etc/sophiatx/configs_examples/witness_config.ini  -D -t  ${PACKAGE_DIR}/etc/sophiatx/configs-examples/
-	install ${INSTALL_DIR}/etc/logrotate.d/sophiatx                          -D -t  ${PACKAGE_DIR}/etc/logrotate.d/
-	install ${INSTALL_DIR}/etc/rsyslog.d/22-sophiatx.conf                    -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
-	install ${INSTALL_DIR}/lib/systemd/system/sophiatx.service               -D -t  ${PACKAGE_DIR}/lib/systemd/system/
+	install ${INSTALL_DIR_ENV}/bin/sophiatxd                                     -D -t  ${PACKAGE_DIR}/usr/bin/
+	install ${INSTALL_DIR_ENV}/etc/sophiatx/config.ini                           -D -t  ${PACKAGE_DIR}/etc/sophiatx/
+	install ${INSTALL_DIR_ENV}/etc/sophiatx/configs_examples/fullnode_config.ini -D -t  ${PACKAGE_DIR}/etc/sophiatx/configs-examples/
+	install ${INSTALL_DIR_ENV}/etc/sophiatx/configs_examples/witness_config.ini  -D -t  ${PACKAGE_DIR}/etc/sophiatx/configs-examples/
+	install ${INSTALL_DIR_ENV}/etc/logrotate.d/sophiatx                          -D -t  ${PACKAGE_DIR}/etc/logrotate.d/
+	install ${INSTALL_DIR_ENV}/etc/rsyslog.d/22-sophiatx.conf                    -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
+	install ${INSTALL_DIR_ENV}/lib/systemd/system/sophiatx.service               -D -t  ${PACKAGE_DIR}/lib/systemd/system/
