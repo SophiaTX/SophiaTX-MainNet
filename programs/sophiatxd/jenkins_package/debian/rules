@@ -21,5 +21,5 @@ override_dh_auto_install:
 	install ${INSTALL_DIR}/etc/sophiatx/configs-examples/fullnode-config.ini -D -t  ${PACKAGE_DIR}/etc/sophiatx/configs-examples/
 	install ${INSTALL_DIR}/etc/sophiatx/configs-examples/witness-config.ini  -D -t  ${PACKAGE_DIR}/etc/sophiatx/configs-examples/
 	install ${INSTALL_DIR}/etc/logrotate.d/sophiatx                          -D -t  ${PACKAGE_DIR}/etc/logrotate.d/
-    install ${INSTALL_DIR}/etc/rsyslog.d/22-sophiatx.conf                    -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
-    install ${INSTALL_DIR}/lib/systemd/system/sophiatx.service               -D -t  ${PACKAGE_DIR}/lib/systemd/system/
+	install ${INSTALL_DIR}/etc/rsyslog.d/22-sophiatx.conf                    -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
+	install ${INSTALL_DIR}/lib/systemd/system/sophiatx.service               -D -t  ${PACKAGE_DIR}/lib/systemd/system/
