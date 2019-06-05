@@ -195,7 +195,7 @@ def run_archive() {
     }
 
     if (params.Package.contains("light-client")) {
-        build_jenkins_package("programs/sophiatxd_light", "sophiatx-light-clien")
+        build_jenkins_package("programs/sophiatxd_light", "sophiatx-light-client")
     }
 
     if (params.Package.contains("cli-wallet")) {
@@ -211,7 +211,7 @@ def run_archive() {
         }
 
         if( params.Network == "Testnet" ) {
-            packageName = testPackageName + "_#${env.BUILD_NUMBER}"
+            packageName = testPackageName + "_#${env.BUILD_NUMBER}.deb"
             sh "mv *.deb ${packageName}"
         } else if( params.Network == "Customnet" ) {
             if (params.PackageName == "") {
