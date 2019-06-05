@@ -210,6 +210,7 @@ def run_archive() {
             sh "cp -n -r ../package/debian/* debian/"
 
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
+                        --set-envvar SRC_ROOT_DIR_ENV=${WORKSPACE} \
                         -uc -us"
         }
 
