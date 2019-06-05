@@ -209,7 +209,7 @@ def run_archive() {
                         -uc -us"
         }
 
-        if( BUILD_TESTNET == "false" ) {
+        if( BUILD_TESTNET == "true" ) {
             sh 'for f in *.deb ; do mv -- "$f" "$f_#${env.BUILD_NUMBER}" ; done'
         }
 
