@@ -211,7 +211,8 @@ def run_archive() {
         }
 
         if( params.Network == "Testnet" ) {
-            sh "for x in *.deb;do mv ${x} ${x}_#${env.BUILD_NUMBER};done"
+            //sh "for x in *.deb;do mv ${x} ${x}_#${env.BUILD_NUMBER};done"
+            sh "mv *test.deb"
         } else if( params.Network == "Customnet" ) {
             if (params.PackageName == "") {
                 error("PackageName must be provided when creating \"Customnet\" package!")
