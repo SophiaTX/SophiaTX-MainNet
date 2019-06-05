@@ -1,0 +1,6 @@
+This folder contains packaging configs compatible with existing Jenkins pipeline. It is optimized so the binary
+does not need to built again as it was already built in previous stages.
+
+Do not use this configs for manual package creation !!!
+
+To create package from scratch, please check ../package/readme

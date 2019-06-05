@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# Hard-code these env. variables here or use --set-envvar option when running debuild
+#export INSTALL_DIR_ENV=/path/to/install/dir
+
+PACKAGE_DIR=$$(pwd)/debian/sophiatx-light
+
+%:
+	dh $@ --parallel
+
+override_dh_auto_install:
+	install ${INSTALL_DIR_ENV}/bin/sophiatxd_light                                     -D -t  ${PACKAGE_DIR}/usr/bin/
+	install ${INSTALL_DIR_ENV}/etc/sophiatx_light/config.ini                           -D -t  ${PACKAGE_DIR}/etc/sophiatx_light/
+	install ${INSTALL_DIR_ENV}/etc/logrotate.d/sophiatx-light                          -D -t  ${PACKAGE_DIR}/etc/logrotate.d/
+	install ${INSTALL_DIR_ENV}/etc/rsyslog.d/22-sophiatx-light.conf                    -D -t  ${PACKAGE_DIR}/etc/rsyslog.d/
+	install ${INSTALL_DIR_ENV}/lib/systemd/system/sophiatx-light.service               -D -t  ${PACKAGE_DIR}/lib/systemd/system/

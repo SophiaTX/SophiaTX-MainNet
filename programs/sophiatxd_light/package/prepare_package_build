@@ -43,8 +43,8 @@ cmake -j 4 \
       -DBUILD_PIC=ON \
       -DOPENSSL_ROOT_DIR=$opensslPath \
       -DBOOST_ROOT=$boostPath \
-      -DAPP_INSTALL_DIR=$packageDir/debian/sophiatx/usr/bin/ \
-      -DCONF_INSTALL_DIR=$packageDir/debian/sophiatx/etc \
-      -DSERVICE_INSTALL_DIR=$packageDir/debian/sophiatx/lib \
+      -DAPP_INSTALL_DIR=$packageDir/debian/sophiatx-light/usr/bin/ \
+      -DCONF_INSTALL_DIR=$packageDir/debian/sophiatx-light/etc \
+      -DSERVICE_INSTALL_DIR=$packageDir/debian/sophiatx-light/lib \
       ../../../../
 cd ../

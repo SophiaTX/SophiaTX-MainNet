@@ -37,9 +37,9 @@ override_dh_auto_configure:
     #      -DBUILD_PIC=ON \
     #      -DOPENSSL_ROOT_DIR=$(OPENSSL_ROOT_DIR_ENV) \
     #      -DBOOST_ROOT=$(BOOST_ROOT_DIR_ENV) \
-    #      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx/usr/bin/ \
-    #      -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx/etc \
-    #      -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx/lib \
+    #      -DAPP_INSTALL_DIR=`pwd`/debian/sophiatx-light/usr/bin/ \
+    #      -DCONF_INSTALL_DIR=`pwd`/debian/sophiatx-light/etc \
+    #      -DSERVICE_INSTALL_DIR=`pwd`/debian/sophiatx-light/lib \
     #      ../../../
 
 override_dh_auto_build:
