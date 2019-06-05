@@ -199,6 +199,7 @@ def run_archive() {
 
  def create_packages() {
     println("create_packages")
+    println(params.Package)
     if (params.Package == "") {
         println("params.Package == null")
         return
