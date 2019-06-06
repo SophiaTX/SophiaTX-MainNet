@@ -1,12 +1,14 @@
-/var/log/sophiatx/sophiatx_light.log {
+/var/log/sophiatx/sophiatx.log {
         daily
         missingok
         notifempty
-        rotate 60
+        rotate 30
+        dateext
         compress
-        create 664 syslog adm
+        create 644 syslog adm
         sharedscripts
         postrotate
                 service rsyslog restart > /dev/null
+                service telegraf restart > /dev/null
         endscript
 }

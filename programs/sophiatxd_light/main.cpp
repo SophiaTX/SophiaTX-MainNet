@@ -61,7 +61,7 @@ int main( int argc, char** argv )
       auto& args = appbase::app().get_args();
 
       // Initializes logger
-      fc::Logger::init("sophiatx_light"/* Do not change this parameter as syslog config depends on it !!! */, args.at("log-level").as< std::string >());
+      fc::Logger::init("sophiatx-light"/* Do not change this parameter as syslog config depends on it !!! */, args.at("log-level").as< std::string >());
 
       fc::ecc::public_key::init_cache(static_cast<uint32_t>(SOPHIATX_MAX_BLOCK_SIZE / SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT), std::chrono::milliseconds(2000));
       appbase::app().set_version_string( version_string() );

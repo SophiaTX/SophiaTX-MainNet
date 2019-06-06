@@ -1,10 +1,16 @@
 #!groovy
 
+import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition
+
 ////////////////////////////////////////
 
-
-properties([parameters([booleanParam(defaultValue: false, description: '', name: 'build_as_debug'),
-  booleanParam(defaultValue: false, description: '', name: 'build_as_testnet')])])
+properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
+                        checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
+                        string(defaultValue: "", description: 'Custom genesis URL(Valid only for \"Customnet\" Network)', name: 'GenesisURL'),
+                        string(defaultValue: "", description: 'Package name(Valid only for \"Customnet\" Network)', name: 'PackageName'),
+                        checkBox("Package", "sophiatx,light-client,cli-wallet", "sophiatx,light-client,cli-wallet" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
+                      ])
+          ])
 
 
 pipeline {
@@ -14,11 +20,18 @@ pipeline {
     parallelsAlwaysFailFast() 
   }
   environment {
-    GENESIS_FILE = "genesis.json"
-    BUILD_TYPE = "Release"
+    GENESIS_FILE = ""
+    BUILD_TESTNET = ""
+    BUILD_TYPE = ""
+    INSTALL_PREFIX="install"
   }
   agent any
   stages {
+    stage('Init build variables') {
+      steps {
+        init()
+      }
+    }
     stage('Git Checkout') {
       steps {
         checkout scm
@@ -32,6 +45,11 @@ pipeline {
     stage('Tests') {
       steps {
         tests()
+      }
+    }
+    stage('Package') {
+      steps {
+        create_packages()
       }
     }
     stage('Archive') {
@@ -53,22 +71,66 @@ pipeline {
 }
 ////////////////////////////////////////
 
-def start_build() {
-  script {
-    if( params.build_as_testnet ) {
-      GENESIS_FILE = "genesis_testnet.json"
-    }
-    if( params.build_as_debug ) {
+
+def init() {
+    if( params.Debug ) {
       BUILD_TYPE = "Debug"
+    } else {
+      BUILD_TYPE = "Release"
     }
-  }
-  sh "cmake . -DUSE_PCH=OFF -DZLIB_ROOT=${ZLIB} -DBOOST_ROOT=${BOOST_167} -DOPENSSL_ROOT_DIR=${OPENSSL_111} -DSQLITE3_ROOT_DIR=${SQLITE_3253} -DSOPHIATX_STATIC_BUILD=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=install -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} -DBUILD_SOPHIATX_TESTNET=${params.build_as_testnet}"
-  sh 'make -j4'
+
+    if( params.Network == "Mainnet" ) {
+      BUILD_TESTNET = "false"
+      GENESIS_FILE = "${WORKSPACE}/libraries/egenesis/genesis.json"
+    } else if( params.Network == "Testnet" ) {
+      BUILD_TESTNET = "true"
+      GENESIS_FILE = "${WORKSPACE}/libraries/egenesis/genesis_testnet.json"
+    } else if( params.Network == "Customnet" ) {
+      BUILD_TESTNET = "false"
+      if (params.GenesisURL == "") {
+        error("Genesis URL must be provided to build Custom network...")
+      }
+
+      GENESIS_FILE = "${WORKSPACE}/libraries/egenesis/custom_genesis.json"
+
+      try {
+        sh "rm -f ${GENESIS_FILE}"
+      } catch(Exception e) {
+        echo "Skipping removing existing(previous) custom genesis file. It does not exist."
+      }
+
+      try {
+        sh "wget --output-document=${GENESIS_FILE} ${params.GenesisURL}"
+      } catch(Exception e) {
+        error("Failed to download genesis file from URL: ${params.GenesisURL}. Valid genesis URL must be provided for Custom networks!")
+      }
+
+    } else {
+        error("Invalid \"Network\" option selected...")
+    }
+}
+
+def start_build() {
+  sh "cmake . -DUSE_PCH=OFF \
+              -DZLIB_ROOT=${ZLIB} \
+              -DBOOST_ROOT=${BOOST_167} \
+              -DOPENSSL_ROOT_DIR=${OPENSSL_111} \
+              -DSQLITE3_ROOT_DIR=${SQLITE_3253} \
+              -DSOPHIATX_STATIC_BUILD=ON \
+              -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+              -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
+              -DSOPHIATX_EGENESIS_JSON=${GENESIS_FILE} \
+              -DBUILD_SOPHIATX_TESTNET=${BUILD_TESTNET} \
+              -DAPP_INSTALL_DIR=${INSTALL_PREFIX}/bin/ \
+              -DCONF_INSTALL_DIR=${INSTALL_PREFIX}/etc \
+              -DSERVICE_INSTALL_DIR=${INSTALL_PREFIX}/lib"
+
+  sh 'make install -j4'
 }
 
 def tests() {
   script {
-    if( !params.build_as_testnet ) {
+    if( BUILD_TESTNET == "false" ) {
       sh './tests/chain_test'
       sh './tests/plugin_test'
       //sh './tests/smart_contracts/smart_contracts_tests'
@@ -81,12 +143,11 @@ def tests() {
 }
 
 def run_archive() {
-  sh 'make install'
   dir('install') {
     dir('lib') {
       script {
         echo "${LIB_ARCHIVE_NAME}"
-        if( !params.build_as_debug ) {
+        if( !params.Debug ) {
           try {
               sh 'strip -s libalexandria.so libalexandriaJNI.so *_plugin.so' //strip symbols
               } catch(Exception e) {
@@ -102,7 +163,7 @@ def run_archive() {
     sh 'rm -f test*' //remove test binaries
     script {
       echo "${ARCHIVE_NAME}"
-      if( !params.build_as_debug ) {
+      if( !params.Debug ) {
         try {
             sh 'strip -s *' //strip symbols
             } catch(Exception e) {
@@ -110,18 +171,120 @@ def run_archive() {
             }
           }
 
-          if( params.build_as_testnet ) {
+          if( BUILD_TESTNET == "true" ) {
            sh "cp ${WORKSPACE}/contrib/testnet_config.ini ."//copy config
-           sh "cp -r ${WORKSPACE}/etc ."
-           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light testnet_config.ini etc/" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} sophiatx_cli_wallet sophiatxd sophiatxd_light testnet_config.ini" //create tar file
            } else {
            sh "cp ${WORKSPACE}/contrib/fullnode_config.ini ."//copy configs
            sh "cp ${WORKSPACE}/contrib/witness_config.ini ."//copy configs
-           sh "cp -r ${WORKSPACE}/etc ."
-           sh "tar -czf ${ARCHIVE_NAME} cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini etc/" //create tar file
+           sh "tar -czf ${ARCHIVE_NAME} sophiatx_cli_wallet sophiatxd sophiatxd_light fullnode_config.ini witness_config.ini/" //create tar file
          }
        }
        archiveArtifacts '*.gz'
      }
    }
+ }
+
+ def create_packages() {
+    if (!params.Package) {
+        return
+    }
+
+    if (params.Package.contains("sophiatx")) {
+        build_jenkins_package("programs/sophiatxd", "sophiatx-testnet")
+    }
+
+    if (params.Package.contains("light-client")) {
+        build_jenkins_package("programs/sophiatxd_light", "sophiatx-light-client")
+    }
+
+    if (params.Package.contains("cli-wallet")) {
+        build_jenkins_package("programs/cli_wallet", "sophiatx-cli-wallet")
+    }
+ }
+
+ def build_jenkins_package(String dirPath, String testPackageName) {
+    dir(dirPath) {
+        dir("jenkins_package") {
+            // all Copy configuration files from package directory except "rules"
+            sh "cp -n -r ../package/debian/* debian/"
+
+            sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
+                        --set-envvar SRC_ROOT_DIR_ENV=${WORKSPACE} \
+                        -uc -us"
+        }
+
+        if( params.Network == "Testnet" ) {
+            packageName = testPackageName + "_#${env.BUILD_NUMBER}.deb"
+            sh "mv *.deb ${packageName}"
+        } else if( params.Network == "Customnet" ) {
+            if (params.PackageName == "") {
+                error("PackageName must be provided when creating \"Customnet\" package!")
+            }
+
+            sh "mv *.deb ${params.PackageName}"
+        }
+
+        archiveArtifacts '*.deb'
+    }
+ }
+
+ def build_package(String dirPath) {
+    // If there is existing cmakecache from previous build, delete it as we want
+    if (fileExists('CMakeCache.txt') == true) {
+        sh "rm -f CMakeCache.txt"
+    }
+
+    dir(dirPath) {
+        dir("package") {
+            sh "debuild --set-envvar CMAKE_BUILD_TYPE_ENV=${BUILD_TYPE} \
+                        --set-envvar BUILD_SOPHIATX_TESTNET_ENV=${BUILD_TESTNET} \
+                        --set-envvar SOPHIATX_EGENESIS_JSON_ENV=${GENESIS_FILE} \
+                        --set-envvar OPENSSL_ROOT_DIR_ENV=${OPENSSL_111} \
+                        --set-envvar BOOST_ROOT_DIR_ENV=${BOOST_167} \
+                        -uc -us"
+        }
+
+        archiveArtifacts '*.deb'
+    }
+ }
+
+ def checkBox (String name, String values, String defaultValue,
+               int visibleItemCnt=0, String type, String description='', String delimiter=',') {
+
+     // default same as number of values
+     visibleItemCnt = visibleItemCnt ?: values.split(',').size()
+     return new ExtendedChoiceParameterDefinition(
+             name, //name,
+             type, //type
+             values, //value
+             "", //projectName
+             "", //propertyFile
+             "", //groovyScript
+             "", //groovyScriptFile
+             "", //bindings
+             "", //groovyClasspath
+             "", //propertyKey
+             defaultValue, //defaultValue
+             "", //defaultPropertyFile
+             "", //defaultGroovyScript
+             "", //defaultGroovyScriptFile
+             "", //defaultBindings
+             "", //defaultGroovyClasspath
+             "", //defaultPropertyKey
+             "", //descriptionPropertyValue
+             "", //descriptionPropertyFile
+             "", //descriptionGroovyScript
+             "", //descriptionGroovyScriptFile
+             "", //descriptionBindings
+             "", //descriptionGroovyClasspath
+             "", //descriptionPropertyKey
+             "", //javascriptFile
+             "", //javascript
+             false, //saveJSONParameterToFile
+             false, //quoteValue
+             visibleItemCnt, //visibleItemCount
+             description, //description
+             delimiter //multiSelectDelimiter
+             )
  }
