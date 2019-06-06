@@ -59,7 +59,7 @@ static const char generated_file_banner[] =
 
 
 genesis_state_type create_example_genesis(){
-   sophiatx::chain::genesis_state_type::initial_account_type example_account("test", SOPHIATX_INIT_PUBLIC_KEY, SOPHIATX_INIT_SUPPLY);
+   sophiatx::chain::genesis_state_type::initial_account_type example_account("test", public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR), SOPHIATX_INIT_SUPPLY);
    genesis_state_type ret;
    ret.initial_balace = 0;
    ret.initial_accounts.push_back(example_account);
