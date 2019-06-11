@@ -197,7 +197,7 @@ struct shared_chain_properties
       public:
          template< typename Constructor, typename Allocator >
          witness_schedule_object( Constructor&& c, allocator< Allocator > a ) :
-         current_shuffled_witnesses(sophiatx::protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"))
+         current_shuffled_witnesses(protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"))
          {
             c( *this );
          }

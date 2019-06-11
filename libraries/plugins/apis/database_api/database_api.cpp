@@ -102,7 +102,7 @@ database_api_impl::~database_api_impl() {}
 
 DEFINE_API_IMPL( database_api_impl, get_config )
 {
-   return sophiatx::protocol::sophiatx_config::get_config();
+   return protocol::sophiatx_config::get_config();
 }
 
 DEFINE_API_IMPL( database_api_impl, get_dynamic_global_properties )

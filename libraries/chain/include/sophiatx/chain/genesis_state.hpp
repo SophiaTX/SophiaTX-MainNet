@@ -56,6 +56,8 @@ struct genesis_state_type {
     public_key_type initial_public_key = sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
 
     int64_t initial_balace = SOPHIATX_INIT_SUPPLY;
+
+    int64_t initial_supply = SOPHIATX_INIT_SUPPLY;
 #undef SOPHIATX_INIT_SUPPLY
     int64_t total_supply = SOPHIATX_TOTAL_SUPPLY;
 #undef SOPHIATX_TOTAL_SUPPLY

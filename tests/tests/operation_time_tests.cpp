@@ -341,9 +341,9 @@ BOOST_AUTO_TEST_CASE( interests )
       fund(AN("alice"), 100000000);
       fund(AN("bob"),  1000000000);
 
-      generate_blocks( SOPHIATX_INTEREST_DELAY );
+      generate_blocks( protocol::sophiatx_config::get<uint32_t>("SOPHIATX_INTEREST_DELAY"));
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
-      share_type expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (sophiatx::protocol::sophiatx_config::get<int64_t>("SOPHIATX_COINBASE_BLOCKS") / 10000) / 7;
+      share_type expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (protocol::sophiatx_config::get<int64_t>("SOPHIATX_COINBASE_BLOCKS") / 10000) / 7;
 
       auto interest_op = get_last_operations( 1, AN("bob") )[0].get< interest_operation >();
       BOOST_REQUIRE( interest_op.owner == AN("bob") );
@@ -401,7 +401,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
 
 
-      generate_blocks( SOPHIATX_BLOCKS_PER_DAY * 1);
+      generate_blocks( protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY") * 1);
 
 
       fund( AN("bob"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );

@@ -20,22 +20,21 @@ public:
 #else
         instance().config_["IS_TEST_NET"] = false;
         instance().config_["SOPHIATX_MIN_FEEDS"] = genesis.max_witnesses/10; /// protects the network from conversions before price has been established
-;
 #endif
         instance().config_["SOPHIATX_BLOCKCHAIN_VERSION"] = SOPHIATX_BLOCKCHAIN_VERSION;
         instance().config_["SOPHIATX_INIT_PUBLIC_KEY_STR"] = SOPHIATX_INIT_PUBLIC_KEY_STR;
-        instance().config_["SOPHIATX_MIN_ACCOUNT_CREATION_FEE"] = SOPHIATX_MIN_ACCOUNT_CREATION_FEE;
+        instance().config_["SOPHIATX_MIN_ACCOUNT_CREATION_FEE"] = genesis.min_acc_creation_fee;
         instance().config_["SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD"] = SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
         instance().config_["SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD"] = SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
         instance().config_["SOPHIATX_OWNER_UPDATE_LIMIT"] = SOPHIATX_OWNER_UPDATE_LIMIT;
-        instance().config_["SOPHIATX_INIT_SUPPLY"] = genesis.initial_balace;
+        instance().config_["SOPHIATX_INIT_SUPPLY"] = genesis.initial_supply;
         instance().config_["SOPHIATX_TOTAL_SUPPLY"] = genesis.total_supply;
 
-        instance().config_["SOPHIATX_GENESIS_TIME"] = SOPHIATX_GENESIS_TIME;
-        instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
-        instance().config_["SOPHIATX_BLOCKS_PER_YEAR"] = SOPHIATX_BLOCKS_PER_YEAR;
-        instance().config_["SOPHIATX_BLOCKS_PER_DAY"] = SOPHIATX_BLOCKS_PER_DAY;
-        instance().config_["SOPHIATX_START_MINER_VOTING_BLOCK"] = SOPHIATX_START_MINER_VOTING_BLOCK;
+        instance().config_["SOPHIATX_GENESIS_TIME"] = genesis.genesis_time;
+        instance().config_["SOPHIATX_BLOCK_INTERVAL"] = genesis.block_interval;
+        instance().config_["SOPHIATX_BLOCKS_PER_YEAR"] = 365*24*60*60/genesis.block_interval;
+        instance().config_["SOPHIATX_BLOCKS_PER_DAY"] = 24*60*60/genesis.block_interval;
+        instance().config_["SOPHIATX_START_MINER_VOTING_BLOCK"] = 24*60*60/genesis.block_interval * 7; ///SOPHIATX_BLOCKS_PER_DAY
         instance().config_["SOPHIATX_DECIMALS"] = SOPHIATX_DECIMALS;
         instance().config_["SOPHIATX_SATOSHIS"] = SOPHIATX_SATOSHIS;
         instance().config_["SOPHIATX_PROMOTION_POOL_PERCENTAGE"] = genesis.promotion_pool_percentage;
@@ -43,10 +42,10 @@ public:
         instance().config_["SOPHIATX_INTEREST_POOL_PERCENTAGE"] = genesis.interest_pool_percentage;
         instance().config_["SOPHIATX_BURN_FEE_PERCENTAGE"] = genesis.burn_fee_percentage;
         instance().config_["SOPHIATX_INTEREST_BLOCKS"] = SOPHIATX_INTEREST_BLOCKS;
-        instance().config_["SOPHIATX_INTEREST_FEES_TIME"] = SOPHIATX_INTEREST_FEES_TIME;
-        instance().config_["SOPHIATX_INTEREST_DELAY"] = SOPHIATX_INTEREST_DELAY;
+        instance().config_["SOPHIATX_INTEREST_FEES_TIME"] = 24*60*60/genesis.block_interval; ///SOPHIATX_BLOCKS_PER_DAY
+        instance().config_["SOPHIATX_INTEREST_DELAY"] = 24*60*60/genesis.block_interval; ///SOPHIATX_BLOCKS_PER_DAY
         instance().config_["SOPHIATX_COINBASE_YEARS"] = genesis.coinbase_years;
-        instance().config_["SOPHIATX_COINBASE_BLOCKS"] = SOPHIATX_BLOCKS_PER_YEAR * genesis.coinbase_years;
+        instance().config_["SOPHIATX_COINBASE_BLOCKS"] = 365*24*60*60/genesis.block_interval * genesis.coinbase_years;  ///SOPHIATX_BLOCKS_PER_YEAR
 
         instance().config_["SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"] = SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE;
         instance().config_["SOPHIATX_WITNESS_VESTING_INCREASE_DAYS"] = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
