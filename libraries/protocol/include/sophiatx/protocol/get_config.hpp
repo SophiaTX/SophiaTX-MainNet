@@ -16,8 +16,11 @@ public:
         instance().config_loaded_ = true;
 #ifdef IS_TEST_NET
         instance().config_["IS_TEST_NET"] = true;
+        instance().config_["SOPHIATX_MIN_FEEDS"] = 1;
 #else
         instance().config_["IS_TEST_NET"] = false;
+        instance().config_["SOPHIATX_MIN_FEEDS"] = genesis.max_witnesses/10; /// protects the network from conversions before price has been established
+;
 #endif
         instance().config_["SOPHIATX_BLOCKCHAIN_VERSION"] = SOPHIATX_BLOCKCHAIN_VERSION;
         instance().config_["SOPHIATX_INIT_PUBLIC_KEY_STR"] = SOPHIATX_INIT_PUBLIC_KEY_STR;
@@ -27,7 +30,7 @@ public:
         instance().config_["SOPHIATX_OWNER_UPDATE_LIMIT"] = SOPHIATX_OWNER_UPDATE_LIMIT;
         instance().config_["SOPHIATX_INIT_SUPPLY"] = genesis.initial_balace;
         instance().config_["SOPHIATX_TOTAL_SUPPLY"] = genesis.total_supply;
-        instance().config_["SOPHIATX_MIN_FEEDS"] = SOPHIATX_MIN_FEEDS;
+
         instance().config_["SOPHIATX_GENESIS_TIME"] = SOPHIATX_GENESIS_TIME;
         instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
         instance().config_["SOPHIATX_BLOCKS_PER_YEAR"] = SOPHIATX_BLOCKS_PER_YEAR;

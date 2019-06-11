@@ -1887,7 +1887,7 @@ try {
    }
 
    for ( const auto& feed: all_feeds){
-      if( feed.second.size() >= SOPHIATX_MIN_FEEDS )
+      if( feed.second.size() >= protocol::sophiatx_config::get<size_t>("SOPHIATX_MIN_FEEDS"))
       {
          vector<price> f = feed.second;
          std::sort( f.begin(), f.end() );

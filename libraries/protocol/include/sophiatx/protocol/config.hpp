@@ -25,8 +25,6 @@
 #define SOPHIATX_INIT_SUPPLY                     (int64_t( 350 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 #define SOPHIATX_TOTAL_SUPPLY                    (int64_t( 500 ) * int64_t( 1000000 ) * int64_t( 1000000 ))
 
-#define SOPHIATX_MIN_FEEDS                       1 //(SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
-
 #else // IS LIVE SOPHIATX NETWORK
 
 #define SOPHIATX_INIT_PUBLIC_KEY_STR             "SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX" //used for mining
@@ -38,7 +36,6 @@
 
 #define SOPHIATX_INIT_SUPPLY                     int64_t(350000000000000)
 #define SOPHIATX_TOTAL_SUPPLY                    int64_t(500000000000000)
-#define SOPHIATX_MIN_FEEDS                       (SOPHIATX_MAX_WITNESSES/10) /// protects the network from conversions before price has been established
 
 #define SOPHIATX_HARDFORK_REQUIRED_WITNESSES     31 // 31 of the 51 dpos witnesses required for hardfork. This guarantees 75% participation on all subsequent rounds.
 
