@@ -47,9 +47,9 @@ public:
         instance().config_["SOPHIATX_COINBASE_YEARS"] = genesis.coinbase_years;
         instance().config_["SOPHIATX_COINBASE_BLOCKS"] = 365*24*60*60/genesis.block_interval * genesis.coinbase_years;  ///SOPHIATX_BLOCKS_PER_YEAR
 
-        instance().config_["SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"] = SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE;
-        instance().config_["SOPHIATX_WITNESS_VESTING_INCREASE_DAYS"] = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
-        instance().config_["SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"] = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE;
+        instance().config_["SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"] = genesis.final_witness_req_vesting_balance;
+        instance().config_["SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF"] = genesis.witness_vesting_increase_days;
+        instance().config_["SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"] = genesis.initial_witness_req_vesting_balance;
 
         instance().config_["VESTS_SYMBOL"] = VESTS_SYMBOL;
         instance().config_["SOPHIATX_SYMBOL"] = SOPHIATX_SYMBOL;
@@ -70,16 +70,16 @@ public:
         instance().config_["SOPHIATX_INIT_MINER_NAME"] = SOPHIATX_INIT_MINER_NAME;
         instance().config_["SOPHIATX_NUM_INIT_MINERS"] = SOPHIATX_NUM_INIT_MINERS;
         instance().config_["SOPHIATX_MAX_WITNESSES"] = genesis.max_witnesses;
-        instance().config_["SOPHIATX_MAX_VOTED_WITNESSES_HF0"] = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
-        instance().config_["SOPHIATX_MAX_RUNNER_WITNESSES_HF0"] = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
-        instance().config_["SOPHIATX_HARDFORK_REQUIRED_WITNESSES"] = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
+        instance().config_["SOPHIATX_MAX_VOTED_WITNESSES_HF0"] = genesis.max_voted_witnesses;
+        instance().config_["SOPHIATX_MAX_RUNNER_WITNESSES_HF0"] = genesis.max_runner_witnesses;
+        instance().config_["SOPHIATX_HARDFORK_REQUIRED_WITNESSES"] = genesis.hardfork_req_witnesses;
         instance().config_["SOPHIATX_MAX_TIME_UNTIL_EXPIRATION"] = SOPHIATX_MAX_TIME_UNTIL_EXPIRATION;
         instance().config_["SOPHIATX_MAX_MEMO_SIZE"] = SOPHIATX_MAX_MEMO_SIZE;
         instance().config_["SOPHIATX_MAX_NAME_SEED_SIZE"] = SOPHIATX_MAX_NAME_SEED_SIZE;
         instance().config_["SOPHIATX_MAX_PROXY_RECURSION_DEPTH"] = SOPHIATX_MAX_PROXY_RECURSION_DEPTH;
         instance().config_["SOPHIATX_VESTING_WITHDRAW_INTERVALS"] = SOPHIATX_VESTING_WITHDRAW_INTERVALS;
         instance().config_["SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS"] = SOPHIATX_VESTING_WITHDRAW_INTERVAL_SECONDS;
-        instance().config_["SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"] = SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES;
+        instance().config_["SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"] = genesis.max_account_witness_votes;
         instance().config_["SOPHIATX_100_PERCENT"] = SOPHIATX_100_PERCENT;
         instance().config_["SOPHIATX_1_PERCENT"] = SOPHIATX_1_PERCENT;
         instance().config_["SOPHIATX_LIMIT_BANDWIDTH_BLOCKS"] = SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;

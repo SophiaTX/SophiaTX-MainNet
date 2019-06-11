@@ -843,8 +843,8 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
-      vest(AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000);
+      vest(AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -893,8 +893,8 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_update_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest(AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest(AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -1018,8 +1018,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
 
       ACTORS( (alice)(bob)(sam) )
 
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
       private_key_type alice_witness_key = generate_private_key( "alice_witness" );
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 0 );
 
@@ -1071,8 +1071,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       ACTORS( (alice)(bob)(sam) )
       fund( AN("alice") , 5000000 );
       vest( AN("alice"), 5000000 );
-      fund( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
 
       private_key_type sam_witness_key = generate_private_key( "sam_key" );
       witness_create( AN("sam"), sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
@@ -1503,8 +1503,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_authorities" );
 
       ACTORS( (alice)(bob) )
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest(AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest(AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 0 );
 
       feed_publish_operation op;
@@ -1546,8 +1546,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 10000000 );
-      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 10000000 );
+      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
 
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
@@ -3256,8 +3256,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 1000000);
-      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE  );
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000);
+      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE")  );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3361,8 +3361,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE + 1000000 );
-      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000 );
+      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;

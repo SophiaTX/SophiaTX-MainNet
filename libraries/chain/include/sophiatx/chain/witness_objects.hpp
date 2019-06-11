@@ -197,7 +197,10 @@ struct shared_chain_properties
       public:
          template< typename Constructor, typename Allocator >
          witness_schedule_object( Constructor&& c, allocator< Allocator > a ) :
-         current_shuffled_witnesses(protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"))
+         current_shuffled_witnesses(protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES")),
+         max_voted_witnesses(protocol::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_VOTED_WITNESSES_HF0")),
+         max_runner_witnesses(protocol::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_RUNNER_WITNESSES_HF0")),
+         hardfork_required_witnesses(protocol::sophiatx_config::get<uint8_t>("SOPHIATX_HARDFORK_REQUIRED_WITNESSES"))
          {
             c( *this );
          }
@@ -216,9 +219,9 @@ struct shared_chain_properties
          chain_properties                                                  median_props;
          version                                                           majority_version;
 
-         uint8_t max_voted_witnesses            = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
-         uint8_t max_runner_witnesses           = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
-         uint8_t hardfork_required_witnesses    = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
+         uint8_t max_voted_witnesses;
+         uint8_t max_runner_witnesses;
+         uint8_t hardfork_required_witnesses;
    };
 
 

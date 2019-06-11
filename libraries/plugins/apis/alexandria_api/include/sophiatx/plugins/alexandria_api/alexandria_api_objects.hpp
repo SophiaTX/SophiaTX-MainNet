@@ -391,9 +391,9 @@ struct api_witness_schedule_object
    uint32_t                      witness_pay_normalization_factor = 25;
    api_chain_properties          median_props;
    version                       majority_version;
-   uint8_t                       max_voted_witnesses           = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
-   uint8_t                       max_runner_witnesses          = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
-   uint8_t                       hardfork_required_witnesses   = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
+   uint8_t                       max_voted_witnesses;
+   uint8_t                       max_runner_witnesses;
+   uint8_t                       hardfork_required_witnesses;
 };
 
 

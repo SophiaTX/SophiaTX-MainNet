@@ -55,7 +55,7 @@ struct genesis_state_type {
 
     public_key_type initial_public_key = sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
 
-    int64_t initial_balace = SOPHIATX_INIT_SUPPLY;
+    int64_t initial_balace = SOPHIATX_INIT_SUPPLY; ///initminer balance with typo (must stay like this for mainnet chain id_
 
     int64_t initial_supply = SOPHIATX_INIT_SUPPLY;
 #undef SOPHIATX_INIT_SUPPLY
@@ -65,14 +65,21 @@ struct genesis_state_type {
     uint32_t max_witnesses = SOPHIATX_MAX_WITNESSES;
 #undef SOPHIATX_MAX_WITNESSES
     uint32_t hardfork_req_witnesses = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
+#undef SOPHIATX_HARDFORK_REQUIRED_WITNESSES
     uint32_t max_voted_witnesses = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
+#undef SOPHIATX_HARDFORK_REQUIRED_WITNESSES
     uint32_t max_runner_witnesses = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
+#undef SOPHIATX_MAX_RUNNER_WITNESSES_HF0
     uint32_t max_account_witness_votes = SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES;
+#undef SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES
 
 
     uint64_t initial_witness_req_vesting_balance = SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE;
+#undef SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE
     uint64_t final_witness_req_vesting_balance = SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE;
+#undef SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE
     uint32_t witness_vesting_increase_days = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1;
+#undef SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1
 
 
     uint32_t block_interval = SOPHIATX_BLOCK_INTERVAL;

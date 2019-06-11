@@ -86,7 +86,7 @@ clean_database_fixture::clean_database_fixture()
    generate_block();
 
 
-   vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+   vest( "initminer", protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
    validate_database();
 
@@ -94,8 +94,8 @@ clean_database_fixture::clean_database_fixture()
    for( int i = SOPHIATX_NUM_INIT_MINERS; i < protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
       account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
@@ -166,14 +166,14 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
-   vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+   vest( "initminer", protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
    // Fill up the rest of the required miners
    for( int i = SOPHIATX_NUM_INIT_MINERS; i < protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
       account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
@@ -241,8 +241,8 @@ private_database_fixture::private_database_fixture()
 //      for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
 //      {
 //         account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
-//         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-//         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+//         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+//         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 //         witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
 //      }
 
@@ -748,14 +748,14 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
-   vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+   vest( "initminer", protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
    // Fill up the rest of the required miners
    for( int i = SOPHIATX_NUM_INIT_MINERS; i < protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
       account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
    }
 

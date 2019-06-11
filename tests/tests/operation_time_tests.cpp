@@ -156,8 +156,8 @@ BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
       ACTORS( (alice)(sam) )
       fund( AN("alice") , 5000000 );
       vest( AN("alice"), 5000000 );
-      fund( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("sam"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+      fund( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
 
       long total_ops_badwidth = 0;
 
@@ -266,8 +266,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       // Upgrade accounts to witnesses
       for( int i = 0; i < 7; i++ )
       {
-         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, SOPHIATX_SYMBOL ) );
-         vest( accounts[i], SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE);
+         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), SOPHIATX_SYMBOL ) );
+         vest( accounts[i], protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
          witness_create( accounts[i], keys[i], "foo.bar", keys[i].get_public_key(), 0 );
 
 
@@ -361,8 +361,8 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
    try{
       BOOST_TEST_MESSAGE( "Testing: witness_increase_vesting" );
       ACTORS( (alice)(bob) )
-      fund( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("alice"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -404,8 +404,8 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       generate_blocks( protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY") * 1);
 
 
-      fund( AN("bob"), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN("bob"), (SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE - 1000) );
+      fund( AN("bob"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("bob"), (protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") - 1000) );
 
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness shall fail due to insufficient funds" );

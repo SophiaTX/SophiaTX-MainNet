@@ -683,7 +683,7 @@ void account_witness_vote_evaluator::do_apply( const account_witness_vote_operat
    if( itr == by_account_witness_idx.end() ) {
       FC_ASSERT( o.approve, "Vote doesn't exist, user must indicate a desire to approve witness." );
 
-      FC_ASSERT( voter.witnesses_voted_for < SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES, "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
+      FC_ASSERT( voter.witnesses_voted_for < protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"), "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
 
       _db->create<witness_vote_object>( [&]( witness_vote_object& v ) {
            v.witness = witness.owner;

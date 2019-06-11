@@ -1447,7 +1447,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
          p.participation_count = 128;
          p.current_supply = asset( total_initial_balance, SOPHIATX_SYMBOL );
          p.maximum_block_size = SOPHIATX_MAX_BLOCK_SIZE;
-         p.witness_required_vesting = asset(genesis.is_private_net? 0 : SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+         p.witness_required_vesting = asset(genesis.is_private_net? 0 : protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
          p.genesis_time = genesis.genesis_time;
          p.chain_id = chain_id;
          p.private_net = genesis.is_private_net;
@@ -2163,14 +2163,14 @@ void database::update_global_dynamic_data( const signed_block& b )
       if(!is_private_net()){
          uint64_t switch_block;
          if(has_hardfork(SOPHIATX_HARDFORK_1_1))
-            switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF_1_1 * protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
+            switch_block = protocol::sophiatx_config::get<uint32_t>("SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF") * protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
          else
             switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
 
          if( head_block_num() >= switch_block ){
-            dgp.witness_required_vesting = asset(SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+            dgp.witness_required_vesting = asset(protocol::sophiatx_config::get<uint64_t>("SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
          }else
-            dgp.witness_required_vesting = asset(SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, VESTS_SYMBOL);
+            dgp.witness_required_vesting = asset(protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
       }
    } );
 
