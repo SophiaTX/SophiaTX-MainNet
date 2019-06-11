@@ -91,7 +91,7 @@ clean_database_fixture::clean_database_fixture()
    validate_database();
 
     // Fill up the rest of the required miners
-   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < sophiatx::protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
       account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
       fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
@@ -169,7 +169,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
-   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < sophiatx::protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
       account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
       fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
@@ -751,7 +751,7 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
 
    // Fill up the rest of the required miners
-   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < sophiatx::protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
       account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
       fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );

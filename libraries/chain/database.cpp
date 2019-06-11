@@ -1,4 +1,5 @@
 #include <sophiatx/protocol/sophiatx_operations.hpp>
+#include <sophiatx/protocol/get_config.hpp>
 
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
@@ -1454,7 +1455,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
 
       create< economic_model_object >( [&]( economic_model_object& e )
                                                 {
-                                                    e.init_economics(total_initial_balance, SOPHIATX_TOTAL_SUPPLY);
+                                                    e.init_economics(total_initial_balance, sophiatx::protocol::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY"));
                                                 } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD1_SYMBOL;});
@@ -2207,8 +2208,8 @@ void database::update_last_irreversible_block()
    {
       modify( dpo, [&]( dynamic_global_property_object& _dpo )
       {
-         if ( head_block_num() > SOPHIATX_MAX_WITNESSES )
-            _dpo.last_irreversible_block_num = head_block_num() - SOPHIATX_MAX_WITNESSES;
+         if ( head_block_num() > sophiatx::protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"))
+            _dpo.last_irreversible_block_num = head_block_num() - sophiatx::protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES");
       } );
    }
    else
@@ -2520,7 +2521,9 @@ void database::validate_invariants()const
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
-                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool) == SOPHIATX_TOTAL_SUPPLY, "difference is $diff", ("diff", SOPHIATX_TOTAL_SUPPLY -
+                 econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool) ==
+                 sophiatx::protocol::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY"),
+                         "difference is $diff", ("diff", sophiatx::protocol::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY") -
                  (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
                  econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool)));
 

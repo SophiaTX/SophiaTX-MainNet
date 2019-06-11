@@ -96,7 +96,7 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
    auto sitr = schedule_idx.begin();
    vector<decltype(sitr)> processed_witnesses;
    for( auto witness_count = selected_voted.size() ;
-        sitr != schedule_idx.end() && witness_count < SOPHIATX_MAX_WITNESSES;
+        sitr != schedule_idx.end() && witness_count < sophiatx::protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES");
         ++sitr )
    {
       new_virtual_time = sitr->virtual_scheduled_time; /// everyone advances to at least this time
@@ -139,9 +139,10 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
       reset_virtual_schedule_time(db);
    }
 
-   size_t expected_active_witnesses = std::min( size_t(SOPHIATX_MAX_WITNESSES), widx.size() - skipped_witnesses );
+   size_t expected_active_witnesses = std::min( sophiatx::protocol::sophiatx_config::get<size_t>("SOPHIATX_MAX_WITNESSES"), widx.size() - skipped_witnesses );
    FC_ASSERT( active_witnesses.size() == expected_active_witnesses, "number of active witnesses does not equal expected_active_witnesses=${expected_active_witnesses}, skipped_witnesses=${skipped}",
-                                       ("active_witnesses.size()",active_witnesses.size()) ("SOPHIATX_MAX_WITNESSES",SOPHIATX_MAX_WITNESSES) ("expected_active_witnesses", expected_active_witnesses)
+                                       ("active_witnesses.size()",active_witnesses.size()) ("SOPHIATX_MAX_WITNESSES",
+                                               sophiatx::protocol::sophiatx_config::get<size_t>("SOPHIATX_MAX_WITNESSES")) ("expected_active_witnesses", expected_active_witnesses)
                                        ("skipped", skipped_witnesses));
 
    auto majority_version = wso.majority_version;
@@ -224,7 +225,7 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
          _wso.current_shuffled_witnesses[i] = active_witnesses[i];
       }
 
-      for( size_t i = active_witnesses.size(); i < SOPHIATX_MAX_WITNESSES; i++ )
+      for( size_t i = active_witnesses.size(); i < sophiatx::protocol::sophiatx_config::get<size_t>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
          _wso.current_shuffled_witnesses[i] = account_name_type();
       }
@@ -275,7 +276,7 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
  */
 void update_witness_schedule(const std::shared_ptr<database>& db)
 {
-   if( (db->head_block_num() % SOPHIATX_MAX_WITNESSES) == 0 ) //wso.next_shuffle_block_num )
+   if( (db->head_block_num() % sophiatx::protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES")) == 0 ) //wso.next_shuffle_block_num )
    {
       update_witness_schedule4(db);
    }

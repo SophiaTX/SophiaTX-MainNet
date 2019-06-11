@@ -25,8 +25,8 @@ public:
         instance().config_["SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD"] = SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
         instance().config_["SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD"] = SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
         instance().config_["SOPHIATX_OWNER_UPDATE_LIMIT"] = SOPHIATX_OWNER_UPDATE_LIMIT;
-        instance().config_["SOPHIATX_INIT_SUPPLY"] = SOPHIATX_INIT_SUPPLY;
-        instance().config_["SOPHIATX_TOTAL_SUPPLY"] = SOPHIATX_TOTAL_SUPPLY;
+        instance().config_["SOPHIATX_INIT_SUPPLY"] = genesis.initial_balace;
+        instance().config_["SOPHIATX_TOTAL_SUPPLY"] = genesis.total_supply;
         instance().config_["SOPHIATX_MIN_FEEDS"] = SOPHIATX_MIN_FEEDS;
         instance().config_["SOPHIATX_GENESIS_TIME"] = SOPHIATX_GENESIS_TIME;
         instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
@@ -67,7 +67,7 @@ public:
         instance().config_["SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION"] = SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION;
         instance().config_["SOPHIATX_INIT_MINER_NAME"] = SOPHIATX_INIT_MINER_NAME;
         instance().config_["SOPHIATX_NUM_INIT_MINERS"] = SOPHIATX_NUM_INIT_MINERS;
-        instance().config_["SOPHIATX_MAX_WITNESSES"] = SOPHIATX_MAX_WITNESSES;
+        instance().config_["SOPHIATX_MAX_WITNESSES"] = genesis.max_witnesses;
         instance().config_["SOPHIATX_MAX_VOTED_WITNESSES_HF0"] = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
         instance().config_["SOPHIATX_MAX_RUNNER_WITNESSES_HF0"] = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
         instance().config_["SOPHIATX_HARDFORK_REQUIRED_WITNESSES"] = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;

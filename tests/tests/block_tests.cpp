@@ -779,7 +779,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       vest( "initminer", 10000 );
 
       // Fill up the rest of the required miners
-      for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+      for( int i = SOPHIATX_NUM_INIT_MINERS; i < sophiatx::protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
          account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
          fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );

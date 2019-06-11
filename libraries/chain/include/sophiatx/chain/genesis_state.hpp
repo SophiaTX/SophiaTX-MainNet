@@ -56,9 +56,12 @@ struct genesis_state_type {
     public_key_type initial_public_key = sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
 
     int64_t initial_balace = SOPHIATX_INIT_SUPPLY;
+#undef SOPHIATX_INIT_SUPPLY
     int64_t total_supply = SOPHIATX_TOTAL_SUPPLY;
+#undef SOPHIATX_TOTAL_SUPPLY
 
     uint32_t max_witnesses = SOPHIATX_MAX_WITNESSES;
+#undef SOPHIATX_MAX_WITNESSES
     uint32_t hardfork_req_witnesses = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
     uint32_t max_voted_witnesses = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
     uint32_t max_runner_witnesses = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;

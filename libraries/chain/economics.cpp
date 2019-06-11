@@ -57,7 +57,8 @@ void economic_model_object::record_block(uint32_t generated_block, share_type cu
    //                promotion_pool + current_supply + burn_pool== total_supply);
 }
 
-#define SOPHIATX_TOTAL_INTERESTS ((uint64_t(SOPHIATX_TOTAL_SUPPLY) - uint64_t(SOPHIATX_INIT_SUPPLY)) * \
+#define SOPHIATX_TOTAL_INTERESTS ((sophiatx::protocol::sophiatx_config::get<uint64_t>("SOPHIATX_TOTAL_SUPPLY") \
+        - sophiatx::protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INIT_SUPPLY")) * \
 sophiatx::protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INTEREST_POOL_PERCENTAGE") / uint64_t(SOPHIATX_100_PERCENT))
 
 share_type economic_model_object::withdraw_interests(share_type holding, uint32_t period) {
