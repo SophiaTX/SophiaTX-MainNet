@@ -54,7 +54,6 @@ struct genesis_state_type {
     };
 
     public_key_type initial_public_key = sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
-    string address_prefix = SOPHIATX_ADDRESS_PREFIX;
 
     int64_t initial_balace = SOPHIATX_INIT_SUPPLY;
     int64_t total_supply = SOPHIATX_TOTAL_SUPPLY;
@@ -76,10 +75,15 @@ struct genesis_state_type {
     uint32_t max_block_size = 2048;
 
     uint32_t promotion_pool_percentage = SOPHIATX_PROMOTION_POOL_PERCENTAGE;
+#undef SOPHIATX_PROMOTION_POOL_PERCENTAGE
     uint32_t mining_pool_percentage = SOPHIATX_MINING_POOL_PERCENTAGE;
+#undef SOPHIATX_MINING_POOL_PERCENTAGE
     uint32_t interest_pool_percentage = SOPHIATX_INTEREST_POOL_PERCENTAGE;
+#undef SOPHIATX_INTEREST_POOL_PERCENTAGE
     uint32_t burn_fee_percentage = SOPHIATX_BURN_FEE_PERCENTAGE;
+#undef SOPHIATX_BURN_FEE_PERCENTAGE
     uint32_t coinbase_years = SOPHIATX_COINBASE_YEARS;
+#undef SOPHIATX_COINBASE_YEARS
 
     uint32_t min_acc_creation_fee = SOPHIATX_MIN_ACCOUNT_CREATION_FEE;
     uint32_t base_fee = 10000;
@@ -114,7 +118,6 @@ struct genesis_state_type {
 FC_REFLECT(sophiatx::chain::genesis_state_type::initial_account_type, (name)(key)(balance))
 
 FC_REFLECT(sophiatx::chain::genesis_state_type, (initial_public_key)
-        (address_prefix)
         (initial_balace)
         (total_supply)
         (max_witnesses)

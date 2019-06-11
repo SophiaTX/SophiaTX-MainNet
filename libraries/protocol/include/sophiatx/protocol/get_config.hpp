@@ -4,13 +4,14 @@
 #include <sophiatx/protocol/asset.hpp>
 #include <sophiatx/protocol/types.hpp>
 #include <sophiatx/protocol/version.hpp>
+#include <sophiatx/chain/genesis_state.hpp>
 
 namespace sophiatx { namespace protocol {
 
 class sophiatx_config {
 
 public:
-    inline static void init()
+    inline static void init(const chain::genesis_state_type &genesis)
     {
         instance().config_loaded_ = true;
 #ifdef IS_TEST_NET
@@ -27,7 +28,6 @@ public:
         instance().config_["SOPHIATX_INIT_SUPPLY"] = SOPHIATX_INIT_SUPPLY;
         instance().config_["SOPHIATX_TOTAL_SUPPLY"] = SOPHIATX_TOTAL_SUPPLY;
         instance().config_["SOPHIATX_MIN_FEEDS"] = SOPHIATX_MIN_FEEDS;
-        instance().config_["SOPHIATX_ADDRESS_PREFIX"] = SOPHIATX_ADDRESS_PREFIX;
         instance().config_["SOPHIATX_GENESIS_TIME"] = SOPHIATX_GENESIS_TIME;
         instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
         instance().config_["SOPHIATX_BLOCKS_PER_YEAR"] = SOPHIATX_BLOCKS_PER_YEAR;
@@ -35,15 +35,15 @@ public:
         instance().config_["SOPHIATX_START_MINER_VOTING_BLOCK"] = SOPHIATX_START_MINER_VOTING_BLOCK;
         instance().config_["SOPHIATX_DECIMALS"] = SOPHIATX_DECIMALS;
         instance().config_["SOPHIATX_SATOSHIS"] = SOPHIATX_SATOSHIS;
-        instance().config_["SOPHIATX_PROMOTION_POOL_PERCENTAGE"] = SOPHIATX_PROMOTION_POOL_PERCENTAGE;
-        instance().config_["SOPHIATX_MINING_POOL_PERCENTAGE"] = SOPHIATX_MINING_POOL_PERCENTAGE;
-        instance().config_["SOPHIATX_INTEREST_POOL_PERCENTAGE"] = SOPHIATX_INTEREST_POOL_PERCENTAGE;
-        instance().config_["SOPHIATX_BURN_FEE_PERCENTAGE"] = SOPHIATX_BURN_FEE_PERCENTAGE;
+        instance().config_["SOPHIATX_PROMOTION_POOL_PERCENTAGE"] = genesis.promotion_pool_percentage;
+        instance().config_["SOPHIATX_MINING_POOL_PERCENTAGE"] = genesis.mining_pool_percentage;
+        instance().config_["SOPHIATX_INTEREST_POOL_PERCENTAGE"] = genesis.interest_pool_percentage;
+        instance().config_["SOPHIATX_BURN_FEE_PERCENTAGE"] = genesis.burn_fee_percentage;
         instance().config_["SOPHIATX_INTEREST_BLOCKS"] = SOPHIATX_INTEREST_BLOCKS;
         instance().config_["SOPHIATX_INTEREST_FEES_TIME"] = SOPHIATX_INTEREST_FEES_TIME;
         instance().config_["SOPHIATX_INTEREST_DELAY"] = SOPHIATX_INTEREST_DELAY;
-        instance().config_["SOPHIATX_COINBASE_YEARS"] = SOPHIATX_COINBASE_YEARS;
-        instance().config_["SOPHIATX_COINBASE_BLOCKS"] = SOPHIATX_COINBASE_BLOCKS;
+        instance().config_["SOPHIATX_COINBASE_YEARS"] = genesis.coinbase_years;
+        instance().config_["SOPHIATX_COINBASE_BLOCKS"] = SOPHIATX_BLOCKS_PER_YEAR * genesis.coinbase_years;
 
         instance().config_["SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"] = SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE;
         instance().config_["SOPHIATX_WITNESS_VESTING_INCREASE_DAYS"] = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS;
