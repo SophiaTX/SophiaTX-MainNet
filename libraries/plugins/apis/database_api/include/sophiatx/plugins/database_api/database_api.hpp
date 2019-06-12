@@ -5,7 +5,7 @@
 #include <sophiatx/plugins/database_api/database_api_args.hpp>
 #include <sophiatx/plugins/database_api/database_api_objects.hpp>
 
-namespace sophiatx { namespace protocol {
+namespace sophiatx { namespace chain {
 class sophiatx_config;
 } }
 

@@ -138,36 +138,4 @@ private:
     fc::mutable_variant_object config_;
 };
 
-
-
-class protocol_config {
-public:
-    inline static void init(const fc::mutable_variant_object& conf)
-    {
-        instance().config_loaded_ = true;
-
-        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"];
-    }
-
-    template<typename T>
-    inline static T get( std::string_view index ) {
-        FC_ASSERT(instance().config_loaded_, "protocol_config is not initialized!");
-        T type;
-        fc::from_variant(instance().config_[index], type);
-        return type;
-    }
-
-private:
-    protocol_config() : config_loaded_(false) {}
-    ~protocol_config() {}
-
-    inline static protocol_config &instance() {
-        static protocol_config instance;
-        return instance;
-    }
-
-    bool config_loaded_;
-    fc::mutable_variant_object config_;
-};
-
 } } // sophiatx::protocol
