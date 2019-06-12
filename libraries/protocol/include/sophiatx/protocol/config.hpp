@@ -177,18 +177,25 @@ public:
     inline static void init(const fc::mutable_variant_object& conf)
     {
         instance().config_loaded_ = true;
+        try {
+            instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MAX_TRANSACTION_SIZE"] * 16;
+        } catch (...) {
+            instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = SOPHIATX_MAX_TRANSACTION_SIZE * 16;
+        }
 
-        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"];
-        instance().config_["SOPHIATX_BLOCK_INTERVAL"] = conf["SOPHIATX_BLOCK_INTERVAL"];
-        instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = conf["SOPHIATX_MAX_BLOCK_SIZE"];
-    }
+        try {
+            instance().config_["SOPHIATX_BLOCK_INTERVAL"] = conf["SOPHIATX_BLOCK_INTERVAL"];
+        } catch (...) {
+            instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
+        }
 
-    inline static void init()
-    {
-        instance().config_loaded_ = true;
+        try {
+            instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = conf["SOPHIATX_MAX_BLOCK_SIZE"];
+        } catch (...) {
+            instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = SOPHIATX_MAX_TRANSACTION_SIZE * SOPHIATX_BLOCK_INTERVAL * 2048;
+        }
 
-        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = SOPHIATX_MAX_TRANSACTION_SIZE * 16;
-        instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
+
     }
 
     template<typename T>

@@ -669,7 +669,7 @@ void database::push_transaction( const signed_transaction& trx, uint32_t skip )
    {
       try
       {
-         FC_ASSERT( fc::raw::pack_size(trx) <= SOPHIATX_MAX_TRANSACTION_SIZE, "Transaction size is bigger than SOPHIATX_MAX_TRANSACTION_SIZE");
+         FC_ASSERT( fc::raw::pack_size(trx) <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_TRANSACTION_SIZE"), "Transaction size is bigger than SOPHIATX_MAX_TRANSACTION_SIZE");
          set_producing( true );
          detail::with_skip_flags( *this, skip,
             [&]()

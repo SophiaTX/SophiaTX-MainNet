@@ -93,7 +93,7 @@ public:
         instance().config_["SOPHIATX_MAX_SATOSHIS"] = SOPHIATX_MAX_SATOSHIS;
         instance().config_["SOPHIATX_MAX_SIG_CHECK_DEPTH"] = SOPHIATX_MAX_SIG_CHECK_DEPTH;
         instance().config_["SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT"] = SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT;
-        instance().config_["SOPHIATX_MAX_TRANSACTION_SIZE"] = SOPHIATX_MAX_TRANSACTION_SIZE;
+        instance().config_["SOPHIATX_MAX_TRANSACTION_SIZE"] = genesis.max_transaction_size;
         instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = genesis.max_transaction_size * 16;
         instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = genesis.max_transaction_size * genesis.block_interval * genesis.max_block_size;
         instance().config_["SOPHIATX_MIN_BLOCK_SIZE"] = SOPHIATX_MIN_BLOCK_SIZE;

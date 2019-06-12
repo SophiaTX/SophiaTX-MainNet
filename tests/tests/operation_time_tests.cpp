@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
          tx.signatures.clear();
 
          long tx_size = fc::raw::pack_size(tx);
-         while (tx_size + acc_update_op_size < SOPHIATX_MAX_TRANSACTION_SIZE &&
+         while (tx_size + acc_update_op_size < chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_TRANSACTION_SIZE") &&
                 total_ops_badwidth + acc_update_op_size < SOPHIATX_MAX_ALLOWED_BANDWIDTH) {
             tx.operations.push_back( acc_update_op );
             tx_size += acc_update_op_size;
