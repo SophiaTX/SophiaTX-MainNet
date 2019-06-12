@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
       tx.operations.clear();
       tx.signatures.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
-      for (size_t idx = 0; idx <= SOPHIATX_MAX_ALLOWED_OPS_COUNT; idx++) {
+      for (size_t idx = 0; idx <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ALLOWED_OPS_COUNT"); idx++) {
          op.approve = !op.approve;
          tx.operations.push_back( op );
       }
@@ -200,13 +200,13 @@ BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
       size_t acc_update_op_size = fc::raw::pack_size(acc_update_op);
 
       size_t tx_count = 0;
-      while (total_ops_badwidth + acc_update_op_size < SOPHIATX_MAX_ALLOWED_BANDWIDTH) {
+      while (total_ops_badwidth + acc_update_op_size < chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ALLOWED_BANDWIDTH")) {
          tx.operations.clear();
          tx.signatures.clear();
 
          long tx_size = fc::raw::pack_size(tx);
          while (tx_size + acc_update_op_size < chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_TRANSACTION_SIZE") &&
-                total_ops_badwidth + acc_update_op_size < SOPHIATX_MAX_ALLOWED_BANDWIDTH) {
+                total_ops_badwidth + acc_update_op_size < chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ALLOWED_BANDWIDTH")) {
             tx.operations.push_back( acc_update_op );
             tx_size += acc_update_op_size;
             total_ops_badwidth += acc_update_op_size;

@@ -82,9 +82,9 @@ public:
         instance().config_["SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"] = genesis.max_account_witness_votes;
         instance().config_["SOPHIATX_100_PERCENT"] = SOPHIATX_100_PERCENT;
         instance().config_["SOPHIATX_1_PERCENT"] = SOPHIATX_1_PERCENT;
-        instance().config_["SOPHIATX_LIMIT_BANDWIDTH_BLOCKS"] = SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;
-        instance().config_["SOPHIATX_MAX_ALLOWED_BANDWIDTH"] = SOPHIATX_MAX_ALLOWED_BANDWIDTH;
-        instance().config_["SOPHIATX_MAX_ALLOWED_OPS_COUNT"] = SOPHIATX_MAX_ALLOWED_OPS_COUNT;
+        instance().config_["SOPHIATX_LIMIT_BANDWIDTH_BLOCKS"] = genesis.limit_bandwidth_blocks;
+        instance().config_["SOPHIATX_MAX_ALLOWED_BANDWIDTH"] = genesis.max_allowed_bandwidth;
+        instance().config_["SOPHIATX_MAX_ALLOWED_OPS_COUNT"] = genesis.max_allowed_ops;
         instance().config_["SOPHIATX_MIN_ACCOUNT_NAME_LENGTH"] = SOPHIATX_MIN_ACCOUNT_NAME_LENGTH;
         instance().config_["SOPHIATX_MAX_ACCOUNT_NAME_LENGTH"] = SOPHIATX_MAX_ACCOUNT_NAME_LENGTH;
         instance().config_["SOPHIATX_MAX_PERMLINK_LENGTH"] = SOPHIATX_MAX_PERMLINK_LENGTH;
