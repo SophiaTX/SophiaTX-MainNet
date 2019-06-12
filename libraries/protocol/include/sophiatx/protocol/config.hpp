@@ -180,6 +180,7 @@ public:
 
         instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"];
         instance().config_["SOPHIATX_BLOCK_INTERVAL"] = conf["SOPHIATX_BLOCK_INTERVAL"];
+        instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = conf["SOPHIATX_MAX_BLOCK_SIZE"];
     }
 
     inline static void init()
