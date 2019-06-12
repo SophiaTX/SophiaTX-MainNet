@@ -276,7 +276,7 @@ namespace sophiatx { namespace protocol {
        *  This witnesses vote for the maximum_block_size which is used by the network
        *  to tune rate limiting and capacity
        */
-      uint32_t          maximum_block_size;
+      uint32_t          maximum_block_size = protocol_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE");
 
       flat_map<asset_symbol_type, price> price_feeds;
 
