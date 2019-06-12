@@ -311,7 +311,7 @@ struct api_chain_properties
    {}
 
    asset          account_creation_fee;
-   uint32_t       maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
+   uint32_t       maximum_block_size;
 };
 
 

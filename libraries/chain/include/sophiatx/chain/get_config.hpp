@@ -6,7 +6,7 @@
 #include <sophiatx/protocol/version.hpp>
 #include <sophiatx/chain/genesis_state.hpp>
 
-namespace sophiatx { namespace protocol {
+namespace sophiatx { namespace chain {
 
 class sophiatx_config {
 
@@ -94,11 +94,10 @@ public:
         instance().config_["SOPHIATX_MAX_SIG_CHECK_DEPTH"] = SOPHIATX_MAX_SIG_CHECK_DEPTH;
         instance().config_["SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT"] = SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT;
         instance().config_["SOPHIATX_MAX_TRANSACTION_SIZE"] = SOPHIATX_MAX_TRANSACTION_SIZE;
-        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = SOPHIATX_MIN_BLOCK_SIZE_LIMIT;
-        instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = SOPHIATX_MAX_BLOCK_SIZE;
+        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = genesis.max_transaction_size * 16;
+        instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = genesis.max_transaction_size * genesis.block_interval * genesis.max_block_size;
         instance().config_["SOPHIATX_MIN_BLOCK_SIZE"] = SOPHIATX_MIN_BLOCK_SIZE;
-        instance().config_["SOPHIATX_BLOCKS_PER_HOUR"] = SOPHIATX_BLOCKS_PER_HOUR;
-        instance().config_["SOPHIATX_FEED_INTERVAL_BLOCKS"] = SOPHIATX_FEED_INTERVAL_BLOCKS;
+        instance().config_["SOPHIATX_BLOCKS_PER_HOUR"] = 60*60/genesis.block_interval;
         instance().config_["SOPHIATX_FEED_HISTORY_WINDOW"] = SOPHIATX_FEED_HISTORY_WINDOW;
         instance().config_["SOPHIATX_MAX_FEED_AGE_SECONDS"] = SOPHIATX_MAX_FEED_AGE_SECONDS;
         instance().config_["SOPHIATX_MAX_UNDO_HISTORY"] = SOPHIATX_MAX_UNDO_HISTORY;
@@ -109,6 +108,8 @@ public:
         instance().config_["SOPHIATX_NULL_ACCOUNT"] = SOPHIATX_NULL_ACCOUNT;
         instance().config_["SOPHIATX_TEMP_ACCOUNT"] = SOPHIATX_TEMP_ACCOUNT;
         instance().config_["SOPHIATX_PROXY_TO_SELF_ACCOUNT"] = SOPHIATX_PROXY_TO_SELF_ACCOUNT;
+
+        protocol::protocol_config::init(instance().config_);
     }
 
     inline static const fc::mutable_variant_object& get_config() {
@@ -130,6 +131,38 @@ private:
 
     inline static sophiatx_config &instance() {
         static sophiatx_config instance;
+        return instance;
+    }
+
+    bool config_loaded_;
+    fc::mutable_variant_object config_;
+};
+
+
+
+class protocol_config {
+public:
+    inline static void init(const fc::mutable_variant_object& conf)
+    {
+        instance().config_loaded_ = true;
+
+        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"];
+    }
+
+    template<typename T>
+    inline static T get( std::string_view index ) {
+        FC_ASSERT(instance().config_loaded_, "protocol_config is not initialized!");
+        T type;
+        fc::from_variant(instance().config_[index], type);
+        return type;
+    }
+
+private:
+    protocol_config() : config_loaded_(false) {}
+    ~protocol_config() {}
+
+    inline static protocol_config &instance() {
+        static protocol_config instance;
         return instance;
     }
 

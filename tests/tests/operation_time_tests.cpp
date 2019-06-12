@@ -2,7 +2,7 @@
 
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/hardfork.hpp>
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/database/database_interface.hpp>
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE( vesting_withdrawals )
       asset withdraw_rate = new_alice.vesting_withdraw_rate;
 
       BOOST_TEST_MESSAGE( "Generating block up to first withdrawal" );
-      generate_blocks( next_withdrawal - ( SOPHIATX_BLOCK_INTERVAL / 2 ), true);
+      generate_blocks( next_withdrawal - ( chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") / 2 ), true);
 
       BOOST_REQUIRE( db->get_account( AN("alice") ).vesting_shares.amount.value == vesting_shares.amount.value );
 
@@ -156,8 +156,8 @@ BOOST_AUTO_TEST_CASE( limit_fee_free_ops ) {
       ACTORS( (alice)(sam) )
       fund( AN("alice") , 5000000 );
       vest( AN("alice"), 5000000 );
-      fund( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
+      fund( AN("sam"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("sam"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
 
       long total_ops_badwidth = 0;
 
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
       BOOST_TEST_MESSAGE( "Setup" );
 
-      generate_blocks( 30 / SOPHIATX_BLOCK_INTERVAL );
+      generate_blocks( 30 / chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
 
       vector< string > accounts;
       accounts.push_back( AN("alice0") );
@@ -266,8 +266,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       // Upgrade accounts to witnesses
       for( int i = 0; i < 7; i++ )
       {
-         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), SOPHIATX_SYMBOL ) );
-         vest( accounts[i], protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
+         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), SOPHIATX_SYMBOL ) );
+         vest( accounts[i], chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
          witness_create( accounts[i], keys[i], "foo.bar", keys[i].get_public_key(), 0 );
 
 
@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
       BOOST_TEST_MESSAGE( "Jump forward an hour" );
 
-      generate_blocks( SOPHIATX_BLOCKS_PER_HOUR ); // Jump forward 1 hour
+      generate_blocks( chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_HOUR") ); // Jump forward 1 hour
       BOOST_TEST_MESSAGE( "Get feed history object" );
       feed_history_object feed_history = db->get_feed_history(SBD1_SYMBOL);
       BOOST_TEST_MESSAGE( "Check state" );
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
 
          BOOST_TEST_MESSAGE( "Generate Blocks" );
 
-         generate_blocks( SOPHIATX_BLOCKS_PER_HOUR  ); // Jump forward 1 hour
+         generate_blocks( chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_HOUR")  ); // Jump forward 1 hour
 
          BOOST_TEST_MESSAGE( "Check feed_history" );
 
@@ -341,9 +341,9 @@ BOOST_AUTO_TEST_CASE( interests )
       fund(AN("alice"), 100000000);
       fund(AN("bob"),  1000000000);
 
-      generate_blocks( protocol::sophiatx_config::get<uint32_t>("SOPHIATX_INTEREST_DELAY"));
+      generate_blocks( chain::sophiatx_config::get<uint32_t>("SOPHIATX_INTEREST_DELAY"));
       generate_blocks( SOPHIATX_INTEREST_BLOCKS );
-      share_type expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (protocol::sophiatx_config::get<int64_t>("SOPHIATX_COINBASE_BLOCKS") / 10000) / 7;
+      share_type expected_interest = 3 * SOPHIATX_INTEREST_BLOCKS * 1000 * 65 / (chain::sophiatx_config::get<int64_t>("SOPHIATX_COINBASE_BLOCKS") / 10000) / 7;
 
       auto interest_op = get_last_operations( 1, AN("bob") )[0].get< interest_operation >();
       BOOST_REQUIRE( interest_op.owner == AN("bob") );
@@ -361,8 +361,8 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
    try{
       BOOST_TEST_MESSAGE( "Testing: witness_increase_vesting" );
       ACTORS( (alice)(bob) )
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -372,7 +372,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -401,11 +401,11 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
 
 
 
-      generate_blocks( protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY") * 1);
+      generate_blocks( chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY") * 1);
 
 
-      fund( AN("bob"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest( AN("bob"), (protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") - 1000) );
+      fund( AN("bob"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("bob"), (chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") - 1000) );
 
 
       BOOST_TEST_MESSAGE( "--- Test upgrading an account to a witness shall fail due to insufficient funds" );
@@ -413,7 +413,7 @@ BOOST_AUTO_TEST_CASE( witness_increase_vesting)
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       tx.clear();
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );

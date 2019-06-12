@@ -3,6 +3,7 @@
 
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/hardfork.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/chain/database/database_interface.hpp>
 #include <sophiatx/chain/database/database_exceptions.hpp>
@@ -843,8 +844,8 @@ BOOST_AUTO_TEST_CASE( witness_update_authorities )
       BOOST_TEST_MESSAGE( "Testing: witness_update_authorities" );
 
       ACTORS( (alice)(bob) );
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000);
-      vest(AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000);
+      vest(AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -893,8 +894,8 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_update_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest(AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest(AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
 
       private_key_type signing_key = generate_private_key( "new_key" );
 
@@ -905,7 +906,7 @@ BOOST_AUTO_TEST_CASE( witness_update_apply )
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = ASSET("1.000000 SPHTX");
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -1018,8 +1019,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_authorities )
 
       ACTORS( (alice)(bob)(sam) )
 
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
       private_key_type alice_witness_key = generate_private_key( "alice_witness" );
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_witness_key.get_public_key(), 0 );
 
@@ -1071,8 +1072,8 @@ BOOST_AUTO_TEST_CASE( account_witness_vote_apply )
       ACTORS( (alice)(bob)(sam) )
       fund( AN("alice") , 5000000 );
       vest( AN("alice"), 5000000 );
-      fund( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest( AN("sam"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
+      fund( AN("sam"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN("sam"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
 
       private_key_type sam_witness_key = generate_private_key( "sam_key" );
       witness_create( AN("sam"), sam_private_key, "foo.bar", sam_witness_key.get_public_key(), 0 );
@@ -1503,8 +1504,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_authorities )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_authorities" );
 
       ACTORS( (alice)(bob) )
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-      vest(AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest(AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 0 );
 
       feed_publish_operation op;
@@ -1546,8 +1547,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       BOOST_TEST_MESSAGE( "Testing: feed_publish_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 10000000 );
-      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 10000000 );
+      vest( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       witness_create( AN("alice"), alice_private_key, "foo.bar", alice_private_key.get_public_key(), 1000000 );
 
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
@@ -1704,7 +1705,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
 
       BOOST_TEST_MESSAGE( "Testing failure when bob does not have new authority" );
 
-      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_UPDATE_LIMIT + fc::seconds( SOPHIATX_BLOCK_INTERVAL ) );
+      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_UPDATE_LIMIT + fc::seconds(chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")));
 
       recover.new_owner_authority = authority( 1, generate_private_key( "idontknow" ).get_public_key(), 1 );
 
@@ -1773,7 +1774,7 @@ BOOST_AUTO_TEST_CASE( account_recovery )
       ++req_itr;
       BOOST_REQUIRE( req_itr == request_idx.end() );
 
-      generate_blocks( time_point_sec( expires - SOPHIATX_BLOCK_INTERVAL ), true );
+      generate_blocks( time_point_sec( expires - chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")), true );
 
       const auto& new_request_idx = db->get_index< account_recovery_request_index >().indices();
       BOOST_REQUIRE( new_request_idx.begin() != new_request_idx.end() );
@@ -1931,7 +1932,7 @@ BOOST_AUTO_TEST_CASE( change_recovery_account )
       fc::ecc::private_key alice_priv2 = fc::ecc::private_key::regenerate( fc::sha256::hash( "alice_k2" ) );
       public_key_type alice_pub1 = public_key_type( alice_priv1.get_public_key() );
 
-      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD - fc::seconds( SOPHIATX_BLOCK_INTERVAL ), true );
+      generate_blocks( db->head_block_time() + SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD - fc::seconds( chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") ), true );
       // cannot request account recovery until recovery account is approved
       SOPHIATX_REQUIRE_THROW( request_account_recovery( AN("sam"), sam_private_key, AN("alice"), alice_pub1 ), fc::exception );
       generate_blocks(1);
@@ -2272,7 +2273,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       BOOST_TEST_MESSAGE( "--- failure on repeat approval" );
       tx.signatures.clear();
 
-      tx.set_expiration( db->head_block_time() + SOPHIATX_BLOCK_INTERVAL );
+      tx.set_expiration( db->head_block_time() + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
       sign(tx, bob_private_key );
       SOPHIATX_REQUIRE_THROW( db->push_transaction( tx, 0 ), fc::exception );
 
@@ -2330,7 +2331,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       sign(tx, alice_private_key );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL"), true );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.900000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.910000 SPHTX" ) );
@@ -2355,7 +2356,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       sign(tx, bob_private_key );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL"), true );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.800000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.810000 SPHTX" ) );
@@ -2379,7 +2380,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
       sign(tx, sam_private_key );
       db->push_transaction( tx, 0 );
 
-      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL"), true );
 
       SOPHIATX_REQUIRE_THROW( db->get_escrow( op.from, op.escrow_id ), fc::exception );
       BOOST_REQUIRE( db->get_account( AN("alice") ).balance >= ASSET( "9.700000 SPHTX" ) && db->get_account( AN("alice") ).balance < ASSET( "9.710000 SPHTX" ) );
@@ -2429,7 +2430,7 @@ BOOST_AUTO_TEST_CASE( escrow_approve_apply )
 
       BOOST_TEST_MESSAGE( "--- ratification expiration does not remove an approved escrow" );
 
-      generate_blocks( et_op.ratification_deadline + SOPHIATX_BLOCK_INTERVAL, true );
+      generate_blocks( et_op.ratification_deadline + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL"), true );
       {
          const auto& escrow = db->get_escrow( op.from, op.escrow_id );
          BOOST_REQUIRE( escrow.to == AN("bob") );
@@ -2524,8 +2525,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
       et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
-      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
+      et_op.escrow_expiration = db->head_block_time() + 2 * chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
 
       escrow_approve_operation ea_b_op;
       ea_b_op.from = AN("alice");
@@ -2652,8 +2653,8 @@ BOOST_AUTO_TEST_CASE( escrow_dispute_apply )
 
       BOOST_TEST_MESSAGE( "--- success disputing escrow" );
       et_op.escrow_id = 1;
-      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
+      et_op.escrow_expiration = db->head_block_time() + 2 * chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
       ea_b_op.escrow_id = et_op.escrow_id;
       ea_s_op.escrow_id = et_op.escrow_id;
 
@@ -2800,8 +2801,8 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
       et_op.sophiatx_amount = ASSET( "1.000000 SPHTX" );
       et_op.escrow_fee = ASSET( "0.100000 SPHTX" );
       et_op.fee = ASSET( "0.100000 SPHTX" );
-      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
+      et_op.escrow_expiration = db->head_block_time() + 2 * chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
 
       signed_transaction tx;
       tx.operations.push_back( et_op );
@@ -3116,8 +3117,8 @@ BOOST_AUTO_TEST_CASE( escrow_release_apply )
 
 
       tx.clear();
-      et_op.ratification_deadline = db->head_block_time() + SOPHIATX_BLOCK_INTERVAL;
-      et_op.escrow_expiration = db->head_block_time() + 2 * SOPHIATX_BLOCK_INTERVAL;
+      et_op.ratification_deadline = db->head_block_time() + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
+      et_op.escrow_expiration = db->head_block_time() + 2 * chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
       tx.operations.push_back( et_op );
       tx.operations.push_back( ea_b_op );
       tx.operations.push_back( ea_s_op );
@@ -3256,8 +3257,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_validate" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000);
-      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE")  );
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000);
+      vest( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE")  );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3266,7 +3267,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = asset(SOPHIATX_MIN_ACCOUNT_CREATION_FEE + 10, SOPHIATX_SYMBOL) ;
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -3287,7 +3288,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
 
       BOOST_TEST_MESSAGE( "--- failure when setting maximum_block_size below SOPHIATX_MIN_BLOCK_SIZE_LIMIT" );
       prop_op.props.erase( "account_creation_fee" );
-      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( SOPHIATX_MIN_BLOCK_SIZE_LIMIT - 1 );
+      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") - 1 );
       SOPHIATX_REQUIRE_THROW( prop_op.validate(), fc::assert_exception );
 
       BOOST_TEST_MESSAGE( "--- failure when setting new sbd_exchange_rate with SBD / SOPHIATX" );
@@ -3361,8 +3362,8 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       BOOST_TEST_MESSAGE( "Testing: witness_set_properties_apply" );
 
       ACTORS( (alice) )
-      fund( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000 );
-      vest( AN("alice"), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      fund( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") + 1000000 );
+      vest( AN("alice"), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
       private_key_type signing_key = generate_private_key( "old_key" );
 
       witness_update_operation op;
@@ -3371,7 +3372,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
       op.props.account_creation_fee = asset(SOPHIATX_MIN_ACCOUNT_CREATION_FEE + 10, SOPHIATX_SYMBOL) ;
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -3395,12 +3396,12 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
 
       // Setting maximum_block_size
       prop_op.props.erase( "account_creation_fee" );
-      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 1 );
+      prop_op.props[ "maximum_block_size" ] = fc::raw::pack_to_vector( chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 1 );
       tx.clear();
       tx.operations.push_back( prop_op );
       sign(tx, signing_key );
       db->push_transaction( tx, 0 );
-      BOOST_REQUIRE( alice_witness.props.maximum_block_size == SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 1 );
+      BOOST_REQUIRE( alice_witness.props.maximum_block_size == chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 1 );
 
       // Setting new sbd_exchange_rate
       prop_op.props.erase( "new_signing_key" );

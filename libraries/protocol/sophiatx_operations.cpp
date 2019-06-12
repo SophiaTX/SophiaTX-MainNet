@@ -119,7 +119,7 @@ namespace sophiatx { namespace protocol {
       {
          uint32_t maximum_block_size;
          fc::raw::unpack_from_vector( itr->second, maximum_block_size, 0 );
-         FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT, "maximum_block_size smaller than minimum max block size" );
+         FC_ASSERT( maximum_block_size >= protocol_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT"), "maximum_block_size smaller than minimum max block size" );
       }
 
       itr = props.find( "new_signing_key" );

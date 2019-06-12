@@ -4,7 +4,7 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 
 #include <sophiatx/protocol/asset.hpp>
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 namespace sophiatx { namespace chain {
 
@@ -25,7 +25,7 @@ namespace sophiatx { namespace chain {
       public:
          template< typename Constructor, typename Allocator >
          dynamic_global_property_object( Constructor&& c, allocator< Allocator > a ) :
-                 witness_required_vesting(protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), SOPHIATX_SYMBOL )
+                 witness_required_vesting(chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), SOPHIATX_SYMBOL )
          {
             c( *this );
          }

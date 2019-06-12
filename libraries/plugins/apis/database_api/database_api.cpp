@@ -5,7 +5,7 @@
 #include <sophiatx/plugins/database_api/database_api.hpp>
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/transaction_util.hpp>
 
@@ -102,7 +102,7 @@ database_api_impl::~database_api_impl() {}
 
 DEFINE_API_IMPL( database_api_impl, get_config )
 {
-   return protocol::sophiatx_config::get_config();
+   return chain::sophiatx_config::get_config();
 }
 
 DEFINE_API_IMPL( database_api_impl, get_dynamic_global_properties )

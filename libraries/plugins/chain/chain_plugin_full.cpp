@@ -6,7 +6,7 @@
 
 #include <sophiatx/utilities/benchmark_dumper.hpp>
 
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/egenesis/egenesis.hpp>
 
@@ -300,7 +300,7 @@ void chain_plugin_full::plugin_initialize(const variables_map& options) {
    };
 
    genesis             = initial_state();
-   sophiatx::protocol::sophiatx_config::init(genesis);
+   chain::sophiatx_config::init(genesis);
 
    replay              = options.at( "replay-blockchain").as<bool>();
    resync              = options.at( "resync-blockchain").as<bool>();

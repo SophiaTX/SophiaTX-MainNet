@@ -276,7 +276,7 @@ namespace sophiatx { namespace protocol {
        *  This witnesses vote for the maximum_block_size which is used by the network
        *  to tune rate limiting and capacity
        */
-      uint32_t          maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
+      uint32_t          maximum_block_size;
 
       flat_map<asset_symbol_type, price> price_feeds;
 
@@ -284,7 +284,7 @@ namespace sophiatx { namespace protocol {
       void validate()const
       {
          FC_ASSERT( account_creation_fee.amount >= SOPHIATX_MIN_ACCOUNT_CREATION_FEE);
-         FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT);
+         FC_ASSERT( maximum_block_size >= protocol::protocol_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT"));
          for (const auto&i : price_feeds){
             FC_ASSERT(i.first == SBD1_SYMBOL_SER || i.first == SBD2_SYMBOL_SER ||
                       i.first == SBD3_SYMBOL_SER || i.first == SBD4_SYMBOL_SER || i.first == SBD5_SYMBOL_SER );

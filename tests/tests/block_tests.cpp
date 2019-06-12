@@ -713,7 +713,7 @@ BOOST_FIXTURE_TEST_CASE( skip_block, clean_database_fixture )
       BOOST_REQUIRE( db->head_block_num() == 2 );
 
       int init_block_num = db->head_block_num();
-      int miss_blocks = fc::minutes( 1 ).to_seconds() / SOPHIATX_BLOCK_INTERVAL;
+      int miss_blocks = fc::minutes( 1 ).to_seconds() / chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
       auto witness = db->get_scheduled_witness( miss_blocks );
       auto block_time = db->get_slot_time( miss_blocks );
       db->generate_block( block_time , witness, init_account_priv_key, 0 );
@@ -725,7 +725,7 @@ BOOST_FIXTURE_TEST_CASE( skip_block, clean_database_fixture )
       generate_block();
 
       BOOST_CHECK_EQUAL( db->head_block_num(), static_cast<uint32_t>(init_block_num + 2) );
-      BOOST_CHECK( db->head_block_time() == block_time + SOPHIATX_BLOCK_INTERVAL );
+      BOOST_CHECK( db->head_block_time() == block_time + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
    }
    FC_LOG_AND_RETHROW();
 }
@@ -779,11 +779,11 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       vest( "initminer", 10000 );
 
       // Fill up the rest of the required miners
-      for( int i = SOPHIATX_NUM_INIT_MINERS; i < protocol::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
+      for( int i = SOPHIATX_NUM_INIT_MINERS; i < chain::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
          account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
-         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
-         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
          witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
       }
 
@@ -799,7 +799,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       /*BOOST_REQUIRE( !db->has_hardfork( SOPHIATX_HARDFORK_0_1 ) );
 
       BOOST_TEST_MESSAGE( "Generate blocks up to the hardfork time and check hardfork still not applied" );
-      generate_blocks( fc::time_point_sec( SOPHIATX_HARDFORK_0_1_TIME - SOPHIATX_BLOCK_INTERVAL ), true );
+      generate_blocks( fc::time_point_sec( SOPHIATX_HARDFORK_0_1_TIME - chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") ), true );
 
       BOOST_REQUIRE( db->has_hardfork( 0 ) );
       BOOST_REQUIRE( !db->has_hardfork( SOPHIATX_HARDFORK_0_1 ) );
@@ -825,7 +825,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       BOOST_REQUIRE( db->has_hardfork( 0 ) );
       BOOST_REQUIRE( db->has_hardfork( SOPHIATX_HARDFORK_0_1 ) );
       BOOST_REQUIRE( get_last_operations( 1 )[0].get< custom_operation >().data == vector< char >( op_msg.begin(), op_msg.end() ) );
-      BOOST_REQUIRE( db->get(itr->op).timestamp == db->head_block_time() - SOPHIATX_BLOCK_INTERVAL );
+      BOOST_REQUIRE( db->get(itr->op).timestamp == db->head_block_time() - chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
 
       db->wipe( data_dir->path(), data_dir->path(), true );*/
    }

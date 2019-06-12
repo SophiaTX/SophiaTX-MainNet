@@ -112,7 +112,7 @@ namespace detail
 
    DEFINE_API_IMPL( network_broadcast_api_impl, broadcast_block )
    {
-      FC_ASSERT( fc::raw::pack_size(args.block) <= SOPHIATX_MAX_BLOCK_SIZE, "Block size is bigger than SOPHIATX_MAX_BLOCK_SIZE" );
+      FC_ASSERT( fc::raw::pack_size(args.block) <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE"), "Block size is bigger than SOPHIATX_MAX_BLOCK_SIZE" );
       _chain.accept_block( args.block, /*currently syncing*/ false, /*skip*/ chain::database_interface::skip_nothing );
       _p2p.broadcast_block( args.block );
       return broadcast_block_return();

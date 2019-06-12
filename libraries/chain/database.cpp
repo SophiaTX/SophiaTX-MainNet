@@ -1,5 +1,5 @@
 #include <sophiatx/protocol/sophiatx_operations.hpp>
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/chain/block_summary_object.hpp>
 #include <sophiatx/chain/custom_operation_interpreter.hpp>
@@ -847,7 +847,7 @@ signed_block database::_generate_block(
    // TODO:  Move this to _push_block() so session is restored.
    if( !(skip & skip_block_size_check) )
    {
-      FC_ASSERT( fc::raw::pack_size(pending_block) <= SOPHIATX_MAX_BLOCK_SIZE );
+      FC_ASSERT( fc::raw::pack_size(pending_block) <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE") );
    }
 
    push_block( pending_block, skip );
@@ -903,7 +903,7 @@ fc::time_point_sec database::get_slot_time(uint32_t slot_num)const
    if( slot_num == 0 )
       return fc::time_point_sec();
 
-   auto interval = SOPHIATX_BLOCK_INTERVAL;
+   auto interval = chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
 
    if( head_block_num() == 0 )
@@ -928,7 +928,7 @@ uint32_t database::get_slot_at_time(fc::time_point_sec when)const
    fc::time_point_sec first_slot_time = get_slot_time( 1 );
    if( when < first_slot_time )
       return 0;
-   return (when - first_slot_time).to_seconds() / SOPHIATX_BLOCK_INTERVAL + 1;
+   return (when - first_slot_time).to_seconds() / chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") + 1;
 }
 
 void  database::vest( const account_name_type& name, const share_type delta)
@@ -1446,8 +1446,8 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
          p.recent_slots_filled = fc::uint128::max_value();
          p.participation_count = 128;
          p.current_supply = asset( total_initial_balance, SOPHIATX_SYMBOL );
-         p.maximum_block_size = SOPHIATX_MAX_BLOCK_SIZE;
-         p.witness_required_vesting = asset(genesis.is_private_net? 0 : protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
+         p.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE");
+         p.witness_required_vesting = asset(genesis.is_private_net? 0 : chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
          p.genesis_time = genesis.genesis_time;
          p.chain_id = chain_id;
          p.private_net = genesis.is_private_net;
@@ -1455,7 +1455,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
 
       create< economic_model_object >( [&]( economic_model_object& e )
                                                 {
-                                                    e.init_economics(total_initial_balance, protocol::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY"));
+                                                    e.init_economics(total_initial_balance, chain::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY"));
                                                 } );
       // Nothing to do
       create< feed_history_object >( [&]( feed_history_object& o ) {o.symbol = SBD1_SYMBOL;});
@@ -1835,7 +1835,7 @@ void database::process_interests() {
       while( const account_object *a = find_account(id)) {
          share_type interest = 0;
 
-         if( head_block_num() > protocol::sophiatx_config::get<uint32_t>("SOPHIATX_INTEREST_DELAY")) {
+         if( head_block_num() > chain::sophiatx_config::get<uint32_t>("SOPHIATX_INTEREST_DELAY")) {
             modify(econ, [ & ](economic_model_object &eo) {
                interest = eo.withdraw_interests(a->holdings_considered_for_interests,
                      std::min(uint32_t(interest_blocks), head_block_num()));
@@ -1870,7 +1870,7 @@ void database::process_header_extensions( const signed_block& next_block )
 
 void database::update_median_feeds() {
 try {
-   if( (head_block_num() % SOPHIATX_FEED_INTERVAL_BLOCKS) != 0 )
+   if( (head_block_num() % chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_HOUR")) != 0 )
       return;
 
    auto now = head_block_time();
@@ -1887,7 +1887,7 @@ try {
    }
 
    for ( const auto& feed: all_feeds){
-      if( feed.second.size() >= protocol::sophiatx_config::get<size_t>("SOPHIATX_MIN_FEEDS"))
+      if( feed.second.size() >= chain::sophiatx_config::get<size_t>("SOPHIATX_MIN_FEEDS"))
       {
          vector<price> f = feed.second;
          std::sort( f.begin(), f.end() );
@@ -2134,7 +2134,7 @@ void database::update_global_dynamic_data( const signed_block& b )
                w.total_missed++;
                wlog("Witness ${w} missed block at time ${t}", ("w", witness_missed.owner)("t", get_slot_time(i + 1)));
 
-               if( head_block_num() - w.last_confirmed_block_num  > protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY") )
+               if( head_block_num() - w.last_confirmed_block_num  > chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY") )
                {
                   w.signing_key = public_key_type();
                   push_virtual_operation( shutdown_witness_operation( w.owner ) );
@@ -2163,14 +2163,14 @@ void database::update_global_dynamic_data( const signed_block& b )
       if(!is_private_net()){
          uint64_t switch_block;
          if(has_hardfork(SOPHIATX_HARDFORK_1_1))
-            switch_block = protocol::sophiatx_config::get<uint32_t>("SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF") * protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
+            switch_block = chain::sophiatx_config::get<uint32_t>("SOPHIATX_WITNESS_VESTING_INCREASE_DAYS_HF") * chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
          else
-            switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * protocol::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
+            switch_block = SOPHIATX_WITNESS_VESTING_INCREASE_DAYS * chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_DAY");
 
          if( head_block_num() >= switch_block ){
-            dgp.witness_required_vesting = asset(protocol::sophiatx_config::get<uint64_t>("SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
+            dgp.witness_required_vesting = asset(chain::sophiatx_config::get<uint64_t>("SOPHIATX_FINAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
          }else
-            dgp.witness_required_vesting = asset(protocol::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
+            dgp.witness_required_vesting = asset(chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
       }
    } );
 
@@ -2204,12 +2204,12 @@ void database::update_last_irreversible_block()
     * Prior to voting taking over, we must be more conservative...
     *
     */
-   if( head_block_num() < protocol::sophiatx_config::get<uint32_t>("SOPHIATX_START_MINER_VOTING_BLOCK") )
+   if( head_block_num() < chain::sophiatx_config::get<uint32_t>("SOPHIATX_START_MINER_VOTING_BLOCK") )
    {
       modify( dpo, [&]( dynamic_global_property_object& _dpo )
       {
-         if ( head_block_num() > protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"))
-            _dpo.last_irreversible_block_num = head_block_num() - protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES");
+         if ( head_block_num() > chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"))
+            _dpo.last_irreversible_block_num = head_block_num() - chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES");
       } );
    }
    else
@@ -2522,8 +2522,8 @@ void database::validate_invariants()const
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
                  econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool) ==
-                 protocol::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY"),
-                         "difference is $diff", ("diff", protocol::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY") -
+                 chain::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY"),
+                         "difference is $diff", ("diff", chain::sophiatx_config::get<int64_t>("SOPHIATX_TOTAL_SUPPLY") -
                  (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +
                  econ.mining_pool_from_fees + econ.mining_pool_from_coinbase + econ.promotion_pool + econ.burn_pool)));
 

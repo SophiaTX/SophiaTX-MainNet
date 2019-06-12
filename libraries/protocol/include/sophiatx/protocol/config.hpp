@@ -4,6 +4,9 @@
 #pragma once
 #include <sophiatx/protocol/hardfork.hpp>
 
+#include <fc/variant_object.hpp>
+#include <fc/exception/exception.hpp>
+
 // WARNING!
 // Every symbol defined here needs to be handled appropriately in get_config.hpp
 // This is checked by get_config_check.sh called from Dockerfile
@@ -138,11 +141,7 @@
 #define SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT      1024
 
 #define SOPHIATX_MAX_TRANSACTION_SIZE            (1024*8)
-#define SOPHIATX_MIN_BLOCK_SIZE_LIMIT            (SOPHIATX_MAX_TRANSACTION_SIZE*16)
-#define SOPHIATX_MAX_BLOCK_SIZE                  (SOPHIATX_MAX_TRANSACTION_SIZE * SOPHIATX_BLOCK_INTERVAL*2048)
 #define SOPHIATX_MIN_BLOCK_SIZE                  115
-#define SOPHIATX_BLOCKS_PER_HOUR                 (60*60/SOPHIATX_BLOCK_INTERVAL)
-#define SOPHIATX_FEED_INTERVAL_BLOCKS            (SOPHIATX_BLOCKS_PER_HOUR)
 #define SOPHIATX_FEED_HISTORY_WINDOW             (12*7) // 3.5 days
 #define SOPHIATX_MAX_FEED_AGE_SECONDS            (60*60*24*7) // 7 days
 
@@ -167,3 +166,49 @@
 #define SOPHIATX_PROXY_TO_SELF_ACCOUNT           ""
 ///@}
 #define SOPHIATX_API_SINGLE_QUERY_LIMIT           1000
+
+
+/////////////////////////////////////////////////////////////////////////
+
+namespace sophiatx { namespace protocol {
+
+class protocol_config {
+public:
+    inline static void init(const fc::mutable_variant_object& conf)
+    {
+        instance().config_loaded_ = true;
+
+        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"];
+        instance().config_["SOPHIATX_BLOCK_INTERVAL"] = conf["SOPHIATX_BLOCK_INTERVAL"];
+    }
+
+    inline static void init()
+    {
+        instance().config_loaded_ = true;
+
+        instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = SOPHIATX_MAX_TRANSACTION_SIZE * 16;
+        instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
+    }
+
+    template<typename T>
+    inline static T get( std::string_view index ) {
+        FC_ASSERT(instance().config_loaded_, "protocol_config is not initialized!");
+        T type;
+        fc::from_variant(instance().config_[index], type);
+        return type;
+    }
+
+private:
+    protocol_config() : config_loaded_(false) {}
+    ~protocol_config() {}
+
+    inline static protocol_config &instance() {
+        static protocol_config instance;
+        return instance;
+    }
+
+    bool config_loaded_;
+    fc::mutable_variant_object config_;
+};
+
+} } // sophiatx::protocol

@@ -57,7 +57,7 @@ void hybrid_database::close(bool /*rewind*/) {
       chainbase::database::flush();
       chainbase::database::close();
 
-      boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
+      boost::this_thread::sleep_for(boost::chrono::seconds(chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")));
       if( _remote_api_thread.is_running())
          _remote_api_thread.quit();
 
@@ -130,7 +130,7 @@ void hybrid_database::start_sync_with_full_node() {
                                           }
                                        }
                                     } while( true );
-                                    boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
+                                    boost::this_thread::sleep_for(boost::chrono::seconds(chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")));
                                  }
                             }
 

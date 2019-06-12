@@ -83,6 +83,7 @@ struct genesis_state_type {
 
 
     uint32_t block_interval = SOPHIATX_BLOCK_INTERVAL;
+#undef SOPHIATX_BLOCK_INTERVAL
     uint32_t max_transaction_size = SOPHIATX_MAX_TRANSACTION_SIZE;
     uint32_t max_block_size = 2048;
 

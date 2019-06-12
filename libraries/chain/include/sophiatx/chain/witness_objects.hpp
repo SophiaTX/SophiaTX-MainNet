@@ -2,7 +2,7 @@
 
 #include <sophiatx/protocol/authority.hpp>
 #include <sophiatx/protocol/sophiatx_operations.hpp>
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 
@@ -42,7 +42,7 @@ struct shared_chain_properties
     *  This witnesses vote for the maximum_block_size which is used by the network
     *  to tune rate limiting and capacity
     */
-   uint32_t          maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
+   uint32_t          maximum_block_size;
 
    typedef bip::allocator< shared_chain_properties, bip::managed_mapped_file::segment_manager >                  allocator_type;
 
@@ -55,7 +55,8 @@ struct shared_chain_properties
 
    template< typename Allocator >
    shared_chain_properties( const Allocator& alloc ) :
-         price_feeds( price_feed_allocator_type( alloc.get_segment_manager() ) ) {}
+           maximum_block_size(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") * 2),
+           price_feeds( price_feed_allocator_type( alloc.get_segment_manager() ) ) {}
 
    shared_chain_properties& operator=( const chain_properties& a ){
       price_feeds.clear();
@@ -197,10 +198,10 @@ struct shared_chain_properties
       public:
          template< typename Constructor, typename Allocator >
          witness_schedule_object( Constructor&& c, allocator< Allocator > a ) :
-         current_shuffled_witnesses(protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES")),
-         max_voted_witnesses(protocol::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_VOTED_WITNESSES_HF0")),
-         max_runner_witnesses(protocol::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_RUNNER_WITNESSES_HF0")),
-         hardfork_required_witnesses(protocol::sophiatx_config::get<uint8_t>("SOPHIATX_HARDFORK_REQUIRED_WITNESSES"))
+         current_shuffled_witnesses(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES")),
+         max_voted_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_VOTED_WITNESSES_HF0")),
+         max_runner_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_RUNNER_WITNESSES_HF0")),
+         hardfork_required_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_HARDFORK_REQUIRED_WITNESSES"))
          {
             c( *this );
          }

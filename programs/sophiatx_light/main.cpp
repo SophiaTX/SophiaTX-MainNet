@@ -63,7 +63,6 @@ int main( int argc, char** argv )
       // Initializes logger
       fc::Logger::init("sophiatx_light"/* Do not change this parameter as syslog config depends on it !!! */, args.at("log-level").as< std::string >());
 
-      fc::ecc::public_key::init_cache(static_cast<uint32_t>(SOPHIATX_MAX_BLOCK_SIZE / SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT), std::chrono::milliseconds(2000));
       appbase::app().set_version_string( version_string() );
 
       bool initialized = appbase::app().initialize<
@@ -77,7 +76,10 @@ int main( int argc, char** argv )
          return 0;
       }
 
-      if( args.at( "backtrace" ).as< string >() == "yes" )
+      fc::ecc::public_key::init_cache(static_cast<uint32_t>(sophiatx::chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE") / SOPHIATX_MIN_TRANSACTION_SIZE_LIMIT), std::chrono::milliseconds(2000));
+
+
+       if( args.at( "backtrace" ).as< string >() == "yes" )
       {
          fc::print_stacktrace_on_segfault();
          ilog( "Backtrace on segfault is enabled." );

@@ -52,7 +52,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 
    if( _db->is_producing() )
    {
-      FC_ASSERT( o.props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE );
+      FC_ASSERT( o.props.maximum_block_size <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE") );
    }
 
    const auto& by_witness_name_idx = _db->get_index< witness_index >().indices().get< by_name >();
@@ -161,7 +161,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    if( itr != o.props.end() )
    {
       fc::raw::unpack_from_vector( itr->second, props.maximum_block_size, 0 );
-      FC_ASSERT(props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE);
+      FC_ASSERT(props.maximum_block_size <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE"));
       max_block_changed = true;
    }
 
@@ -683,7 +683,7 @@ void account_witness_vote_evaluator::do_apply( const account_witness_vote_operat
    if( itr == by_account_witness_idx.end() ) {
       FC_ASSERT( o.approve, "Vote doesn't exist, user must indicate a desire to approve witness." );
 
-      FC_ASSERT( voter.witnesses_voted_for < protocol::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"), "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
+      FC_ASSERT( voter.witnesses_voted_for < chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"), "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
 
       _db->create<witness_vote_object>( [&]( witness_vote_object& v ) {
            v.witness = witness.owner;
