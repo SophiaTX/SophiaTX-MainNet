@@ -111,9 +111,6 @@ struct genesis_state_type {
 
     asset_symbol_type symbol = SOPHIATX_SYMBOL;
 #undef SOPHIATX_SYMBOL
-    std::string address_prefix = SOPHIATX_ADDRESS_PREFIX;
-#undef SOPHIATX_ADDRESS_PREFIX
-
 
     uint32_t limit_bandwidth_blocks = SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;
 #undef SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
@@ -176,5 +173,4 @@ FC_REFLECT(sophiatx::chain::genesis_state_type, (initial_public_key)
         (is_private_net)
         (initial_accounts)
         (symbol)
-        (address_prefix)
 )

@@ -2336,22 +2336,24 @@ void database::adjust_supply( const asset& delta )
 {
    const auto& props = get_dynamic_global_properties();
 
-   modify( props, [&]( dynamic_global_property_object& props )
-   {
-       if( delta.symbol.value == chain::sophiatx_config::get<uint64_t>("SOPHIATX_SYMBOL"))
-       {
-            props.current_supply += delta;
-            FC_ASSERT( props.current_supply.amount.value >= 0 );
-       } else {
-            FC_ASSERT( false, "invalid symbol" );
-      }
-   } );
+    if( delta.symbol.value == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL").value )
+    {
+        FC_ASSERT( props.current_supply.amount.value + delta.amount >= 0 );
+        modify( props, [&]( dynamic_global_property_object& props )
+        {
+              props.current_supply += delta;
+        } );
+
+    } else {
+        FC_ASSERT( false, "invalid symbol" );
+    }
+
 }
 
 
 asset database::get_balance( const account_object& a, asset_symbol_type symbol )const
 {
-   if( symbol.value == chain::sophiatx_config::get<uint64_t>("SOPHIATX_SYMBOL")) {
+   if( symbol.value == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL").value) {
        return a.balance;
    } else {
          FC_ASSERT( false, "invalid symbol" );
