@@ -71,7 +71,7 @@ database::~database()
    clear_pending();
 }
 
-void database::open( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey )
+void database::open( const open_args& args, const genesis_state_type& genesis)
 {
    try
    {
@@ -87,7 +87,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
       if( !find< dynamic_global_property_object >() )
          with_write_lock( [&]()
          {
-            init_genesis( genesis, chain_id, init_pubkey );
+            init_genesis( genesis, chain_id);
          });
 
       _block_log.open( args.shared_mem_dir / "block_log" );
@@ -131,7 +131,7 @@ void database::open( const open_args& args, const genesis_state_type& genesis, c
    FC_CAPTURE_LOG_AND_RETHROW( (args.shared_mem_dir)(args.shared_file_size) )
 }
 
-uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis, const public_key_type& init_pubkey )
+uint32_t database::reindex( const open_args& args, const genesis_state_type& genesis)
 {
    bool reindex_success = false;
    uint32_t last_block_number = 0; // result
@@ -146,7 +146,7 @@ uint32_t database::reindex( const open_args& args, const genesis_state_type& gen
 
       ilog( "Reindexing Blockchain" );
       wipe( args.shared_mem_dir, false );
-      open( args, genesis, init_pubkey );
+      open( args, genesis);
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
 
       auto start = fc::time_point::now();
@@ -1329,7 +1329,7 @@ void database::initialize_indexes()
    _plugin_index_signal();
 }
 
-void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id, const public_key_type& init_pubkey )
+void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id)
 {
    try
    {
@@ -1401,8 +1401,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
       create< witness_object >( [&]( witness_object& w )
                                 {
                                      w.owner        = SOPHIATX_INIT_MINER_NAME;
-                                     // TODO: use initminer mining public key from get_config when solution is implemnted
-                                     w.signing_key  = init_pubkey;
+                                     w.signing_key  = chain::sophiatx_config::get<protocol::public_key_type>("SOPHIATX_INIT_PUBLIC_MINING_KEY");
                                      w.schedule = witness_object::top19;
                                      if(genesis.is_private_net)
                                         w.props.account_creation_fee = asset (0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));

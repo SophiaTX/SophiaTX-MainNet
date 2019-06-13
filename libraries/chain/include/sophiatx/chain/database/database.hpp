@@ -36,8 +36,7 @@ public:
     *
     * @param data_dir Path to open or create database in
     */
-   void open(const open_args &args, const genesis_state_type &genesis,
-             const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
+   void open(const open_args &args, const genesis_state_type &genesis);
 
    /**
     * @brief Rebuild object graph from block history and open detabase
@@ -47,8 +46,7 @@ public:
     *
     * @return the last replayed block number.
     */
-   uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
-                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
+   uint32_t reindex(const open_args &args, const genesis_state_type &genesis);
 
    void close(bool rewind = true);
 
@@ -262,8 +260,7 @@ public:
    /// Reset the object graph in-memory
    void initialize_indexes();
 
-   void init_genesis(genesis_state_type genesis, chain_id_type chain_id,
-                     const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */ );
+   void init_genesis(genesis_state_type genesis, chain_id_type chain_id);
 
    /**
     *  This method validates transactions without adding it to the pending state.

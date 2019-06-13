@@ -147,7 +147,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = size;
-      db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
+      db->open( args, gen);
    }
    db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
@@ -304,7 +304,7 @@ live_database_fixture::live_database_fixture()
          gen.genesis_time = fc::time_point::now();
          database_interface::open_args args;
          args.shared_mem_dir = _chain_dir;
-         db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
+         db->open( args, gen);
       }
 
       validate_database();
@@ -365,7 +365,7 @@ void database_fixture::open_database()
       database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
-      db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
+      db->open(args, gen);
    }
 }
 
@@ -379,13 +379,13 @@ void database_fixture::open_database_private()
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
       gen.initial_balace = 0;
-      gen.initial_public_key = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+      gen.initial_public_key = chain::sophiatx_config::get<protocol::public_key_type>("SOPHIATX_INIT_PUBLIC_KEY");
       gen.is_private_net = true;
 
       database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
-      db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
+      db->open(args, gen);
    }
 }
 

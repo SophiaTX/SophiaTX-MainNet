@@ -53,6 +53,35 @@ public:
             instance().config_["BASE_FEE"] = BASE_FEE;
         }
 
+        try {
+            instance().config_["BASE_FEE_SBD1"] = conf["BASE_FEE_SBD1"];
+        } catch (...) {
+            instance().config_["BASE_FEE_SBD1"] = BASE_FEE_SBD1;
+        }
+
+        try {
+            instance().config_["BASE_FEE_SBD2"] = conf["BASE_FEE_SBD2"];
+        } catch (...) {
+            instance().config_["BASE_FEE_SBD2"] = BASE_FEE_SBD2;
+        }
+
+        try {
+            instance().config_["BASE_FEE_SBD3"] = conf["BASE_FEE_SBD3"];
+        } catch (...) {
+            instance().config_["BASE_FEE_SBD3"] = BASE_FEE_SBD3;
+        }
+
+        try {
+            instance().config_["BASE_FEE_SBD4"] = conf["BASE_FEE_SBD4"];
+        } catch (...) {
+            instance().config_["BASE_FEE_SBD4"] = BASE_FEE_SBD4;
+        }
+
+        try {
+            instance().config_["BASE_FEE_SBD5"] = conf["BASE_FEE_SBD5"];
+        } catch (...) {
+            instance().config_["BASE_FEE_SBD5"] = BASE_FEE_SBD5;
+        }
     }
 
     template<typename T>

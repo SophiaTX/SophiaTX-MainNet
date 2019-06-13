@@ -410,15 +410,15 @@ namespace{
 asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
    asset base = protocol_config::get<asset>("BASE_FEE");
    if(in_symbol == SBD1_SYMBOL )//USD
-      base = BASE_FEE_SBD1;
+      base = protocol_config::get<asset>("BASE_FEE_SBD1");
    if(in_symbol == SBD2_SYMBOL )//EUR
-      base = BASE_FEE_SBD2;
+      base = protocol_config::get<asset>("BASE_FEE_SBD2");
    if(in_symbol == SBD3_SYMBOL ) //CHF
-      base = BASE_FEE_SBD3;
+      base = protocol_config::get<asset>("BASE_FEE_SBD3");
    if(in_symbol == SBD4_SYMBOL ) //CNY
-      base = BASE_FEE_SBD4;
+      base = protocol_config::get<asset>("BASE_FEE_SBD4");
    if(in_symbol == SBD5_SYMBOL ) //GBP
-      base = BASE_FEE_SBD5;
+      base = protocol_config::get<asset>("BASE_FEE_SBD5");
 
    //pay base fee + for every 1kB exceeding first 512 bytes
    uint32_t size_multi = (payload_size + (SIZE_INCREASE_PER_FEE-SIZE_COVERED_IN_BASE_FEE-1))/SIZE_INCREASE_PER_FEE;

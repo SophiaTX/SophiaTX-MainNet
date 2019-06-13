@@ -49,21 +49,21 @@ void info()
       std::cerr << "            STARTING TEST NETWORK\n\n";
       std::cerr << "------------------------------------------------------\n";
       auto initminer_private_key = sophiatx::utilities::key_to_wif( SOPHIATX_INIT_PRIVATE_KEY );
-      std::cerr << "initminer public key: " << SOPHIATX_INIT_PUBLIC_KEY_STR << "\n";
+      std::cerr << "initminer public mining key: " << sophiatx::chain::sophiatx_config::get<std::string>("SOPHIATX_INIT_PUBLIC_MINING_KEY") << "\n";
+      std::cerr << "initminer public key: " << sophiatx::chain::sophiatx_config::get<std::string>("SOPHIATX_INIT_PUBLIC_KEY") << "\n";
       std::cerr << "initminer private key: " << initminer_private_key << "\n";
       std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
       std::cerr << "------------------------------------------------------\n";
 #else
-    const auto& genesis = appbase::app().get_plugin< sophiatx::plugins::chain::chain_plugin_full >().get_genesis();
     std::cerr << "------------------------------------------------------\n\n";
-    if(genesis.is_private_net) {
+    if(sophiatx::chain::sophiatx_config::get<bool>("IS_PRIVATE_NET")) {
       std::cerr << "        STARTING SOPHIATX PRIVATE NETWORK\n\n";
     } else {
       std::cerr << "            STARTING SOPHIATX NETWORK\n\n";
     }
     std::cerr << "------------------------------------------------------\n";
-    std::cerr << "initminer public key: " << std::string(genesis.initial_public_key) << "\n";
-    std::cerr << "chain id: " << std::string( genesis.initial_chain_id) << "\n";
+    std::cerr << "initminer public key: " << sophiatx::chain::sophiatx_config::get<std::string>("SOPHIATX_INIT_PUBLIC_KEY") << "\n";
+    std::cerr << "chain id: " << sophiatx::chain::sophiatx_config::get<std::string>("SOPHIATX_CHAIN_ID") << "\n";
     std::cerr << "blockchain version: " << std::string( SOPHIATX_BLOCKCHAIN_VERSION ) << "\n";
     std::cerr << "------------------------------------------------------\n";
 

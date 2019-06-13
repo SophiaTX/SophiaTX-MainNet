@@ -55,6 +55,9 @@ struct genesis_state_type {
 
     public_key_type initial_public_key = sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
 
+    public_key_type initial_public_mining_key = sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+#undef SOPHIATX_INIT_PUBLIC_KEY_STR
+
     int64_t initial_balace = SOPHIATX_INIT_SUPPLY; ///initminer balance with typo (must stay like this for mainnet chain id_
 
     int64_t initial_supply = SOPHIATX_INIT_SUPPLY;
@@ -104,10 +107,15 @@ struct genesis_state_type {
     uint32_t base_fee = 10000;
 #undef BASE_FEE
     uint32_t base_fee_usd = 10000;
+#undef BASE_FEE_SBD1
     uint32_t base_fee_eur = 8000;
+#undef BASE_FEE_SBD2
     uint32_t base_fee_chf = 10000;
+#undef BASE_FEE_SBD3
     uint32_t base_fee_cny = 64000;
+#undef BASE_FEE_SBD4
     uint32_t base_fee_gbp = 7500;
+#undef BASE_FEE_SBD5
 
     asset_symbol_type symbol = SOPHIATX_SYMBOL;
 #undef SOPHIATX_SYMBOL

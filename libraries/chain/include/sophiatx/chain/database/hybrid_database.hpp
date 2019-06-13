@@ -32,11 +32,9 @@ public:
       FC_ASSERT(false, "Not implemented for hybrid_database");
    }
 
-   void open(const open_args &args, const genesis_state_type &genesis,
-             const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
+   void open(const open_args &args, const genesis_state_type &genesis);
 
-   uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
-                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
+   uint32_t reindex(const open_args &args, const genesis_state_type &genesis) {
       not_implemented();
       return 0;
    }

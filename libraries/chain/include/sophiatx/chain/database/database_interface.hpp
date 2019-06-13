@@ -95,8 +95,7 @@ public:
     *
     * @param data_dir Path to open or create database in
     */
-   virtual void open(const open_args &args, const genesis_state_type &genesis,
-                     const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) = 0;
+   virtual void open(const open_args &args, const genesis_state_type &genesis) = 0;
 
    /**
     * @brief Rebuild object graph from block history and open detabase
@@ -106,8 +105,7 @@ public:
     *
     * @return the last replayed block number.
     */
-   virtual uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
-                            const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) = 0;
+   virtual uint32_t reindex(const open_args &args, const genesis_state_type &genesis) = 0;
 
    /**
     * @brief wipe Delete database from disk, and potentially the raw chain as well.

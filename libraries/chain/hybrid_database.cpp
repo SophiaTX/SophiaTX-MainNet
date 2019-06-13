@@ -6,8 +6,7 @@
 namespace sophiatx {
 namespace chain {
 
-void hybrid_database::open(const open_args &args, const genesis_state_type &genesis,
-                           const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
+void hybrid_database::open(const open_args &args, const genesis_state_type &genesis) {
    try {
 
       FC_ASSERT(remote::remote_db::initialized(), "Remoted DB for hybrid DB is not initialized!");

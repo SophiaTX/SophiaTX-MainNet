@@ -22,8 +22,12 @@ public:
         instance().config_["IS_TEST_NET"] = false;
         instance().config_["SOPHIATX_MIN_FEEDS"] = genesis.max_witnesses/10; /// protects the network from conversions before price has been established
 #endif
+
         instance().config_["SOPHIATX_BLOCKCHAIN_VERSION"] = SOPHIATX_BLOCKCHAIN_VERSION;
+        instance().config_["SOPHIATX_CHAIN_ID"] = genesis.compute_chain_id();
+        instance().config_["IS_PRIVATE_NET"] = genesis.is_private_net;
         instance().config_["SOPHIATX_INIT_PUBLIC_KEY"] = genesis.initial_public_key;
+        instance().config_["SOPHIATX_INIT_PUBLIC_MINING_KEY"] = genesis.initial_public_mining_key;
         instance().config_["SOPHIATX_MIN_ACCOUNT_CREATION_FEE"] = genesis.min_acc_creation_fee;
         instance().config_["SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD"] = SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
         instance().config_["SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD"] = SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;

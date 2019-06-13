@@ -57,7 +57,7 @@ void open_test_database( const std::shared_ptr<database>& db, const fc::path& di
    database_interface::open_args args;
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
-   db->open( args, gen, public_key_type(init_account_pub_key) );
+   db->open( args, gen);
    db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
         a.signing_key = init_account_pub_key;
