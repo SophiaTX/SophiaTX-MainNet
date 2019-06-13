@@ -222,6 +222,7 @@ void load_genesis(
 int main( int argc, char** argv )
 {
    int main_return = 0;
+
    boost::program_options::options_description cli_options("Graphene Chain Identifier");
    cli_options.add_options()
       ("help,h", "Print this help message and exit.")

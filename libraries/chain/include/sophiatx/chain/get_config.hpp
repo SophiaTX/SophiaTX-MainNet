@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sophiatx/protocol/config.hpp>
+#include <sophiatx/protocol/protocol_config.hpp>
 #include <sophiatx/protocol/asset.hpp>
 #include <sophiatx/protocol/types.hpp>
 #include <sophiatx/protocol/version.hpp>
@@ -22,7 +23,7 @@ public:
         instance().config_["SOPHIATX_MIN_FEEDS"] = genesis.max_witnesses/10; /// protects the network from conversions before price has been established
 #endif
         instance().config_["SOPHIATX_BLOCKCHAIN_VERSION"] = SOPHIATX_BLOCKCHAIN_VERSION;
-        instance().config_["SOPHIATX_INIT_PUBLIC_KEY_STR"] = SOPHIATX_INIT_PUBLIC_KEY_STR;
+        instance().config_["SOPHIATX_INIT_PUBLIC_KEY"] = genesis.initial_public_key;
         instance().config_["SOPHIATX_MIN_ACCOUNT_CREATION_FEE"] = genesis.min_acc_creation_fee;
         instance().config_["SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD"] = SOPHIATX_OWNER_AUTH_RECOVERY_PERIOD;
         instance().config_["SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD"] = SOPHIATX_ACCOUNT_RECOVERY_REQUEST_EXPIRATION_PERIOD;
@@ -52,18 +53,18 @@ public:
         instance().config_["SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"] = genesis.initial_witness_req_vesting_balance;
 
         instance().config_["VESTS_SYMBOL"] = VESTS_SYMBOL;
-        instance().config_["SOPHIATX_SYMBOL"] = SOPHIATX_SYMBOL;
+        instance().config_["SOPHIATX_SYMBOL"] = genesis.symbol;
         instance().config_["SBD1_SYMBOL"] = SBD1_SYMBOL;
         instance().config_["SBD2_SYMBOL"] = SBD2_SYMBOL;
         instance().config_["SBD3_SYMBOL"] = SBD3_SYMBOL;
         instance().config_["SBD4_SYMBOL"] = SBD4_SYMBOL;
         instance().config_["SBD5_SYMBOL"] = SBD5_SYMBOL;
-        instance().config_["BASE_FEE"] = BASE_FEE;
-        instance().config_["BASE_FEE_SBD1"] = BASE_FEE_SBD1;
-        instance().config_["BASE_FEE_SBD2"] = BASE_FEE_SBD2;
-        instance().config_["BASE_FEE_SBD3"] = BASE_FEE_SBD3;
-        instance().config_["BASE_FEE_SBD4"] = BASE_FEE_SBD4;
-        instance().config_["BASE_FEE_SBD5"] = BASE_FEE_SBD5;
+        instance().config_["BASE_FEE"] = asset(genesis.base_fee, genesis.symbol);
+        instance().config_["BASE_FEE_SBD1"] = asset(genesis.base_fee_usd, SBD1_SYMBOL);
+        instance().config_["BASE_FEE_SBD2"] = asset(genesis.base_fee_eur, SBD2_SYMBOL);
+        instance().config_["BASE_FEE_SBD3"] = asset(genesis.base_fee_chf, SBD3_SYMBOL);
+        instance().config_["BASE_FEE_SBD4"] = asset(genesis.base_fee_cny, SBD4_SYMBOL);
+        instance().config_["BASE_FEE_SBD5"] = asset(genesis.base_fee_gbp, SBD5_SYMBOL);
         instance().config_["SIZE_COVERED_IN_BASE_FEE"] = SIZE_COVERED_IN_BASE_FEE;
         instance().config_["SIZE_INCREASE_PER_FEE"] = SIZE_INCREASE_PER_FEE;
         instance().config_["SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION"] = SOPHIATX_BLOCKCHAIN_HARDFORK_VERSION;

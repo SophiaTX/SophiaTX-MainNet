@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE( account_create_apply )
       BOOST_TEST_MESSAGE( "--- Test failure when creator cannot cover fee" );
       tx.signatures.clear();
       tx.operations.clear();
-      op.fee = asset( db->get_account( SOPHIATX_INIT_MINER_NAME ).balance.amount + 1, SOPHIATX_SYMBOL );
+      op.fee = asset( db->get_account( SOPHIATX_INIT_MINER_NAME ).balance.amount + 1, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
       op.name_seed = "bob";
       tx.operations.push_back( op );
       sign(tx, init_account_priv_key );
@@ -417,7 +417,7 @@ BOOST_AUTO_TEST_CASE( transfer_authorities )
       transfer_operation op;
       op.from = AN("alice");
       op.to = AN("bob");
-      op.fee = asset(100000, SOPHIATX_SYMBOL);
+      op.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       op.amount = ASSET( "2.500 SPHTX" );
 
       signed_transaction tx;
@@ -1554,7 +1554,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
       BOOST_TEST_MESSAGE( "--- Test publishing price feed" );
       feed_publish_operation op;
       op.publisher = AN("alice");
-      op.exchange_rate = price( asset(1000000, SOPHIATX_SYMBOL), asset(1000000, SBD1_SYMBOL )); // 1000 SOPHIATX : 1 SBD
+      op.exchange_rate = price( asset(1000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")), asset(1000000, SBD1_SYMBOL )); // 1000 SOPHIATX : 1 SBD
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -1585,7 +1585,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_apply )
 
       tx.operations.clear();
       tx.signatures.clear();
-      op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, SOPHIATX_SYMBOL ));
+      op.exchange_rate = price( asset(1000000, SBD1_SYMBOL), asset(15000000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ));
       op.publisher = AN("alice");
       tx.operations.push_back( op );
       sign(tx, alice_private_key );
@@ -1972,12 +1972,12 @@ BOOST_AUTO_TEST_CASE( escrow_transfer_validate )
       SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when fee symbol != SBD and fee symbol != SOPHIATX" );
-      op.sophiatx_amount.symbol = SOPHIATX_SYMBOL;
+      op.sophiatx_amount.symbol = chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL");
       op.escrow_fee.symbol = VESTS_SYMBOL;
       SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
       BOOST_TEST_MESSAGE( "--- failure when sbd == 0 " );
-      op.escrow_fee.symbol = SOPHIATX_SYMBOL;
+      op.escrow_fee.symbol = chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL");
       op.sophiatx_amount.amount = 0;
       SOPHIATX_REQUIRE_THROW( op.validate(), fc::exception );
 
@@ -2740,7 +2740,7 @@ BOOST_AUTO_TEST_CASE( escrow_release_validate )
 
 
       BOOST_TEST_MESSAGE( "--- success" );
-      op.sophiatx_amount.symbol = SOPHIATX_SYMBOL;
+      op.sophiatx_amount.symbol = chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL");
       op.validate();
    }
    FC_LOG_AND_RETHROW()
@@ -3266,7 +3266,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_validate )
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
-      op.props.account_creation_fee = asset(SOPHIATX_MIN_ACCOUNT_CREATION_FEE + 10, SOPHIATX_SYMBOL) ;
+      op.props.account_creation_fee = asset(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE") + 10, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) ;
       op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
@@ -3371,7 +3371,7 @@ BOOST_AUTO_TEST_CASE( witness_set_properties_apply )
       op.url = "foo.bar";
       op.fee = ASSET( "1.000000 SPHTX" );
       op.block_signing_key = signing_key.get_public_key();
-      op.props.account_creation_fee = asset(SOPHIATX_MIN_ACCOUNT_CREATION_FEE + 10, SOPHIATX_SYMBOL) ;
+      op.props.account_creation_fee = asset(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE") + 10, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) ;
       op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
@@ -3758,7 +3758,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
       transfer_from_promotion_pool_operation op;
       op.transfer_to = AN("bob");
-      op.amount = asset(10000000, SOPHIATX_SYMBOL);
+      op.amount = asset(10000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -3771,7 +3771,7 @@ BOOST_AUTO_TEST_CASE( withdraw_from_promotion_pool )
 
       generate_block();
 
-      op.amount = asset(1000000, SOPHIATX_SYMBOL);
+      op.amount = asset(1000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       op.transfer_to = AN("alice");
       tx.clear();
       tx.operations.push_back( op );

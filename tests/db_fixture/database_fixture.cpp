@@ -421,7 +421,7 @@ const account_object& database_fixture::account_create(
       account_create_operation op;
       op.name_seed = name;
       op.creator = creator;
-      op.fee = asset( fee, SOPHIATX_SYMBOL );
+      op.fee = asset( fee, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
       op.owner = authority( 1, key, 1 );
       op.active = authority( 1, key, 1 );
       op.memo_key = key;
@@ -475,7 +475,7 @@ const witness_object& database_fixture::witness_create(
       op.owner = owner;
       op.url = url;
       op.block_signing_key = signing_key;
-      op.fee = asset( fee, SOPHIATX_SYMBOL );
+      op.fee = asset( fee, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -497,7 +497,7 @@ void database_fixture::fund(
 {
    try
    {
-      transfer( SOPHIATX_INIT_MINER_NAME, account_name, asset( amount, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, account_name, asset( amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
 
    } FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
 }
@@ -513,13 +513,13 @@ void database_fixture::fund(
       {
          db->modify( db->get_account( account_name ), [&]( account_object& a )
          {
-            if( amount.symbol == SOPHIATX_SYMBOL )
+            if( amount.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
                a.balance += amount;
          });
 
          db->modify( db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
          {
-            if( amount.symbol == SOPHIATX_SYMBOL )
+            if( amount.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
                gpo.current_supply += amount;
 
          });
@@ -541,7 +541,7 @@ void database_fixture::transfer(
       op.from = from;
       op.to = to;
       op.amount = amount;
-      op.fee = asset(100000, SOPHIATX_SYMBOL);
+      op.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -554,12 +554,12 @@ void database_fixture::transfer(
 void database_fixture::vest( const string& account_name, const share_type& amount )
 {
 
-   vest(account_name, asset(amount, SOPHIATX_SYMBOL));
+   vest(account_name, asset(amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
 }
 
 void database_fixture::vest( const string& account_name, const asset& amount )
 {
-   if( amount.symbol != SOPHIATX_SYMBOL )
+   if( amount.symbol != chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
       return;
 
    try

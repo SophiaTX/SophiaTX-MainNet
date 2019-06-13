@@ -40,7 +40,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
             if(o.block_signing_key == public_key_type())
                w.stopped = true;
             w.props = o.props;
-            w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+            w.props.account_creation_fee = asset (0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
             w.props.price_feeds.clear();
       });
       return;
@@ -72,7 +72,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
             for(auto r:o.props.price_feeds){
                price new_rate;
                //ensure that base is always in SPHTX
-               if(r.second.base.symbol == SOPHIATX_SYMBOL)
+               if(r.second.base.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))
                   new_rate = r.second;
                else {
                   new_rate.base = r.second.quote;
@@ -118,7 +118,7 @@ void admin_witness_update_evaluator::do_apply( const admin_witness_update_operat
            if(o.block_signing_key == public_key_type())
               w.stopped = true;
            w.props = o.props;
-           w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+           w.props.account_creation_fee = asset (0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
            w.props.price_feeds.clear();
       });
    }
@@ -180,7 +180,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
       for(const auto & rate: exchange_rates){
          price new_rate;
          //ensure that base is always in SPHTX
-         if(rate.base.symbol == SOPHIATX_SYMBOL)
+         if(rate.base.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))
             new_rate = rate;
          else {
             new_rate.base = rate.quote;
@@ -248,7 +248,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    const auto& props = _db->get_dynamic_global_properties();
 
    asset to_pay;
-   if(o.fee.symbol == SOPHIATX_SYMBOL) {
+   if(o.fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) {
       to_pay = o.fee;
    } else {
       to_pay = _db->to_sophiatx(o.fee);
@@ -260,7 +260,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db->get_witness_schedule_object();
-   asset required_fee = _db->is_private_net() ? asset(0, SOPHIATX_SYMBOL) : asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
+   asset required_fee = _db->is_private_net() ? asset(0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) : asset( wso.median_props.account_creation_fee.amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
    FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
               ("f", required_fee ) ("p", to_pay) );
 
@@ -395,7 +395,7 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
       FC_ASSERT( o.escrow_expiration > _db->head_block_time(), "The escrow expiration must be after head block time." );
 
       asset sophiatx_spent = o.sophiatx_amount;
-      if( o.escrow_fee.symbol == SOPHIATX_SYMBOL )
+      if( o.escrow_fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
          sophiatx_spent += o.escrow_fee;
 
 
@@ -565,7 +565,7 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
    const auto& from_account = _db->get_account(o.from);
    const auto& to_account = o.to.size() ? _db->get_account(o.to) : from_account;
 
-   FC_ASSERT( _db->get_balance( from_account, SOPHIATX_SYMBOL) >= o.amount, "Account does not have sufficient SOPHIATX for transfer." );
+   FC_ASSERT( _db->get_balance( from_account, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) >= o.amount, "Account does not have sufficient SOPHIATX for transfer." );
 
    if( from_account.id == to_account.id )
       _db->vest( from_account, o.amount.amount );
@@ -833,7 +833,7 @@ void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
    FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    price new_rate;
    //ensure that base is always in SPHTX
-   if(o.exchange_rate.base.symbol == SOPHIATX_SYMBOL)
+   if(o.exchange_rate.base.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))
       new_rate = o.exchange_rate;
    else {
       new_rate.base = o.exchange_rate.quote;
@@ -1091,16 +1091,16 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
    const auto& acnt = _db->get_account( op.transfer_to );
    share_type withdrawn;
 
-   FC_ASSERT(op.amount.amount >0 && op.amount.symbol == SOPHIATX_SYMBOL);
+   FC_ASSERT(op.amount.amount >0 && op.amount.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    _db->modify( econ, [&](economic_model_object& eo){
         withdrawn = eo.withdraw_from_promotion_pool(op.amount.amount, _db->head_block_num());
    });
-   _db->adjust_balance(acnt, asset(withdrawn, SOPHIATX_SYMBOL));
-   _db->adjust_supply(asset(withdrawn, SOPHIATX_SYMBOL));
+   _db->adjust_balance(acnt, asset(withdrawn, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
+   _db->adjust_supply(asset(withdrawn, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
 
    promotion_pool_withdraw_operation wop;
    wop.to_account = op.transfer_to;
-   wop.withdrawn =  asset(withdrawn, SOPHIATX_SYMBOL);
+   wop.withdrawn =  asset(withdrawn, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    _db->push_virtual_operation(wop);
 }
 

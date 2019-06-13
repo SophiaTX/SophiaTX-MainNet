@@ -100,16 +100,27 @@ struct genesis_state_type {
 #undef SOPHIATX_COINBASE_YEARS
 
     uint32_t min_acc_creation_fee = SOPHIATX_MIN_ACCOUNT_CREATION_FEE;
+#undef SOPHIATX_MIN_ACCOUNT_CREATION_FEE
     uint32_t base_fee = 10000;
+#undef BASE_FEE
     uint32_t base_fee_usd = 10000;
     uint32_t base_fee_eur = 8000;
     uint32_t base_fee_chf = 10000;
     uint32_t base_fee_cny = 64000;
     uint32_t base_fee_gbp = 7500;
 
+    asset_symbol_type symbol = SOPHIATX_SYMBOL;
+#undef SOPHIATX_SYMBOL
+    std::string address_prefix = SOPHIATX_ADDRESS_PREFIX;
+#undef SOPHIATX_ADDRESS_PREFIX
+
+
     uint32_t limit_bandwidth_blocks = SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;
+#undef SOPHIATX_LIMIT_BANDWIDTH_BLOCKS
     uint32_t max_allowed_bandwidth = SOPHIATX_MAX_ALLOWED_BANDWIDTH;
-    uint32_t max_allowed_ops = SOPHIATX_LIMIT_BANDWIDTH_BLOCKS;
+#undef SOPHIATX_MAX_ALLOWED_BANDWIDTH
+    uint32_t max_allowed_ops = SOPHIATX_MAX_ALLOWED_OPS_COUNT;
+#undef SOPHIATX_MAX_ALLOWED_OPS_COUNT
 
     chain_id_type initial_chain_id;
     time_point_sec genesis_time = SOPHIATX_GENESIS_TIME;
@@ -164,4 +175,6 @@ FC_REFLECT(sophiatx::chain::genesis_state_type, (initial_public_key)
         (genesis_time)
         (is_private_net)
         (initial_accounts)
+        (symbol)
+        (address_prefix)
 )

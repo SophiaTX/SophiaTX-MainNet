@@ -436,7 +436,7 @@ void database::pay_fee( const account_object& account, asset fee )
    if( fee.amount == 0 )
       return;
 
-   FC_ASSERT(fee.symbol == SOPHIATX_SYMBOL);
+   FC_ASSERT(fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
    FC_ASSERT( account.balance >= fee );
    adjust_balance( account, -fee );
@@ -456,7 +456,7 @@ asset database::process_operation_fee( const operation& op )
       typedef asset result_type;
       result_type operator()(const base_operation& bop){
          if(bop.has_special_fee() || db->is_private_net())
-            return asset(0, SOPHIATX_SYMBOL);
+            return asset(0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
          asset req_fee = bop.get_required_fee(bop.fee.symbol);
          FC_ASSERT(bop.fee.symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          FC_ASSERT(bop.fee >= req_fee);
@@ -464,12 +464,12 @@ asset database::process_operation_fee( const operation& op )
          const auto& fee_payer = db->get_account(sponsor? *sponsor : bop.get_fee_payer());
 
          asset to_pay;
-         if(bop.fee.symbol==SOPHIATX_SYMBOL){
+         if(bop.fee.symbol==chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")){
             to_pay = bop.fee;
          }else{
             to_pay = db->to_sophiatx(bop.fee);
          }
-         FC_ASSERT(to_pay.symbol == SOPHIATX_SYMBOL && to_pay.amount >= 0);
+         FC_ASSERT(to_pay.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") && to_pay.amount >= 0);
          db->pay_fee(fee_payer, to_pay);
          return to_pay;
       };
@@ -1059,7 +1059,7 @@ void database::clear_null_account_balance()
 {
 
    const auto& null_account = get_account( SOPHIATX_NULL_ACCOUNT );
-   asset total_sophiatx( 0, SOPHIATX_SYMBOL );
+   asset total_sophiatx( 0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
    if( null_account.balance.amount > 0 )
    {
@@ -1157,7 +1157,7 @@ void database::process_vesting_withdrawals()
       //if( to_withdraw > 0 )
       //   adjust_proxied_witness_votes( from_account, -to_withdraw );
 
-      push_virtual_operation( fill_vesting_withdraw_operation( from_account.name, from_account.name, asset( to_withdraw, VESTS_SYMBOL ), asset( to_withdraw, SOPHIATX_SYMBOL ) ) );
+      push_virtual_operation( fill_vesting_withdraw_operation( from_account.name, from_account.name, asset( to_withdraw, VESTS_SYMBOL ), asset( to_withdraw, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) ) );
    }
 }
 
@@ -1203,7 +1203,7 @@ void database::process_funds()
 
    modify( props, [&]( dynamic_global_property_object& p )
    {
-        p.current_supply           += asset( witness_reward, SOPHIATX_SYMBOL );
+        p.current_supply           += asset( witness_reward, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
         p.total_vesting_shares     += asset( witness_reward, VESTS_SYMBOL );
    });
 
@@ -1386,7 +1386,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
                                 {
                                      a.name = SOPHIATX_INIT_MINER_NAME;
                                      a.memo_key = init_public_key;
-                                     a.balance  = asset( genesis.initial_balace, SOPHIATX_SYMBOL );
+                                     a.balance  = asset( genesis.initial_balace, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
                                      a.holdings_considered_for_interests = a.balance.amount * 2;
                                 } );
 
@@ -1405,7 +1405,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
                                      w.signing_key  = init_pubkey;
                                      w.schedule = witness_object::top19;
                                      if(genesis.is_private_net)
-                                        w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+                                        w.props.account_creation_fee = asset (0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
                                 } );
 
       for( const auto &acc: genesis.initial_accounts) {
@@ -1424,7 +1424,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
             create<account_object>([ & ](account_object &a) {
                  a.name = acc.name;
                  a.memo_key = acc.key;
-                 a.balance = asset(acc.balance, SOPHIATX_SYMBOL);
+                 a.balance = asset(acc.balance, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
                  a.holdings_considered_for_interests = a.balance.amount * 2;
                  a.recovery_account = SOPHIATX_INIT_MINER_NAME;
                  a.reset_account = SOPHIATX_INIT_MINER_NAME;
@@ -1445,7 +1445,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id,
          p.time = genesis.genesis_time;
          p.recent_slots_filled = fc::uint128::max_value();
          p.participation_count = 128;
-         p.current_supply = asset( total_initial_balance, SOPHIATX_SYMBOL );
+         p.current_supply = asset( total_initial_balance, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
          p.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE");
          p.witness_required_vesting = asset(genesis.is_private_net? 0 : chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), VESTS_SYMBOL);
          p.genesis_time = genesis.genesis_time;
@@ -1844,7 +1844,7 @@ void database::process_interests() {
 
          if( interest > 0 ) {
             supply_increase += interest;
-            push_virtual_operation(interest_operation(a->name, asset(interest, SOPHIATX_SYMBOL)));
+            push_virtual_operation(interest_operation(a->name, asset(interest, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))));
             if( has_hardfork(SOPHIATX_HARDFORK_1_1))
                adjust_proxied_witness_votes(*a, interest);
          }
@@ -1856,7 +1856,7 @@ void database::process_interests() {
          id += interest_blocks;
       }
 
-      adjust_supply(asset(supply_increase, SOPHIATX_SYMBOL));
+      adjust_supply(asset(supply_increase, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
    }FC_CAPTURE_AND_RETHROW()
 }
 
@@ -2300,7 +2300,7 @@ void database::create_vesting( const account_object& a, const asset& delta){
 
 void database::modify_balance( const account_object& a, const asset& delta, bool check_balance )
 {
-   FC_ASSERT(delta.symbol == SOPHIATX_SYMBOL, "invalid symbol");
+   FC_ASSERT(delta.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"), "invalid symbol");
 
    modify( a, [&]( account_object& acnt )
    {
@@ -2338,16 +2338,11 @@ void database::adjust_supply( const asset& delta )
 
    modify( props, [&]( dynamic_global_property_object& props )
    {
-      switch( delta.symbol.value )
-      {
-         case SOPHIATX_SYMBOL_SER:
-         {
+       if( delta.symbol.value == chain::sophiatx_config::get<uint64_t>("SOPHIATX_SYMBOL"))
+       {
             props.current_supply += delta;
             FC_ASSERT( props.current_supply.amount.value >= 0 );
-
-            break;
-         }
-         default:
+       } else {
             FC_ASSERT( false, "invalid symbol" );
       }
    } );
@@ -2356,15 +2351,10 @@ void database::adjust_supply( const asset& delta )
 
 asset database::get_balance( const account_object& a, asset_symbol_type symbol )const
 {
-   switch( symbol.value )
-   {
-      case SOPHIATX_SYMBOL_SER:
-         return a.balance;
-
-      default:
-      {
+   if( symbol.value == chain::sophiatx_config::get<uint64_t>("SOPHIATX_SYMBOL")) {
+       return a.balance;
+   } else {
          FC_ASSERT( false, "invalid symbol" );
-      }
    }
 }
 
@@ -2487,7 +2477,7 @@ void database::validate_invariants()const
       if(is_private_net())
          return;
       const auto& account_idx = get_index<account_index>().indices().get<by_id>();
-      asset total_supply = asset( 0, SOPHIATX_SYMBOL );
+      asset total_supply = asset( 0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
       asset total_vesting = asset( 0, VESTS_SYMBOL );
 
       const auto& gpo = get_dynamic_global_properties();
@@ -2510,14 +2500,14 @@ void database::validate_invariants()const
       {
          total_supply += itr->sophiatx_balance;
 
-         if( itr->pending_fee.symbol == SOPHIATX_SYMBOL )
+         if( itr->pending_fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
             total_supply += itr->pending_fee;
          else
             FC_ASSERT( false, "found escrow pending fee that is not SPHTX" );
       }
 
 
-      FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, SOPHIATX_SYMBOL), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
+      FC_ASSERT( gpo.current_supply == total_supply + asset(total_vesting.amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")), "", ("gpo.current_supply",gpo.current_supply)("total_supply",total_supply) );
       FC_ASSERT( gpo.total_vesting_shares == total_vesting, "", ("gpo.total_vesting_shares",gpo.total_vesting_shares)("total_vesting",total_vesting) );
 
       FC_ASSERT( (gpo.current_supply.amount + econ.interest_pool_from_fees + econ.interest_pool_from_coinbase +

@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(50000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       trx.operations.push_back(cop);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
@@ -327,7 +327,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(50000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -338,8 +338,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       transfer_operation t;
       t.from = SOPHIATX_INIT_MINER_NAME;
       t.to = AN("alice");
-      t.amount = asset(500,SOPHIATX_SYMBOL);
-      t.fee = asset(100000, SOPHIATX_SYMBOL);
+      t.amount = asset(500,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
+      t.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       trx.operations.push_back(t);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
@@ -352,8 +352,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       SOPHIATX_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
       SOPHIATX_CHECK_THROW(PUSH_TX( db2, trx, skip_sigs ), fc::exception);
-      BOOST_CHECK_EQUAL(db1->get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
-      BOOST_CHECK_EQUAL(db2->get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db1->get_balance( AN("alice"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db2->get_balance( AN("alice"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ).amount.value, 500);
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(50000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -400,7 +400,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       transfer_operation t;
       t.from = SOPHIATX_INIT_MINER_NAME;
       t.to = AN("alice");
-      t.amount = asset(50,SOPHIATX_SYMBOL);
+      t.amount = asset(50,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       trx.operations.push_back(t);
       trx.set_expiration( db1->head_block_time() + fc::seconds(2) );
       trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
@@ -428,12 +428,12 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
 
       BOOST_TEST_MESSAGE( "Create transaction" );
 
-      transfer( SOPHIATX_INIT_MINER_NAME, AN("alice"), asset( 1000000, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, AN("alice"), asset( 1000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
       transfer_operation op;
       op.from = AN("alice");
       op.to = AN("bob");
-      op.fee = asset(100000, SOPHIATX_SYMBOL);
-      op.amount = asset(1000,SOPHIATX_SYMBOL);
+      op.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
+      op.amount = asset(1000,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       signed_transaction tx;
       tx.operations.push_back( op );
 
@@ -497,7 +497,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    t.from = SOPHIATX_INIT_MINER_NAME;
    t.to = AN("bob");
    t.fee = ASSET( "0.100000 SPHTX" );
-   t.amount = asset(amount*2,SOPHIATX_SYMBOL);
+   t.amount = asset(amount*2,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    trx.operations.push_back(t);
    trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
    trx.validate();
@@ -507,7 +507,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    trx.operations.clear();
    t.from = AN("bob");
    t.to = SOPHIATX_INIT_MINER_NAME;
-   t.amount = asset(amount,SOPHIATX_SYMBOL);
+   t.amount = asset(amount,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    trx.operations.push_back(t);
    trx.validate();
 
@@ -554,7 +554,7 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, clean_database_fixture )
 
       db->get_account( SOPHIATX_INIT_MINER_NAME );
       // transfer from committee account to Sam account
-      transfer( SOPHIATX_INIT_MINER_NAME, AN("sam"), asset( 100000, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, AN("sam"), asset( 100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
 
       generate_block(skip_flags);
 

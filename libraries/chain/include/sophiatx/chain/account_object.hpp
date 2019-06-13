@@ -59,7 +59,7 @@ namespace sophiatx { namespace chain {
          account_name_type reset_account = SOPHIATX_NULL_ACCOUNT;
          time_point_sec    last_account_recovery;
 
-         asset             balance = asset( 0, SOPHIATX_SYMBOL );  ///< total liquid shares held by this account
+         asset             balance = asset( 0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );  ///< total liquid shares held by this account
          asset             vesting_shares = asset( 0, VESTS_SYMBOL ); ///< total vesting shares held by this account, controls its voting power
 
          asset             vesting_withdraw_rate = asset( 0, VESTS_SYMBOL ); ///< at the time this is updated it can be at most vesting_shares/104

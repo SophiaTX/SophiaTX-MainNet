@@ -266,7 +266,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       // Upgrade accounts to witnesses
       for( int i = 0; i < 7; i++ )
       {
-         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), SOPHIATX_SYMBOL ) );
+         transfer( SOPHIATX_INIT_MINER_NAME, accounts[i], asset( chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
          vest( accounts[i], chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"));
          witness_create( accounts[i], keys[i], "foo.bar", keys[i].get_public_key(), 0 );
 
@@ -277,13 +277,13 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          txs.push_back( signed_transaction() );
       }
 
-      ops[0].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 100000, SOPHIATX_SYMBOL ) );
-      ops[1].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 105000, SOPHIATX_SYMBOL ) );
-      ops[2].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  98000, SOPHIATX_SYMBOL ) );
-      ops[3].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97000, SOPHIATX_SYMBOL ) );
-      ops[4].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  99000, SOPHIATX_SYMBOL ) );
-      ops[5].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97500, SOPHIATX_SYMBOL ) );
-      ops[6].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 102000, SOPHIATX_SYMBOL ) );
+      ops[0].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
+      ops[1].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 105000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
+      ops[2].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  98000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
+      ops[3].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
+      ops[4].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  99000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
+      ops[5].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset(  97500, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
+      ops[6].exchange_rate = price( asset( 1000, SBD1_SYMBOL ), asset( 102000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
 
       for( int i = 0; i < 7; i++ )
       {
@@ -299,8 +299,8 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
       BOOST_TEST_MESSAGE( "Get feed history object" );
       feed_history_object feed_history = db->get_feed_history(SBD1_SYMBOL);
       BOOST_TEST_MESSAGE( "Check state" );
-      BOOST_REQUIRE( feed_history.current_median_history == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, SOPHIATX_SYMBOL) ) );
-      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, SOPHIATX_SYMBOL) ) );
+      BOOST_REQUIRE( feed_history.current_median_history == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) ) );
+      BOOST_REQUIRE( feed_history.price_history[ 0 ] == price( asset( 1000, SBD1_SYMBOL ), asset( 99000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) ) );
       validate_database();
 
       for ( int i = 0; i < 23; i++ )
@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE( feed_publish_mean )
          {
             txs[j].operations.clear();
             txs[j].signatures.clear();
-            ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, SOPHIATX_SYMBOL ) );
+            ops[j].exchange_rate = price( ops[j].exchange_rate.base, asset( ops[j].exchange_rate.quote.amount + 10, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
             txs[j].set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
             txs[j].operations.push_back( ops[j] );
             sign(txs[j], keys[j] );

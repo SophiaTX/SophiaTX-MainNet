@@ -36,7 +36,7 @@ struct shared_chain_properties
     *  fee requires all accounts to have some kind of commitment to the network that includes the
     *  ability to vote and make transactions.
     */
-   asset account_creation_fee = asset( SOPHIATX_MIN_ACCOUNT_CREATION_FEE, SOPHIATX_SYMBOL );
+   asset account_creation_fee = asset( chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
    /**
     *  This witnesses vote for the maximum_block_size which is used by the network

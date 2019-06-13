@@ -4,9 +4,6 @@
 #pragma once
 #include <sophiatx/protocol/hardfork.hpp>
 
-#include <fc/variant_object.hpp>
-#include <fc/exception/exception.hpp>
-
 // WARNING!
 // Every symbol defined here needs to be handled appropriately in get_config.hpp
 // This is checked by get_config_check.sh called from Dockerfile
@@ -168,57 +165,4 @@
 #define SOPHIATX_API_SINGLE_QUERY_LIMIT           1000
 
 
-/////////////////////////////////////////////////////////////////////////
 
-namespace sophiatx { namespace protocol {
-
-class protocol_config {
-public:
-    inline static void init(const fc::mutable_variant_object& conf)
-    {
-        instance().config_loaded_ = true;
-        try {
-            instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = conf["SOPHIATX_MAX_TRANSACTION_SIZE"] * 16;
-        } catch (...) {
-            instance().config_["SOPHIATX_MIN_BLOCK_SIZE_LIMIT"] = SOPHIATX_MAX_TRANSACTION_SIZE * 16;
-        }
-
-        try {
-            instance().config_["SOPHIATX_BLOCK_INTERVAL"] = conf["SOPHIATX_BLOCK_INTERVAL"];
-        } catch (...) {
-            instance().config_["SOPHIATX_BLOCK_INTERVAL"] = SOPHIATX_BLOCK_INTERVAL;
-        }
-
-        try {
-            instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = conf["SOPHIATX_MAX_BLOCK_SIZE"];
-        } catch (...) {
-            instance().config_["SOPHIATX_MAX_BLOCK_SIZE"] = SOPHIATX_MAX_TRANSACTION_SIZE * SOPHIATX_BLOCK_INTERVAL * 2048;
-        }
-
-
-    }
-
-    template<typename T>
-    inline static T get( std::string_view index ) {
-        FC_ASSERT(instance().config_loaded_, "protocol_config is not initialized!");
-        T type;
-        fc::from_variant(instance().config_[index], type);
-        return type;
-    }
-
-private:
-    protocol_config() : config_loaded_(false) {}
-    ~protocol_config() {}
-
-    inline static protocol_config &instance() {
-        static protocol_config instance;
-        return instance;
-    }
-
-    bool config_loaded_;
-    fc::mutable_variant_object config_;
-};
-
-} } // sophiatx::protocol
-
-///////////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,7 @@
 #include <sophiatx/protocol/authority.hpp>
 #include <sophiatx/protocol/version.hpp>
 #include <sophiatx/protocol/config.hpp>
+#include <sophiatx/protocol/protocol_config.hpp>
 
 #include <fc/time.hpp>
 
@@ -28,7 +29,7 @@ namespace sophiatx { namespace protocol {
             return BASE_FEE_SBD4;
          if(in_symbol == SBD5_SYMBOL ) //GBP
             return BASE_FEE_SBD5;
-         return BASE_FEE;
+         return protocol_config::get<asset>("BASE_FEE");
       };
 
       virtual bool is_virtual()const { return false; }

@@ -748,13 +748,13 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
 
 DEFINE_API_IMPL( database_api_impl, get_promotion_pool_balance )
 {
-   return asset(_db->get_economic_model().get_available_promotion_pool(_db->head_block_num()), SOPHIATX_SYMBOL);
+   return asset(_db->get_economic_model().get_available_promotion_pool(_db->head_block_num()), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 }
 
 
 DEFINE_API_IMPL( database_api_impl, get_burned_balance )
 {
-   return asset(_db->get_economic_model().burn_pool, SOPHIATX_SYMBOL);
+   return asset(_db->get_economic_model().burn_pool, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 }
 
 DEFINE_LOCKLESS_APIS( database_api, (get_config) )
