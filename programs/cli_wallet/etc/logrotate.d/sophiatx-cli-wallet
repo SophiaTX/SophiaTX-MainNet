@@ -1,10 +1,11 @@
-/var/log/sophiatx/cli_wallet.log {
+/var/log/sophiatx-cli-wallet/sophiatx-cli-wallet.log {
         daily
         missingok
         notifempty
-        rotate 60
+        rotate 30
+        dateext
         compress
-        create 664 syslog adm
+        create 644 syslog adm
         sharedscripts
         postrotate
                 service rsyslog restart > /dev/null

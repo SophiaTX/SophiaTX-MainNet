@@ -1,0 +1,8 @@
+To create debian package, run command:
+
+debuild --set-envvar CMAKE_BUILD_TYPE_ENV=Release \
+        --set-envvar BUILD_SOPHIATX_TESTNET_ENV=false \
+        --set-envvar SOPHIATX_EGENESIS_JSON_ENV=/path/to/genesis \
+        --set-envvar OPENSSL_ROOT_DIR_ENV=/path/to/openssl/root \
+        --set-envvar BOOST_ROOT_DIR_ENV=/path/to/boost/root \
+        -uc -us
