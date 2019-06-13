@@ -5,7 +5,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 ////////////////////////////////////////
 
 properties([parameters([booleanParam(defaultValue: false, description: 'Build in debug mode', name: 'Debug'),
-                        checkBox("Network", "Mainnet,Testnet,Customnet", "Testnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
+                        checkBox("Network", "Mainnet,Testnet,Customnet", "Mainnet" /*default*/, 0, "PT_SINGLE_SELECT", "Select network"),
                         string(defaultValue: "", description: 'Custom genesis URL(Valid only for \"Customnet\" Network)', name: 'GenesisURL'),
                         string(defaultValue: "", description: 'Package name(Valid only for \"Customnet\" Network)', name: 'PackageName'),
                         checkBox("Package", "sophiatx,light-client,cli-wallet", "sophiatx,light-client,cli-wallet" /*default*/, 0, "PT_CHECKBOX", "Select packages to be built")
