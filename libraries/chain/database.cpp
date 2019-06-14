@@ -1475,6 +1475,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id)
       // Create witness scheduler
       create< witness_schedule_object >( [&]( witness_schedule_object& wso )
       {
+         wso.current_shuffled_witnesses.reserve(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES"));
          wso.current_shuffled_witnesses.emplace_back(SOPHIATX_INIT_MINER_NAME);
       } );
    }

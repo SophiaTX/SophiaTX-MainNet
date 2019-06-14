@@ -220,10 +220,8 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
 
    db->modify( wso, [&]( witness_schedule_object& _wso )
    {
-      for( size_t i = 0; i < active_witnesses.size(); i++ )
-      {
-         _wso.current_shuffled_witnesses.emplace_back(std::move(active_witnesses[i]));
-      }
+       _wso.current_shuffled_witnesses.insert(_wso.current_shuffled_witnesses.begin(),
+               std::make_move_iterator(active_witnesses.begin()), std::make_move_iterator(active_witnesses.end()));
 
       for( size_t i = active_witnesses.size(); i < chain::sophiatx_config::get<size_t>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
