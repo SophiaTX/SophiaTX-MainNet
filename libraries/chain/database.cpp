@@ -895,6 +895,7 @@ account_name_type database::get_scheduled_witness( uint32_t slot_num )const
    const dynamic_global_property_object& dpo = get_dynamic_global_properties();
    const witness_schedule_object& wso = get_witness_schedule_object();
    uint64_t current_aslot = dpo.current_aslot + slot_num;
+
    return wso.current_shuffled_witnesses[ current_aslot % wso.num_scheduled_witnesses ];
 }
 
@@ -1474,7 +1475,7 @@ void database::init_genesis( genesis_state_type genesis, chain_id_type chain_id)
       // Create witness scheduler
       create< witness_schedule_object >( [&]( witness_schedule_object& wso )
       {
-         wso.current_shuffled_witnesses[0] = SOPHIATX_INIT_MINER_NAME;
+         wso.current_shuffled_witnesses.emplace_back(SOPHIATX_INIT_MINER_NAME);
       } );
    }
    FC_CAPTURE_AND_RETHROW()

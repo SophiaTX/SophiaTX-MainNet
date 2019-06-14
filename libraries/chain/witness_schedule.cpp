@@ -222,12 +222,12 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
    {
       for( size_t i = 0; i < active_witnesses.size(); i++ )
       {
-         _wso.current_shuffled_witnesses[i] = active_witnesses[i];
+         _wso.current_shuffled_witnesses.emplace_back(std::move(active_witnesses[i]));
       }
 
       for( size_t i = active_witnesses.size(); i < chain::sophiatx_config::get<size_t>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
-         _wso.current_shuffled_witnesses[i] = account_name_type();
+         _wso.current_shuffled_witnesses.emplace_back();
       }
 
       _wso.num_scheduled_witnesses = std::max< uint8_t >( active_witnesses.size(), 1 );
