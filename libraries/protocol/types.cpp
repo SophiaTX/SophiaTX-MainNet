@@ -22,11 +22,9 @@ namespace sophiatx { namespace protocol {
       //        to make public_key_type API more similar to address API
        std::string prefix( SOPHIATX_ADDRESS_PREFIX );
 
-       size_t prefix_len = prefix.size();
+       const size_t prefix_len = prefix.size();
        FC_ASSERT( base58str.size() > prefix_len );
-       if( base58str.substr( 0, prefix_len ) != prefix ) {
-           prefix_len = 0;
-       }
+       FC_ASSERT( base58str.substr( 0, prefix_len ) ==  prefix , "", ("base58str", base58str) );
        auto bin = fc::from_base58( base58str.substr( prefix_len ) );
        auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin, 0);
        key_data = bin_key.data;
@@ -50,7 +48,7 @@ namespace sophiatx { namespace protocol {
        k.data = key_data;
        k.check = fc::ripemd160::hash( k.data.data, k.data.size() )._hash[0];
        auto data = fc::raw::pack_to_vector( k );
-       return fc::to_base58( data.data(), data.size() );
+       return SOPHIATX_ADDRESS_PREFIX + fc::to_base58( data.data(), data.size() );
     }
 
     bool operator == ( const public_key_type& p1, const fc::ecc::public_key& p2)
@@ -84,11 +82,9 @@ namespace sophiatx { namespace protocol {
     {
        std::string prefix( SOPHIATX_ADDRESS_PREFIX );
 
-        size_t prefix_len = prefix.size();
-        FC_ASSERT( base58str.size() > prefix_len );
-        if( base58str.substr( 0, prefix_len ) != prefix ) {
-            prefix_len = 0;
-        }
+       const size_t prefix_len = prefix.size();
+       FC_ASSERT( base58str.size() > prefix_len );
+       FC_ASSERT( base58str.substr( 0, prefix_len ) ==  prefix , "", ("base58str", base58str) );
        auto bin = fc::from_base58( base58str.substr( prefix_len ) );
        auto bin_key = fc::raw::unpack_from_vector<binary_key>(bin, 0);
        FC_ASSERT( fc::ripemd160::hash( bin_key.data.data, bin_key.data.size() )._hash[0] == bin_key.check );
@@ -106,7 +102,7 @@ namespace sophiatx { namespace protocol {
        k.data = key_data;
        k.check = fc::ripemd160::hash( k.data.data, k.data.size() )._hash[0];
        auto data = fc::raw::pack_to_vector( k );
-       return fc::to_base58( data.data(), data.size() );
+       return SOPHIATX_ADDRESS_PREFIX + fc::to_base58( data.data(), data.size() );
     }
 
     bool operator == ( const extended_public_key_type& p1, const fc::ecc::extended_public_key& p2)
