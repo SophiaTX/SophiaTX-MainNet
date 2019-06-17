@@ -225,7 +225,7 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
 
       for( size_t i = active_witnesses.size(); i < chain::sophiatx_config::get<size_t>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
-         _wso.current_shuffled_witnesses.emplace_back();
+         _wso.current_shuffled_witnesses.emplace(_wso.current_shuffled_witnesses.begin() + i);
       }
 
       _wso.num_scheduled_witnesses = std::max< uint8_t >( active_witnesses.size(), 1 );
