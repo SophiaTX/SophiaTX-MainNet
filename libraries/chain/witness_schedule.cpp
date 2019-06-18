@@ -220,6 +220,8 @@ void update_witness_schedule4( const std::shared_ptr<database>& db )
 
    db->modify( wso, [&]( witness_schedule_object& _wso )
    {
+       _wso.current_shuffled_witnesses.clear();
+
        _wso.current_shuffled_witnesses.insert(_wso.current_shuffled_witnesses.begin(),
                std::make_move_iterator(active_witnesses.begin()), std::make_move_iterator(active_witnesses.end()));
 
