@@ -475,7 +475,7 @@ public:
          result_type operator()( base_operation& bop){
             if(bop.has_special_fee())
                return;
-            asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
+            asset req_fee = bop.get_required_fee(chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
             bop.fee = req_fee;
          };
       };

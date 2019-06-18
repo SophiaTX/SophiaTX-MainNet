@@ -745,7 +745,7 @@ namespace graphene { namespace net {
       _suspend_fetching_sync_blocks(false),
       _items_to_fetch_updated(false),
       _items_to_fetch_sequence_counter(0),
-      _recent_block_interval_in_seconds(SOPHIATX_BLOCK_INTERVAL),
+      _recent_block_interval_in_seconds(sophiatx::protocol::protocol_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")),
       _user_agent_string(user_agent),
       _most_recent_blocks_accepted(GRAPHENE_NET_DEFAULT_MAX_CONNECTIONS),
       _total_number_of_unfetched_items(0),
@@ -2593,7 +2593,7 @@ namespace graphene { namespace net {
           // they must be an attacker or have a buggy client.
           fc::time_point_sec minimum_time_of_last_offered_block =
               originating_peer->last_block_time_delegate_has_seen + // timestamp of the block immediately before the first unfetched block
-              originating_peer->number_of_unfetched_item_ids * SOPHIATX_BLOCK_INTERVAL;
+              originating_peer->number_of_unfetched_item_ids * sophiatx::protocol::protocol_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
           if (minimum_time_of_last_offered_block > _delegate->get_blockchain_now() + GRAPHENE_NET_FUTURE_SYNC_BLOCKS_GRACE_PERIOD_SEC)
           {
             wlog("Disconnecting from peer ${peer} who offered us an implausible number of blocks, their last block would be in the future (${timestamp})",

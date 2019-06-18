@@ -320,7 +320,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_account)
    op.active = authority( 1, args.active, 1 );
    op.memo_key = args.memo;
    op.json_metadata = args.json_meta;
-   op.fee = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
+   op.fee = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee * asset( 1, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
    create_account_return result;
    result.op = std::move(op);
@@ -764,7 +764,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
      result_type operator()( base_operation& bop){
         if(bop.has_special_fee())
            return;
-        asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
+        asset req_fee = bop.get_required_fee(chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
         bop.fee = req_fee;
      };
    };
@@ -801,7 +801,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_transaction)
      result_type operator()( base_operation& bop){
         if(bop.has_special_fee())
            return;
-        asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
+        asset req_fee = bop.get_required_fee(chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
         bop.fee = req_fee;
      };
    };
@@ -1270,7 +1270,7 @@ DEFINE_API_IMPL(alexandria_api_impl, calculate_fee)
       typedef asset result_type;
       result_type operator()(const base_operation& bop){
          if(bop.has_special_fee())
-            return asset(0, SOPHIATX_SYMBOL);
+            return asset(0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
          asset req_fee = bop.get_required_fee(symbol);
          FC_ASSERT(symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          return req_fee;
@@ -1280,7 +1280,9 @@ DEFINE_API_IMPL(alexandria_api_impl, calculate_fee)
 
    result.fee = args.op.visit(op_v);
    //check if the symbol has current price feed
-   FC_ASSERT(result.fee.symbol == SOPHIATX_SYMBOL || fiat_to_sphtx( { result.fee } ).sphtx.symbol == SOPHIATX_SYMBOL, "no current feed for this symbol");
+   FC_ASSERT(result.fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ||
+           fiat_to_sphtx( { result.fee } ).sphtx.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"),
+                   "no current feed for this symbol");
 
    return result;
 }

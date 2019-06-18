@@ -304,14 +304,14 @@ struct extended_dynamic_global_properties
 
 struct api_chain_properties
 {
-   api_chain_properties() {}
+   api_chain_properties() : maximum_block_size(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") * 2){}
    api_chain_properties( const chain::chain_properties& c ) :
          account_creation_fee( c.account_creation_fee ),
          maximum_block_size( c.maximum_block_size )
    {}
 
    asset          account_creation_fee;
-   uint32_t       maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
+   uint32_t       maximum_block_size;
 };
 
 
@@ -363,7 +363,10 @@ struct api_witness_object
 
 struct api_witness_schedule_object
 {
-   api_witness_schedule_object() {}
+   api_witness_schedule_object() :
+           max_voted_witnesses( chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_VOTED_WITNESSES_HF0") ),
+           max_runner_witnesses( chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_RUNNER_WITNESSES_HF0") ),
+           hardfork_required_witnesses( chain::sophiatx_config::get<uint8_t>("SOPHIATX_HARDFORK_REQUIRED_WITNESSES") ){}
    api_witness_schedule_object( const database_api::api_witness_schedule_object& w ) :
          id( w.id ),
          current_virtual_time( w.current_virtual_time ),
@@ -391,9 +394,9 @@ struct api_witness_schedule_object
    uint32_t                      witness_pay_normalization_factor = 25;
    api_chain_properties          median_props;
    version                       majority_version;
-   uint8_t                       max_voted_witnesses           = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
-   uint8_t                       max_runner_witnesses          = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
-   uint8_t                       hardfork_required_witnesses   = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
+   uint8_t                       max_voted_witnesses;
+   uint8_t                       max_runner_witnesses;
+   uint8_t                       hardfork_required_witnesses;
 };
 
 

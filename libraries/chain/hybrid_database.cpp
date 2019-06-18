@@ -6,8 +6,7 @@
 namespace sophiatx {
 namespace chain {
 
-void hybrid_database::open(const open_args &args, const genesis_state_type &genesis,
-                           const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  ) {
+void hybrid_database::open(const open_args &args, const genesis_state_type &genesis) {
    try {
 
       FC_ASSERT(remote::remote_db::initialized(), "Remoted DB for hybrid DB is not initialized!");
@@ -57,7 +56,7 @@ void hybrid_database::close(bool /*rewind*/) {
       chainbase::database::flush();
       chainbase::database::close();
 
-      boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
+      boost::this_thread::sleep_for(boost::chrono::seconds(chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")));
       if( _remote_api_thread.is_running())
          _remote_api_thread.quit();
 
@@ -130,7 +129,7 @@ void hybrid_database::start_sync_with_full_node() {
                                           }
                                        }
                                     } while( true );
-                                    boost::this_thread::sleep_for(boost::chrono::seconds(SOPHIATX_BLOCK_INTERVAL));
+                                    boost::this_thread::sleep_for(boost::chrono::seconds(chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL")));
                                  }
                             }
 

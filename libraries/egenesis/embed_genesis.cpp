@@ -59,7 +59,8 @@ static const char generated_file_banner[] =
 
 
 genesis_state_type create_example_genesis(){
-   sophiatx::chain::genesis_state_type::initial_account_type example_account("test", SOPHIATX_INIT_PUBLIC_KEY, SOPHIATX_INIT_SUPPLY);
+   sophiatx::chain::genesis_state_type::initial_account_type example_account("test",
+           public_key_type("SPH78w3H1TUaKCysbF8p2ZQ12Mutrq3NJzr41zMPVQLETyP94cVbX"), int64_t(350000000000000));
    genesis_state_type ret;
    ret.initial_balace = 0;
    ret.initial_accounts.push_back(example_account);
@@ -221,6 +222,7 @@ void load_genesis(
 int main( int argc, char** argv )
 {
    int main_return = 0;
+
    boost::program_options::options_description cli_options("Graphene Chain Identifier");
    cli_options.add_options()
       ("help,h", "Print this help message and exit.")

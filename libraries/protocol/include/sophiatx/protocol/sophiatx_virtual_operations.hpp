@@ -9,7 +9,7 @@ namespace sophiatx { namespace protocol {
 
    struct interest_operation : public virtual_operation
    {
-      interest_operation( const string& o = "", const asset& i = asset(0,SOPHIATX_SYMBOL) )
+      interest_operation( const string& o = "", const asset& i = asset(0,protocol_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) )
          :owner(o),interest(i){}
 
       account_name_type owner;

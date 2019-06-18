@@ -3,6 +3,8 @@
 
 #include <sophiatx/protocol/types.hpp>
 #include <sophiatx/chain/account_bandwidth_object.hpp>
+#include <sophiatx/chain/get_config.hpp>
+
 
 namespace sophiatx { namespace plugins { namespace account_bandwidth_api {
 
@@ -13,7 +15,7 @@ struct account_bandwidth
          act_fee_free_bandwidth(abo.act_fee_free_bandwidth),
          act_fee_free_ops_count(abo.act_fee_free_ops_count),
          last_block_num_reset(abo.last_block_num_reset),
-         next_block_num_reset(abo.last_block_num_reset + SOPHIATX_LIMIT_BANDWIDTH_BLOCKS)
+         next_block_num_reset(abo.last_block_num_reset + chain::sophiatx_config::get<uint32_t>("SOPHIATX_LIMIT_BANDWIDTH_BLOCKS"))
    {}
 
    uint64_t          act_fee_free_bandwidth = 0;

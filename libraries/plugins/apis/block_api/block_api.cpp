@@ -3,7 +3,7 @@
 #include <sophiatx/plugins/block_api/block_api.hpp>
 #include <sophiatx/plugins/block_api/block_api_plugin.hpp>
 
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 namespace sophiatx { namespace plugins { namespace block_api {
 

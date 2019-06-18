@@ -125,7 +125,7 @@ namespace sophiatx { namespace protocol {
       account_name_type agent;
       uint32_t          escrow_id = 30;
 
-      asset             sophiatx_amount = asset( 0, SOPHIATX_SYMBOL );
+      asset             sophiatx_amount = asset( 0, protocol_config::get<sophiatx::protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
       asset             escrow_fee;
 
       time_point_sec    ratification_deadline;
@@ -202,7 +202,7 @@ namespace sophiatx { namespace protocol {
       account_name_type receiver; ///< the account that should receive funds (might be from, might be to)
 
       uint32_t          escrow_id = 30;
-      asset             sophiatx_amount = asset( 0, SOPHIATX_SYMBOL ); ///< the amount of sophiatx to release
+      asset             sophiatx_amount = asset( 0, protocol_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ); ///< the amount of sophiatx to release
 
       account_name_type get_fee_payer()const { return who;};
 
@@ -270,28 +270,28 @@ namespace sophiatx { namespace protocol {
        *  fee requires all accounts to have some kind of commitment to the network that includes the
        *  ability to vote and make transactions.
        */
-      asset account_creation_fee = asset( SOPHIATX_MIN_ACCOUNT_CREATION_FEE, SOPHIATX_SYMBOL );
+      asset account_creation_fee = asset( protocol_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE"), protocol_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
       /**
        *  This witnesses vote for the maximum_block_size which is used by the network
        *  to tune rate limiting and capacity
        */
-      uint32_t          maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
+      uint32_t          maximum_block_size = protocol_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE");
 
       flat_map<asset_symbol_type, price> price_feeds;
 
 
       void validate()const
       {
-         FC_ASSERT( account_creation_fee.amount >= SOPHIATX_MIN_ACCOUNT_CREATION_FEE);
-         FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT);
+         FC_ASSERT( account_creation_fee.amount >= protocol::protocol_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE"));
+         FC_ASSERT( maximum_block_size >= protocol::protocol_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT"));
          for (const auto&i : price_feeds){
             FC_ASSERT(i.first == SBD1_SYMBOL_SER || i.first == SBD2_SYMBOL_SER ||
                       i.first == SBD3_SYMBOL_SER || i.first == SBD4_SYMBOL_SER || i.first == SBD5_SYMBOL_SER );
-            if(i.second.base.symbol == SOPHIATX_SYMBOL){
+            if(i.second.base.symbol == protocol_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")){
                FC_ASSERT(i.second.quote.symbol == i.first);
             }else{
-               FC_ASSERT(i.second.base.symbol == i.first && i.second.quote.symbol == SOPHIATX_SYMBOL);
+               FC_ASSERT(i.second.base.symbol == i.first && i.second.quote.symbol == protocol_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
             }
             FC_ASSERT(i.second.quote.amount > 0 && i.second.base.amount > 0);
          }
@@ -408,17 +408,17 @@ namespace sophiatx { namespace protocol {
 
 namespace{
 asset get_custom_fee(uint32_t payload_size, asset_symbol_type in_symbol){
-   asset base = BASE_FEE;
+   asset base = protocol_config::get<asset>("BASE_FEE");
    if(in_symbol == SBD1_SYMBOL )//USD
-      base = BASE_FEE_SBD1;
+      base = protocol_config::get<asset>("BASE_FEE_SBD1");
    if(in_symbol == SBD2_SYMBOL )//EUR
-      base = BASE_FEE_SBD2;
+      base = protocol_config::get<asset>("BASE_FEE_SBD2");
    if(in_symbol == SBD3_SYMBOL ) //CHF
-      base = BASE_FEE_SBD3;
+      base = protocol_config::get<asset>("BASE_FEE_SBD3");
    if(in_symbol == SBD4_SYMBOL ) //CNY
-      base = BASE_FEE_SBD4;
+      base = protocol_config::get<asset>("BASE_FEE_SBD4");
    if(in_symbol == SBD5_SYMBOL ) //GBP
-      base = BASE_FEE_SBD5;
+      base = protocol_config::get<asset>("BASE_FEE_SBD5");
 
    //pay base fee + for every 1kB exceeding first 512 bytes
    uint32_t size_multi = (payload_size + (SIZE_INCREASE_PER_FEE-SIZE_COVERED_IN_BASE_FEE-1))/SIZE_INCREASE_PER_FEE;

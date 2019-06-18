@@ -111,7 +111,7 @@ namespace sophiatx { namespace protocol {
          asset account_creation_fee;
          fc::raw::unpack_from_vector( itr->second, account_creation_fee, 0 );
          FC_ASSERT( account_creation_fee.symbol == SOPHIATX_SYMBOL, "account_creation_fee must be in SOPHIATX" );
-         FC_ASSERT( account_creation_fee.amount >= SOPHIATX_MIN_ACCOUNT_CREATION_FEE , "account_creation_fee smaller than minimum account creation fee" );
+         FC_ASSERT( account_creation_fee.amount >= protocol_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE") , "account_creation_fee smaller than minimum account creation fee" );
       }
 
       itr = props.find( "maximum_block_size" );
@@ -119,7 +119,7 @@ namespace sophiatx { namespace protocol {
       {
          uint32_t maximum_block_size;
          fc::raw::unpack_from_vector( itr->second, maximum_block_size, 0 );
-         FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT, "maximum_block_size smaller than minimum max block size" );
+         FC_ASSERT( maximum_block_size >= protocol_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT"), "maximum_block_size smaller than minimum max block size" );
       }
 
       itr = props.find( "new_signing_key" );

@@ -136,6 +136,7 @@ namespace fc
       iterator find( const std::string& key )const;
       iterator find( const char* key )const;
       const variant& operator[]( const std::string& key )const;
+      const variant& operator[]( std::string_view key )const;
       const variant& operator[]( const char* key )const;
       size_t size()const;
       ///@}

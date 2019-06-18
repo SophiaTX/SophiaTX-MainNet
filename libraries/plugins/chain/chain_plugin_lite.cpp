@@ -86,7 +86,7 @@ void chain_plugin_lite::plugin_startup() {
 
    remote::remote_db::init(ws_endpoint);
 
-   db_->open(db_open_args, genesis_state_type(), public_key_type());
+   db_->open(db_open_args, genesis_state_type());
 }
 
 void chain_plugin_lite::plugin_shutdown() {
