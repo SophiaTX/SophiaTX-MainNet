@@ -7,8 +7,8 @@
 #include <vector>
 #include <functional>
 #include <utility>
-#include <fc/signals.hpp>
 
+#include <boost/signals2/signal.hpp>
 
 namespace fc {
    class api_connection;
@@ -284,7 +284,7 @@ namespace fc {
 
          std::vector<std::string> get_method_names( api_id_type local_api_id = 0 )const { return _local_apis[local_api_id]->get_method_names(); }
 
-         fc::signal<void()> closed;
+         boost::signals2::signal<void()> closed;
       private:
          std::vector< std::unique_ptr<generic_api> >             _local_apis;
          std::map< uint64_t, api_id_type >                       _handle_to_id;
