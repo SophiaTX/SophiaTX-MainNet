@@ -109,7 +109,7 @@ namespace fc {
 
    thread::~thread() {
       //wlog( "my ${n}", ("n",name()) );
-      if( my )
+      if( my && is_running())
       {
         // wlog( "calling quit() on ${n}",("n",my->name) );
         quit(); // deletes `my`
@@ -332,6 +332,10 @@ namespace fc {
 
    void thread::async_task( task_base* t, const priority& p, const time_point& tp ) {
       assert(my);
+       if ( !is_running() )
+       {
+           FC_THROW_EXCEPTION( canceled_exception, "Thread is not running.");
+       }
       t->_when = tp;
      // slog( "when %lld", t->_when.time_since_epoch().count() );
      // slog( "delay %lld", (tp - fc::time_point::now()).count() );

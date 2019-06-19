@@ -47,7 +47,14 @@ namespace fc {
               delete current;
               fc::context* temp;
               for (fc::context* ready_context : ready_heap)
-                delete ready_context;
+              {
+                  if (ready_context->cur_task)
+                  {
+                      ready_context->cur_task->release();
+                      ready_context->cur_task = nullptr;
+                  }
+                  delete ready_context;
+              }
               ready_heap.clear();
               while (blocked)
               {
@@ -521,10 +528,10 @@ namespace fc {
 
               next->_set_active_context( current );
               current->cur_task = next;
-              next->run();
+              fc::shared_ptr<task_base> next_ptr(next);
+              next_ptr->run();
               current->cur_task = 0;
-              next->_set_active_context(0);
-              next->release();
+              next_ptr->_set_active_context(0);
               current->reinitialize();
            }
 
