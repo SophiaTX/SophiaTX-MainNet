@@ -86,6 +86,8 @@ void chain_plugin_lite::plugin_startup() {
 
    remote::remote_db::init(ws_endpoint);
 
+    sophiatx::chain::sophiatx_config::init(remote::remote_db::remote_call("database_api", "get_config", fc::variant_object()));
+
    db_->open(db_open_args, genesis_state_type());
 }
 

@@ -12,6 +12,14 @@ namespace sophiatx { namespace chain {
 class sophiatx_config {
 
 public:
+    inline static void init(const fc::variant &config)
+    {
+        FC_ASSERT(config.get_object().size(), "can not init sophiatx_config with empty object!");
+        instance().config_ = config.get_object();
+        instance().config_loaded_ = true;
+        protocol::protocol_config::init(instance().config_);
+    }
+
     inline static void init(const chain::genesis_state_type &genesis)
     {
         instance().config_loaded_ = true;

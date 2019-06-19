@@ -198,7 +198,7 @@ struct shared_chain_properties
       public:
          template< typename Constructor, typename Allocator >
          witness_schedule_object( Constructor&& c, allocator< Allocator > a ) :
-         current_shuffled_witnesses(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_WITNESSES")),
+         current_shuffled_witnesses(a.get_segment_manager()),
          max_voted_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_VOTED_WITNESSES_HF0")),
          max_runner_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_RUNNER_WITNESSES_HF0")),
          hardfork_required_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_HARDFORK_REQUIRED_WITNESSES"))
@@ -206,13 +206,11 @@ struct shared_chain_properties
             c( *this );
          }
 
-         witness_schedule_object(){}
-
          id_type                                                           id;
 
          fc::uint128                                                       current_virtual_time;
          uint32_t                                                          next_shuffle_block_num = 1;
-         std::vector< account_name_type >                                  current_shuffled_witnesses;
+         shared_vector< account_name_type >                                current_shuffled_witnesses;
          uint8_t                                                           num_scheduled_witnesses = 1;
          uint8_t                                                           top19_weight = 21;
          uint8_t                                                           timeshare_weight = 63;
