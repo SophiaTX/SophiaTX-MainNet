@@ -209,6 +209,10 @@ def run_archive() {
             // all Copy configuration files from package directory except "rules"
             sh "cp -n -r ../package/debian/* debian/"
 
+            if( params.Network == "Testnet" ) {
+                sh "sed -i -r 's/[0-9]+\.[0-9]+\.[0-9]+/0.0.'"${env.BUILD_NUMBER}"'/g' debian/changelog"
+            }
+
             sh "debuild --set-envvar INSTALL_DIR_ENV=${WORKSPACE}/${INSTALL_PREFIX} \
                         --set-envvar SRC_ROOT_DIR_ENV=${WORKSPACE} \
                         -uc -us"
