@@ -5,7 +5,7 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 #include <sophiatx/remote_db/remote_db.hpp>
 
-
+#include <fc/thread/thread.hpp>
 
 namespace sophiatx {
 namespace chain {

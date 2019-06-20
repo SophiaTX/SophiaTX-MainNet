@@ -31,6 +31,7 @@ namespace fc {
                 an existing "unknown" boost thread). In such cases, thread_d doesn't have access boost::thread object.
        */
       static thread& current();
+      static void    cleanup();
 
      
       /**

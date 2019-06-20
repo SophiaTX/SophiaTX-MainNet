@@ -3,6 +3,9 @@
 #pragma once
 
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
+
+#include <fc/thread/future.hpp>
+
 #include <boost/lockfree/queue.hpp>
 
 

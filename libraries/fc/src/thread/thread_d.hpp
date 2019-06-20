@@ -22,8 +22,6 @@ namespace fc {
        };
 
         public:
-           fc::context* prev_ctx = nullptr;
-
            thread_d(fc::thread& s)
             :self(s), boost_thread(0),
              task_in_queue(0),
@@ -39,15 +37,22 @@ namespace fc {
             { 
               static boost::atomic<int> cnt(0);
               name = std::string("th_") + char('a'+cnt++); 
-//              printf("thread=%p\n",this);
             }
 
             ~thread_d()
             {
               delete current;
+              current = nullptr;
               fc::context* temp;
               for (fc::context* ready_context : ready_heap)
-                delete ready_context;
+              {
+                  if (ready_context->cur_task)
+                  {
+                      ready_context->cur_task->release();
+                      ready_context->cur_task = nullptr;
+                  }
+                  delete ready_context;
+              }
               ready_heap.clear();
               while (blocked)
               {
@@ -55,15 +60,7 @@ namespace fc {
                 delete blocked;
                 blocked = temp;
               }
-              /*
-              while (pt_head)
-              {
-                temp = pt_head->next;
-                delete pt_head;
-                pt_head = temp;
-              }
-              */
-              //ilog("");
+
              if (boost_thread)
              {
                boost_thread->detach();
@@ -521,10 +518,10 @@ namespace fc {
 
               next->_set_active_context( current );
               current->cur_task = next;
-              next->run();
+              fc::shared_ptr<task_base> next_ptr(next);
+              next_ptr->run();
               current->cur_task = 0;
-              next->_set_active_context(0);
-              next->release();
+              next_ptr->_set_active_context(0);
               current->reinitialize();
            }
 

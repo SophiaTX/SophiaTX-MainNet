@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fc/signals.hpp>
+#include <boost/signals2/signal.hpp>
 
 namespace sophiatx { namespace chain { namespace util {
 
