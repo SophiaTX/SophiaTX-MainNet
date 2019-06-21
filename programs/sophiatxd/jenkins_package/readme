@@ -1,0 +1,6 @@
+This folder contains only "rules" configuration file. All other config files are copied from ../package/debian.
+It is optimized so the binary does not need to built again as it was already built in previous stages.
+
+Do not use this configs for manual package creation !!!
+
+To create package from scratch, please check ../package/readme

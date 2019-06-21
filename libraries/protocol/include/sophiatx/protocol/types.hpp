@@ -14,9 +14,8 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/reflect/variant.hpp>
 #include <fc/safe.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/container/flat.hpp>
-#include <fc/string.hpp>
 #include <fc/io/raw.hpp>
 #include <fc/uint128.hpp>
 #include <fc/static_variant.hpp>
@@ -51,7 +50,7 @@ namespace sophiatx {
    using                               fc::variant_object;
    using                               fc::variant;
    using                               fc::enum_type;
-   using                               fc::optional;
+   using                               std::optional;
    using                               fc::unsigned_int;
    using                               fc::signed_int;
    using                               fc::time_point_sec;
@@ -78,8 +77,6 @@ namespace sophiatx {
       typedef fc::ecc::compact_signature  signature_type;
       typedef safe<int64_t>               share_type;
       typedef uint16_t                    weight_type;
-      typedef uint32_t                    contribution_id_type;
-
 
       struct public_key_type
       {
@@ -102,8 +99,6 @@ namespace sophiatx {
             friend bool operator < ( const public_key_type& p1, const public_key_type& p2) { return p1.key_data < p2.key_data; }
             friend bool operator != ( const public_key_type& p1, const public_key_type& p2);
       };
-
-      #define SOPHIATX_INIT_PUBLIC_KEY (sophiatx::protocol::public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR))
 
       struct extended_public_key_type
       {

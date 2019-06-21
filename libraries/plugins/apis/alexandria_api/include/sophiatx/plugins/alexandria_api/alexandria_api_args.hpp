@@ -4,6 +4,7 @@
 #include <sophiatx/plugins/block_api/block_api_args.hpp>
 #include <sophiatx/plugins/database_api/database_api_args.hpp>
 #include <sophiatx/plugins/account_history_api/account_history_args.hpp>
+#include <sophiatx/plugins/account_bandwidth_api/account_bandwidth_api_args.hpp>
 
 #include <sophiatx/protocol/types.hpp>
 
@@ -78,7 +79,6 @@ struct get_account_return {
    vector<alexandria_api::api_account_object>	account;
 };
 
-
 /**
  * get_accounts
  */
@@ -87,6 +87,16 @@ struct get_accounts_args {
 };
 struct get_accounts_return {
    std::vector<extended_account>	accounts;
+};
+
+/**
+ * get_account_bandwidth
+ */
+struct get_account_bandwidth_args {
+   account_name_type account;
+};
+struct get_account_bandwidth_return {
+   optional<account_bandwidth_api::account_bandwidth> bandwidth;
 };
 
 /**
@@ -927,6 +937,7 @@ DEFINE_API_ARGS( get_feed_history,			                        get_feed_history_ar
 DEFINE_API_ARGS( get_active_witnesses,			                     json_rpc::void_type,			                           get_active_witnesses_return);
 DEFINE_API_ARGS( get_account,			                              get_account_args,			                              get_account_return);
 DEFINE_API_ARGS( get_accounts,			                           get_accounts_args,			                           get_accounts_return);
+DEFINE_API_ARGS( get_account_bandwidth,			                  get_account_bandwidth_args,			                  get_account_bandwidth_return);
 DEFINE_API_ARGS( get_transaction,			                        get_transaction_args,			                        get_transaction_return);
 DEFINE_API_ARGS( create_account,			                           create_account_args,			                           create_account_return);
 DEFINE_API_ARGS( update_account,			                           update_account_args,			                           update_account_return);
@@ -1062,13 +1073,20 @@ FC_REFLECT( sophiatx::plugins::alexandria_api::get_accounts_return,
             (accounts) )
 
 /**
+* get_account_bandwidth
+*/
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_account_bandwidth_args,
+            (account) )
+FC_REFLECT( sophiatx::plugins::alexandria_api::get_account_bandwidth_return,
+            (bandwidth) )
+
+/**
  * get_transaction
  */
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_transaction_args,
 			(tx_id) )
 FC_REFLECT( sophiatx::plugins::alexandria_api::get_transaction_return,
 			(tx) )
-
 
 /**
  * create_account

@@ -9,7 +9,7 @@
 #include <sophiatx/plugins/witness/witness_plugin.hpp>
 #include <sophiatx/plugins/chain/chain_plugin_full.hpp>
 #include <sophiatx/plugins/webserver/webserver_plugin.hpp>
-#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
+
 #include <sophiatx/plugins/alexandria_api/alexandria_api_plugin.hpp>
 
 #include <fc/crypto/digest.hpp>
@@ -86,17 +86,17 @@ clean_database_fixture::clean_database_fixture()
    generate_block();
 
 
-   vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+   vest( "initminer", chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
    validate_database();
 
     // Fill up the rest of the required miners
-   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < chain::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
-      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -147,7 +147,7 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
       database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = size;
-      db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
+      db->open( args, gen);
    }
    db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
@@ -166,15 +166,15 @@ void clean_database_fixture::resize_shared_mem( uint64_t size )
    db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
-   vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+   vest( "initminer", chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
    // Fill up the rest of the required miners
-   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < chain::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
-      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+      account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
    }
 
    validate_database();
@@ -240,10 +240,10 @@ private_database_fixture::private_database_fixture()
 //      // Fill up the rest of the required miners
 //      for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
 //      {
-//         account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-//         fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-//         vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+//         account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+//         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+//         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+//         witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
 //      }
 
 //      validate_database();
@@ -304,7 +304,7 @@ live_database_fixture::live_database_fixture()
          gen.genesis_time = fc::time_point::now();
          database_interface::open_args args;
          args.shared_mem_dir = _chain_dir;
-         db->open( args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR) );
+         db->open( args, gen);
       }
 
       validate_database();
@@ -354,7 +354,7 @@ asset_symbol_type database_fixture::name_to_asset_symbol( const std::string& nam
 
 void database_fixture::open_database()
 {
-   if( !data_dir )
+   if( !data_dir.has_value() )
    {
       data_dir = fc::temp_directory( sophiatx::utilities::temp_directory_path() );
       db->_log_hardforks = false;
@@ -365,13 +365,13 @@ void database_fixture::open_database()
       database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
-      db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
+      db->open(args, gen);
    }
 }
 
 void database_fixture::open_database_private()
 {
-   if( !data_dir )
+   if( !data_dir.has_value() )
    {
       data_dir = fc::temp_directory( sophiatx::utilities::temp_directory_path() );
       db->_log_hardforks = false;
@@ -379,13 +379,13 @@ void database_fixture::open_database_private()
       genesis_state_type gen;
       gen.genesis_time = fc::time_point::now();
       gen.initial_balace = 0;
-      gen.initial_public_key = public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR);
+      gen.initial_public_key = chain::sophiatx_config::get<protocol::public_key_type>("SOPHIATX_INIT_PUBLIC_KEY");
       gen.is_private_net = true;
 
       database_interface::open_args args;
       args.shared_mem_dir = data_dir->path();
       args.shared_file_size = 1024 * 1024 * 256;     // 8MB file for testing
-      db->open(args, gen, public_key_type(SOPHIATX_INIT_PUBLIC_KEY_STR));
+      db->open(args, gen);
    }
 }
 
@@ -404,7 +404,7 @@ void database_fixture::generate_blocks( uint32_t block_count )
 void database_fixture::generate_blocks(fc::time_point_sec timestamp, bool miss_intermediate_blocks)
 {
    db_plugin->debug_generate_blocks_until( debug_key, timestamp, miss_intermediate_blocks, default_skip );
-   BOOST_REQUIRE( ( db->head_block_time() - timestamp ).to_seconds() < SOPHIATX_BLOCK_INTERVAL );
+   BOOST_REQUIRE( ( db->head_block_time() - timestamp ).to_seconds() < chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
 }
 
 const account_object& database_fixture::account_create(
@@ -421,7 +421,7 @@ const account_object& database_fixture::account_create(
       account_create_operation op;
       op.name_seed = name;
       op.creator = creator;
-      op.fee = asset( fee, SOPHIATX_SYMBOL );
+      op.fee = asset( fee, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
       op.owner = authority( 1, key, 1 );
       op.active = authority( 1, key, 1 );
       op.memo_key = key;
@@ -475,7 +475,7 @@ const witness_object& database_fixture::witness_create(
       op.owner = owner;
       op.url = url;
       op.block_signing_key = signing_key;
-      op.fee = asset( fee, SOPHIATX_SYMBOL );
+      op.fee = asset( fee, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -497,7 +497,7 @@ void database_fixture::fund(
 {
    try
    {
-      transfer( SOPHIATX_INIT_MINER_NAME, account_name, asset( amount, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, account_name, asset( amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
 
    } FC_CAPTURE_AND_RETHROW( (account_name)(amount) )
 }
@@ -513,13 +513,13 @@ void database_fixture::fund(
       {
          db->modify( db->get_account( account_name ), [&]( account_object& a )
          {
-            if( amount.symbol == SOPHIATX_SYMBOL )
+            if( amount.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
                a.balance += amount;
          });
 
          db->modify( db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
          {
-            if( amount.symbol == SOPHIATX_SYMBOL )
+            if( amount.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
                gpo.current_supply += amount;
 
          });
@@ -541,7 +541,7 @@ void database_fixture::transfer(
       op.from = from;
       op.to = to;
       op.amount = amount;
-      op.fee = asset(100000, SOPHIATX_SYMBOL);
+      op.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back( op );
       trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -554,12 +554,12 @@ void database_fixture::transfer(
 void database_fixture::vest( const string& account_name, const share_type& amount )
 {
 
-   vest(account_name, asset(amount, SOPHIATX_SYMBOL));
+   vest(account_name, asset(amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
 }
 
 void database_fixture::vest( const string& account_name, const asset& amount )
 {
-   if( amount.symbol != SOPHIATX_SYMBOL )
+   if( amount.symbol != chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
       return;
 
    try
@@ -611,7 +611,7 @@ void database_fixture::set_witness_props( const flat_map< string, vector< char >
    for( size_t i = 1; i < 8; i++ )
    {
       witness_set_properties_operation op;
-      op.owner = AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i ));
+      op.owner = AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i ));
       op.props = props;
 
       if( op.props.find( "key" ) == op.props.end() )
@@ -625,7 +625,7 @@ void database_fixture::set_witness_props( const flat_map< string, vector< char >
       trx.operations.clear();
    }
 
-   generate_blocks( SOPHIATX_BLOCKS_PER_HOUR );
+   generate_blocks( chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCKS_PER_HOUR") );
 }
 
 const asset& database_fixture::get_balance( const string& account_name )const
@@ -709,7 +709,6 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    rpc_plugin = &appbase::app().register_plugin< sophiatx::plugins::json_rpc::json_rpc_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::block_api::block_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::database_api::database_api_plugin >();
-   appbase::app().register_plugin< sophiatx::plugins::witness::witness_api_plugin >();
    appbase::app().register_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >();
    appbase::app().load_config(argc, argv);
 
@@ -723,11 +722,9 @@ json_rpc_database_fixture::json_rpc_database_fixture()
       sophiatx::plugins::json_rpc::json_rpc_plugin,
       sophiatx::plugins::block_api::block_api_plugin,
       sophiatx::plugins::database_api::database_api_plugin,
-      sophiatx::plugins::witness::witness_api_plugin,
       sophiatx::plugins::alexandria_api::alexandria_api_plugin
       >( argc, argv );
    appbase::app().load_config(argc, argv);
-
 
    appbase::app().get_plugin< sophiatx::plugins::alexandria_api::alexandria_api_plugin >().plugin_startup();
 
@@ -751,15 +748,15 @@ json_rpc_database_fixture::json_rpc_database_fixture()
    db->set_hardfork( SOPHIATX_BLOCKCHAIN_VERSION.get_minor() );
    generate_block();
 
-   vest( "initminer", SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
+   vest( "initminer", chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
 
    // Fill up the rest of the required miners
-   for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+   for( int i = SOPHIATX_NUM_INIT_MINERS; i < chain::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
    {
-      account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-      fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-      witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
+      account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+      fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+      witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0  );
    }
 
    validate_database();
@@ -816,14 +813,14 @@ void check_id_equal( const fc::variant& id_a, const fc::variant& id_b )
    }
 }
 
-void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code, bool is_warning, bool is_fail, fc::optional< fc::variant > id )
+void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code, bool is_warning, bool is_fail, std::optional< fc::variant > id )
 {
    fc::variant_object error;
    int64_t answer_code;
 
    if( is_fail )
    {
-      if( id.valid() && code != JSON_RPC_INVALID_REQUEST )
+      if( id.has_value() && code != JSON_RPC_INVALID_REQUEST )
       {
          BOOST_REQUIRE( answer.get_object().contains( "id" ) );
          check_id_equal( answer[ "id" ], *id );
@@ -843,7 +840,7 @@ void json_rpc_database_fixture::review_answer( fc::variant& answer, int64_t code
    {
       BOOST_REQUIRE( answer.get_object().contains( "result" ) );
       BOOST_REQUIRE( answer.get_object().contains( "id" ) );
-      if( id.valid() )
+      if( id.has_value() )
          check_id_equal( answer[ "id" ], *id );
    }
 }
@@ -859,7 +856,7 @@ void json_rpc_database_fixture::make_array_request( std::string& request, int64_
    BOOST_REQUIRE( array.size() == request_array.size() );
    for( size_t i = 0; i < array.size(); ++i )
    {
-      fc::optional< fc::variant > id;
+      std::optional< fc::variant > id;
 
       try
       {
@@ -875,7 +872,7 @@ fc::variant json_rpc_database_fixture::make_request( std::string& request, int64
 {
    fc::variant answer = get_answer( request );
    BOOST_REQUIRE( answer.is_object() );
-   fc::optional< fc::variant > id;
+   std::optional< fc::variant > id;
 
    try
    {

@@ -3,6 +3,9 @@
 #pragma once
 
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
+
+#include <fc/thread/future.hpp>
+
 #include <boost/lockfree/queue.hpp>
 
 
@@ -35,7 +38,7 @@ struct write_context
    write_request_ptr             req_ptr;
    uint32_t                      skip = 0;
    bool                          success = true;
-   fc::optional< fc::exception > except;
+   std::optional< fc::exception > except;
    promise_ptr                   prom_ptr;
 
 };
@@ -66,8 +69,6 @@ public:
    void start_write_processing();
    void stop_write_processing();
 
-   const genesis_state_type& get_genesis() const { return genesis; }
-
 private:
    bool                             replay = false;
    bool                             check_locks = false;
@@ -82,9 +83,6 @@ private:
 
    std::shared_ptr< std::thread >   write_processor_thread;
    boost::lockfree::queue< write_context* > write_queue;
-
-   // TODO: temporary solution. DELETE when proper solution is implemented -> shared config object, which will contain also initminer mining public key.
-   public_key_type init_mining_pubkey;
 };
 
 } } } // sophiatx::plugins::chain

@@ -40,7 +40,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
             if(o.block_signing_key == public_key_type())
                w.stopped = true;
             w.props = o.props;
-            w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+            w.props.account_creation_fee = asset (0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
             w.props.price_feeds.clear();
       });
       return;
@@ -52,7 +52,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
 
    if( _db->is_producing() )
    {
-      FC_ASSERT( o.props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE );
+      FC_ASSERT( o.props.maximum_block_size <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE") );
    }
 
    const auto& by_witness_name_idx = _db->get_index< witness_index >().indices().get< by_name >();
@@ -72,7 +72,7 @@ void witness_update_evaluator::do_apply( const witness_update_operation& o )
             for(auto r:o.props.price_feeds){
                price new_rate;
                //ensure that base is always in SPHTX
-               if(r.second.base.symbol == SOPHIATX_SYMBOL)
+               if(r.second.base.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))
                   new_rate = r.second;
                else {
                   new_rate.base = r.second.quote;
@@ -118,7 +118,7 @@ void admin_witness_update_evaluator::do_apply( const admin_witness_update_operat
            if(o.block_signing_key == public_key_type())
               w.stopped = true;
            w.props = o.props;
-           w.props.account_creation_fee = asset (0, SOPHIATX_SYMBOL);
+           w.props.account_creation_fee = asset (0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
            w.props.price_feeds.clear();
       });
    }
@@ -161,7 +161,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
    if( itr != o.props.end() )
    {
       fc::raw::unpack_from_vector( itr->second, props.maximum_block_size, 0 );
-      FC_ASSERT(props.maximum_block_size <= SOPHIATX_MAX_BLOCK_SIZE);
+      FC_ASSERT(props.maximum_block_size <= chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_BLOCK_SIZE"));
       max_block_changed = true;
    }
 
@@ -180,7 +180,7 @@ void witness_set_properties_evaluator::do_apply( const witness_set_properties_op
       for(const auto & rate: exchange_rates){
          price new_rate;
          //ensure that base is always in SPHTX
-         if(rate.base.symbol == SOPHIATX_SYMBOL)
+         if(rate.base.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))
             new_rate = rate;
          else {
             new_rate.base = rate.quote;
@@ -248,7 +248,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    const auto& props = _db->get_dynamic_global_properties();
 
    asset to_pay;
-   if(o.fee.symbol == SOPHIATX_SYMBOL) {
+   if(o.fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) {
       to_pay = o.fee;
    } else {
       to_pay = _db->to_sophiatx(o.fee);
@@ -260,7 +260,7 @@ void account_create_evaluator::do_apply( const account_create_operation& o )
    FC_ASSERT( creator.balance >= to_pay, "Insufficient balance to create account.", ( "creator.balance", creator.balance )( "required", to_pay ) );
 
    const witness_schedule_object& wso = _db->get_witness_schedule_object();
-   asset required_fee = _db->is_private_net() ? asset(0, SOPHIATX_SYMBOL) : asset( wso.median_props.account_creation_fee.amount, SOPHIATX_SYMBOL );
+   asset required_fee = _db->is_private_net() ? asset(0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) : asset( wso.median_props.account_creation_fee.amount, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
    FC_ASSERT( to_pay >= required_fee, "Insufficient Fee: ${f} required, ${p} provided.",
               ("f", required_fee ) ("p", to_pay) );
 
@@ -395,7 +395,7 @@ void escrow_transfer_evaluator::do_apply( const escrow_transfer_operation& o )
       FC_ASSERT( o.escrow_expiration > _db->head_block_time(), "The escrow expiration must be after head block time." );
 
       asset sophiatx_spent = o.sophiatx_amount;
-      if( o.escrow_fee.symbol == SOPHIATX_SYMBOL )
+      if( o.escrow_fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
          sophiatx_spent += o.escrow_fee;
 
 
@@ -565,7 +565,7 @@ void transfer_to_vesting_evaluator::do_apply( const transfer_to_vesting_operatio
    const auto& from_account = _db->get_account(o.from);
    const auto& to_account = o.to.size() ? _db->get_account(o.to) : from_account;
 
-   FC_ASSERT( _db->get_balance( from_account, SOPHIATX_SYMBOL) >= o.amount, "Account does not have sufficient SOPHIATX for transfer." );
+   FC_ASSERT( _db->get_balance( from_account, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) >= o.amount, "Account does not have sufficient SOPHIATX for transfer." );
 
    if( from_account.id == to_account.id )
       _db->vest( from_account, o.amount.amount );
@@ -683,7 +683,7 @@ void account_witness_vote_evaluator::do_apply( const account_witness_vote_operat
    if( itr == by_account_witness_idx.end() ) {
       FC_ASSERT( o.approve, "Vote doesn't exist, user must indicate a desire to approve witness." );
 
-      FC_ASSERT( voter.witnesses_voted_for < SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES, "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
+      FC_ASSERT( voter.witnesses_voted_for < chain::sophiatx_config::get<uint32_t>("SOPHIATX_MAX_ACCOUNT_WITNESS_VOTES"), "Account has voted for too many witnesses." ); // TODO: Remove after hardfork 2
 
       _db->create<witness_vote_object>( [&]( witness_vote_object& v ) {
            v.witness = witness.owner;
@@ -833,7 +833,7 @@ void feed_publish_evaluator::do_apply( const feed_publish_operation& o )
    FC_ASSERT(!_db->is_private_net(), "This operation is not available in private nets");
    price new_rate;
    //ensure that base is always in SPHTX
-   if(o.exchange_rate.base.symbol == SOPHIATX_SYMBOL)
+   if(o.exchange_rate.base.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"))
       new_rate = o.exchange_rate;
    else {
       new_rate.base = o.exchange_rate.quote;
@@ -1091,16 +1091,16 @@ void transfer_from_promotion_pool_evaluator::do_apply( const transfer_from_promo
    const auto& acnt = _db->get_account( op.transfer_to );
    share_type withdrawn;
 
-   FC_ASSERT(op.amount.amount >0 && op.amount.symbol == SOPHIATX_SYMBOL);
+   FC_ASSERT(op.amount.amount >0 && op.amount.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    _db->modify( econ, [&](economic_model_object& eo){
         withdrawn = eo.withdraw_from_promotion_pool(op.amount.amount, _db->head_block_num());
    });
-   _db->adjust_balance(acnt, asset(withdrawn, SOPHIATX_SYMBOL));
-   _db->adjust_supply(asset(withdrawn, SOPHIATX_SYMBOL));
+   _db->adjust_balance(acnt, asset(withdrawn, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
+   _db->adjust_supply(asset(withdrawn, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")));
 
    promotion_pool_withdraw_operation wop;
    wop.to_account = op.transfer_to;
-   wop.withdrawn =  asset(withdrawn, SOPHIATX_SYMBOL);
+   wop.withdrawn =  asset(withdrawn, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    _db->push_virtual_operation(wop);
 }
 
@@ -1116,7 +1116,7 @@ void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
    _db->get_account(op.sponsored);
    optional< account_name_type > existing_sponsor = _db->get_sponsor(op.sponsored);
    if(op.is_sponsoring){
-      FC_ASSERT(!existing_sponsor, "This account is already sponsored");
+      FC_ASSERT(!existing_sponsor.has_value(), "This account is already sponsored");
       _db->create<account_fee_sponsor_object>([&](account_fee_sponsor_object& o){
          o.sponsor = op.sponsor;
          o.sponsored = op.sponsored;
@@ -1126,143 +1126,5 @@ void sponsor_fees_evaluator::do_apply( const sponsor_fees_operation& op)
       _db->remove(_db->get<account_fee_sponsor_object, by_sponsored>(op.sponsored));
    }
 }
-
-#ifdef SOPHIATX_ENABLE_SMT
-void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_operation& op )
-{
-   const account_object* a = nullptr; // Lazily initialized below because it may turn out unnecessary.
-
-   for( const asset& token : op.reward_tokens )
-   {
-      if( token.amount == 0 )
-         continue;
-         
-      if( token.symbol.space() == asset_symbol_type::smt_nai_space )
-      {
-         _db->adjust_reward_balance( op.account, -token );
-         _db->adjust_balance( op.account, token );
-      }
-      else
-      {
-         // Lazy init here.
-         if( a == nullptr )
-         {
-            a = _db->find_account( op.account );
-            FC_ASSERT( a != nullptr, "Could NOT find account ${a}", ("a", op.account) );
-         }
-
-         if( token.symbol == VESTS_SYMBOL)
-         {
-            FC_ASSERT( token <= a->reward_vesting_balance, "Cannot claim that much VESTS. Claim: ${c} Actual: ${a}",
-               ("c", token)("a", a->reward_vesting_balance) );   
-
-            asset reward_vesting_sophiatx_to_move = asset( 0, SOPHIATX_SYMBOL );
-            if( token == a->reward_vesting_balance )
-               reward_vesting_sophiatx_to_move = a->reward_vesting_sophiatx;
-            else
-               reward_vesting_sophiatx_to_move = asset( ( ( uint128_t( token.amount.value ) * uint128_t( a->reward_vesting_sophiatx.amount.value ) )
-                  / uint128_t( a->reward_vesting_balance.amount.value ) ).to_uint64(), SOPHIATX_SYMBOL );
-
-            _db->modify( *a, [&]( account_object& a )
-            {
-               a.vesting_shares += token;
-               a.reward_vesting_balance -= token;
-               a.reward_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
-            });
-
-            _db->modify( _db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
-            {
-               gpo.total_vesting_shares += token;
-               gpo.total_vesting_fund_sophiatx += reward_vesting_sophiatx_to_move;
-
-               gpo.pending_rewarded_vesting_shares -= token;
-               gpo.pending_rewarded_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
-            });
-
-            _db->adjust_proxied_witness_votes( *a, token.amount );
-         }
-         else if( token.symbol == SOPHIATX_SYMBOL || token.symbol == SBD_SYMBOL )
-         {
-            FC_ASSERT( is_asset_type( token, SOPHIATX_SYMBOL ) == false || token <= a->reward_sophiatx_balance,
-                       "Cannot claim that much SOPHIATX. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sophiatx_balance) );
-            FC_ASSERT( is_asset_type( token, SBD_SYMBOL ) == false || token <= a->reward_sbd_balance,
-                       "Cannot claim that much SBd-> Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
-            _db->adjust_reward_balance( *a, -token );
-            _db->adjust_balance( *a, token );
-         }
-         else
-            FC_ASSERT( false, "Unknown asset symbol" );
-      } // non-SMT token
-   } // for( const auto& token : op.reward_tokens )
-}
-void claim_reward_balance2_evaluator::do_apply( const claim_reward_balance2_operation& op )
-{
-   const account_object* a = nullptr; // Lazily initialized below because it may turn out unnecessary.
-
-   for( const asset& token : op.reward_tokens )
-   {
-      if( token.amount == 0 )
-         continue;
-
-      if( token.symbol.space() == asset_symbol_type::smt_nai_space )
-      {
-         _db->adjust_reward_balance( op.account, -token );
-         _db->adjust_balance( op.account, token );
-      }
-      else
-      {
-         // Lazy init here.
-         if( a == nullptr )
-         {
-            a = _db->find_account( op.account );
-            FC_ASSERT( a != nullptr, "Could NOT find account ${a}", ("a", op.account) );
-         }
-
-         if( token.symbol == VESTS_SYMBOL)
-         {
-            FC_ASSERT( token <= a->reward_vesting_balance, "Cannot claim that much VESTS. Claim: ${c} Actual: ${a}",
-               ("c", token)("a", a->reward_vesting_balance) );
-
-            asset reward_vesting_sophiatx_to_move = asset( 0, SOPHIATX_SYMBOL );
-            if( token == a->reward_vesting_balance )
-               reward_vesting_sophiatx_to_move = a->reward_vesting_sophiatx;
-            else
-               reward_vesting_sophiatx_to_move = asset( ( ( uint128_t( token.amount.value ) * uint128_t( a->reward_vesting_sophiatx.amount.value ) )
-                  / uint128_t( a->reward_vesting_balance.amount.value ) ).to_uint64(), SOPHIATX_SYMBOL );
-
-            _db->modify( *a, [&]( account_object& a )
-            {
-               a.vesting_shares += token;
-               a.reward_vesting_balance -= token;
-               a.reward_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
-            });
-
-            _db->modify( _db->get_dynamic_global_properties(), [&]( dynamic_global_property_object& gpo )
-            {
-               gpo.total_vesting_shares += token;
-               gpo.total_vesting_fund_sophiatx += reward_vesting_sophiatx_to_move;
-
-               gpo.pending_rewarded_vesting_shares -= token;
-               gpo.pending_rewarded_vesting_sophiatx -= reward_vesting_sophiatx_to_move;
-            });
-
-            _db->adjust_proxied_witness_votes( *a, token.amount );
-         }
-         else if( token.symbol == SOPHIATX_SYMBOL || token.symbol == SBD_SYMBOL )
-         {
-            FC_ASSERT( is_asset_type( token, SOPHIATX_SYMBOL ) == false || token <= a->reward_sophiatx_balance,
-                       "Cannot claim that much SOPHIATX. Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sophiatx_balance) );
-            FC_ASSERT( is_asset_type( token, SBD_SYMBOL ) == false || token <= a->reward_sbd_balance,
-                       "Cannot claim that much SBd-> Claim: ${c} Actual: ${a}", ("c", token)("a", a->reward_sbd_balance) );
-            _db->adjust_reward_balance( *a, -token );
-            _db->adjust_balance( *a, token );
-         }
-         else
-            FC_ASSERT( false, "Unknown asset symbol" );
-      } // non-SMT token
-   } // for( const auto& token : op.reward_tokens )
-}
-#endif
-
 
 } } // sophiatx::chain

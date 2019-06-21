@@ -1,0 +1,47 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
+export DEB_BUILD_MAINT_OPTIONS=parallel=4
+
+# Hard-code these env. variables here or use --set-envvar option when running debuild
+#export OPENSSL_ROOT_DIR_ENV=/path/to/openssl/root
+#export BOOST_ROOT_DIR_ENV=/path/to/boost/root
+#export CMAKE_BUILD_TYPE_ENV=Release
+#export BUILD_SOPHIATX_TESTNET_ENV=false
+#export SOPHIATX_EGENESIS_JSON_ENV=/path/to/genesis
+
+%:
+	dh  $@
+override_dh_auto_configure:
+	./prepare_package_build -n "sophiatx_light" \
+	                        -b $(CMAKE_BUILD_TYPE_ENV) \
+	                        -t $(BUILD_SOPHIATX_TESTNET_ENV) \
+	                        -G $(SOPHIATX_EGENESIS_JSON_ENV) \
+	                        -O $(OPENSSL_ROOT_DIR_ENV) \
+	                        -B $(BOOST_ROOT_DIR_ENV)
+
+override_dh_auto_build:
+	make -C cmake-build-release/ -j4
+
+override_dh_auto_install:
+	cmake -DCOMPONENT=sophiatxd_light \
+	      -P cmake-build-release/cmake_install.cmake
+
+override_dh_usrlocal:
+
+override_dh_install:
+	dh_install --sourcedir=.
+
+override_dh_shlibdeps:
+	dh_shlibdeps -- -S/usr/local

@@ -111,7 +111,7 @@ namespace sophiatx { namespace protocol {
          asset account_creation_fee;
          fc::raw::unpack_from_vector( itr->second, account_creation_fee, 0 );
          FC_ASSERT( account_creation_fee.symbol == SOPHIATX_SYMBOL, "account_creation_fee must be in SOPHIATX" );
-         FC_ASSERT( account_creation_fee.amount >= SOPHIATX_MIN_ACCOUNT_CREATION_FEE , "account_creation_fee smaller than minimum account creation fee" );
+         FC_ASSERT( account_creation_fee.amount >= protocol_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE") , "account_creation_fee smaller than minimum account creation fee" );
       }
 
       itr = props.find( "maximum_block_size" );
@@ -119,7 +119,7 @@ namespace sophiatx { namespace protocol {
       {
          uint32_t maximum_block_size;
          fc::raw::unpack_from_vector( itr->second, maximum_block_size, 0 );
-         FC_ASSERT( maximum_block_size >= SOPHIATX_MIN_BLOCK_SIZE_LIMIT, "maximum_block_size smaller than minimum max block size" );
+         FC_ASSERT( maximum_block_size >= protocol_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT"), "maximum_block_size smaller than minimum max block size" );
       }
 
       itr = props.find( "new_signing_key" );
@@ -360,27 +360,7 @@ namespace sophiatx { namespace protocol {
       FC_ASSERT( name.size() > 0, "Name size must be greater than 0" );
       FC_ASSERT( fc::is_utf8( name ), "Name is not valid UTF8" );
    }
-
-#ifdef SOPHIATX_ENABLE_SMT
-   void claim_reward_balance2_operation::validate()const
-   {
-      validate_account_name( account );
-      FC_ASSERT( reward_tokens.empty() == false, "Must claim something." );
-      FC_ASSERT( reward_tokens.begin()->amount >= 0, "Cannot claim a negative amount" );
-      bool is_substantial_reward = reward_tokens.begin()->amount > 0;
-      for( auto itl = reward_tokens.begin(), itr = itl+1; itr != reward_tokens.end(); ++itl, ++itr )
-      {
-         FC_ASSERT( itl->symbol.to_nai() <= itr->symbol.to_nai(), 
-                    "Reward tokens have not been inserted in ascending order." );
-         FC_ASSERT( itl->symbol.to_nai() != itr->symbol.to_nai(), 
-                    "Duplicate symbol ${s} inserted into claim reward operation container.", ("s", itl->symbol) );
-         FC_ASSERT( itr->amount >= 0, "Cannot claim a negative amount" );
-         is_substantial_reward |= itr->amount > 0;
-      }
-      FC_ASSERT( is_substantial_reward, "Must claim something." );
-   }
-#endif
-
+   
    void transfer_from_promotion_pool_operation::validate()const
    {
       validate_account_name(transfer_to);

@@ -9,11 +9,8 @@
 
 #pragma once
 
-#include <sophiatx/protocol/version.hpp>
-#include <set>
-
 #ifdef IS_TEST_NET
-#define SOPHIATX_NUM_HARDFORKS 1
+#define SOPHIATX_NUM_HARDFORKS 2
 #else
-#define SOPHIATX_NUM_HARDFORKS 1
+#define SOPHIATX_NUM_HARDFORKS 2
 #endif

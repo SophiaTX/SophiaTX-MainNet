@@ -469,6 +469,12 @@ class alexandria_api
         (get_account_balance)
 
         /**
+         * Returns current account bandwidth statistics
+         * @param account_name - account name i.e. "account_name"
+         */
+        (get_account_bandwidth)
+
+        /**
          * Returns vestig balance for given account
          * @param account_name - account name i.e. "account_name"
          */

@@ -2,7 +2,7 @@
 #include <fc/fwd_impl.hpp>
 #include <openssl/sha.h>
 #include <openssl/ripemd.h>
-#include <string.h>
+#include <string>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/sha512.hpp>
 #include <fc/crypto/sha256.hpp>
@@ -14,14 +14,14 @@ namespace fc
 {
   
 ripemd160::ripemd160() { memset( _hash, 0, sizeof(_hash) ); }
-ripemd160::ripemd160( const string& hex_str ) {
+ripemd160::ripemd160( const std::string& hex_str ) {
   fc::from_hex( hex_str, (char*)_hash, sizeof(_hash) );  
 }
 
-string ripemd160::str()const {
+std::string ripemd160::str()const {
   return fc::to_hex( (char*)_hash, sizeof(_hash) );
 }
-ripemd160::operator string()const { return  str(); }
+ripemd160::operator std::string()const { return  str(); }
 
 char* ripemd160::data()const { return (char*)&_hash[0]; }
 
@@ -52,7 +52,7 @@ ripemd160 ripemd160::hash( const char* d, uint32_t dlen ) {
   e.write(d,dlen);
   return e.result();
 }
-ripemd160 ripemd160::hash( const string& s ) {
+ripemd160 ripemd160::hash( const std::string& s ) {
   return hash( s.c_str(), s.size() );
 }
 

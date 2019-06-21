@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( serialization_raw_test )
       transfer_operation op;
       op.from = AN("alice");
       op.to = AN("bob");
-      op.amount = asset(100,SOPHIATX_SYMBOL);
+      op.amount = asset(100,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back( op );
       auto packed = fc::raw::pack_to_vector( trx );
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE( serialization_json_test )
       transfer_operation op;
       op.from = AN("alice");
       op.to = AN("bob");
-      op.amount = asset(100,SOPHIATX_SYMBOL);
+      op.amount = asset(100,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       fc::variant test(op.amount);
       auto tmp = test.as<asset>();
@@ -130,9 +130,9 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_EQUAL( sophiatx.amount.value, 123456000 );
       BOOST_CHECK_EQUAL( sophiatx.symbol.decimals(), 6 );
       BOOST_CHECK_EQUAL( sophiatx.to_string(), "123.456000 SPHTX" );
-      BOOST_CHECK( sophiatx.symbol == SOPHIATX_SYMBOL );
-      BOOST_CHECK_EQUAL( asset( asset( 50000, SOPHIATX_SYMBOL ) ).to_string(), "0.050000 SPHTX" );
-      BOOST_CHECK_EQUAL( asset( asset(50000000, SOPHIATX_SYMBOL ) ) .to_string(), "50.000000 SPHTX" );
+      BOOST_CHECK( sophiatx.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
+      BOOST_CHECK_EQUAL( asset( asset( 50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) ).to_string(), "0.050000 SPHTX" );
+      BOOST_CHECK_EQUAL( asset( asset(50000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) ) .to_string(), "50.000000 SPHTX" );
 
       BOOST_CHECK_EQUAL( sbd.amount.value, 654321000 );
       BOOST_CHECK_EQUAL( sbd.symbol.decimals(), 6 );
@@ -145,7 +145,6 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_THROW( asset::from_string( "1.000SPHTX" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1. 333 SPHTX" ), fc::exception ); // Fails because symbol is '333 SPHTX', which is too long
       BOOST_CHECK_THROW( asset::from_string( "1 .333 SPHTX" ), fc::exception );
-      //BOOST_CHECK_THROW( asset::from_string( "1. 333 X" ), fc::exception ); // Not a system asset
       BOOST_CHECK_THROW( asset::from_string( "1 .333 X" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1 .333" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "1 1.1" ), fc::exception );
@@ -159,7 +158,6 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_THROW( asset::from_string( "" ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( " " ), fc::exception );
       BOOST_CHECK_THROW( asset::from_string( "  " ), fc::exception );
-      //BOOST_CHECK_THROW( asset::from_string( "100 SPHTX" ), fc::exception ); // Does not match system asset precision
    }
    FC_LOG_AND_RETHROW()
 }
@@ -168,7 +166,7 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
 {
    try
    {
-      fc::string s;
+      std::string s;
 
       BOOST_CHECK_EQUAL( asset().symbol.decimals(), 6 );
       BOOST_CHECK_EQUAL( fc::json::to_string( asset() ), "[\"0\",3,\"@@000000021\"]" );
@@ -184,9 +182,9 @@ BOOST_AUTO_TEST_CASE( legacy_asset_test )
       BOOST_CHECK_EQUAL( sophiatx.amount.value, 123456 );
       BOOST_CHECK_EQUAL( sophiatx.symbol.decimals(), 3 );
       BOOST_CHECK_EQUAL( fc::json::to_string( sophiatx ), "[\"123456\",3,\"@@000000021\"]" );
-      BOOST_CHECK( sophiatx.symbol == SOPHIATX_SYMBOL );
-      BOOST_CHECK_EQUAL( fc::json::to_string( asset( 50, SOPHIATX_SYMBOL ) ), "[\"50\",3,\"@@000000021\"]" );
-      BOOST_CHECK_EQUAL( fc::json::to_string( asset( 50000, SOPHIATX_SYMBOL ) ), "[\"50000\",3,\"@@000000021\"]" );
+      BOOST_CHECK( sophiatx.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
+      BOOST_CHECK_EQUAL( fc::json::to_string( asset( 50, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) ), "[\"50\",3,\"@@000000021\"]" );
+      BOOST_CHECK_EQUAL( fc::json::to_string( asset( 50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) ), "[\"50000\",3,\"@@000000021\"]" );
 
       BOOST_CHECK_EQUAL( sbd.amount.value, 654321 );
       BOOST_CHECK_EQUAL( sbd.symbol.decimals(), 3 );
@@ -246,7 +244,7 @@ std::string hex_bytes( const T& obj )
 
 void old_pack_symbol(vector<char>& v, asset_symbol_type sym)
 {
-   if( sym == SOPHIATX_SYMBOL )
+   if( sym == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
    {
       v.push_back('S' ); v.push_back('P' ); v.push_back('H' );
       v.push_back('T'   ); v.push_back('X' ); v.push_back('\0'); v.push_back('\0'); v.push_back('\0');
@@ -289,7 +287,7 @@ void old_pack_asset( vector<char>& v, const asset& a )
 std::string old_json_asset( const asset& a )
 {
    size_t decimal_places = 0;
-   if( (a.symbol == SOPHIATX_SYMBOL) || (a.symbol == SBD1_SYMBOL) )
+   if( (a.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")) || (a.symbol == SBD1_SYMBOL) )
       decimal_places = 3;
    else if( a.symbol == VESTS_SYMBOL )
       decimal_places = 6;
@@ -297,7 +295,7 @@ std::string old_json_asset( const asset& a )
    ss << std::setfill('0') << std::setw(decimal_places+1) << a.amount.value;
    std::string result = ss.str();
    result.insert( result.length() - decimal_places, 1, '.' );
-   if( a.symbol == SOPHIATX_SYMBOL )
+   if( a.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
       result += " SPHTX";
    else if( a.symbol == SBD1_SYMBOL )
       result += " USD";
@@ -329,12 +327,12 @@ BOOST_AUTO_TEST_CASE( asset_raw_test )
 
 /*      asset sophiatx = asset::from_string( "0.001 SPHTX" );
 #define VESTS_SYMBOL  (uint64_t(6) | (uint64_t('V') << 8) | (uint64_t('E') << 16) | (uint64_t('S') << 24) | (uint64_t('T') << 32) | (uint64_t('S') << 40)) ///< VESTS with 6 digits of precision
-#define SOPHIATX_SYMBOL  (uint64_t(3) | (uint64_t('T') << 8) | (uint64_t('E') << 16) | (uint64_t('S') << 24) | (uint64_t('T') << 32) | (uint64_t('S') << 40)) ///< SOPHIATX with 3 digits of precision
+#define chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL")  (uint64_t(3) | (uint64_t('T') << 8) | (uint64_t('E') << 16) | (uint64_t('S') << 24) | (uint64_t('T') << 32) | (uint64_t('S') << 40)) ///< SOPHIATX with 3 digits of precision
 #define SBD1_SYMBOL    (uint64_t(3) | (uint64_t('T') << 8) | (uint64_t('B') << 16) | (uint64_t('D') << 24) ) ///< Test Backed Dollars with 3 digits of precision
 */
       std::vector< asset_symbol_type > symbols;
 
-      symbols.push_back( SOPHIATX_SYMBOL );
+      symbols.push_back( chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
       symbols.push_back( SBD1_SYMBOL );
       symbols.push_back( VESTS_SYMBOL );
 
@@ -530,7 +528,7 @@ BOOST_AUTO_TEST_CASE( legacy_signed_transaction )
    transfer_operation op;
    op.from = AN("alice");
    op.to = AN("bob");
-   op.amount = asset( 50, SOPHIATX_SYMBOL );
+   op.amount = asset( 50, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
    tx.ref_block_num = 4000;
    tx.ref_block_prefix = 4000000000;
    tx.expiration = fc::time_point_sec( 1514764800 );

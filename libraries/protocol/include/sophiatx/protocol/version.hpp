@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fc/string.hpp>
 #include <fc/time.hpp>
 
 namespace sophiatx { namespace protocol {
@@ -23,7 +22,7 @@ struct version
    bool operator >  ( const version& o )const { return v_num >  o.v_num; }
    bool operator >= ( const version& o )const { return v_num >= o.v_num; }
 
-   operator fc::string()const;
+   operator std::string()const;
 
    uint32_t get_major() { return ( v_num & 0XFF000000 ) >> 24; }
    uint32_t get_minor() { return ( v_num & 0x00FF0000 ) >> 16; }

@@ -57,7 +57,7 @@ void open_test_database( const std::shared_ptr<database>& db, const fc::path& di
    database_interface::open_args args;
    args.shared_mem_dir = dir;
    args.shared_file_size = TEST_SHARED_MEM_SIZE;
-   db->open( args, gen, public_key_type(init_account_pub_key) );
+   db->open( args, gen);
    db->modify( db->get_witness( "initminer" ), [&]( witness_object& a )
    {
         a.signing_key = init_account_pub_key;
@@ -85,8 +85,6 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
          open_test_database( db, data_dir.path() );
          b = db->generate_block(db->get_slot_time(1), db->get_scheduled_witness(1), init_account_priv_key, database::skip_nothing);
 
-         // TODO:  Change this test when we correct #406
-         // n.b. we generate SOPHIATX_MIN_UNDO_HISTORY+1 extra blocks which will be discarded on save
          for( uint32_t i = 1; ; ++i )
          {
             BOOST_CHECK( db->head_block_id() == b.id() );
@@ -99,7 +97,7 @@ BOOST_AUTO_TEST_CASE( generate_empty_blocks )
             if( cutoff_height >= 200 )
             {
                auto block = db->fetch_block_by_number( cutoff_height );
-               BOOST_REQUIRE( block.valid() );
+               BOOST_REQUIRE( block.has_value() );
                cutoff_block = *block;
                break;
             }
@@ -268,7 +266,7 @@ BOOST_AUTO_TEST_CASE( switch_forks_undo_create )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(50000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       trx.operations.push_back(cop);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
@@ -329,7 +327,7 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(50000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -340,8 +338,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
       transfer_operation t;
       t.from = SOPHIATX_INIT_MINER_NAME;
       t.to = AN("alice");
-      t.amount = asset(500,SOPHIATX_SYMBOL);
-      t.fee = asset(100000, SOPHIATX_SYMBOL);
+      t.amount = asset(500,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
+      t.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       trx.operations.push_back(t);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
       trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
@@ -354,8 +352,8 @@ BOOST_AUTO_TEST_CASE( duplicate_transactions )
 
       SOPHIATX_CHECK_THROW(PUSH_TX( db1, trx, skip_sigs ), fc::exception);
       SOPHIATX_CHECK_THROW(PUSH_TX( db2, trx, skip_sigs ), fc::exception);
-      BOOST_CHECK_EQUAL(db1->get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
-      BOOST_CHECK_EQUAL(db2->get_balance( AN("alice"), SOPHIATX_SYMBOL ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db1->get_balance( AN("alice"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ).amount.value, 500);
+      BOOST_CHECK_EQUAL(db2->get_balance( AN("alice"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ).amount.value, 500);
    } catch (fc::exception& e) {
       edump((e.to_detail_string()));
       throw;
@@ -386,7 +384,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       cop.creator = SOPHIATX_INIT_MINER_NAME;
       cop.owner = authority(1, init_account_pub_key, 1);
       cop.active = cop.owner;
-      cop.fee = asset(50000, SOPHIATX_SYMBOL);
+      cop.fee = asset(50000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 
       trx.operations.push_back(cop);
       trx.set_expiration( db1->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -402,7 +400,7 @@ BOOST_AUTO_TEST_CASE( tapos )
       transfer_operation t;
       t.from = SOPHIATX_INIT_MINER_NAME;
       t.to = AN("alice");
-      t.amount = asset(50,SOPHIATX_SYMBOL);
+      t.amount = asset(50,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       trx.operations.push_back(t);
       trx.set_expiration( db1->head_block_time() + fc::seconds(2) );
       trx.sign( init_account_priv_key, db1->get_chain_id(), fc::ecc::fc_canonical );
@@ -430,12 +428,12 @@ BOOST_FIXTURE_TEST_CASE( optional_tapos, clean_database_fixture )
 
       BOOST_TEST_MESSAGE( "Create transaction" );
 
-      transfer( SOPHIATX_INIT_MINER_NAME, AN("alice"), asset( 1000000, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, AN("alice"), asset( 1000000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
       transfer_operation op;
       op.from = AN("alice");
       op.to = AN("bob");
-      op.fee = asset(100000, SOPHIATX_SYMBOL);
-      op.amount = asset(1000,SOPHIATX_SYMBOL);
+      op.fee = asset(100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
+      op.amount = asset(1000,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
       signed_transaction tx;
       tx.operations.push_back( op );
 
@@ -499,7 +497,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    t.from = SOPHIATX_INIT_MINER_NAME;
    t.to = AN("bob");
    t.fee = ASSET( "0.100000 SPHTX" );
-   t.amount = asset(amount*2,SOPHIATX_SYMBOL);
+   t.amount = asset(amount*2,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    trx.operations.push_back(t);
    trx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
    trx.validate();
@@ -509,7 +507,7 @@ BOOST_FIXTURE_TEST_CASE( double_sign_check, clean_database_fixture )
    trx.operations.clear();
    t.from = AN("bob");
    t.to = SOPHIATX_INIT_MINER_NAME;
-   t.amount = asset(amount,SOPHIATX_SYMBOL);
+   t.amount = asset(amount,chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
    trx.operations.push_back(t);
    trx.validate();
 
@@ -556,7 +554,7 @@ BOOST_FIXTURE_TEST_CASE( pop_block_twice, clean_database_fixture )
 
       db->get_account( SOPHIATX_INIT_MINER_NAME );
       // transfer from committee account to Sam account
-      transfer( SOPHIATX_INIT_MINER_NAME, AN("sam"), asset( 100000, SOPHIATX_SYMBOL ) );
+      transfer( SOPHIATX_INIT_MINER_NAME, AN("sam"), asset( 100000, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ) );
 
       generate_block(skip_flags);
 
@@ -715,7 +713,7 @@ BOOST_FIXTURE_TEST_CASE( skip_block, clean_database_fixture )
       BOOST_REQUIRE( db->head_block_num() == 2 );
 
       int init_block_num = db->head_block_num();
-      int miss_blocks = fc::minutes( 1 ).to_seconds() / SOPHIATX_BLOCK_INTERVAL;
+      int miss_blocks = fc::minutes( 1 ).to_seconds() / chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL");
       auto witness = db->get_scheduled_witness( miss_blocks );
       auto block_time = db->get_slot_time( miss_blocks );
       db->generate_block( block_time , witness, init_account_priv_key, 0 );
@@ -727,7 +725,7 @@ BOOST_FIXTURE_TEST_CASE( skip_block, clean_database_fixture )
       generate_block();
 
       BOOST_CHECK_EQUAL( db->head_block_num(), static_cast<uint32_t>(init_block_num + 2) );
-      BOOST_CHECK( db->head_block_time() == block_time + SOPHIATX_BLOCK_INTERVAL );
+      BOOST_CHECK( db->head_block_time() == block_time + chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
    }
    FC_LOG_AND_RETHROW();
 }
@@ -781,12 +779,12 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       vest( "initminer", 10000 );
 
       // Fill up the rest of the required miners
-      for( int i = SOPHIATX_NUM_INIT_MINERS; i < SOPHIATX_MAX_WITNESSES; i++ )
+      for( int i = SOPHIATX_NUM_INIT_MINERS; i < chain::sophiatx_config::get<int>("SOPHIATX_MAX_WITNESSES"); i++ )
       {
-         account_create( SOPHIATX_INIT_MINER_NAME + fc::to_string( i ), init_account_pub_key );
-         fund( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-         vest( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE );
-         witness_create( AN(SOPHIATX_INIT_MINER_NAME + fc::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
+         account_create( SOPHIATX_INIT_MINER_NAME + std::to_string( i ), init_account_pub_key );
+         fund( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+         vest( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE") );
+         witness_create( AN(SOPHIATX_INIT_MINER_NAME + std::to_string( i )), init_account_priv_key, "foo.bar", init_account_pub_key, 0 );
       }
 
       validate_database();
@@ -801,7 +799,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       /*BOOST_REQUIRE( !db->has_hardfork( SOPHIATX_HARDFORK_0_1 ) );
 
       BOOST_TEST_MESSAGE( "Generate blocks up to the hardfork time and check hardfork still not applied" );
-      generate_blocks( fc::time_point_sec( SOPHIATX_HARDFORK_0_1_TIME - SOPHIATX_BLOCK_INTERVAL ), true );
+      generate_blocks( fc::time_point_sec( SOPHIATX_HARDFORK_0_1_TIME - chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") ), true );
 
       BOOST_REQUIRE( db->has_hardfork( 0 ) );
       BOOST_REQUIRE( !db->has_hardfork( SOPHIATX_HARDFORK_0_1 ) );
@@ -827,7 +825,7 @@ BOOST_FIXTURE_TEST_CASE( hardfork_test, database_fixture )
       BOOST_REQUIRE( db->has_hardfork( 0 ) );
       BOOST_REQUIRE( db->has_hardfork( SOPHIATX_HARDFORK_0_1 ) );
       BOOST_REQUIRE( get_last_operations( 1 )[0].get< custom_operation >().data == vector< char >( op_msg.begin(), op_msg.end() ) );
-      BOOST_REQUIRE( db->get(itr->op).timestamp == db->head_block_time() - SOPHIATX_BLOCK_INTERVAL );
+      BOOST_REQUIRE( db->get(itr->op).timestamp == db->head_block_time() - chain::sophiatx_config::get<uint32_t>("SOPHIATX_BLOCK_INTERVAL") );
 
       db->wipe( data_dir->path(), data_dir->path(), true );*/
    }

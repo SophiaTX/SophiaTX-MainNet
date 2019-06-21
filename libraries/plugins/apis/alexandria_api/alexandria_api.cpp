@@ -5,7 +5,7 @@
 #include <sophiatx/plugins/alexandria_api/alexandria_api_impl.hpp>
 #include <sophiatx/plugins/block_api/block_api.hpp>
 
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 #include <sophiatx/plugins/block_api/block_api_plugin.hpp>
@@ -14,7 +14,7 @@
 #include <sophiatx/plugins/network_broadcast_api/network_broadcast_api_plugin.hpp>
 #include <sophiatx/plugins/custom_api/custom_api_plugin.hpp>
 #include <sophiatx/plugins/subscribe_api/subscribe_api_plugin.hpp>
-#include <sophiatx/plugins/witness_api/witness_api_plugin.hpp>
+#include <sophiatx/plugins/account_bandwidth_api/account_bandwidth_api_plugin.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
@@ -53,9 +53,9 @@ void alexandria_api::init() {
       my->set_network_broadcast_api(network_broadcast->api);
    }
 
-   auto witness = appbase::app().find_plugin< witness::witness_api_plugin >();
-   if( witness != nullptr ) {
-      my->set_witness_api(witness->api);
+   auto account_bandwidth = appbase::app().find_plugin< account_bandwidth_api::account_bandwidth_api_plugin >();
+   if( account_bandwidth != nullptr ) {
+      my->set_account_bandwidth_api(account_bandwidth->api);
    }
 
    auto custom = appbase::app().find_plugin< custom::custom_api_plugin>();
@@ -113,6 +113,7 @@ DEFINE_READ_APIS(alexandria_api,
 		(get_active_witnesses)
 		(get_account)
 		(get_accounts)
+		(get_account_bandwidth)
 		(get_transaction)
 		(create_account)
 		(update_account)

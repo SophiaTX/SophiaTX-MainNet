@@ -1,5 +1,4 @@
 #include <fc/network/url.hpp>
-#include <fc/string.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/exception/exception.hpp>
 #include <fc/log/logger.hpp>
@@ -12,7 +11,7 @@ namespace fc
     class url_impl
     {
       public:
-         void parse( const fc::string& s )
+         void parse( const std::string& s )
          {
            std::stringstream ss(s);
            std::string skip,_lpath,_largs,luser,lpass;
@@ -20,11 +19,11 @@ namespace fc
            std::getline( ss, skip, '/' );
            std::getline( ss, skip, '/' );
            
-           if( s.find('@') != size_t(fc::string::npos) ) {
-             fc::string user_pass;
+           if( s.find('@') != size_t(std::string::npos) ) {
+             std::string user_pass;
              std::getline( ss, user_pass, '@' );
              std::stringstream upss(user_pass);
-             if( user_pass.find( ':' ) != size_t(fc::string::npos) ) {
+             if( user_pass.find( ':' ) != size_t(std::string::npos) ) {
                 std::getline( upss, luser, ':' );
                 std::getline( upss, lpass, ':' );
                 _user = std::move(luser);
@@ -33,12 +32,12 @@ namespace fc
                 _user = std::move(user_pass);
              }
            }
-           fc::string host_port;
+           std::string host_port;
            std::getline( ss, host_port, '/' );
            auto pos = host_port.find( ':' );
-           if( pos != fc::string::npos ) {
+           if( pos != std::string::npos ) {
               try {
-              _port = static_cast<uint16_t>(to_uint64( host_port.substr( pos+1 ) ));
+              _port = static_cast<uint16_t>(std::stoull( host_port.substr( pos+1 ) ));
               } catch ( ... ) {
                 FC_THROW_EXCEPTION( parse_error_exception, "Unable to parse port field in url",( "url", s ) );
               }
@@ -60,50 +59,50 @@ namespace fc
            _path = fc::path( "/" ) / _lpath;
 #endif
            std::getline( ss, _largs );
-           if( _args.valid() && _args->size() ) 
+           if( _args.has_value() && _args->size() )
            {
              // TODO: args = std::move(_args);
            }
          }
 
-         string                    _proto; 
+         std::string                    _proto;
          ostring                   _host;
          ostring                   _user;
          ostring                   _pass;
          opath                     _path;
          ovariant_object           _args;
-         fc::optional<uint16_t>    _port;
+         std::optional<uint16_t>    _port;
     };
   }
 
   void to_variant( const url& u, fc::variant& v )
   {
-    v = fc::string(u);
+    v = std::string(u);
   }
   void from_variant( const fc::variant& v, url& u )
   {
     u  = url( v.as_string() ); 
   }
 
-  url::operator string()const
+  url::operator std::string()const
   {
       std::stringstream ss;
       ss<<my->_proto<<"://";
-      if( my->_user.valid() ) {
+      if( my->_user.has_value() ) {
         ss << *my->_user;
-        if( my->_pass.valid() ) {
+        if( my->_pass.has_value() ) {
           ss<<":"<<*my->_pass;
         }
         ss<<"@";
       }
-      if( my->_host.valid() ) ss<<*my->_host;
-      if( my->_port.valid() ) ss<<":"<<*my->_port;
-      if( my->_path.valid() ) ss<<my->_path->generic_string();
+      if( my->_host.has_value() ) ss<<*my->_host;
+      if( my->_port.has_value() ) ss<<":"<<*my->_port;
+      if( my->_path.has_value() ) ss<<my->_path->generic_string();
     //  if( my->_args ) ss<<"?"<<*my->_args;
       return ss.str();
   }
 
-  url::url( const fc::string& u )
+  url::url( const std::string& u )
   :my( std::make_shared<detail::url_impl>() )
   {
     my->parse(u);
@@ -165,7 +164,7 @@ namespace fc
      return *this;
   }
 
-  string                    url::proto()const
+  std::string                    url::proto()const
   {
     return my->_proto;
   } 
@@ -189,7 +188,7 @@ namespace fc
   {
     return my->_args;
   }
-  fc::optional<uint16_t>    url::port()const
+  std::optional<uint16_t>    url::port()const
   {
     return my->_port;
   }

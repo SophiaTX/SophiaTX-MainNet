@@ -50,7 +50,7 @@ namespace fc { namespace ssh {
       public:
         process_impl( client_ptr c );
         ~process_impl();
-        //process_impl( const client& c, const fc::string& cmd, const fc::string& pty_type );
+        //process_impl( const client& c, const std::string& cmd, const std::string& pty_type );
         void exec(const fc::path& exe, vector<string> args, 
                   const fc::path& work_dir /* = fc::path() */, fc::iprocess::exec_opts opts /* = open_all */);
 
@@ -66,17 +66,17 @@ namespace fc { namespace ssh {
         buffered_istream_ptr buffered_std_out;
         buffered_istream_ptr buffered_std_err;
 
-        fc::string            command;
+        std::string            command;
         fc::promise<int>::ptr result;
 
-        fc::optional<int>     return_code;
+        std::optional<int>     return_code;
         fc::ostring           return_signal;
         fc::ostring           return_signal_message;
     private:
-        static fc::string windows_shell_escape(const fc::string& str);
-        static fc::string unix_shell_escape(const fc::string& str);
-        static fc::string windows_shell_escape_command(const fc::path& exe, const vector<string>& args);
-        static fc::string unix_shell_escape_command(const fc::path& exe, const vector<string>& args);
+        static std::string windows_shell_escape(const std::string& str);
+        static std::string unix_shell_escape(const std::string& str);
+        static std::string windows_shell_escape_command(const fc::path& exe, const vector<string>& args);
+        static std::string unix_shell_escape_command(const fc::path& exe, const vector<string>& args);
     };
 
   } // end namespace detail
@@ -263,21 +263,21 @@ namespace fc { namespace ssh {
    }
 
    // these rules work pretty well for a standard bash shell on unix
-   fc::string detail::process_impl::unix_shell_escape(const fc::string& str) {
-     if (str.find_first_of(" ;&|><*?`$(){}[]!#'\"") == fc::string::npos)
+   std::string detail::process_impl::unix_shell_escape(const std::string& str) {
+     if (str.find_first_of(" ;&|><*?`$(){}[]!#'\"") == std::string::npos)
         return str;
-     fc::string escaped_quotes(str);
+     std::string escaped_quotes(str);
      for (size_t start = escaped_quotes.find("'");
-          start != fc::string::npos;
+          start != std::string::npos;
           start = escaped_quotes.find("'", start + 5))
         escaped_quotes.replace(start, 1, "'\"'\"'");
-     fc::string escaped_str("\'");
+     std::string escaped_str("\'");
      escaped_str += escaped_quotes;
      escaped_str += "\'";
      return escaped_str;
    }
-   fc::string detail::process_impl::unix_shell_escape_command(const fc::path& exe, const vector<string>& args) {
-     fc::stringstream command_line;
+   std::string detail::process_impl::unix_shell_escape_command(const fc::path& exe, const vector<string>& args) {
+     std::stringstream command_line;
      command_line << unix_shell_escape(exe.string());
      for (unsigned i = 0; i < args.size(); ++i)
        command_line << " " << unix_shell_escape(args[i]);
@@ -291,21 +291,21 @@ namespace fc { namespace ssh {
    // GUI-mode programs uses a different set. 
    // Here we try to find a common denominator that works well for simple cases
    // it's only minimally tested right now due to time constraints.
-   fc::string detail::process_impl::windows_shell_escape(const fc::string& str) {
-     if (str.find_first_of(" \"") == fc::string::npos)
+   std::string detail::process_impl::windows_shell_escape(const std::string& str) {
+     if (str.find_first_of(" \"") == std::string::npos)
         return str;
-     fc::string escaped_quotes(str);
+     std::string escaped_quotes(str);
      for (size_t start = escaped_quotes.find("\"");
-          start != fc::string::npos;
+          start != std::string::npos;
           start = escaped_quotes.find("\"", start + 2))
         escaped_quotes.replace(start, 1, "\\\"");
-     fc::string escaped_str("\"");
+     std::string escaped_str("\"");
      escaped_str += escaped_quotes;
      escaped_str += "\"";
      return escaped_str;
    }
-   fc::string detail::process_impl::windows_shell_escape_command(const fc::path& exe, const vector<string>& args) {
-     fc::stringstream command_line;
+   std::string detail::process_impl::windows_shell_escape_command(const fc::path& exe, const vector<string>& args) {
+     std::stringstream command_line;
      command_line << windows_shell_escape(exe.string());
      for (unsigned i = 0; i < args.size(); ++i)
        command_line << " " << windows_shell_escape(args[i]);
@@ -321,7 +321,7 @@ namespace fc { namespace ssh {
 
         try {
           fc::scoped_lock<fc::mutex> process_startup_lock(sshc->my->process_startup_mutex);
-          fc::string command_line = sshc->my->remote_system_is_windows ? windows_shell_escape_command(exe, args) : unix_shell_escape_command(exe, args);
+          std::string command_line = sshc->my->remote_system_is_windows ? windows_shell_escape_command(exe, args) : unix_shell_escape_command(exe, args);
           sshc->my->call_ssh2_function_throw(boost::bind(libssh2_channel_process_startup, chan, "exec", sizeof("exec") - 1, command_line.c_str(), command_line.size()),
 					    "exec failed: ${message}"); // equiv to libssh2_channel_exec(chan, cmd) macro
         } catch (fc::exception& er) {

@@ -22,19 +22,19 @@ namespace detail
       json_rpc_error()
          : code( 0 ) {}
 
-      json_rpc_error( int32_t c, std::string m, fc::optional< fc::variant > d = fc::optional< fc::variant >() )
+      json_rpc_error( int32_t c, std::string m, std::optional< fc::variant > d = std::optional< fc::variant >() )
          : code( c ), message( m ), data( d ) {}
 
       int32_t                          code;
       std::string                      message;
-      fc::optional< fc::variant >      data;
+      std::optional< fc::variant >      data;
    };
 
    struct json_rpc_response
    {
       std::string                      jsonrpc = "2.0";
-      fc::optional< fc::variant >      result;
-      fc::optional< json_rpc_error >   error;
+      std::optional< fc::variant >      result;
+      std::optional< json_rpc_error >   error;
       fc::variant                      id;
    };
 
@@ -97,7 +97,7 @@ namespace detail
       void log(const fc::variant_object& request, json_rpc_response& response)
       {
          fc::path file(dir_name);
-         bool error = response.error.valid();
+         bool error = response.error.has_value();
          std::string counter_str;
 
          if (error)
@@ -138,7 +138,7 @@ namespace detail
          api_method* find_api_method( const std::string& api, const std::string& method );
          void process_params( string method, const fc::variant_object& request, std::string& api_name,
                string& method_name ,fc::variant& func_args);
-         fc::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true);
+         std::optional< fc::variant > call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock = true);
          void rpc_id( const fc::variant_object& request, json_rpc_response& response );
          void rpc_jsonrpc( const fc::variant_object& request, json_rpc_response& response, std::function<void(string)> callback );
          json_rpc_response rpc( const fc::variant& message, std::function<void(string)> callback );
@@ -165,8 +165,6 @@ namespace detail
          vector< string >                                   _methods;
          map< string, map< string, api_method_signature > > _method_sigs;
          std::unique_ptr< json_rpc_logger >                 _logger;
-         vector<string>                                     _subscribe_methods;
-         map<uint64_t, std::function<void(string)> >        _subscribe_callbacks;
    };
 
    json_rpc_plugin_impl::json_rpc_plugin_impl() {}
@@ -275,10 +273,10 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
       }
    }
 
-   fc::optional<fc::variant>
+   std::optional<fc::variant>
    json_rpc_plugin_impl::call_api_method(const string &api_name, const string &method_name, const fc::variant &func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback, bool lock) {
       if( _registered_apis.find(api_name) == _registered_apis.end() && remote::remote_db::initialized()) {
-         return fc::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
+         return std::optional<fc::variant>(remote::remote_db::remote_call(api_name, method_name, func_args));
       } else {
          api_method *call = find_api_method(api_name, method_name);
          return (*call)(func_args, notify_callback, lock);
@@ -314,7 +312,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
 
                   try
                   {
-                     if(!response.error.valid())
+                     if(!response.error.has_value())
                      {
                         std::function<void( fc::variant&, uint64_t )> notify = [callback](fc::variant& notify_message, uint64_t notify_id)->void
                         {
@@ -379,7 +377,7 @@ void json_rpc_plugin_impl::process_params( string method, const fc::variant_obje
          // This second layer try/catch is to isolate errors that occur after parsing the id so that the id is properly returned.
          try
          {
-            if( !response.error.valid() )
+            if( !response.error.has_value() )
                rpc_jsonrpc( request, response, callback );
          }
          catch( fc::exception& e )
@@ -582,7 +580,7 @@ uint64_t json_rpc_plugin::generate_subscription_id(){
    return _next_id++;
 };
 
-fc::optional< fc::variant > json_rpc_plugin::call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const {
+std::optional< fc::variant > json_rpc_plugin::call_api_method(const string& api_name, const string& method_name, const fc::variant& func_args, const std::function<void( fc::variant&, uint64_t )>& notify_callback) const {
    return my->call_api_method( api_name, method_name, func_args, notify_callback, false);
 }
 

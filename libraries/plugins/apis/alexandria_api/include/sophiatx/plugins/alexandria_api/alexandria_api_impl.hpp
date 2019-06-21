@@ -10,7 +10,7 @@
 #include <sophiatx/plugins/network_broadcast_api/network_broadcast_api.hpp>
 #include <sophiatx/plugins/custom_api/custom_api.hpp>
 #include <sophiatx/plugins/subscribe_api/subscribe_api.hpp>
-#include <sophiatx/plugins/witness_api/witness_api.hpp>
+#include <sophiatx/plugins/account_bandwidth_api/account_bandwidth_api.hpp>
 
 namespace sophiatx { namespace plugins { namespace alexandria_api {
 
@@ -39,8 +39,8 @@ public:
    const shared_ptr<network_broadcast_api::network_broadcast_api> &get_network_broadcast_api() const;
    void set_network_broadcast_api(const shared_ptr<network_broadcast_api::network_broadcast_api> &network_broadcast_api);
 
-   const shared_ptr<witness::witness_api> &get_witness_api() const;
-   void set_witness_api(const shared_ptr<witness::witness_api> &witness_api);
+   const shared_ptr<account_bandwidth_api::account_bandwidth_api> &get_account_bandwidth_api() const;
+   void set_account_bandwidth_api(const shared_ptr<account_bandwidth_api::account_bandwidth_api> &account_bandwidth_api);
 
    const shared_ptr<custom::custom_api> &get_custom_api() const;
    void set_custom_api(const shared_ptr<custom::custom_api> &custom_api);
@@ -63,6 +63,7 @@ public:
          (get_active_witnesses)
          (get_account)
          (get_accounts)
+         (get_account_bandwidth)
          (get_transaction)
          (create_account)
          (update_account)
@@ -141,7 +142,7 @@ private:
    std::shared_ptr< account_history::account_history_api >           _account_history_api;
    std::shared_ptr< account_by_key::account_by_key_api >             _account_by_key_api;
    std::shared_ptr< network_broadcast_api::network_broadcast_api >   _network_broadcast_api;
-   std::shared_ptr< witness::witness_api >                           _witness_api;
+   std::shared_ptr< account_bandwidth_api::account_bandwidth_api>    _account_bandwidth_api;
    std::shared_ptr< custom::custom_api >                             _custom_api;
    std::shared_ptr< subscribe::subscribe_api >                       _subscribe_api;
 

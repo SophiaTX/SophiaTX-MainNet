@@ -46,12 +46,12 @@ namespace fc { namespace ssh {
         fc::mutex                   scp_readdir_mutex;
         fc::mutex                   scp_open_mutex;
 
-        fc::string                  uname;
-        fc::string                  upass;
-        fc::string                  pubkey;
-        fc::string                  privkey;
-        fc::string                  passphrase;
-        fc::string                  hostname;
+        std::string                  uname;
+        std::string                  upass;
+        std::string                  pubkey;
+        std::string                  privkey;
+        std::string                  passphrase;
+        std::string                  hostname;
         uint16_t                    port;
         bool                        session_connected;
         fc::promise<boost::system::error_code>::ptr      read_prom;
@@ -62,7 +62,7 @@ namespace fc { namespace ssh {
 
         bool                        remote_system_is_windows; // true if windows, false if unix, used for command-line quoting and maybe filename translation
 
-        LIBSSH2_CHANNEL*   open_channel( const fc::string& pty_type );
+        LIBSSH2_CHANNEL*   open_channel( const std::string& pty_type );
         static void kbd_callback(const char *name, int name_len, 
                      const char *instruction, int instruction_len, int num_prompts,
                      const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,

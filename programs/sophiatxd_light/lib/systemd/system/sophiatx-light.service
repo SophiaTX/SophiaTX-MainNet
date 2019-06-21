@@ -1,0 +1,16 @@
+[Unit]
+Description=SophiaTX-light Blockchain Client Service
+Documentation=https://developers.sophiatx.com/
+Requires=syslog.socket
+
+[Service]
+EnvironmentFile=-/etc/default/sophiatxd-light
+Type=simple
+User=sophiatxd-light
+Group=sophiatxd-light
+ExecStart=/usr/bin/sophiatxd_light --config /etc/sophiatxd-light/config.ini --data-dir /var/lib/sophiatxd-light $SOPHIATX_OPTS
+StandardOutput=journal
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

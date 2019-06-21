@@ -5,6 +5,8 @@
 
 #include <sophiatx/remote_db/remote_db.hpp>
 
+#include <fc/string_utils.hpp>
+
 
 namespace sophiatx {
 namespace plugins {
@@ -84,7 +86,9 @@ void chain_plugin_lite::plugin_startup() {
 
    remote::remote_db::init(ws_endpoint);
 
-   db_->open(db_open_args, genesis_state_type(), public_key_type());
+    sophiatx::chain::sophiatx_config::init(remote::remote_db::remote_call("database_api", "get_config", fc::variant_object()));
+
+   db_->open(db_open_args, genesis_state_type());
 }
 
 void chain_plugin_lite::plugin_shutdown() {

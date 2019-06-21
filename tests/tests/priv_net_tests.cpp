@@ -8,8 +8,6 @@
 #include <sophiatx/chain/sophiatx_objects.hpp>
 #include <sophiatx/chain/application_object.hpp>
 
-#include <sophiatx/plugins/witness/witness_objects.hpp>
-
 #include <fc/macros.hpp>
 #include <fc/crypto/digest.hpp>
 
@@ -22,7 +20,6 @@
 using namespace sophiatx;
 using namespace sophiatx::chain;
 using namespace sophiatx::protocol;
-using fc::string;
 
 #define DUMP( x ) {fc::variant vo; fc::to_variant( x , vo); std::cout<< fc::json::to_string(vo) <<"\n";}
 BOOST_FIXTURE_TEST_SUITE( operation_tests, private_database_fixture )
@@ -92,7 +89,7 @@ BOOST_AUTO_TEST_CASE( priv_witness_update_apply )
       op.owner = AN("alice");
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -157,7 +154,7 @@ BOOST_AUTO_TEST_CASE( priv_admin_witness_update_apply )
       op.owner = AN("alice");
       op.url = "foo.bar";
       op.block_signing_key = signing_key.get_public_key();
-      op.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
 
       signed_transaction tx;
       tx.set_expiration( db->head_block_time() + SOPHIATX_MAX_TIME_UNTIL_EXPIRATION );
@@ -187,7 +184,7 @@ BOOST_AUTO_TEST_CASE( priv_admin_witness_update_apply )
       op2.url = "bar.foo";
       op2.owner = AN("alice");
       op2.block_signing_key = signing_key.get_public_key();
-      op2.props.maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT + 100;
+      op2.props.maximum_block_size = chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") + 100;
       tx.operations.push_back( op2 );
       sign(tx, alice_private_key );
 

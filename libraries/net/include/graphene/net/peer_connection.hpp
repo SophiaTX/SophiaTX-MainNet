@@ -107,7 +107,7 @@ namespace graphene { namespace net
       };
     private:
       peer_connection_delegate*      _node;
-      fc::optional<fc::ip::endpoint> _remote_endpoint;
+      std::optional<fc::ip::endpoint> _remote_endpoint;
       message_oriented_connection    _message_connection;
 
       /* a base class for messages on the queue, to hide the fact that some
@@ -201,13 +201,13 @@ namespace graphene { namespace net
       node_id_t        node_id;
       uint32_t         core_protocol_version = 0;
       std::string      user_agent;
-      fc::optional<std::string> graphene_git_revision_sha;
-      fc::optional<fc::time_point_sec> graphene_git_revision_unix_timestamp;
-      fc::optional<std::string> fc_git_revision_sha;
-      fc::optional<fc::time_point_sec> fc_git_revision_unix_timestamp;
-      fc::optional<std::string> platform;
-      fc::optional<uint32_t> bitness;
-      fc::optional<sophiatx::protocol::chain_id_type> chain_id;
+      std::optional<std::string> graphene_git_revision_sha;
+      std::optional<fc::time_point_sec> graphene_git_revision_unix_timestamp;
+      std::optional<std::string> fc_git_revision_sha;
+      std::optional<fc::time_point_sec> fc_git_revision_unix_timestamp;
+      std::optional<std::string> platform;
+      std::optional<uint32_t> bitness;
+      std::optional<sophiatx::protocol::chain_id_type> chain_id;
 
       // for inbound connections, these fields record what the peer sent us in
       // its hello message.  For outbound, they record what we sent the peer
@@ -226,7 +226,7 @@ namespace graphene { namespace net
       uint32_t number_of_unfetched_item_ids = 0; /// number of items in the blockchain that follow ids_of_items_to_get but the peer hasn't yet told us their ids
       bool peer_needs_sync_items_from_us = false;
       bool we_need_sync_items_from_peer = false;
-      fc::optional<boost::tuple<std::vector<item_hash_t>, fc::time_point> > item_ids_requested_from_peer; /// we check this to detect a timed-out request and in busy()
+      std::optional<boost::tuple<std::vector<item_hash_t>, fc::time_point> > item_ids_requested_from_peer; /// we check this to detect a timed-out request and in busy()
       fc::time_point last_sync_item_received_time; /// the time we received the last sync item or the time we sent the last batch of sync item requests to this peer
       std::set<item_hash_t> sync_items_requested_from_peer; /// ids of blocks we've requested from this peer during sync.  fetch from another peer if this peer disconnects
       item_hash_t last_block_delegate_has_seen; /// the hash of the last block  this peer has told us about that the peer knows
@@ -281,7 +281,7 @@ namespace graphene { namespace net
 
       fc::tcp_socket& get_socket();
       void accept_connection();
-      void connect_to(const fc::ip::endpoint& remote_endpoint, fc::optional<fc::ip::endpoint> local_endpoint = fc::optional<fc::ip::endpoint>());
+      void connect_to(const fc::ip::endpoint& remote_endpoint, std::optional<fc::ip::endpoint> local_endpoint = std::optional<fc::ip::endpoint>());
 
       void on_message(message_oriented_connection* originating_connection, const message& received_message) override;
       void on_connection_closed(message_oriented_connection* originating_connection) override;
@@ -298,9 +298,9 @@ namespace graphene { namespace net
       fc::time_point get_last_message_sent_time() const;
       fc::time_point get_last_message_received_time() const;
 
-      fc::optional<fc::ip::endpoint> get_remote_endpoint();
+      std::optional<fc::ip::endpoint> get_remote_endpoint();
       fc::ip::endpoint get_local_endpoint();
-      void set_remote_endpoint(fc::optional<fc::ip::endpoint> new_remote_endpoint);
+      void set_remote_endpoint(std::optional<fc::ip::endpoint> new_remote_endpoint);
 
       bool busy() const;
       bool idle() const;
@@ -312,7 +312,7 @@ namespace graphene { namespace net
       bool is_inventory_advertised_to_us_list_full_for_transactions() const;
       bool is_inventory_advertised_to_us_list_full() const;
       bool performing_firewall_check() const;
-      fc::optional<fc::ip::endpoint> get_endpoint_for_connecting() const;
+      std::optional<fc::ip::endpoint> get_endpoint_for_connecting() const;
     private:
       void send_queued_messages_task();
       void accept_connection_task();

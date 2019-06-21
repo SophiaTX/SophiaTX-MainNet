@@ -3,6 +3,7 @@
 #include <boost/thread.hpp>
 #include <fc/log/logger.hpp>
 #include <fc/exception/exception.hpp>
+#include <boost/scope_exit.hpp>
 
 namespace fc {
   namespace asio {
@@ -104,6 +105,13 @@ namespace fc {
                asio_threads.push_back( new boost::thread( [=]()
                {
                  fc::thread::current().set_name("asio");
+
+                 BOOST_SCOPE_EXIT(void)
+                 {
+                     fc::thread::cleanup();
+                 }
+                 BOOST_SCOPE_EXIT_END
+
                  while (!io->stopped())
                  {
                    try

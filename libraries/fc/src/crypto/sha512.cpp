@@ -10,14 +10,14 @@
 namespace fc {
 
     sha512::sha512() { memset( _hash, 0, sizeof(_hash) ); }
-    sha512::sha512( const string& hex_str ) {
+    sha512::sha512( const std::string& hex_str ) {
       fc::from_hex( hex_str, (char*)_hash, sizeof(_hash) );  
     }
 
-    string sha512::str()const {
+    std::string sha512::str()const {
       return fc::to_hex( (char*)_hash, sizeof(_hash) );
     }
-    sha512::operator string()const { return  str(); }
+    sha512::operator std::string()const { return  str(); }
 
     char* sha512::data()const { return (char*)&_hash[0]; }
 
@@ -36,7 +36,7 @@ namespace fc {
       e.write(d,dlen);
       return e.result();
     }
-    sha512 sha512::hash( const string& s ) {
+    sha512 sha512::hash( const std::string& s ) {
       return hash( s.c_str(), s.size() );
     }
 

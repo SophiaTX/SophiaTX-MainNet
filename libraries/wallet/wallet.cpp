@@ -291,7 +291,7 @@ public:
    //          account, false otherwise (but it is stored either way)
    bool import_key(string wif_key)
    {
-      fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
+      std::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
       if (!optional_private_key)
          FC_THROW("Invalid private key");
       sophiatx::chain::public_key_type wif_pub_key = optional_private_key->get_public_key();
@@ -475,7 +475,7 @@ public:
          result_type operator()( base_operation& bop){
             if(bop.has_special_fee())
                return;
-            asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
+            asset req_fee = bop.get_required_fee(chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
             bop.fee = req_fee;
          };
       };
@@ -536,7 +536,7 @@ public:
       size_t i = 0;
       for( const optional< alexandria_api::api_account_object >& approving_acct : approving_account_objects )
       {
-         if( !approving_acct.valid() )
+         if( !approving_acct.has_value() )
          {
             wlog( "operation_get_required_auths said approval of non-existing account ${name} was needed",
                   ("name", v_approving_account_names[i]) );
@@ -611,8 +611,8 @@ public:
          auto it = _keys.find(key);
          if( it != _keys.end() )
          {
-            fc::optional<fc::ecc::private_key> privkey = wif_to_key( it->second );
-            FC_ASSERT( privkey.valid(), "Malformed private key in _keys" );
+            std::optional<fc::ecc::private_key> privkey = wif_to_key( it->second );
+            FC_ASSERT( privkey.has_value(), "Malformed private key in _keys" );
             available_keys.insert(key);
             available_private_keys[key] = *privkey;
          }
@@ -854,7 +854,7 @@ bool wallet_api::import_key(string wif_key)
 {
    FC_ASSERT(!is_locked());
    // backup wallet
-   fc::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
+   std::optional<fc::ecc::private_key> optional_private_key = wif_to_key(wif_key);
    if (!optional_private_key)
       FC_THROW("Invalid private key");
 //   string shorthash = detail::pubkey_to_shorthash( optional_private_key->get_public_key() );
@@ -1417,7 +1417,7 @@ annotated_signed_transaction wallet_api::update_witness( string witness_account_
 
 
    optional< alexandria_api::api_witness_object > wit = my->get_witness( witness_account_name ).witness;
-   if( !wit.valid() )
+   if( !wit.has_value() )
    {
       op.url = url;
    }

@@ -3,7 +3,7 @@
 #include <fc/reflect/reflect.hpp>
 #include <fc/io/datastream.hpp>
 #include <fc/io/varint.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/fwd.hpp>
 #include <fc/array.hpp>
 #include <fc/time.hpp>
@@ -206,7 +206,7 @@ namespace fc {
        FC_ASSERT( vi == tmp );
     }
 
-    template<typename Stream> inline void pack( Stream& s, const char* v ) { fc::raw::pack( s, fc::string(v) ); }
+    template<typename Stream> inline void pack( Stream& s, const char* v ) { fc::raw::pack( s, std::string(v) ); }
 
     template<typename Stream, typename T>
     void pack( Stream& s, const safe<T>& v ) { fc::raw::pack( s, v.value ); }
@@ -232,13 +232,13 @@ namespace fc {
 
     // optional
     template<typename Stream, typename T>
-    void pack( Stream& s, const fc::optional<T>& v ) {
-      fc::raw::pack( s, bool(!!v) );
-      if( !!v ) fc::raw::pack( s, *v );
+    void pack( Stream& s, const std::optional<T>& v ) {
+      fc::raw::pack( s, bool(!!v.has_value()) );
+      if( !!v.has_value() ) fc::raw::pack( s, *v );
     }
 
     template<typename Stream, typename T>
-    void unpack( Stream& s, fc::optional<T>& v, uint32_t depth )
+    void unpack( Stream& s, std::optional<T>& v, uint32_t depth )
     { try {
       FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
       depth++;
@@ -262,20 +262,20 @@ namespace fc {
         s.read( value.data(), value.size() );
     }
 
-    // fc::string
-    template<typename Stream> inline void pack( Stream& s, const fc::string& v )  {
+    // std::string
+    template<typename Stream> inline void pack( Stream& s, const std::string& v )  {
       fc::raw::pack( s, unsigned_int((uint32_t)v.size()));
       if( v.size() ) s.write( v.c_str(), v.size() );
     }
 
-    template<typename Stream> inline void unpack( Stream& s, fc::string& v, uint32_t depth ) {
+    template<typename Stream> inline void unpack( Stream& s, std::string& v, uint32_t depth ) {
       FC_ASSERT( depth <= MAX_RECURSION_DEPTH );
       depth++;
       std::vector<char> tmp;
       fc::raw::unpack(s,tmp, depth);
       if( tmp.size() )
-         v = fc::string(tmp.data(),tmp.data()+tmp.size());
-      else v = fc::string();
+         v = std::string(tmp.data(),tmp.data()+tmp.size());
+      else v = std::string();
     }
 
     // bool

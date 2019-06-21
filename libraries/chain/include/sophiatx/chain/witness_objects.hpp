@@ -2,6 +2,7 @@
 
 #include <sophiatx/protocol/authority.hpp>
 #include <sophiatx/protocol/sophiatx_operations.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 
@@ -35,13 +36,13 @@ struct shared_chain_properties
     *  fee requires all accounts to have some kind of commitment to the network that includes the
     *  ability to vote and make transactions.
     */
-   asset account_creation_fee = asset( SOPHIATX_MIN_ACCOUNT_CREATION_FEE, SOPHIATX_SYMBOL );
+   asset account_creation_fee = asset( chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_ACCOUNT_CREATION_FEE"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
    /**
     *  This witnesses vote for the maximum_block_size which is used by the network
     *  to tune rate limiting and capacity
     */
-   uint32_t          maximum_block_size = SOPHIATX_MIN_BLOCK_SIZE_LIMIT * 2;
+   uint32_t          maximum_block_size;
 
    typedef bip::allocator< shared_chain_properties, bip::managed_mapped_file::segment_manager >                  allocator_type;
 
@@ -54,7 +55,8 @@ struct shared_chain_properties
 
    template< typename Allocator >
    shared_chain_properties( const Allocator& alloc ) :
-         price_feeds( price_feed_allocator_type( alloc.get_segment_manager() ) ) {}
+           maximum_block_size(chain::sophiatx_config::get<uint32_t>("SOPHIATX_MIN_BLOCK_SIZE_LIMIT") * 2),
+           price_feeds( price_feed_allocator_type( alloc.get_segment_manager() ) ) {}
 
    shared_chain_properties& operator=( const chain_properties& a ){
       price_feeds.clear();
@@ -195,18 +197,20 @@ struct shared_chain_properties
    {
       public:
          template< typename Constructor, typename Allocator >
-         witness_schedule_object( Constructor&& c, allocator< Allocator > a )
+         witness_schedule_object( Constructor&& c, allocator< Allocator > a ) :
+         current_shuffled_witnesses(a.get_segment_manager()),
+         max_voted_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_VOTED_WITNESSES_HF0")),
+         max_runner_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_MAX_RUNNER_WITNESSES_HF0")),
+         hardfork_required_witnesses(chain::sophiatx_config::get<uint8_t>("SOPHIATX_HARDFORK_REQUIRED_WITNESSES"))
          {
             c( *this );
          }
-
-         witness_schedule_object(){}
 
          id_type                                                           id;
 
          fc::uint128                                                       current_virtual_time;
          uint32_t                                                          next_shuffle_block_num = 1;
-         fc::array< account_name_type, SOPHIATX_MAX_WITNESSES >             current_shuffled_witnesses;
+         shared_vector< account_name_type >                                current_shuffled_witnesses;
          uint8_t                                                           num_scheduled_witnesses = 1;
          uint8_t                                                           top19_weight = 21;
          uint8_t                                                           timeshare_weight = 63;
@@ -214,9 +218,9 @@ struct shared_chain_properties
          chain_properties                                                  median_props;
          version                                                           majority_version;
 
-         uint8_t max_voted_witnesses            = SOPHIATX_MAX_VOTED_WITNESSES_HF0;
-         uint8_t max_runner_witnesses           = SOPHIATX_MAX_RUNNER_WITNESSES_HF0;
-         uint8_t hardfork_required_witnesses    = SOPHIATX_HARDFORK_REQUIRED_WITNESSES;
+         uint8_t max_voted_witnesses;
+         uint8_t max_runner_witnesses;
+         uint8_t hardfork_required_witnesses;
    };
 
 

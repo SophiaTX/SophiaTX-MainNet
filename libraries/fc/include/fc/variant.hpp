@@ -8,10 +8,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include <string.h> // memset
+#include <string>
 
-#include <fc/optional.hpp>
-#include <fc/string.hpp>
+#include <optional>
 #include <fc/container/flat_fwd.hpp>
 #include <boost/multi_index_container_fwd.hpp>
 
@@ -90,9 +89,9 @@ namespace fc
    void from_variant( const variant& var, fc::flat_map<K, T, A...>& vo );
 
    template<typename T>
-   void to_variant( const std::map<string,T>& var,  variant& vo );
+   void to_variant( const std::map<std::string,T>& var,  variant& vo );
    template<typename T>
-   void from_variant( const variant& var,  std::map<string,T>& vo );
+   void from_variant( const variant& var,  std::map<std::string,T>& vo );
 
    template<typename K, typename T>
    void to_variant( const std::map<K,T>& var,  variant& vo );
@@ -204,7 +203,7 @@ namespace fc
         variant( double val );
         variant( bool val );
         variant( blob val );
-        variant( fc::string val );
+        variant( std::string val );
         variant( variant_object );
         variant( mutable_variant_object );
         variant( variants );
@@ -225,7 +224,7 @@ namespace fc
               virtual void handle( const uint64_t& v )const      = 0;
               virtual void handle( const double& v )const        = 0;
               virtual void handle( const bool& v )const          = 0;
-              virtual void handle( const string& v )const        = 0;
+              virtual void handle( const std::string& v )const        = 0;
               virtual void handle( const variant_object& v)const = 0;
               virtual void handle( const variants& v)const       = 0;
         };
@@ -264,10 +263,10 @@ namespace fc
         /** Convert's double, ints, bools, etc to a string
          * @throw if get_type() == array_type | get_type() == object_type 
          */
-        string                      as_string()const;
+        std::string                      as_string()const;
 
         /// @pre  get_type() == string_type
-        const string&               get_string()const;
+        const std::string&               get_string()const;
                                     
         /// @throw if get_type() != array_type | null_type
         variants&                   get_array();
@@ -324,10 +323,10 @@ namespace fc
         }
 
         template<typename T>
-        variant( const optional<T>& v )
+        variant( const std::optional<T>& v )
         {
            memset( this, 0, sizeof(*this) );
-           if( v.valid() ) *this = variant(*v);
+           if( v.has_value() ) *this = variant(*v);
         }
 
         template<typename T>
@@ -340,10 +339,10 @@ namespace fc
         double  _data;                ///< Alligned according to double requirements
         char    _type[sizeof(void*)]; ///< pad to void* size
    };
-   typedef optional<variant> ovariant;
+   typedef std::optional<variant> ovariant;
   
    /** @ingroup Serializable */
-   void from_variant( const variant& var,  string& vo );
+   void from_variant( const variant& var,  std::string& vo );
    /** @ingroup Serializable */
    void from_variant( const variant& var,  variants& vo );
    void from_variant( const variant& var,  variant& vo );
@@ -363,9 +362,9 @@ namespace fc
    void from_variant( const variant& var,  uint32_t& vo );
    /** @ingroup Serializable */
    template<typename T>
-   void from_variant( const variant& var,  optional<T>& vo )
+   void from_variant( const variant& var,  std::optional<T>& vo )
    {
-      if( var.is_null() ) vo = optional<T>();
+      if( var.is_null() ) vo = std::optional<T>();
       else
       {
           vo = T();

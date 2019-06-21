@@ -58,12 +58,12 @@ void alexandria_api_impl::set_network_broadcast_api(const shared_ptr<network_bro
    _network_broadcast_api = network_broadcast_api;
 }
 
-const shared_ptr<witness::witness_api> &alexandria_api_impl::get_witness_api() const {
-   return _witness_api;
+const shared_ptr<account_bandwidth_api::account_bandwidth_api>& alexandria_api_impl::get_account_bandwidth_api() const {
+   return _account_bandwidth_api;
 }
 
-void alexandria_api_impl::set_witness_api(const shared_ptr<witness::witness_api> &witness_api) {
-   _witness_api = witness_api;
+void alexandria_api_impl::set_account_bandwidth_api(const shared_ptr<account_bandwidth_api::account_bandwidth_api> &account_bandwidth_api) {
+   _account_bandwidth_api = account_bandwidth_api;
 }
 
 const shared_ptr<custom::custom_api> &alexandria_api_impl::get_custom_api() const {
@@ -107,7 +107,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_block) {
    auto block = _block_api->get_block( { args.num } ).block;
 
    if( block) {
-      result.block = api_signed_block(*block);
+      result.block.emplace(api_signed_block(*block));
    }
 
    return result;
@@ -148,11 +148,11 @@ DEFINE_API_IMPL(alexandria_api_impl, info)
 {
    checkApiEnabled(_database_api);
 
-   auto dynamic_props = get_dynamic_global_properties( {} ).properties;
+   auto dynamic_props = _database_api->get_dynamic_global_properties( {} );
    fc::mutable_variant_object info_data(fc::variant(dynamic_props).get_object());
 
-   info_data["witness_majority_version"] = fc::string( _database_api->get_witness_schedule( {} ).majority_version );
-   info_data["hardfork_version"] = fc::string( _database_api->get_hardfork_properties( {} ).current_hardfork_version );
+   info_data["witness_majority_version"] = std::string( _database_api->get_witness_schedule( {} ).majority_version );
+   info_data["hardfork_version"] = std::string( _database_api->get_hardfork_properties( {} ).current_hardfork_version );
    //info_data["head_block_id"] = dynamic_props.head_block_id;
    info_data["head_block_age"] = fc::get_approximate_relative_time_string(dynamic_props.time,
                                                                        time_point_sec(time_point::now()),
@@ -320,7 +320,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_account)
    op.active = authority( 1, args.active, 1 );
    op.memo_key = args.memo;
    op.json_metadata = args.json_meta;
-   op.fee = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee * asset( 1, SOPHIATX_SYMBOL );
+   op.fee = _database_api->get_witness_schedule( {} ).median_props.account_creation_fee * asset( 1, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
    create_account_return result;
    result.op = std::move(op);
@@ -541,6 +541,15 @@ DEFINE_API_IMPL(alexandria_api_impl, get_accounts) {
    return result;
 }
 
+DEFINE_API_IMPL(alexandria_api_impl, get_account_bandwidth) {
+   get_account_bandwidth_return result;
+
+   checkApiEnabled(_account_bandwidth_api);
+   result.bandwidth = _account_bandwidth_api->get_account_bandwidth( { args.account } ).bandwidth;
+
+   return result;
+}
+
 DEFINE_API_IMPL(alexandria_api_impl, delete_application)
 {
    delete_application_return result;
@@ -745,7 +754,6 @@ DEFINE_API_IMPL(alexandria_api_impl, broadcast_transaction)
 DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
 {
    checkApiEnabled(_database_api);
-   checkApiEnabled(_witness_api);
 
    //set fees first
    signed_transaction tx;
@@ -756,7 +764,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
      result_type operator()( base_operation& bop){
         if(bop.has_special_fee())
            return;
-        asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
+        asset req_fee = bop.get_required_fee(chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
         bop.fee = req_fee;
      };
    };
@@ -769,7 +777,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_transaction)
       tx.operations.push_back(op);
    }
 
-   auto dyn_props = get_dynamic_global_properties( {} ).properties;
+   auto dyn_props = _database_api->get_dynamic_global_properties( {} );
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -793,7 +801,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_transaction)
      result_type operator()( base_operation& bop){
         if(bop.has_special_fee())
            return;
-        asset req_fee = bop.get_required_fee(SOPHIATX_SYMBOL);
+        asset req_fee = bop.get_required_fee(chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
         bop.fee = req_fee;
      };
    };
@@ -803,7 +811,7 @@ DEFINE_API_IMPL(alexandria_api_impl, create_simple_transaction)
    op.visit(op_v);
    tx.operations.push_back(op);
 
-   auto dyn_props = get_dynamic_global_properties( {} ).properties;
+   auto dyn_props = _database_api->get_dynamic_global_properties( {} );
 
    tx.set_reference_block( dyn_props.head_block_id );
    tx.set_expiration( dyn_props.time + fc::seconds(_tx_expiration_seconds) );
@@ -918,7 +926,7 @@ DEFINE_API_IMPL(alexandria_api_impl, add_fee)
 DEFINE_API_IMPL(alexandria_api_impl, sign_digest)
 {
    auto priv_key = sophiatx::utilities::wif_to_key(args.pk);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    sign_digest_return result;
    result.signed_digest = priv_key->sign_compact(args.digest);
@@ -999,7 +1007,7 @@ DEFINE_API_IMPL(alexandria_api_impl, generate_key_pair_from_brain_key)
 DEFINE_API_IMPL(alexandria_api_impl, get_public_key)
 {
    auto priv_key = sophiatx::utilities::wif_to_key(args.private_key);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    get_public_key_return result;
    result.public_key = priv_key->get_public_key();
@@ -1028,7 +1036,7 @@ DEFINE_API_IMPL(alexandria_api_impl, encrypt_data)
    memo_data m;
 
    auto priv_key = utilities::wif_to_key(args.private_key);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    m.nonce = fc::time_point::now().time_since_epoch().count();
 
@@ -1055,7 +1063,7 @@ DEFINE_API_IMPL(alexandria_api_impl, decrypt_data)
 
    fc::sha512 shared_secret;
    auto priv_key = sophiatx::utilities::wif_to_key(args.private_key);
-   FC_ASSERT( priv_key.valid(), "Malformed private key" );
+   FC_ASSERT( priv_key.has_value(), "Malformed private key" );
 
    shared_secret = priv_key->get_shared_secret(args.public_key);
 
@@ -1262,7 +1270,7 @@ DEFINE_API_IMPL(alexandria_api_impl, calculate_fee)
       typedef asset result_type;
       result_type operator()(const base_operation& bop){
          if(bop.has_special_fee())
-            return asset(0, SOPHIATX_SYMBOL);
+            return asset(0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
          asset req_fee = bop.get_required_fee(symbol);
          FC_ASSERT(symbol == req_fee.symbol, "fee cannot be paid in with symbol ${s}", ("s", bop.fee.symbol));
          return req_fee;
@@ -1272,7 +1280,9 @@ DEFINE_API_IMPL(alexandria_api_impl, calculate_fee)
 
    result.fee = args.op.visit(op_v);
    //check if the symbol has current price feed
-   FC_ASSERT(result.fee.symbol == SOPHIATX_SYMBOL || fiat_to_sphtx( { result.fee } ).sphtx.symbol == SOPHIATX_SYMBOL, "no current feed for this symbol");
+   FC_ASSERT(result.fee.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") ||
+           fiat_to_sphtx( { result.fee } ).sphtx.symbol == chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"),
+                   "no current feed for this symbol");
 
    return result;
 }
@@ -1321,7 +1331,7 @@ DEFINE_API_IMPL(alexandria_api_impl, get_required_signatures)
    size_t i = 0;
    for( const optional<alexandria_api::api_account_object>& approving_acct : approving_account_objects )
    {
-      if( !approving_acct.valid() )
+      if( !approving_acct.has_value() )
       {
          wlog( "operation_get_required_auths said approval of non-existing account ${name} was needed",
                ("name", v_approving_account_names[i]) );
@@ -1398,10 +1408,10 @@ DEFINE_API_IMPL(alexandria_api_impl, get_version)
 {
    get_version_return result;
    result.version_info = get_version_info (
-      fc::string( SOPHIATX_BLOCKCHAIN_VERSION ),
-      fc::string( sophiatx::utilities::git_revision_sha ),
-      fc::string( fc::git_revision_sha ),
-      fc::string( get_chain_id()  )
+      std::string( SOPHIATX_BLOCKCHAIN_VERSION ),
+      std::string( sophiatx::utilities::git_revision_sha ),
+      std::string( fc::git_revision_sha ),
+      std::string( get_chain_id()  )
       );
 
    return result;

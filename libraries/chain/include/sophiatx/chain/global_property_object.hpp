@@ -4,6 +4,7 @@
 #include <sophiatx/chain/sophiatx_object_types.hpp>
 
 #include <sophiatx/protocol/asset.hpp>
+#include <sophiatx/chain/get_config.hpp>
 
 namespace sophiatx { namespace chain {
 
@@ -23,7 +24,8 @@ namespace sophiatx { namespace chain {
    {
       public:
          template< typename Constructor, typename Allocator >
-         dynamic_global_property_object( Constructor&& c, allocator< Allocator > a )
+         dynamic_global_property_object( Constructor&& c, allocator< Allocator > a ) :
+                 witness_required_vesting(chain::sophiatx_config::get<uint64_t>("SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE"), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") )
          {
             c( *this );
          }
@@ -37,11 +39,11 @@ namespace sophiatx { namespace chain {
          time_point_sec    time;
          account_name_type current_witness;
 
-         asset       current_supply             = asset( 0, SOPHIATX_SYMBOL );
+         asset       current_supply             = asset( 0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
          asset       total_vesting_shares       = asset( 0, VESTS_SYMBOL );
-         asset       total_reward_fund    = asset( 0, SOPHIATX_SYMBOL );
+         asset       total_reward_fund    = asset( 0, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL") );
 
-         asset       witness_required_vesting  = asset( SOPHIATX_INITIAL_WITNESS_REQUIRED_VESTING_BALANCE, SOPHIATX_SYMBOL );
+         asset       witness_required_vesting;
 
 
          /**

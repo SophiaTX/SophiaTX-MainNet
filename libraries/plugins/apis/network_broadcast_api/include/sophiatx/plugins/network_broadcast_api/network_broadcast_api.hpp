@@ -5,7 +5,7 @@
 #include <sophiatx/plugins/chain/chain_plugin.hpp>
 #include <sophiatx/plugins/json_rpc/utility.hpp>
 
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/variant.hpp>
 
 #include <boost/thread/mutex.hpp>
@@ -14,7 +14,7 @@ namespace sophiatx { namespace plugins { namespace network_broadcast_api {
 
 using std::vector;
 using fc::variant;
-using fc::optional;
+using std::optional;
 using sophiatx::plugins::json_rpc::void_type;
 
 using sophiatx::protocol::signed_transaction;

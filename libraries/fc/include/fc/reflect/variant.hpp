@@ -25,9 +25,9 @@ namespace fc
 
       private:
          template<typename M>
-         void add( mutable_variant_object& vo, const char* name, const optional<M>& v )const
+         void add( mutable_variant_object& vo, const char* name, const std::optional<M>& v )const
          { 
-            if( v.valid() )
+            if( v.has_value() )
                vo(name,*v);
          }
          template<typename M>
@@ -81,7 +81,7 @@ namespace fc
        template<typename T>
        static inline void to_variant( const T& o, fc::variant& v ) 
        { 
-           v = fc::reflector<T>::to_fc_string(o);
+           v = fc::reflector<T>::to_std_string(o);
        }
        template<typename T>
        static inline void from_variant( const fc::variant& v, T& o ) 

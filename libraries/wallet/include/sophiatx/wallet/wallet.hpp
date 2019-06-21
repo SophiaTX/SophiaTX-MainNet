@@ -767,7 +767,7 @@ class wallet_api
 
       std::map<string,std::function<string(fc::variant,const fc::variants&)>> get_result_formatters() const;
 
-      fc::signal<void(bool)> lock_changed;
+      boost::signals2::signal<void(bool)> lock_changed;
       std::shared_ptr<detail::wallet_api_impl> my;
       void encrypt_keys();
 

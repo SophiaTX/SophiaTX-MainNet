@@ -5,7 +5,7 @@
 #include <sophiatx/plugins/database_api/database_api.hpp>
 #include <sophiatx/plugins/database_api/database_api_plugin.hpp>
 
-#include <sophiatx/protocol/get_config.hpp>
+#include <sophiatx/chain/get_config.hpp>
 #include <sophiatx/protocol/exceptions.hpp>
 #include <sophiatx/protocol/transaction_util.hpp>
 
@@ -102,7 +102,7 @@ database_api_impl::~database_api_impl() {}
 
 DEFINE_API_IMPL( database_api_impl, get_config )
 {
-   return sophiatx::protocol::get_config();
+   return chain::sophiatx_config::get_config();
 }
 
 DEFINE_API_IMPL( database_api_impl, get_dynamic_global_properties )
@@ -748,29 +748,14 @@ DEFINE_API_IMPL( database_api_impl, verify_signatures )
 
 DEFINE_API_IMPL( database_api_impl, get_promotion_pool_balance )
 {
-   return asset(_db->get_economic_model().get_available_promotion_pool(_db->head_block_num()), SOPHIATX_SYMBOL);
+   return asset(_db->get_economic_model().get_available_promotion_pool(_db->head_block_num()), chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 }
 
 
 DEFINE_API_IMPL( database_api_impl, get_burned_balance )
 {
-   return asset(_db->get_economic_model().burn_pool, SOPHIATX_SYMBOL);
+   return asset(_db->get_economic_model().burn_pool, chain::sophiatx_config::get<protocol::asset_symbol_type>("SOPHIATX_SYMBOL"));
 }
-
-#ifdef SOPHIATX_ENABLE_SMT
-//////////////////////////////////////////////////////////////////////
-//                                                                  //
-// SMT                                                              //
-//                                                                  //
-//////////////////////////////////////////////////////////////////////
-
-DEFINE_API_IMPL( database_api_impl, get_smt_next_identifier )
-{
-   get_smt_next_identifier_return result;
-   result.nais = _db->get_smt_next_identifier();
-   return result;
-}
-#endif
 
 DEFINE_LOCKLESS_APIS( database_api, (get_config) )
 

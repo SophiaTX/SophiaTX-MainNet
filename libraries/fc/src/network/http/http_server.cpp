@@ -17,7 +17,7 @@ namespace fc { namespace http {
       {}
 
       void send_header() {
-         fc::stringstream ss;
+         std::stringstream ss;
          ss << "HTTP/1.1 " << rep.status << " ";
          switch( rep.status ) {
             case fc::http::reply::OK: ss << "OK\r\n"; break;
@@ -175,7 +175,7 @@ namespace fc { namespace http {
   server::response& server::response::operator=(const server::response& s) { my = s.my; return *this; }
   server::response& server::response::operator=(server::response&& s)      { std::swap(my,s.my); return *this; }
 
-  void server::response::add_header( const fc::string& key, const fc::string& val )const {
+  void server::response::add_header( const std::string& key, const std::string& val )const {
      my->rep.headers.push_back( fc::http::header( key, val ) );
   }
   void server::response::set_status( const http::reply::status_code& s )const {

@@ -1,0 +1,16 @@
+[Unit]
+Description=SophiaTX Blockchain Service
+Documentation=https://developers.sophiatx.com/
+Requires=syslog.socket
+
+[Service]
+EnvironmentFile=-/etc/default/sophiatx
+Type=simple
+User=sophiatx
+Group=sophiatx
+ExecStart=/usr/bin/sophiatxd --config /etc/sophiatx/config.ini --data-dir /var/lib/sophiatx $SOPHIATX_OPTS
+StandardOutput=journal
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

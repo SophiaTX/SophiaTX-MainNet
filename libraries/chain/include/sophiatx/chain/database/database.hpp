@@ -36,8 +36,7 @@ public:
     *
     * @param data_dir Path to open or create database in
     */
-   void open(const open_args &args, const genesis_state_type &genesis,
-             const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
+   void open(const open_args &args, const genesis_state_type &genesis);
 
    /**
     * @brief Rebuild object graph from block history and open detabase
@@ -47,8 +46,7 @@ public:
     *
     * @return the last replayed block number.
     */
-   uint32_t reindex(const open_args &args, const genesis_state_type &genesis,
-                    const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */  );
+   uint32_t reindex(const open_args &args, const genesis_state_type &genesis);
 
    void close(bool rewind = true);
 
@@ -262,8 +260,7 @@ public:
    /// Reset the object graph in-memory
    void initialize_indexes();
 
-   void init_genesis(genesis_state_type genesis, chain_id_type chain_id,
-                     const public_key_type &init_pubkey /*TODO: delete when initminer pubkey is read from get_config */ );
+   void init_genesis(genesis_state_type genesis, chain_id_type chain_id);
 
    /**
     *  This method validates transactions without adding it to the pending state.
@@ -294,7 +291,7 @@ protected:
    void notify_changed_objects();
 
 private:
-   optional<chainbase::database::session> _pending_tx_session;
+   std::optional<chainbase::database::session> _pending_tx_session;
 
    void apply_block(const signed_block &next_block, uint32_t skip = skip_nothing);
 
@@ -305,6 +302,25 @@ private:
    void _apply_transaction(const signed_transaction &trx);
 
    void apply_operation(const operation &op);
+
+   /**
+    * @brief Process transaction operations
+    *
+    * @param trx
+    */
+   void process_operations(const signed_transaction& trx);
+
+   /**
+    * @brief Updates accounts bandwidth
+    * @throws tx_exceeded_bandwidth if at least one of the following conditions is met:
+    *           1. max allowed fee-free operations bandwidth for provided account was exceeded
+    *           2. max allowed fee-free operations count for provided account was exceeded
+    *
+    * @param accounts
+    * @param fee_free_ops_bandwidth
+    * @param fee_free_ops_count
+    */
+   void update_accounts_bandwidth(const flat_set< account_name_type >& accounts, const uint64_t fee_free_ops_bandwidth, const uint64_t fee_free_ops_count);
 
    ///Steps involved in applying a new block
    ///@{

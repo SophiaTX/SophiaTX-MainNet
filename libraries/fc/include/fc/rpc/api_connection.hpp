@@ -1,14 +1,14 @@
 #pragma once
 #include <fc/variant.hpp>
-#include <fc/optional.hpp>
+#include <optional>
 #include <fc/api.hpp>
-#include <boost/any.hpp>
+#include <any>
 #include <memory>
 #include <vector>
 #include <functional>
 #include <utility>
-#include <fc/signals.hpp>
 
+#include <boost/signals2/signal.hpp>
 
 namespace fc {
    class api_connection;
@@ -103,7 +103,7 @@ namespace fc {
 
          generic_api( const generic_api& cpy ) = delete;
 
-         variant call( const string& name, const variants& args )
+         variant call( const std::string& name, const variants& args )
          {
             auto itr = _by_name.find(name);
             FC_ASSERT( itr != _by_name.end(), "no method with name '${name}'", ("name",name)("api",_by_name) );
@@ -193,7 +193,7 @@ namespace fc {
             std::function<variant(const fc::variants&)> to_generic( const std::function<api<Interface,Adaptor>(Args...)>& f )const;
 
             template<typename Interface, typename Adaptor, typename ... Args>
-            std::function<variant(const fc::variants&)> to_generic( const std::function<fc::optional<api<Interface,Adaptor>>(Args...)>& f )const;
+            std::function<variant(const fc::variants&)> to_generic( const std::function<std::optional<api<Interface,Adaptor>>(Args...)>& f )const;
 
             template<typename ... Args>
             std::function<variant(const fc::variants&)> to_generic( const std::function<fc::api_ptr(Args...)>& f )const;
@@ -216,7 +216,7 @@ namespace fc {
 
 
          std::weak_ptr<fc::api_connection>                       _api_connection;
-         boost::any                                                 _api;
+         std::any                                                 _api;
          std::map< std::string, uint32_t >                       _by_name;
          std::vector< std::function<variant(const variants&)> >  _methods;
    }; // class generic_api
@@ -231,7 +231,7 @@ namespace fc {
 
 
          template<typename T>
-         api<T> get_remote_api( api_id_type api_id = 0, string api_name = "", bool api_calls_args_as_object = false)
+         api<T> get_remote_api( api_id_type api_id = 0, std::string api_name = "", bool api_calls_args_as_object = false)
          {
             api<T> result;
             if( api_name.size() )
@@ -242,12 +242,12 @@ namespace fc {
          }
 
          /** makes calls to the remote server */
-         virtual variant send_call( api_id_type api_id, string method_name, bool args_as_object, variants args = variants() ) = 0;
-         virtual variant send_call( string api_name, string method_name, bool args_as_object, variants args = variants() ) = 0;
+         virtual variant send_call( api_id_type api_id, std::string method_name, bool args_as_object, variants args = variants() ) = 0;
+         virtual variant send_call( std::string api_name, std::string method_name, bool args_as_object, variants args = variants() ) = 0;
          virtual variant send_callback( uint64_t callback_id, variants args = variants() ) = 0;
          virtual void    send_notice( uint64_t callback_id, variants args = variants() ) = 0;
 
-         variant receive_call( api_id_type api_id, const string& method_name, const variants& args = variants() )const
+         variant receive_call( api_id_type api_id, const std::string& method_name, const variants& args = variants() )const
          {
             FC_ASSERT( _local_apis.size() > api_id );
             return _local_apis[api_id]->call( method_name, args );
@@ -284,7 +284,7 @@ namespace fc {
 
          std::vector<std::string> get_method_names( api_id_type local_api_id = 0 )const { return _local_apis[local_api_id]->get_method_names(); }
 
-         fc::signal<void()> closed;
+         boost::signals2::signal<void()> closed;
       private:
          std::vector< std::unique_ptr<generic_api> >             _local_apis;
          std::map< uint64_t, api_id_type >                       _handle_to_id;
@@ -294,7 +294,7 @@ namespace fc {
          struct api_visitor
          {
             uint32_t                            _api_id;
-            optional< string >                  _api_name;
+            std::optional< std::string >             _api_name;
             bool                                _api_calls_args_object;
             std::shared_ptr<fc::api_connection> _connection;
 
@@ -303,7 +303,7 @@ namespace fc {
             {
             }
 
-            api_visitor( uint32_t api_id, string& api_name, bool args_as_object, std::shared_ptr<fc::api_connection> con )
+            api_visitor( uint32_t api_id, std::string& api_name, bool args_as_object, std::shared_ptr<fc::api_connection> con )
             : _api_id(api_id), _api_name(api_name), _api_calls_args_object(args_as_object), _connection(std::move(con)) {}
 
             api_visitor() = delete;
@@ -383,12 +383,12 @@ namespace fc {
    {
       public:
          /** makes calls to the remote server */
-         virtual variant send_call( api_id_type api_id, string method_name, bool args_as_object, variants args = variants() ) override
+         virtual variant send_call( api_id_type api_id, std::string method_name, bool args_as_object, variants args = variants() ) override
          {
             FC_ASSERT( _remote_connection );
             return _remote_connection->receive_call( api_id, method_name, std::move(args) );
          }
-         virtual variant send_call( string api_name, string method_name, bool args_as_object, variants args = variants() ) override
+         virtual variant send_call( std::string api_name, std::string method_name, bool args_as_object, variants args = variants() ) override
          {
             FC_ASSERT( false, "local call by name not supported" );
             return variant();
@@ -420,7 +420,7 @@ namespace fc {
    generic_api::generic_api( const Api& a, const std::shared_ptr<fc::api_connection>& c )
    :_api_connection(c),_api(a)
    {
-      boost::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
+      std::any_cast<const Api&>(a)->visit( api_visitor( *this, c ) );
    }
 
    template<typename Interface, typename Adaptor, typename ... Args>
@@ -439,7 +439,7 @@ namespace fc {
    }
    template<typename Interface, typename Adaptor, typename ... Args>
    std::function<variant(const fc::variants&)> generic_api::api_visitor::to_generic(
-                                               const std::function<fc::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
+                                               const std::function<std::optional<fc::api<Interface,Adaptor>>(Args...)>& f )const
    {
       auto api_con = _api_con;
       auto gapi = &_api;

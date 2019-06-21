@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <fc/network/http/websocket.hpp>
+#include <fc/thread/thread.hpp>
 
 #include <iostream>
 

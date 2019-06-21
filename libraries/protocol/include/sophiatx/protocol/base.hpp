@@ -4,6 +4,7 @@
 #include <sophiatx/protocol/authority.hpp>
 #include <sophiatx/protocol/version.hpp>
 #include <sophiatx/protocol/config.hpp>
+#include <sophiatx/protocol/protocol_config.hpp>
 
 #include <fc/time.hpp>
 
@@ -19,16 +20,16 @@ namespace sophiatx { namespace protocol {
       virtual bool has_special_fee()const{return false;};
       virtual asset get_required_fee(asset_symbol_type in_symbol)const{
          if(in_symbol == SBD1_SYMBOL )//USD
-            return BASE_FEE_SBD1;
+            return protocol_config::get<asset>("BASE_FEE_SBD1");
          if(in_symbol == SBD2_SYMBOL )//EUR
-            return BASE_FEE_SBD2;
+            return protocol_config::get<asset>("BASE_FEE_SBD2");
          if(in_symbol == SBD3_SYMBOL ) //CHF
-            return BASE_FEE_SBD3;
+            return protocol_config::get<asset>("BASE_FEE_SBD3");
          if(in_symbol == SBD4_SYMBOL ) //CNY
-            return BASE_FEE_SBD4;
+            return protocol_config::get<asset>("BASE_FEE_SBD4");
          if(in_symbol == SBD5_SYMBOL ) //GBP
-            return BASE_FEE_SBD5;
-         return BASE_FEE;
+            return protocol_config::get<asset>("BASE_FEE_SBD5");
+         return protocol_config::get<asset>("BASE_FEE");
       };
 
       virtual bool is_virtual()const { return false; }

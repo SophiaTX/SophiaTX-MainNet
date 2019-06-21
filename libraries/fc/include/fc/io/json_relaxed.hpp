@@ -10,8 +10,8 @@
 #include <fc/io/fstream.hpp>
 #include <fc/io/sstream.hpp>
 #include <fc/log/logger.hpp>
-#include <fc/string.hpp>
-//#include <utfcpp/utf8.h>
+
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,9 +24,9 @@ namespace fc { namespace json_relaxed
    variant variant_from_stream( T& in );
 
    template<typename T>
-   fc::string tokenFromStream( T& in )
+   std::string tokenFromStream( T& in )
    {
-      fc::stringstream token;
+      std::stringstream token;
       try
       {
          char c = in.peek();
@@ -81,9 +81,9 @@ namespace fc { namespace json_relaxed
    }
 
    template<typename T, bool strict, bool allow_escape>
-   fc::string quoteStringFromStream( T& in )
+   std::string quoteStringFromStream( T& in )
    {
-       fc::stringstream token;
+       std::stringstream token;
        try
        {
            char q = in.get();
@@ -105,7 +105,7 @@ namespace fc { namespace json_relaxed
            {
                in.get();
                if( in.peek() != q )
-                   return fc::string();
+                   return std::string();
 
                // triple quote processing
                if( strict )
@@ -179,7 +179,7 @@ namespace fc { namespace json_relaxed
    }
 
    template<typename T, bool strict>
-   fc::string stringFromStream( T& in )
+   std::string stringFromStream( T& in )
    {
       try
       {
@@ -285,7 +285,7 @@ namespace fc { namespace json_relaxed
    };
    
    template<uint8_t base>
-   fc::variant parseInt( const fc::string& token, size_t start )
+   fc::variant parseInt( const std::string& token, size_t start )
    {
        static const CharValueTable ctbl;
        static const uint64_t INT64_MAX_PLUS_ONE = static_cast<uint64_t>(INT64_MAX) + 1;
@@ -302,7 +302,7 @@ namespace fc { namespace json_relaxed
            char c = token[i];
            uint8_t vc = ctbl[c];
            if( vc == 0xFF )
-               FC_THROW_EXCEPTION( parse_error_exception, "illegal character {c} in integer of base {b}", ("c", c)("b", base) );
+               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in integer of base '${b}'", ("c", c)("b", base) );
            if( val > maxb4mul )
                FC_THROW_EXCEPTION( parse_error_exception, "integer literal overflow" );
            val *= base;
@@ -327,7 +327,7 @@ namespace fc { namespace json_relaxed
    }
 
    template<bool strict, uint8_t base>
-   fc::variant maybeParseInt( const fc::string& token, size_t start )
+   fc::variant maybeParseInt( const std::string& token, size_t start )
    {
        try
        {
@@ -343,7 +343,7 @@ namespace fc { namespace json_relaxed
    }
 
    template<bool strict>
-   fc::variant parseNumberOrStr( const fc::string& token )
+   fc::variant parseNumberOrStr( const std::string& token )
    { try {
        //ilog( (token) ); 
        size_t i = 0, n = token.length();
@@ -395,7 +395,7 @@ namespace fc { namespace json_relaxed
                    default:
                        // since this is a lookahead, other cases will be treated later
                        if( strict )
-                           FC_THROW_EXCEPTION( parse_error_exception, "expected '.'|'e'|'E' parsing number, got '{c}'",
+                           FC_THROW_EXCEPTION( parse_error_exception, "expected '.'|'e'|'E' parsing number, got '${c}'",
                                ( "c", c ) );
                }
                break;
@@ -412,10 +412,10 @@ namespace fc { namespace json_relaxed
            case 'Y': case 'Z':
            case '_': case '-': case '.': case '+': case '/':
                if( strict )
-                   FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' parsing number", ( "c", c ) );
+                   FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' parsing number", ( "c", c ) );
                return fc::variant( token );
            default:
-               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' in token", ( "c", c ) );
+               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in token", ( "c", c ) );
        }
        size_t start = i-1;
 
@@ -442,7 +442,7 @@ namespace fc { namespace json_relaxed
                        {
                            if( strict )
                                FC_THROW_EXCEPTION( parse_error_exception, "number cannot end with '.' in strict mode" );
-                           return fc::variant( fc::to_double(token.c_str()) );
+                           return fc::variant( std::stod(token.c_str()) );
                        }
 
                        //idump((i));
@@ -471,7 +471,7 @@ namespace fc { namespace json_relaxed
                                    FC_THROW_EXCEPTION( parse_error_exception, "expected digit after '.'" );
                                return fc::variant( token );
                            default:
-                               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' in token", ( "c", c )("i",int(c)) );
+                               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in token", ( "c", c ) );
                        }
                    }
                    else
@@ -513,10 +513,10 @@ namespace fc { namespace json_relaxed
                        case 'Y': case 'Z':
                        case '_':           case '.':           case '/':
                            if( strict )
-                               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' in number", ( "c", c ) );
+                               FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in number", ( "c", c ) );
                            return fc::variant( token );
                        default:
-                           FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' in token", ( "c", c ) );
+                           FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in token", ( "c", c ) );
                    }
                    while( true )
                    {
@@ -538,11 +538,11 @@ namespace fc { namespace json_relaxed
                            case 'Y': case 'Z':
                            case '_': case '-': case '.': case '+': case '/':
                                if( strict )
-                                   FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' in number", ( "c", c ) );
+                                   FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in number", ( "c", c ) );
                                return fc::variant( token );
                        }
                    }
-                   return fc::variant( fc::to_double(token.c_str()) );
+                   return fc::variant( std::stod(token.c_str()) );
                case 'a': case 'b': case 'c': case 'd':           case 'f': case 'g': case 'h':
                case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p':
                case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x':
@@ -553,10 +553,10 @@ namespace fc { namespace json_relaxed
                case 'Y': case 'Z':
                case '_': case '-':           case '+': case '/':
                    if( strict )
-                       FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' parsing number", ( "c", c ) );
+                       FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' parsing number", ( "c", c ) );
                    return fc::variant( token );
                default:
-                   FC_THROW_EXCEPTION( parse_error_exception, "illegal character '{c}' in number", ( "c", c ) );
+                   FC_THROW_EXCEPTION( parse_error_exception, "illegal character '${c}' in number", ( "c", c ) );
            }
        }
    } FC_CAPTURE_AND_RETHROW( (token) ) }
@@ -571,7 +571,7 @@ namespace fc { namespace json_relaxed
          if( c != '{' )
             FC_THROW_EXCEPTION( parse_error_exception,
                                      "Expected '{', but read '${char}'",
-                                     ("char",string(&c, &c + 1)) );
+                                     ("char",std::string(&c, &c + 1)) );
          in.get();
          skip_white_space(in);
          while( in.peek() != '}' )
@@ -582,7 +582,7 @@ namespace fc { namespace json_relaxed
                continue;
             }
             if( skip_white_space(in) ) continue;
-            string key = json_relaxed::stringFromStream<T, strict>( in );
+            std::string key = json_relaxed::stringFromStream<T, strict>( in );
             skip_white_space(in);
             if( in.peek() != ':' )
             {
@@ -647,7 +647,7 @@ namespace fc { namespace json_relaxed
    template<typename T, bool strict>
    variant numberFromStream( T& in )
    { try {
-       fc::string token = tokenFromStream(in);
+       std::string token = tokenFromStream(in);
        variant result = json_relaxed::parseNumberOrStr<strict>( token );
        if( strict && !(result.is_int64() || result.is_uint64() || result.is_double()) )
            FC_THROW_EXCEPTION( parse_error_exception, "expected: number" );
@@ -657,7 +657,7 @@ namespace fc { namespace json_relaxed
    template<typename T, bool strict>
    variant wordFromStream( T& in )
    {
-       fc::string token = tokenFromStream(in);
+       std::string token = tokenFromStream(in);
        
        FC_ASSERT( token.length() > 0 );
 
